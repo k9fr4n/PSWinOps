@@ -283,17 +283,19 @@ Describe 'Get-NTPConfiguration' {
     # ---------------------------------------------------------------
     # Context 5 : Error - unexpected w32tm failure
     # ---------------------------------------------------------------
-    Context 'Error handling - unexpected w32tm failure' {
-
+    Context 'Error handling - w32time service absent' {
         BeforeEach {
             Mock Get-Service {
-                [PSCustomObject]@{ Name = 'w32time'; Status = 'Running' }
+                throw "Cannot find any service with service name 'w32time'."
             } -ParameterFilter { $Name -eq 'w32time' }
-            Mock w32tm { throw 'Simulated w32tm failure' }
         }
 
-        It 'Should propagate unexpected w32tm errors' {
+        It 'Should throw when service is not found' {
             { Get-NTPConfiguration } | Should -Throw
+        }
+
+        It 'Should throw an error mentioning w32time' -Skip:(-not $IsWindows) {
+            { Get-NTPConfiguration } | Should -Throw -ExpectedMessage '*w32time*'
         }
     }
 }
