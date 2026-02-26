@@ -13,6 +13,10 @@ on:
 jobs:
   validate:
     runs-on: windows-latest
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
 
     steps:
       # ─────────────────────────────────────────
