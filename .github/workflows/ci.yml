@@ -76,8 +76,13 @@ jobs:
           $config.Output.Verbosity = 'Detailed'
           $config.TestResult.Enabled = $true
           $config.TestResult.OutputPath = 'TestResults.xml'
+          $config.TestResult.OutputFormat = 'NUnitXml'
           $config.CodeCoverage.Enabled = $true
-          $config.CodeCoverage.Path = @('.\*.psm1', '.\Public\*.ps1', '.\Private\*.ps1')
+          $config.CodeCoverage.Path = @(
+              '.\PSWinOps.psm1',
+              '.\Public\*.ps1',
+              '.\Private\*.ps1'
+          )
           $config.CodeCoverage.OutputPath = 'coverage.xml'
 
           $result = Invoke-Pester -Configuration $config
@@ -85,7 +90,7 @@ jobs:
           Write-Output "[INFO] Tests completed: $($result.PassedCount) passed, $($result.FailedCount) failed"
 
           if ($result.FailedCount -gt 0) {
-            throw "[FAIL] $($result.FailedCount) test(s) failed"
+              throw "[FAIL] $($result.FailedCount) test(s) failed"
           }
 
           Write-Output "[OK] All tests passed"
