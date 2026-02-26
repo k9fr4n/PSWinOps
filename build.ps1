@@ -207,7 +207,7 @@ function Write-BuildFailure {
 # BUILD DEPENDENCY MANAGEMENT
 # =========================================================================
 
-function Install-BuildDependencies {
+function Install-BuildDependency {
     <#
 .SYNOPSIS
     Verifies and installs required build tool modules
@@ -219,7 +219,7 @@ function Install-BuildDependencies {
     environment has all necessary tools before executing build tasks.
 
 .EXAMPLE
-    Install-BuildDependencies
+    Install-BuildDependency
 
     Checks for and installs Pester and PSScriptAnalyzer if not present.
 
@@ -350,7 +350,7 @@ function Invoke-CodeAnalysis {
 # TASK: UNIT TESTS
 # =========================================================================
 
-function Invoke-UnitTests {
+function Invoke-UnitTest {
     <#
 .SYNOPSIS
     Executes Pester unit tests with code coverage analysis
@@ -362,7 +362,7 @@ function Invoke-UnitTests {
     halting the build process.
 
 .EXAMPLE
-    Invoke-UnitTests
+    Invoke-UnitTest
 
     Executes all tests in the Tests directory with coverage reporting.
 
@@ -602,14 +602,14 @@ try {
     Write-Information -MessageData '=== PSWinOps Build Script ===' -InformationAction Continue
     Write-Information -MessageData "Task: $Task | Version Bump: $BumpVersion" -InformationAction Continue
 
-    Install-BuildDependencies
+    Install-BuildDependency
 
     switch ($Task) {
         'Analyze' {
             Invoke-CodeAnalysis
         }
         'Test' {
-            Invoke-UnitTests
+            Invoke-UnitTest
         }
         'Build' {
             Invoke-ModuleBuild
@@ -619,7 +619,7 @@ try {
         }
         'All' {
             Invoke-CodeAnalysis
-            Invoke-UnitTests
+            Invoke-UnitTest
             Invoke-ModuleBuild
             Invoke-PackageCreation
         }
