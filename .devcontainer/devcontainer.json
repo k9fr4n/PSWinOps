@@ -1,0 +1,293 @@
+{
+  "name": "PowerShell Development Environment",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": "..",
+    "args": {
+      "VARIANT": "7.4-ubuntu-22.04"
+    }
+  },
+
+  // Configuration de l'environnement
+  "customizations": {
+    "vscode": {
+      // Extensions essentielles pour PowerShell
+      "extensions": [
+        // ═══════════════════════════════════════════════════════
+        // PowerShell Core
+        // ═══════════════════════════════════════════════════════
+        "ms-vscode.powershell",
+
+        // ═══════════════════════════════════════════════════════
+        // Code Quality & Linting
+        // ═══════════════════════════════════════════════════════
+        "ms-vscode.powershell-preview",
+        "streetsidesoftware.code-spell-checker",
+
+        // ═══════════════════════════════════════════════════════
+        // Git & Version Control
+        // ═══════════════════════════════════════════════════════
+        "eamodio.gitlens",
+        "mhutchie.git-graph",
+        "github.vscode-pull-request-github",
+
+        // ═══════════════════════════════════════════════════════
+        // Testing & Debugging
+        // ═══════════════════════════════════════════════════════
+        "pspester.pester-test",
+
+        // ═══════════════════════════════════════════════════════
+        // Productivity & Formatting
+        // ═══════════════════════════════════════════════════════
+        "editorconfig.editorconfig",
+        "aaron-bond.better-comments",
+        "gruntfuggly.todo-tree",
+        "usernamehw.errorlens",
+        "christian-kohler.path-intellisense",
+
+        // ═══════════════════════════════════════════════════════
+        // Documentation & Markdown
+        // ═══════════════════════════════════════════════════════
+        "yzhang.markdown-all-in-one",
+        "davidanson.vscode-markdownlint",
+        "bierner.markdown-preview-github-styles",
+
+        // ═══════════════════════════════════════════════════════
+        // YAML & JSON (pour CI/CD)
+        // ═══════════════════════════════════════════════════════
+        "redhat.vscode-yaml",
+        "tamasfe.even-better-toml",
+
+        // ═══════════════════════════════════════════════════════
+        // Remote Development
+        // ═══════════════════════════════════════════════════════
+        "ms-vscode-remote.remote-containers"
+      ],
+
+      // Settings VS Code optimisés pour PowerShell
+      "settings": {
+        // ═══════════════════════════════════════════════════════
+        // PowerShell Configuration
+        // ═══════════════════════════════════════════════════════
+        "powershell.codeFormatting.preset": "OTBS",
+        "powershell.codeFormatting.autoCorrectAliases": true,
+        "powershell.codeFormatting.avoidSemicolonsAsLineTerminators": true,
+        "powershell.codeFormatting.trimWhitespaceAroundPipe": true,
+        "powershell.codeFormatting.useConstantStrings": true,
+        "powershell.codeFormatting.useCorrectCasing": true,
+        "powershell.codeFormatting.whitespaceBetweenParameters": true,
+        "powershell.codeFormatting.whitespaceAroundOperator": true,
+        "powershell.codeFormatting.whitespaceAfterSeparator": true,
+        "powershell.codeFormatting.whitespaceInsideBrace": true,
+        "powershell.codeFormatting.ignoreOneLineBlock": false,
+        "powershell.codeFormatting.alignPropertyValuePairs": true,
+        "powershell.codeFormatting.pipelineIndentationStyle": "IncreaseIndentationForFirstPipeline",
+
+        // PSScriptAnalyzer Integration
+        "powershell.scriptAnalysis.enable": true,
+        "powershell.scriptAnalysis.settingsPath": ".vscode/PSScriptAnalyzerSettings.psd1",
+
+        // IntelliSense & Autocomplete
+        "powershell.integratedConsole.showOnStartup": false,
+        "powershell.integratedConsole.focusConsoleOnExecute": false,
+        "powershell.powerShellDefaultVersion": "PowerShell (x64)",
+
+        // Pester Integration
+        "pester.testFilesPattern": "**/*.Tests.ps1",
+        "pester.outputVerbosity": "Detailed",
+        "pester.useLegacyCodeLens": false,
+
+        // ═══════════════════════════════════════════════════════
+        // Editor Configuration
+        // ═══════════════════════════════════════════════════════
+        "editor.formatOnSave": true,
+        "editor.formatOnPaste": false,
+        "editor.tabSize": 4,
+        "editor.insertSpaces": true,
+        "editor.detectIndentation": false,
+        "editor.trimAutoWhitespace": true,
+        "editor.rulers": [120],
+        "editor.wordWrap": "off",
+        "editor.renderWhitespace": "boundary",
+        "editor.bracketPairColorization.enabled": true,
+        "editor.guides.bracketPairs": true,
+        "editor.codeLens": true,
+        "editor.inlineSuggest.enabled": true,
+
+        // ═══════════════════════════════════════════════════════
+        // Files Configuration
+        // ═══════════════════════════════════════════════════════
+        "files.encoding": "utf8bom",
+        "files.eol": "\r\n",
+        "files.trimTrailingWhitespace": true,
+        "files.insertFinalNewline": true,
+        "files.trimFinalNewlines": true,
+        "files.exclude": {
+          "**/.git": true,
+          "**/.DS_Store": true,
+          "**/node_modules": true,
+          "**/*.pyc": true,
+          "**/__pycache__": true,
+          "**/.pytest_cache": true,
+          "**/TestResults": true
+        },
+
+        // File Associations
+        "files.associations": {
+          "*.ps1": "powershell",
+          "*.psm1": "powershell",
+          "*.psd1": "powershell",
+          "*.ps1xml": "xml",
+          ".gitlab-ci.yml": "yaml"
+        },
+
+        // ═══════════════════════════════════════════════════════
+        // Terminal Configuration
+        // ═══════════════════════════════════════════════════════
+        "terminal.integrated.defaultProfile.linux": "pwsh",
+        "terminal.integrated.profiles.linux": {
+          "pwsh": {
+            "path": "/usr/bin/pwsh",
+            "icon": "terminal-powershell"
+          }
+        },
+
+        // ═══════════════════════════════════════════════════════
+        // Git Configuration
+        // ═══════════════════════════════════════════════════════
+        "git.autofetch": true,
+        "git.confirmSync": false,
+        "git.enableSmartCommit": true,
+        "gitlens.codeLens.enabled": true,
+
+        // ═══════════════════════════════════════════════════════
+        // Error Lens (affiche erreurs inline)
+        // ═══════════════════════════════════════════════════════
+        "errorLens.enabled": true,
+        "errorLens.enabledDiagnosticLevels": ["error", "warning"],
+
+        // ═══════════════════════════════════════════════════════
+        // Better Comments (coloration commentaires)
+        // ═══════════════════════════════════════════════════════
+        "better-comments.tags": [
+          {
+            "tag": "!",
+            "color": "#FF2D00",
+            "strikethrough": false,
+            "underline": false,
+            "backgroundColor": "transparent",
+            "bold": false,
+            "italic": false
+          },
+          {
+            "tag": "?",
+            "color": "#3498DB",
+            "strikethrough": false,
+            "underline": false,
+            "backgroundColor": "transparent",
+            "bold": false,
+            "italic": false
+          },
+          {
+            "tag": "//",
+            "color": "#474747",
+            "strikethrough": true,
+            "underline": false,
+            "backgroundColor": "transparent",
+            "bold": false,
+            "italic": false
+          },
+          {
+            "tag": "TODO:",
+            "color": "#FF8C00",
+            "strikethrough": false,
+            "underline": false,
+            "backgroundColor": "transparent",
+            "bold": false,
+            "italic": false
+          },
+          {
+            "tag": "FIXME:",
+            "color": "#FF2D00",
+            "strikethrough": false,
+            "underline": false,
+            "backgroundColor": "transparent",
+            "bold": true,
+            "italic": false
+          },
+          {
+            "tag": "NOTE:",
+            "color": "#3498DB",
+            "strikethrough": false,
+            "underline": false,
+            "backgroundColor": "transparent",
+            "bold": false,
+            "italic": false
+          }
+        ],
+
+        // ═══════════════════════════════════════════════════════
+        // Todo Tree
+        // ═══════════════════════════════════════════════════════
+        "todo-tree.general.tags": [
+          "TODO",
+          "FIXME",
+          "NOTE",
+          "BUG",
+          "HACK",
+          "XXX"
+        ],
+        "todo-tree.highlights.defaultHighlight": {
+          "icon": "alert",
+          "type": "text",
+          "foreground": "#FFFFFF",
+          "background": "#FF8C00",
+          "opacity": 50
+        }
+      }
+    }
+  },
+
+  // ═══════════════════════════════════════════════════════════
+  // Container Features
+  // ═══════════════════════════════════════════════════════════
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "installOhMyZsh": true,
+      "upgradePackages": true,
+      "username": "vscode",
+      "uid": "1000",
+      "gid": "1000"
+    },
+    "ghcr.io/devcontainers/features/git:1": {
+      "version": "latest",
+      "ppa": true
+    },
+    "ghcr.io/devcontainers/features/github-cli:1": {
+      "version": "latest"
+    }
+  },
+
+  // ═══════════════════════════════════════════════════════════
+  // Post-Create Command
+  // ═══════════════════════════════════════════════════════════
+  "postCreateCommand": "bash .devcontainer/postCreateCommand.sh",
+
+  // ═══════════════════════════════════════════════════════════
+  // Container Configuration
+  // ═══════════════════════════════════════════════════════════
+  "remoteUser": "vscode",
+  "containerEnv": {
+    "TZ": "Europe/Paris"
+  },
+
+  // Ports exposés (exemple pour API/web)
+  "forwardPorts": [8080, 5000],
+
+  // Montage volumes pour persistence
+  "mounts": [
+    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,target=/home/vscode/.ssh,readonly,type=bind,consistency=cached",
+    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.gitconfig,target=/home/vscode/.gitconfig,readonly,type=bind,consistency=cached"
+  ]
+}

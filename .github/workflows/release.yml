@@ -1,0 +1,112 @@
+name: Publish PSWinOps to PSGallery
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  publish:
+    runs-on: windows-latest
+
+    steps:
+      # ─────────────────────────────────────────
+      # 1. CHECKOUT
+      # ─────────────────────────────────────────
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ─────────────────────────────────────────
+      # 2. EXTRACT VERSION FROM TAG
+      # ─────────────────────────────────────────
+      - name: Extract version from tag
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}"
+          $version = $tag.TrimStart('v')
+          Write-Host "Publishing version: $version"
+          echo "MODULE_VERSION=$version" >> $env:GITHUB_ENV
+
+      # ─────────────────────────────────────────
+      # 3. CHECK VERSION CONSISTENCY
+      #    Vérifie que le tag == ModuleVersion dans le psd1
+      # ─────────────────────────────────────────
+      - name: Check version consistency
+        shell: pwsh
+        run: |
+          $manifest = Import-PowerShellDataFile -Path .\PSWinOps\PSWinOps.psd1
+          $manifestVersion = $manifest.ModuleVersion
+          $tagVersion = "${{ env.MODULE_VERSION }}"
+          if ($manifestVersion -ne $tagVersion) {
+            throw "Version mismatch: tag=$tagVersion but psd1=$manifestVersion"
+          }
+          Write-Host "Version OK: $manifestVersion"
+
+      # ─────────────────────────────────────────
+      # 4. LINTER — PSScriptAnalyzer
+      # ─────────────────────────────────────────
+      - name: Lint with PSScriptAnalyzer
+        shell: pwsh
+        run: |
+          Install-Module -Name PSScriptAnalyzer -Force -SkipPublisherCheck
+          $results = Invoke-ScriptAnalyzer -Path .\PSWinOps -Recurse -Severity Error, Warning
+          if ($results) {
+            $results | Format-Table -AutoSize
+            throw "PSScriptAnalyzer found $($results.Count) issue(s)"
+          }
+          Write-Host "Linting passed ✅"
+
+      # ─────────────────────────────────────────
+      # 5. TESTS — Pester
+      # ─────────────────────────────────────────
+      - name: Run Pester Tests
+        shell: pwsh
+        run: |
+          Install-Module -Name Pester -MinimumVersion 5.0 -Force -SkipPublisherCheck
+          $config = New-PesterConfiguration
+          $config.Run.Path = '.\Tests'
+          $config.Output.Verbosity = 'Detailed'
+          $config.TestResult.Enabled = $true
+          $config.TestResult.OutputPath = 'TestResults.xml'
+          $result = Invoke-Pester -Configuration $config
+          if ($result.FailedCount -gt 0) {
+            throw "$($result.FailedCount) test(s) failed"
+          }
+
+      - name: Publish Test Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: TestResults.xml
+
+      # ─────────────────────────────────────────
+      # 6. VALIDATION — Test-ModuleManifest
+      # ─────────────────────────────────────────
+      - name: Validate Module Manifest
+        shell: pwsh
+        run: |
+          $result = Test-ModuleManifest -Path .\PSWinOps\PSWinOps.psd1
+          Write-Host "Module : $($result.Name)"
+          Write-Host "Version: $($result.Version)"
+          Write-Host "Author : $($result.Author)"
+
+      # ─────────────────────────────────────────
+      # 7. PUBLICATION — PSGallery
+      # ─────────────────────────────────────────
+      - name: Publish to PSGallery
+        shell: pwsh
+        env:
+          PSGALLERY_API_KEY: ${{ secrets.PSGALLERY_API_KEY }}
+        run: |
+          Publish-Module -Path .\PSWinOps -NuGetApiKey $env:PSGALLERY_API_KEY -Repository PSGallery -Verbose
+
+      # ─────────────────────────────────────────
+      # 8. GITHUB RELEASE — création automatique
+      # ─────────────────────────────────────────
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: "PSWinOps ${{ github.ref_name }}"
+          generate_release_notes: true   # génère les notes depuis les commits

@@ -1,0 +1,35 @@
+# PowerShell
+*.ps1.bak
+*.psm1.bak
+*.psd1.bak
+
+# Test Results
+TestResults/
+*.trx
+*.coverage.xml
+
+# Build Output
+bin/
+obj/
+out/
+publish/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Secrets
+*.pfx
+*.p12
+secrets.json
