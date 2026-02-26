@@ -1,9 +1,9 @@
-name: Publish PSWinOps to PSGallery
+﻿name: Publish PSWinOps to PSGallery
 
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 jobs:
   publish:
@@ -34,7 +34,7 @@ jobs:
       - name: Check version consistency
         shell: pwsh
         run: |
-          $manifest = Import-PowerShellDataFile -Path .\PSWinOps\PSWinOps.psd1
+          $manifest = Import-PowerShellDataFile -Path .\PSWinOps.psd1
           $manifestVersion = $manifest.ModuleVersion
           $tagVersion = "${{ env.MODULE_VERSION }}"
           if ($manifestVersion -ne $tagVersion) {
@@ -109,4 +109,4 @@ jobs:
         with:
           tag_name: ${{ github.ref_name }}
           name: "PSWinOps ${{ github.ref_name }}"
-          generate_release_notes: true   # génère les notes depuis les commits
+          generate_release_notes: true # génère les notes depuis les commits
