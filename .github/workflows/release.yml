@@ -29,7 +29,6 @@ jobs:
 
       # ─────────────────────────────────────────
       # 3. CHECK VERSION CONSISTENCY
-      #    Vérifie que le tag == ModuleVersion dans le psd1
       # ─────────────────────────────────────────
       - name: Check version consistency
         shell: pwsh
@@ -49,7 +48,7 @@ jobs:
         shell: pwsh
         run: |
           Install-Module -Name PSScriptAnalyzer -Force -SkipPublisherCheck
-          $results = Invoke-ScriptAnalyzer -Path .\PSWinOps -Recurse -Severity Error, Warning
+          $results = Invoke-ScriptAnalyzer -Path . -Recurse -Severity Error, Warning
           if ($results) {
             $results | Format-Table -AutoSize
             throw "PSScriptAnalyzer found $($results.Count) issue(s)"
@@ -86,7 +85,7 @@ jobs:
       - name: Validate Module Manifest
         shell: pwsh
         run: |
-          $result = Test-ModuleManifest -Path .\PSWinOps\PSWinOps.psd1
+          $result = Test-ModuleManifest -Path .\PSWinOps.psd1
           Write-Host "Module : $($result.Name)"
           Write-Host "Version: $($result.Version)"
           Write-Host "Author : $($result.Author)"
@@ -99,14 +98,14 @@ jobs:
         env:
           PSGALLERY_API_KEY: ${{ secrets.PSGALLERY_API_KEY }}
         run: |
-          Publish-Module -Path .\PSWinOps -NuGetApiKey $env:PSGALLERY_API_KEY -Repository PSGallery -Verbose
+          Publish-Module -Path . -NuGetApiKey $env:PSGALLERY_API_KEY -Repository PSGallery -Verbose
 
       # ─────────────────────────────────────────
-      # 8. GITHUB RELEASE — création automatique
+      # 8. GITHUB RELEASE
       # ─────────────────────────────────────────
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
           name: "PSWinOps ${{ github.ref_name }}"
-          generate_release_notes: true # génère les notes depuis les commits
+          generate_release_notes: true
