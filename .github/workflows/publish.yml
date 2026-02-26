@@ -1,0 +1,124 @@
+﻿name: Publish PSWinOps to PSGallery
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  # ─────────────────────────────────────────
+  # JOB 1 — VALIDATION (réutilisation)
+  # ─────────────────────────────────────────
+  validate:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}"
+          $version = $tag.TrimStart('v')
+          Write-Output "Publishing version: $version"
+          Add-Content -Path $env:GITHUB_ENV -Value "MODULE_VERSION=$version" -Encoding UTF8
+
+      - name: Check version consistency
+        shell: pwsh
+        run: |
+          $manifest = Import-PowerShellDataFile -Path .\PSWinOps.psd1
+          $manifestVersion = $manifest.ModuleVersion
+          $tagVersion = "${{ env.MODULE_VERSION }}"
+
+          if ($manifestVersion -ne $tagVersion) {
+            throw "[ERROR] Version mismatch: tag=$tagVersion but psd1=$manifestVersion"
+          }
+
+          Write-Output "[OK] Version consistency validated: $manifestVersion"
+
+      - name: Lint with PSScriptAnalyzer
+        shell: pwsh
+        run: |
+          Install-Module -Name PSScriptAnalyzer -Force -SkipPublisherCheck
+
+          $files = Get-ChildItem -Path . -Recurse -Include *.ps1, *.psm1 |
+            Where-Object { $_.FullName -notmatch '[\\/](Tests|\.git)[\\/]' }
+
+          $results = $files | ForEach-Object {
+            Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error, Warning
+          }
+
+          if ($results) {
+            $results | Format-Table -AutoSize
+            throw "[FAIL] PSScriptAnalyzer found $($results.Count) issue(s)"
+          }
+
+          Write-Output "[OK] Linting passed"
+
+      - name: Run Pester Tests
+        shell: pwsh
+        run: |
+          Install-Module -Name Pester -MinimumVersion 5.0 -Force -SkipPublisherCheck
+
+          $config = New-PesterConfiguration
+          $config.Run.Path = '.\Tests'
+          $config.Output.Verbosity = 'Detailed'
+          $config.TestResult.Enabled = $true
+          $config.TestResult.OutputPath = 'TestResults.xml'
+
+          $result = Invoke-Pester -Configuration $config
+
+          if ($result.FailedCount -gt 0) {
+            throw "[FAIL] $($result.FailedCount) test(s) failed"
+          }
+
+      - name: Publish Test Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: TestResults.xml
+
+      - name: Validate Module Manifest
+        shell: pwsh
+        run: |
+          $result = Test-ModuleManifest -Path .\PSWinOps.psd1
+          Write-Output "Module : $($result.Name)"
+          Write-Output "Version: $($result.Version)"
+          Write-Output "Author : $($result.Author)"
+
+  # ─────────────────────────────────────────
+  # JOB 2 — PUBLICATION
+  # ─────────────────────────────────────────
+  publish:
+    needs: validate
+    runs-on: windows-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}"
+          $version = $tag.TrimStart('v')
+          Write-Output "Publishing version: $version"
+          Add-Content -Path $env:GITHUB_ENV -Value "MODULE_VERSION=$version" -Encoding UTF8
+
+      - name: Publish to PSGallery
+        shell: pwsh
+        env:
+          PSGALLERY_API_KEY: ${{ secrets.PSGALLERY_API_KEY }}
+        run: |
+          Publish-Module -Path . -NuGetApiKey $env:PSGALLERY_API_KEY -Repository PSGallery -Verbose
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: "PSWinOps ${{ github.ref_name }}"
+          generate_release_notes: true
