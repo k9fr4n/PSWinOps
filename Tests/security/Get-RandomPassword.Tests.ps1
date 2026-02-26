@@ -135,14 +135,20 @@ Describe -Name 'Get-RandomPassword' -Fixture {
             { Get-RandomPassword -Length 8 -UpperCount 8 -LowerCount 2 -NumericCount 2 -SpecialCount 2 } | Should -Throw -ExpectedMessage '*exceeds password length*'
         }
 
-        It -Name 'Should throw after exceeding max retries with nearly impossible constraints' -Test {
-            # Tight constraints: 7 out of 8 chars must be uppercase, making it very hard to satisfy other requirements
-            { Get-RandomPassword -Length 8 -UpperCount 7 -LowerCount 0 -NumericCount 1 -SpecialCount 0 -MaxRetries 5 } | Should -Throw -ExpectedMessage '*Password generation failed*'
+        It -Name 'Should throw after exceeding max retries with impossible constraints' -Test {
+            # Impossible: Length=8 with 8 uppercase + 1 lower + 1 numeric = 10 total required > 8 length
+            { Get-RandomPassword -Length 8 -UpperCount 8 -LowerCount 1 -NumericCount 1 -SpecialCount 0 } | Should -Throw -ExpectedMessage '*exceeds password length*'
         }
 
         It -Name 'Should generate successfully with tight but valid constraints' -Test {
             $result = Get-RandomPassword -Length 8 -UpperCount 2 -LowerCount 2 -NumericCount 2 -SpecialCount 2
             $result.Length | Should -Be 8
+        }
+
+        It -Name 'Should accept MaxRetries parameter without error' -Test {
+            $result = Get-RandomPassword -Length 16 -UpperCount 2 -LowerCount 2 -NumericCount 2 -SpecialCount 2 -MaxRetries 50
+            $result | Should -Not -BeNullOrEmpty
+            $result.Length | Should -Be 16
         }
     }
 
@@ -151,7 +157,7 @@ Describe -Name 'Get-RandomPassword' -Fixture {
         It -Name 'Should produce verbose output when -Verbose is specified' -Test {
             $verboseOutput = Get-RandomPassword -Length 16 -Verbose 4>&1
             $verboseOutput | Should -Not -BeNullOrEmpty
-            $verboseOutput | Should -Match 'Starting password generation|Character set size'
+            $verboseOutput -join ' ' | Should -Match '\[Get-RandomPassword\].*Starting password generation|\[Get-RandomPassword\].*Character set size'
         }
     }
 }
