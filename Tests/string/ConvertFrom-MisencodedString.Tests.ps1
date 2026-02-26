@@ -2,8 +2,9 @@
 #Requires -Modules @{ ModuleName = 'Pester'; ModuleVersion = '5.0.0' }
 
 BeforeAll {
-    $script:functionPath = Join-Path -Path $PSScriptRoot -ChildPath '..\Public\ConvertFrom-MisencodedString.ps1'
-    . $script:functionPath
+    # Import module
+    $script:modulePath = Join-Path -Path $PSScriptRoot -ChildPath '..\..\PSWinOps.psd1'
+    Import-Module -Name $script:modulePath -Force -ErrorAction Stop
 
     # Test data: Create misencoded strings for testing
     $script:originalText = 'portal'

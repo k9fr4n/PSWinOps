@@ -30,7 +30,9 @@ BeforeAll {
     }
     #endregion
 
-    . (Join-Path $PSScriptRoot '..\..\Public\ntp\Get-NTPConfiguration.ps1')
+    # Import module
+    $script:modulePath = Join-Path -Path $PSScriptRoot -ChildPath '..\..\PSWinOps.psd1'
+    Import-Module -Name $script:modulePath -Force -ErrorAction Stop
 
     #region Mock data
     $Script:MockConfigOutput = @(
