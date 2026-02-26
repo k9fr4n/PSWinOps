@@ -48,8 +48,11 @@ jobs:
         shell: pwsh
         run: |
           Install-Module -Name PSScriptAnalyzer -Force -SkipPublisherCheck
-          $results = Invoke-ScriptAnalyzer -Path . -Recurse -Severity Error, Warning `
-            -ExcludePath @('*.psd1', '*.psm1', '*.Tests.ps1')
+          $files = Get-ChildItem -Path . -Recurse -Include *.ps1 |
+            Where-Object { $_.Name -notmatch '\.(Tests)\.ps1$' }
+          $results = $files | ForEach-Object {
+            Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error, Warning
+          }
           if ($results) {
             $results | Format-Table -AutoSize
             throw "PSScriptAnalyzer found $($results.Count) issue(s)"
