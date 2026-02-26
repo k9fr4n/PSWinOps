@@ -30,7 +30,7 @@ BeforeAll {
     }
     #endregion
 
-    . (Join-Path $PSScriptRoot 'Get-NTPConfiguration.ps1')
+    . (Join-Path $PSScriptRoot '..\..\Public\ntp\Get-NTPConfiguration.ps1')
 
     #region Mock data
     $Script:MockConfigOutput = @(
