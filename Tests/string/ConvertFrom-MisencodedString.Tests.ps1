@@ -97,12 +97,11 @@ Describe -Name 'ConvertFrom-MisencodedString' -Fixture {
     Context -Name 'Error handling' -Fixture {
 
         It -Name 'Should write error but not throw on encoding conversion failure' -Test {
-            Mock -CommandName 'Write-Error' -MockWith {}
+            Mock -CommandName 'Write-Error' -MockWith {} -ModuleName 'PSWinOps'  # ← ajouter -ModuleName
 
-            # Force an error by using incompatible string content
             $result = ConvertFrom-MisencodedString -String ([char]0xFFFE).ToString() -ErrorAction SilentlyContinue
 
-            Should -Invoke -CommandName 'Write-Error' -Times 1 -Exactly
+            Should -Invoke -CommandName 'Write-Error' -Times 1 -Exactly -ModuleName 'PSWinOps'  # ← idem
         }
     }
 
