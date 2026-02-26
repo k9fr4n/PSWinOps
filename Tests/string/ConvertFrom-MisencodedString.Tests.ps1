@@ -3,12 +3,14 @@
 
 BeforeAll {
     # Import module
-    $script:modulePath = Join-Path -Path $PSScriptRoot -ChildPath '..\..\PSWinOps.psd1'
+    $script:modulePath = Join-Path -Path $PSScriptRoot -ChildPath '..\PSWinOps.psd1'
     Import-Module -Name $script:modulePath -Force -ErrorAction Stop
 
     # Test data: Create misencoded strings for testing
     $script:originalText = 'portal'
-    $script:misencodedCyrillic = [System.Text.Encoding]::ASCII.GetString([System.Text.Encoding]::GetEncoding('Cyrillic').GetBytes($script:originalText))
+    $script:misencodedCyrillic = [System.Text.Encoding]::ASCII.GetString(
+        [System.Text.Encoding]::GetEncoding('Cyrillic').GetBytes($script:originalText)
+    )
 }
 
 Describe -Name 'ConvertFrom-MisencodedString' -Fixture {
@@ -54,9 +56,10 @@ Describe -Name 'ConvertFrom-MisencodedString' -Fixture {
         It -Name 'Should process multiple strings from pipeline' -Test {
             $testStrings = @('test1', 'test2', 'test3')
             $misencoded = $testStrings | ForEach-Object -Process {
-                [System.Text.Encoding]::ASCII.GetString([System.Text.Encoding]::GetEncoding('Cyrillic').GetBytes($_))
+                [System.Text.Encoding]::ASCII.GetString(
+                    [System.Text.Encoding]::GetEncoding('Cyrillic').GetBytes($_)
+                )
             }
-
             $results = $misencoded | ConvertFrom-MisencodedString
             $results.Count | Should -Be 3
             $results[0] | Should -Be 'test1'
@@ -68,9 +71,10 @@ Describe -Name 'ConvertFrom-MisencodedString' -Fixture {
     Context -Name 'When using custom encodings' -Fixture {
 
         It -Name 'Should support custom source encoding' -Test {
-            $originalUtf8 = 'café'
-            $misencodedWin1252 = [System.Text.Encoding]::GetEncoding('windows-1252').GetString([System.Text.Encoding]::UTF8.GetBytes($originalUtf8))
-
+            $originalUtf8 = 'cafe'
+            $misencodedWin1252 = [System.Text.Encoding]::GetEncoding('windows-1252').GetString(
+                [System.Text.Encoding]::UTF8.GetBytes($originalUtf8)
+            )
             $result = ConvertFrom-MisencodedString -String $misencodedWin1252 -SourceEncoding 'windows-1252' -TargetEncoding 'utf-8'
             $result | Should -Be $originalUtf8
         }
@@ -97,11 +101,14 @@ Describe -Name 'ConvertFrom-MisencodedString' -Fixture {
     Context -Name 'Error handling' -Fixture {
 
         It -Name 'Should write error but not throw on encoding conversion failure' -Test {
-            Mock -CommandName 'Write-Error' -MockWith {} -ModuleName 'PSWinOps'  # ← ajouter -ModuleName
+            Mock -CommandName 'Write-Error' -MockWith {} -ModuleName 'PSWinOps'
 
-            $result = ConvertFrom-MisencodedString -String ([char]0xFFFE).ToString() -ErrorAction SilentlyContinue
+            # Create a string with surrogate pair that will cause encoding issues
+            $invalidString = [string][char]0xD800 + [char]0x0041
 
-            Should -Invoke -CommandName 'Write-Error' -Times 1 -Exactly -ModuleName 'PSWinOps'  # ← idem
+            $result = ConvertFrom-MisencodedString -String $invalidString -ErrorAction SilentlyContinue
+
+            Should -Invoke -CommandName 'Write-Error' -Times 1 -Exactly -ModuleName 'PSWinOps'
         }
     }
 

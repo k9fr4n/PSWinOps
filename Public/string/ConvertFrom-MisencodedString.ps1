@@ -1,5 +1,5 @@
 ﻿function ConvertFrom-MisencodedString {
-<#
+    <#
 .SYNOPSIS
     Converts a misencoded string by reinterpreting bytes from a source encoding
 
@@ -14,6 +14,7 @@
 
 .PARAMETER String
     The misencoded string to convert. Accepts input from the pipeline.
+    Empty strings are allowed and will be returned unchanged.
 
 .PARAMETER SourceEncoding
     The encoding that was incorrectly applied to the original text.
@@ -25,22 +26,22 @@
     Default is 'ASCII'. Use 'utf-8' for broader character support.
 
 .EXAMPLE
-    ConvertFrom-MisencodedString -String 'ïîðòàë'
+    ConvertFrom-MisencodedString -String 'portal'
 
     Converts a Cyrillic-misencoded string back to readable ASCII text.
     Returns the corrected string.
 
 .EXAMPLE
-    'ïîðòàë', 'ñåðâåð' | ConvertFrom-MisencodedString
+    'portal', 'server' | ConvertFrom-MisencodedString
 
     Pipeline example: processes multiple misencoded strings and returns
     the corrected versions.
 
 .EXAMPLE
-    ConvertFrom-MisencodedString -String 'cafÃ©' -SourceEncoding 'windows-1252' -TargetEncoding 'utf-8'
+    ConvertFrom-MisencodedString -String 'cafe' -SourceEncoding 'windows-1252' -TargetEncoding 'utf-8'
 
     Fixes a string where UTF-8 characters were misinterpreted as Windows-1252.
-    Returns 'café' in proper UTF-8 encoding.
+    Returns 'cafe' in proper UTF-8 encoding.
 
 .EXAMPLE
     Get-Content -Path 'C:\Logs\misencoded.txt' | ConvertFrom-MisencodedString
@@ -49,7 +50,7 @@
 
 .NOTES
     Author:        Franck SALLET
-    Version:       1.0.0
+    Version:       1.0.1
     Last Modified: 2026-02-26
     Requires:      PowerShell 5.1+
     Permissions:   None required
@@ -60,6 +61,7 @@
     param(
         [Parameter(Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNull()]
+        [AllowEmptyString()]
         [string]$String,
 
         [Parameter(Mandatory = $false)]
@@ -77,8 +79,7 @@
         try {
             $sourceEncoder = [System.Text.Encoding]::GetEncoding($SourceEncoding)
             Write-Verbose "[$($MyInvocation.MyCommand)] Source encoding: $($sourceEncoder.EncodingName)"
-        }
-        catch {
+        } catch {
             Write-Error "[$($MyInvocation.MyCommand)] Invalid source encoding '$SourceEncoding': $_"
             throw
         }
@@ -86,14 +87,19 @@
         try {
             $targetEncoder = [System.Text.Encoding]::GetEncoding($TargetEncoding)
             Write-Verbose "[$($MyInvocation.MyCommand)] Target encoding: $($targetEncoder.EncodingName)"
-        }
-        catch {
+        } catch {
             Write-Error "[$($MyInvocation.MyCommand)] Invalid target encoding '$TargetEncoding': $_"
             throw
         }
     }
 
     process {
+        # Handle empty strings without attempting conversion
+        if ($String.Length -eq 0) {
+            Write-Verbose "[$($MyInvocation.MyCommand)] Empty string - returning unchanged"
+            return ''
+        }
+
         try {
             Write-Verbose "[$($MyInvocation.MyCommand)] Processing: '$String'"
 
@@ -103,14 +109,15 @@
             Write-Verbose "[$($MyInvocation.MyCommand)] Converted successfully (Length: $($String.Length) --> $($result.Length))"
 
             $result
-        }
-        catch [System.ArgumentException] {
+        } catch [System.Text.EncoderFallbackException] {
+            Write-Error "[$($MyInvocation.MyCommand)] Encoding fallback error for '$String': $_"
+            return
+        } catch [System.ArgumentException] {
             Write-Error "[$($MyInvocation.MyCommand)] Invalid characters in string for encoding '$SourceEncoding': $_"
             return
-        }
-        catch {
+        } catch {
             Write-Error "[$($MyInvocation.MyCommand)] Conversion failed for string '$String': $_"
-            throw
+            return
         }
     }
 
