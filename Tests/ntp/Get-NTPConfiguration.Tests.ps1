@@ -257,33 +257,6 @@ Describe 'Get-NTPConfiguration' {
     # Context 4 : Error - service absent
     # ---------------------------------------------------------------
     Context 'Error handling - w32time service absent' {
-
-        BeforeEach {
-            Mock Get-Service {
-                # Avoid [Microsoft.PowerShell.Commands.ServiceCommandException]
-                # which does not exist on Linux CI runners.
-                # Throwing a string produces a RuntimeException whose message
-                # contains 'w32time', which is what we assert below.
-                throw "Cannot find any service with service name 'w32time'."
-            } -ParameterFilter { $Name -eq 'w32time' }
-        }
-
-        It 'Should throw when service is not found' {
-            { Get-NTPConfiguration } | Should -Throw
-        }
-
-        It 'Should throw an error mentioning w32time' -Skip:(-not $IsWindows) {
-            # On Linux, the production script's 'catch [ServiceCommandException]'
-            # itself fails to resolve the type, masking the original message.
-            # This assertion is only meaningful on Windows where the type exists.
-            { Get-NTPConfiguration } | Should -Throw -ExpectedMessage 'w32time'
-        }
-    }
-
-    # ---------------------------------------------------------------
-    # Context 5 : Error - unexpected w32tm failure
-    # ---------------------------------------------------------------
-    Context 'Error handling - w32time service absent' {
         BeforeEach {
             Mock Get-Service {
                 throw "Cannot find any service with service name 'w32time'."
@@ -296,6 +269,23 @@ Describe 'Get-NTPConfiguration' {
 
         It 'Should throw an error mentioning w32time' -Skip:(-not $IsWindows) {
             { Get-NTPConfiguration } | Should -Throw -ExpectedMessage '*w32time*'
+        }
+    }
+
+    # ---------------------------------------------------------------
+    # Context 5 : Error - unexpected w32tm failure
+    # ---------------------------------------------------------------
+    Context 'Error handling - unexpected w32tm failure' {
+
+        BeforeEach {
+            Mock Get-Service {
+                [PSCustomObject]@{ Name = 'w32time'; Status = 'Running' }
+            } -ParameterFilter { $Name -eq 'w32time' }
+            Mock w32tm { throw 'Simulated w32tm failure' }
+        }
+
+        It 'Should propagate unexpected w32tm errors' {
+            { Get-NTPConfiguration } | Should -Throw
         }
     }
 }
