@@ -9,7 +9,7 @@
     - IncludePeerDetails switch behavior
     - Error handling (service not found, w32tm failure)
 .NOTES
-    Author: Ecritel IT Team
+    Author: K9FR4N
     Pester: v5.x
     Run with: Invoke-Pester -Path .\Get-NTPConfiguration.Tests.ps1 -Output Detailed
 #>

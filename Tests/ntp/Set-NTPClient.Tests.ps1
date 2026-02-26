@@ -52,7 +52,7 @@ function Set-NTPClient {
     Shows what would happen if the configuration were applied with custom poll intervals.
 
 .NOTES
-    Author:        Ecritel IT Team
+    Author:        K9FR4N
     Version:       2.0.0
     Last Modified: 2026-02-20
     Requires:      PowerShell 5.1+, Local Administrator rights
@@ -61,9 +61,9 @@ function Set-NTPClient {
     [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
     [OutputType([void])]
     param (
-        [Parameter(Mandatory = $false)]
+        [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
-        [string[]]$NtpServers = @('ntp1.ecritel.net', 'ntp2.ecritel.net'),
+        [string[]]$NtpServers,
 
         [Parameter(Mandatory = $false)]
         [ValidateRange(1, 3600)]
