@@ -131,8 +131,13 @@ Describe -Name 'Get-RandomPassword' -Fixture {
 
     Context -Name 'Error handling and edge cases' -Fixture {
 
-        It -Name 'Should throw after exceeding max retries with impossible constraints' -Test {
-            { Get-RandomPassword -Length 8 -UpperCount 8 -MaxRetries 5 } | Should -Throw -ExpectedMessage '*Password generation failed*'
+        It -Name 'Should throw when constraints exceed length' -Test {
+            { Get-RandomPassword -Length 8 -UpperCount 8 -LowerCount 2 -NumericCount 2 -SpecialCount 2 } | Should -Throw -ExpectedMessage '*exceeds password length*'
+        }
+
+        It -Name 'Should throw after exceeding max retries with nearly impossible constraints' -Test {
+            # Tight constraints: 7 out of 8 chars must be uppercase, making it very hard to satisfy other requirements
+            { Get-RandomPassword -Length 8 -UpperCount 7 -LowerCount 0 -NumericCount 1 -SpecialCount 0 -MaxRetries 5 } | Should -Throw -ExpectedMessage '*Password generation failed*'
         }
 
         It -Name 'Should generate successfully with tight but valid constraints' -Test {
