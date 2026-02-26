@@ -1,0 +1,134 @@
+﻿name: CI - Lint and Test
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+  push:
+    branches:
+      - main
+      - develop
+
+jobs:
+  validate:
+    runs-on: windows-latest
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
+
+    steps:
+      # ─────────────────────────────────────────
+      # 1. CHECKOUT
+      # ─────────────────────────────────────────
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ─────────────────────────────────────────
+      # 2. VALIDATE MODULE MANIFEST
+      # ─────────────────────────────────────────
+      - name: Validate Module Manifest
+        shell: pwsh
+        run: |
+          $result = Test-ModuleManifest -Path .\PSWinOps.psd1 -ErrorAction Stop
+          Write-Output "[OK] Module manifest is valid"
+          Write-Output "Module : $($result.Name)"
+          Write-Output "Version: $($result.Version)"
+          Write-Output "Author : $($result.Author)"
+
+      # ─────────────────────────────────────────
+      # 3. LINTER — PSScriptAnalyzer
+      # ─────────────────────────────────────────
+      - name: Lint with PSScriptAnalyzer
+        shell: pwsh
+        run: |
+          Install-Module -Name PSScriptAnalyzer -Force -SkipPublisherCheck
+
+          $files = Get-ChildItem -Path . -Recurse -Include *.ps1, *.psm1 |
+            Where-Object { $_.FullName -notmatch '[\\/](Tests|\.git)[\\/]' }
+
+          Write-Output "[INFO] Analyzing $($files.Count) file(s)..."
+
+          $results = $files | ForEach-Object {
+            Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error, Warning
+          }
+
+          if ($results) {
+            $results | Format-Table -AutoSize
+            $errorCount = ($results | Where-Object { $_.Severity -eq 'Error' }).Count
+            $warningCount = ($results | Where-Object { $_.Severity -eq 'Warning' }).Count
+            throw "[FAIL] PSScriptAnalyzer found $errorCount error(s) and $warningCount warning(s)"
+          }
+
+          Write-Output "[OK] Linting passed - zero errors and warnings"
+
+      # ─────────────────────────────────────────
+      # 4. TESTS — Pester
+      # ─────────────────────────────────────────
+      - name: Run Pester Tests
+        shell: pwsh
+        run: |
+          Install-Module -Name Pester -MinimumVersion 5.0 -Force -SkipPublisherCheck
+
+          $config = New-PesterConfiguration
+          $config.Run.Path = '.\Tests'
+          $config.Output.Verbosity = 'Detailed'
+          $config.TestResult.Enabled = $true
+          $config.TestResult.OutputPath = 'TestResults.xml'
+          $config.TestResult.OutputFormat = 'NUnitXml'
+          $config.CodeCoverage.Enabled = $true
+          $config.CodeCoverage.Path = @(
+              '.\PSWinOps.psm1',
+              '.\Public\*.ps1',
+              '.\Private\*.ps1'
+          )
+          $config.CodeCoverage.OutputPath = 'coverage.xml'
+
+          $result = Invoke-Pester -Configuration $config
+
+          Write-Output "[INFO] Tests completed: $($result.PassedCount) passed, $($result.FailedCount) failed"
+
+          if ($result.FailedCount -gt 0) {
+              throw "[FAIL] $($result.FailedCount) test(s) failed"
+          }
+
+          Write-Output "[OK] All tests passed"
+
+      # ─────────────────────────────────────────
+      # 5. PUBLISH TEST RESULTS
+      # ─────────────────────────────────────────
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action/windows@v2
+        if: always()
+        with:
+          files: TestResults.xml
+          check_name: Pester Test Results
+
+      - name: Upload Test Artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: |
+            TestResults.xml
+            coverage.xml
+          retention-days: 30
+
+      # ─────────────────────────────────────────
+      # 6. CODE COVERAGE REPORT (Optional)
+      # ─────────────────────────────────────────
+      - name: Generate Coverage Report
+        if: success()
+        shell: pwsh
+        run: |
+          if (Test-Path -Path 'coverage.xml') {
+            [xml]$coverage = Get-Content -Path 'coverage.xml'
+            $coveredLines = [int]$coverage.coverage.packages.package.classes.class.lines.line.Count
+            $totalLines = [int]$coverage.coverage.'lines-covered' + [int]$coverage.coverage.'lines-valid'
+
+            if ($totalLines -gt 0) {
+              $percentage = [math]::Round(($coveredLines / $totalLines) * 100, 2)
+              Write-Output "[INFO] Code coverage: $percentage% ($coveredLines/$totalLines lines)"
+            }
+          }

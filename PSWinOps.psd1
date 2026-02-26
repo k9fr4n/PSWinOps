@@ -24,7 +24,7 @@
     Author            = 'Franck SALLET'
 
     # Company or vendor of this module
-    CompanyName       = 'Ecritel'
+    CompanyName       = 'kfrlabs'
 
     # Copyright statement for this module
     Copyright         = '(c) Franck SALLET. All rights reserved.'
