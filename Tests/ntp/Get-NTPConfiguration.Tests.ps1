@@ -1,28 +1,35 @@
 ﻿#Requires -Version 5.1
+#Requires -Modules @{ ModuleName = 'Pester'; ModuleVersion = '5.0.0' }
 
 <#
 .SYNOPSIS
     Pester tests for Get-NTPConfiguration function
 
 .DESCRIPTION
-    Tests covering:
-    - Output structure and property types
-    - Service availability checks
-    - w32tm output parsing (NtpServer, status, peers)
+    Comprehensive test coverage for Get-NTPConfiguration, including:
+    - Output structure and property types validation
+    - Service availability checks and error handling
+    - w32tm command output parsing (configuration, status, peers)
     - IncludePeerDetails switch behavior
-    - Error handling (service not found, w32tm failure)
-
-.NOTES
-    Author:        K9FR4N
-    Version:       1.0.0
-    Last Modified: 2026-02-26
-    Requires:      Pester v5.x
-    Permissions:   None required
+    - Degraded state handling (empty output, missing data)
+    - Error scenarios (service not found, w32tm command failure)
 
 .EXAMPLE
     Invoke-Pester -Path .\Get-NTPConfiguration.Tests.ps1 -Output Detailed
 
-    Runs all tests with detailed output.
+    Runs all tests with detailed output showing each assertion result.
+
+.EXAMPLE
+    Invoke-Pester -Path .\Get-NTPConfiguration.Tests.ps1 -Output Detailed -Tag 'Nominal'
+
+    Runs only tests tagged as nominal/happy path scenarios.
+
+.NOTES
+    Author:        K9FR4N
+    Version:       1.1.0
+    Last Modified: 2026-02-26
+    Requires:      Pester 5.x, PowerShell 5.1+
+    Permissions:   None required (all external commands are mocked)
 #>
 
 BeforeAll {
@@ -46,7 +53,7 @@ BeforeAll {
     }
     #endregion
 
-    # Import module
+    # Import module -- two levels above Tests\ntp\
     $script:modulePath = Join-Path -Path $PSScriptRoot -ChildPath '..\..\PSWinOps.psd1'
     Import-Module -Name $script:modulePath -Force -ErrorAction Stop
 
@@ -84,20 +91,19 @@ Describe -Name 'Get-NTPConfiguration' -Fixture {
     Context -Name 'Nominal - service running, w32tm outputs valid data' -Fixture {
 
         BeforeEach {
-            Mock -CommandName 'Get-Service' -MockWith {
+            Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith {
                 [PSCustomObject]@{ Name = 'w32time'; Status = 'Running' }
             } -ParameterFilter { $Name -eq 'w32time' }
 
-            # Mock w32tm with ParameterFilter to match each invocation
-            Mock -CommandName 'w32tm' -MockWith {
+            Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith {
                 $script:mockConfigOutput
             } -ParameterFilter { $args -contains '/query' -and $args -contains '/configuration' }
 
-            Mock -CommandName 'w32tm' -MockWith {
+            Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith {
                 $script:mockStatusOutput
             } -ParameterFilter { $args -contains '/query' -and $args -contains '/status' }
 
-            Mock -CommandName 'w32tm' -MockWith {
+            Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith {
                 $script:mockPeersOutput
             } -ParameterFilter { $args -contains '/query' -and $args -contains '/peers' }
         }
@@ -131,7 +137,6 @@ Describe -Name 'Get-NTPConfiguration' -Fixture {
         }
 
         It -Name 'SyncType should contain NTP' -Test {
-            # w32tm returns 'NTP (Local)' - use -Match to tolerate the suffix
             $result = Get-NTPConfiguration
             $result.SyncType | Should -Match 'NTP'
         }
@@ -202,19 +207,19 @@ Describe -Name 'Get-NTPConfiguration' -Fixture {
     Context -Name '-IncludePeerDetails switch' -Fixture {
 
         BeforeEach {
-            Mock -CommandName 'Get-Service' -MockWith {
+            Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith {
                 [PSCustomObject]@{ Name = 'w32time'; Status = 'Running' }
             } -ParameterFilter { $Name -eq 'w32time' }
 
-            Mock -CommandName 'w32tm' -MockWith {
+            Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith {
                 $script:mockConfigOutput
             } -ParameterFilter { $args -contains '/query' -and $args -contains '/configuration' }
 
-            Mock -CommandName 'w32tm' -MockWith {
+            Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith {
                 $script:mockStatusOutput
             } -ParameterFilter { $args -contains '/query' -and $args -contains '/status' }
 
-            Mock -CommandName 'w32tm' -MockWith {
+            Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith {
                 $script:mockPeersOutput
             } -ParameterFilter { $args -contains '/query' -and $args -contains '/peers' }
         }
@@ -242,12 +247,12 @@ Describe -Name 'Get-NTPConfiguration' -Fixture {
     Context -Name 'Degraded - w32tm returns empty output' -Fixture {
 
         BeforeEach {
-            Mock -CommandName 'Get-Service' -MockWith {
+            Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith {
                 [PSCustomObject]@{ Name = 'w32time'; Status = 'Stopped' }
             } -ParameterFilter { $Name -eq 'w32time' }
 
-            # Mock w32tm to return empty arrays
-            Mock -CommandName 'w32tm' -MockWith { @() }
+            # Mock without ParameterFilter = catch-all for all w32tm calls
+            Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith { @() }
         }
 
         It -Name 'SyncType should default to Unknown' -Test {
@@ -297,15 +302,16 @@ Describe -Name 'Get-NTPConfiguration' -Fixture {
     Context -Name 'Error handling - w32time service absent' -Fixture {
 
         BeforeEach {
-            Mock -CommandName 'Get-Service' -MockWith {
-                $exception = [System.InvalidOperationException]::new("Cannot find any service with service name 'w32time'.")
-                $errorRecord = [System.Management.Automation.ErrorRecord]::new(
-                    $exception,
+            Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith {
+                # Throw a well-formed ErrorRecord directly
+                throw [System.Management.Automation.ErrorRecord]::new(
+                    [System.InvalidOperationException]::new(
+                        "Cannot find any service with service name 'w32time'."
+                    ),
                     'ServiceNotFound',
                     [System.Management.Automation.ErrorCategory]::ObjectNotFound,
                     'w32time'
                 )
-                $PSCmdlet.ThrowTerminatingError($errorRecord)
             } -ParameterFilter { $Name -eq 'w32time' }
         }
 
@@ -324,11 +330,11 @@ Describe -Name 'Get-NTPConfiguration' -Fixture {
     Context -Name 'Error handling - unexpected w32tm failure' -Fixture {
 
         BeforeEach {
-            Mock -CommandName 'Get-Service' -MockWith {
+            Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith {
                 [PSCustomObject]@{ Name = 'w32time'; Status = 'Running' }
             } -ParameterFilter { $Name -eq 'w32time' }
 
-            Mock -CommandName 'w32tm' -MockWith {
+            Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith {
                 throw 'Simulated w32tm failure'
             }
         }
