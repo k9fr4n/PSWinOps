@@ -20,11 +20,11 @@ Describe -Name 'Enter-RdpSession' -Fixture {
 
     Context -Name 'When entering a session successfully in Control mode' -Fixture {
         BeforeEach {
-            Mock -CommandName 'New-CimSession' -MockWith {
+            Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
                 [PSCustomObject]@{ ComputerName = $ComputerName }
             }
 
-            Mock -CommandName 'Get-CimInstance' -MockWith {
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
                 param($ClassName, $Namespace)
 
                 if ($ClassName -eq 'Win32_TSSession') {
@@ -35,11 +35,11 @@ Describe -Name 'Enter-RdpSession' -Fixture {
                 return $null
             }
 
-            Mock -CommandName 'Invoke-CimMethod' -MockWith {
+            Mock -CommandName 'Invoke-CimMethod' -ModuleName 'PSWinOps' -MockWith {
                 [PSCustomObject]@{ ReturnValue = 0 }
             }
 
-            Mock -CommandName 'Remove-CimSession' -MockWith {}
+            Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
         }
 
         It -Name 'Should return success result object' -Test {
@@ -76,11 +76,11 @@ Describe -Name 'Enter-RdpSession' -Fixture {
 
     Context -Name 'When entering a session in View mode' -Fixture {
         BeforeEach {
-            Mock -CommandName 'New-CimSession' -MockWith {
+            Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
                 [PSCustomObject]@{ ComputerName = $ComputerName }
             }
 
-            Mock -CommandName 'Get-CimInstance' -MockWith {
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
                 param($ClassName, $Namespace)
 
                 if ($ClassName -eq 'Win32_TSSession') {
@@ -91,11 +91,11 @@ Describe -Name 'Enter-RdpSession' -Fixture {
                 return $null
             }
 
-            Mock -CommandName 'Invoke-CimMethod' -MockWith {
+            Mock -CommandName 'Invoke-CimMethod' -ModuleName 'PSWinOps' -MockWith {
                 [PSCustomObject]@{ ReturnValue = 0 }
             }
 
-            Mock -CommandName 'Remove-CimSession' -MockWith {}
+            Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
         }
 
         It -Name 'Should set ControlMode to View' -Test {
@@ -106,11 +106,11 @@ Describe -Name 'Enter-RdpSession' -Fixture {
 
     Context -Name 'When target session does not exist' -Fixture {
         BeforeEach {
-            Mock -CommandName 'New-CimSession' -MockWith {
+            Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
                 [PSCustomObject]@{ ComputerName = $ComputerName }
             }
 
-            Mock -CommandName 'Get-CimInstance' -MockWith {
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
                 param($ClassName, $Namespace)
 
                 if ($ClassName -eq 'Win32_TSSession') {
@@ -121,9 +121,9 @@ Describe -Name 'Enter-RdpSession' -Fixture {
                 return $null
             }
 
-            Mock -CommandName 'Invoke-CimMethod' -MockWith {}
+            Mock -CommandName 'Invoke-CimMethod' -ModuleName 'PSWinOps' -MockWith {}
 
-            Mock -CommandName 'Remove-CimSession' -MockWith {}
+            Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
         }
 
         It -Name 'Should write error and not attempt shadow connection' -Test {
@@ -139,8 +139,8 @@ Describe -Name 'Enter-RdpSession' -Fixture {
 
     Context -Name 'When ShouldProcess is declined' -Fixture {
         BeforeEach {
-            Mock -CommandName 'New-CimSession' -MockWith {}
-            Mock -CommandName 'Invoke-CimMethod' -MockWith {}
+            Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {}
+            Mock -CommandName 'Invoke-CimMethod' -ModuleName 'PSWinOps' -MockWith {}
         }
 
         It -Name 'Should not invoke shadow connection when WhatIf is specified' -Test {
@@ -156,11 +156,11 @@ Describe -Name 'Enter-RdpSession' -Fixture {
 
     Context -Name 'When user rejects the connection request' -Fixture {
         BeforeEach {
-            Mock -CommandName 'New-CimSession' -MockWith {
+            Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
                 [PSCustomObject]@{ ComputerName = $ComputerName }
             }
 
-            Mock -CommandName 'Get-CimInstance' -MockWith {
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
                 param($ClassName, $Namespace)
 
                 if ($ClassName -eq 'Win32_TSSession') {
@@ -171,11 +171,11 @@ Describe -Name 'Enter-RdpSession' -Fixture {
                 return $null
             }
 
-            Mock -CommandName 'Invoke-CimMethod' -MockWith {
+            Mock -CommandName 'Invoke-CimMethod' -ModuleName 'PSWinOps' -MockWith {
                 [PSCustomObject]@{ ReturnValue = 10 }
             }
 
-            Mock -CommandName 'Remove-CimSession' -MockWith {}
+            Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
         }
 
         It -Name 'Should return failure with return code 10' -Test {
@@ -192,11 +192,11 @@ Describe -Name 'Enter-RdpSession' -Fixture {
 
     Context -Name 'When shadow is disabled by Group Policy' -Fixture {
         BeforeEach {
-            Mock -CommandName 'New-CimSession' -MockWith {
+            Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
                 [PSCustomObject]@{ ComputerName = $ComputerName }
             }
 
-            Mock -CommandName 'Get-CimInstance' -MockWith {
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
                 param($ClassName, $Namespace)
 
                 if ($ClassName -eq 'Win32_TSSession') {
@@ -207,11 +207,11 @@ Describe -Name 'Enter-RdpSession' -Fixture {
                 return $null
             }
 
-            Mock -CommandName 'Invoke-CimMethod' -MockWith {
+            Mock -CommandName 'Invoke-CimMethod' -ModuleName 'PSWinOps' -MockWith {
                 [PSCustomObject]@{ ReturnValue = 11 }
             }
 
-            Mock -CommandName 'Remove-CimSession' -MockWith {}
+            Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
         }
 
         It -Name 'Should return failure with return code 11' -Test {
@@ -228,11 +228,11 @@ Describe -Name 'Enter-RdpSession' -Fixture {
 
     Context -Name 'When processing pipeline input from Get-ActiveRdpSession' -Fixture {
         BeforeEach {
-            Mock -CommandName 'New-CimSession' -MockWith {
+            Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
                 [PSCustomObject]@{ ComputerName = $ComputerName }
             }
 
-            Mock -CommandName 'Get-CimInstance' -MockWith {
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
                 param($ClassName, $Namespace)
 
                 if ($ClassName -eq 'Win32_TSSession') {
@@ -243,11 +243,11 @@ Describe -Name 'Enter-RdpSession' -Fixture {
                 return $null
             }
 
-            Mock -CommandName 'Invoke-CimMethod' -MockWith {
+            Mock -CommandName 'Invoke-CimMethod' -ModuleName 'PSWinOps' -MockWith {
                 [PSCustomObject]@{ ReturnValue = 0 }
             }
 
-            Mock -CommandName 'Remove-CimSession' -MockWith {}
+            Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
         }
 
         It -Name 'Should accept SessionID from pipeline' -Test {
@@ -259,11 +259,11 @@ Describe -Name 'Enter-RdpSession' -Fixture {
 
     Context -Name 'When NoUserPrompt switch is specified' -Fixture {
         BeforeEach {
-            Mock -CommandName 'New-CimSession' -MockWith {
+            Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
                 [PSCustomObject]@{ ComputerName = $ComputerName }
             }
 
-            Mock -CommandName 'Get-CimInstance' -MockWith {
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
                 param($ClassName, $Namespace)
 
                 if ($ClassName -eq 'Win32_TSSession') {
@@ -274,11 +274,11 @@ Describe -Name 'Enter-RdpSession' -Fixture {
                 return $null
             }
 
-            Mock -CommandName 'Invoke-CimMethod' -MockWith {
+            Mock -CommandName 'Invoke-CimMethod' -ModuleName 'PSWinOps' -MockWith {
                 [PSCustomObject]@{ ReturnValue = 0 }
             }
 
-            Mock -CommandName 'Remove-CimSession' -MockWith {}
+            Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
         }
 
         It -Name 'Should complete successfully when policy allows silent shadow' -Test {
