@@ -38,7 +38,7 @@ Describe -Name 'Get-RdpSessionLock' -Fixture {
 
         It -Name 'Should return PSCustomObject with correct type name' -Test {
             $result = Get-RdpSessionLock
-            $result.PSTypeName | Should -Be 'PSWinOps.RdpSessionLock'
+            $result.PSObject.TypeNames | Should -Contain 'PSWinOps.RdpSessionLock'
         }
 
         It -Name 'Should include all required properties' -Test {
