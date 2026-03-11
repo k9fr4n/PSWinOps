@@ -41,7 +41,7 @@
 
 .NOTES
     Author:        Franck SALLET
-    Version:       1.0.0
+    Version:       1.1.0
     Last Modified: 2026-03-11
     Requires:      PowerShell 5.1+
     Permissions:   Remote Desktop Users group or local Administrator on target machines
@@ -87,32 +87,44 @@
         foreach ($computer in $ComputerName) {
             Write-Verbose "[$($MyInvocation.MyCommand)] Processing: $computer"
 
-            # Build CIM session parameters
-            $cimSessionParams = @{
-                ComputerName = $computer
-                ErrorAction  = 'Stop'
-            }
-
-            if ($PSBoundParameters.ContainsKey('Credential')) {
-                $cimSessionParams['Credential'] = $Credential
-            }
+            # Determine whether the target is the local machine.
+            # Local queries skip New-CimSession entirely, which avoids type identity
+            # mismatches between runspaces and removes an unnecessary network hop.
+            $isLocal = ($computer -eq $env:COMPUTERNAME) -or
+            ($computer -eq 'localhost') -or
+            ($computer -eq '.')
 
             $cimSession = $null
 
             try {
-                # Create CIM session
-                $cimSession = New-CimSession @cimSessionParams
-                Write-Verbose "[$($MyInvocation.MyCommand)] CIM session established to $computer"
+                # Only create a CIM session for remote computers
+                if (-not $isLocal) {
+                    $cimSessionParams = @{
+                        ComputerName = $computer
+                        ErrorAction  = 'Stop'
+                    }
 
-                # Query Terminal Services sessions
+                    if ($PSBoundParameters.ContainsKey('Credential')) {
+                        $cimSessionParams['Credential'] = $Credential
+                    }
+
+                    $cimSession = New-CimSession @cimSessionParams
+                    Write-Verbose "[$($MyInvocation.MyCommand)] CIM session established to $computer"
+                }
+
+                # Build Get-CimInstance parameters — omit CimSession for local queries
                 $cimParams = @{
-                    CimSession  = $cimSession
                     ClassName   = 'Win32_LogonSession'
                     ErrorAction = 'Stop'
                 }
 
+                if ($null -ne $cimSession) {
+                    $cimParams['CimSession'] = $cimSession
+                }
+
+                # Filter to RemoteInteractive (LogonType 10 = RDP) sessions only
                 $logonSessions = Get-CimInstance @cimParams | Where-Object {
-                    $_.LogonType -eq 10 # RemoteInteractive (RDP)
+                    $_.LogonType -eq 10
                 }
 
                 if ($null -eq $logonSessions -or @($logonSessions).Count -eq 0) {
@@ -122,42 +134,47 @@
 
                 Write-Verbose "[$($MyInvocation.MyCommand)] Retrieved $(@($logonSessions).Count) session(s) from $computer"
 
-                # Process each session
                 foreach ($session in $logonSessions) {
+
+                    # Resolve the associated user account in its own try/catch so that
+                    # a type mismatch or WMI association failure never aborts object
+                    # construction — the session record is still emitted with UNKNOWN user.
+                    $userQuery = $null
                     try {
-                        # Get associated user account
-                        $userQuery = Get-CimAssociatedInstance -InputObject $session -ResultClassName 'Win32_Account' -ErrorAction SilentlyContinue
-
-                        # FIXED: Changed from ($) to backslash (\)
-                        $userName = if ($userQuery) {
-                            "$($userQuery.Domain)\$($userQuery.Name)"
-                        } else {
-                            'UNKNOWN'
-                        }
-
-                        # Calculate idle time
-                        $startTime = $session.StartTime
-                        $idleTime = if ($startTime) {
-                            (Get-Date) - $startTime
-                        } else {
-                            $null
-                        }
-
-                        # Emit structured object
-                        [PSCustomObject]@{
-                            PSTypeName   = 'PSWinOps.ActiveRdpSession'
-                            ComputerName = $computer
-                            SessionID    = $session.LogonId
-                            UserName     = $userName
-                            LogonTime    = $startTime
-                            IdleTime     = $idleTime
-                            LogonType    = 'RemoteInteractive'
-                            AuthPackage  = $session.AuthenticationPackage
-                        }
+                        $userQuery = Get-CimAssociatedInstance `
+                            -InputObject $session `
+                            -ResultClassName 'Win32_Account' `
+                            -ErrorAction Stop
                     } catch {
-                        Write-Warning "[$($MyInvocation.MyCommand)] Failed to process session on $computer - $_"
+                        Write-Verbose "[$($MyInvocation.MyCommand)] Could not resolve user for session $($session.LogonId) on $computer - $_"
+                    }
+
+                    $userName = if ($userQuery) {
+                        "$($userQuery.Domain)\$($userQuery.Name)"
+                    } else {
+                        'UNKNOWN'
+                    }
+
+                    $startTime = $session.StartTime
+                    $idleTime = if ($startTime) {
+                        (Get-Date) - $startTime
+                    } else {
+                        $null
+                    }
+
+                    # Emit one structured object per session
+                    [PSCustomObject]@{
+                        PSTypeName   = 'PSWinOps.ActiveRdpSession'
+                        ComputerName = $computer
+                        SessionID    = $session.LogonId
+                        UserName     = $userName
+                        LogonTime    = $startTime
+                        IdleTime     = $idleTime
+                        LogonType    = 'RemoteInteractive'
+                        AuthPackage  = $session.AuthenticationPackage
                     }
                 }
+
             } catch [Microsoft.Management.Infrastructure.CimException] {
                 Write-Error "[$($MyInvocation.MyCommand)] CIM error on $computer - $_"
             } catch [System.UnauthorizedAccessException] {
