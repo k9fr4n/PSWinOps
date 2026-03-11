@@ -13,19 +13,19 @@ BeforeAll {
 Describe -Name 'Remove-RdpSession' -Fixture {
     Context -Name 'When removing a session successfully' -Fixture {
         BeforeEach {
-            Mock -CommandName 'New-CimSession' -MockWith {
+            Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
                 [PSCustomObject]@{ ComputerName = 'localhost' }
             }
 
-            Mock -CommandName 'Get-CimInstance' -MockWith {
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockTsService
             }
 
-            Mock -CommandName 'Invoke-CimMethod' -MockWith {
+            Mock -CommandName 'Invoke-CimMethod' -ModuleName 'PSWinOps' -MockWith {
                 [PSCustomObject]@{ ReturnValue = 0 }
             }
 
-            Mock -CommandName 'Remove-CimSession' -MockWith {}
+            Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
         }
 
         It -Name 'Should return success result object' -Test {
@@ -52,19 +52,19 @@ Describe -Name 'Remove-RdpSession' -Fixture {
 
     Context -Name 'When Force parameter is used' -Fixture {
         BeforeEach {
-            Mock -CommandName 'New-CimSession' -MockWith {
+            Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
                 [PSCustomObject]@{ ComputerName = 'localhost' }
             }
 
-            Mock -CommandName 'Get-CimInstance' -MockWith {
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockTsService
             }
 
-            Mock -CommandName 'Invoke-CimMethod' -MockWith {
+            Mock -CommandName 'Invoke-CimMethod' -ModuleName 'PSWinOps' -MockWith {
                 [PSCustomObject]@{ ReturnValue = 0 }
             }
 
-            Mock -CommandName 'Remove-CimSession' -MockWith {}
+            Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
         }
 
         It -Name 'Should bypass confirmation when Force is specified' -Test {
@@ -75,8 +75,8 @@ Describe -Name 'Remove-RdpSession' -Fixture {
 
     Context -Name 'When ShouldProcess is declined' -Fixture {
         BeforeEach {
-            Mock -CommandName 'New-CimSession' -MockWith {}
-            Mock -CommandName 'Invoke-CimMethod' -MockWith {}
+            Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {}
+            Mock -CommandName 'Invoke-CimMethod' -ModuleName 'PSWinOps' -MockWith {}
         }
 
         It -Name 'Should not invoke logoff when WhatIf is specified' -Test {
@@ -87,19 +87,19 @@ Describe -Name 'Remove-RdpSession' -Fixture {
 
     Context -Name 'When processing pipeline input' -Fixture {
         BeforeEach {
-            Mock -CommandName 'New-CimSession' -MockWith {
+            Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
                 [PSCustomObject]@{ ComputerName = 'localhost' }
             }
 
-            Mock -CommandName 'Get-CimInstance' -MockWith {
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockTsService
             }
 
-            Mock -CommandName 'Invoke-CimMethod' -MockWith {
+            Mock -CommandName 'Invoke-CimMethod' -ModuleName 'PSWinOps' -MockWith {
                 [PSCustomObject]@{ ReturnValue = 0 }
             }
 
-            Mock -CommandName 'Remove-CimSession' -MockWith {}
+            Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
         }
 
         It -Name 'Should process multiple sessions from pipeline' -Test {
