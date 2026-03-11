@@ -5,24 +5,15 @@ BeforeAll {
     $script:modulePath = Join-Path -Path $PSScriptRoot -ChildPath '..\..\PSWinOps.psd1'
     Import-Module -Name $script:modulePath -Force -ErrorAction Stop
 
-    if (-not (Test-Path -Path $script:functionPath)) {
-        throw "Function file not found: $script:functionPath"
-    }
-
-    . $script:functionPath
-
     # Mock event data
     $script:mockEventXml = @'
-<Event xmlns="http://schemas.microsoft.com/win/2004/08/events/event">
-    <System>
-        <EventID>21</EventID>
-    </System>
-    <UserData>
-        <EventXML>
-            <User>DOMAIN\testuser</User>
-            <Address>192.168.1.100</Address>
-        </EventXML>
-    </UserData>
+<Event>
+  <UserData>
+    <EventXML>
+      <User>DOMAIN\testuser</User>
+      <Address>192.168.1.100</Address>
+    </EventXML>
+  </UserData>
 </Event>
 '@
 
