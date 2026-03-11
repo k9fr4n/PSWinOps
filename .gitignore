@@ -1,4 +1,4 @@
-# PowerShell
+﻿# PowerShell
 *.ps1.bak
 *.psm1.bak
 *.psd1.bak
@@ -12,6 +12,7 @@ TestResults/
 bin/
 obj/
 out/
+output/
 publish/
 
 # IDE
