@@ -17,7 +17,6 @@ function Set-NTPClient {
 
 .PARAMETER NtpServers
     Array of NTP server FQDNs or IP addresses to use for time synchronization.
-    Default: ntp1.ecritel.net, ntp2.ecritel.net
 
 .PARAMETER MaxPhaseOffset
     Maximum allowed phase offset in seconds before the clock is corrected.
@@ -37,8 +36,6 @@ function Set-NTPClient {
 
 .EXAMPLE
     Set-NTPClient
-
-    Uses default NTP servers (ntp1.ecritel.net, ntp2.ecritel.net) with default settings.
 
 .EXAMPLE
     Set-NTPClient -NtpServers 'time.windows.com', 'pool.ntp.org' -MaxPhaseOffset 5 -Verbose
