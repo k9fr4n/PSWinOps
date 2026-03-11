@@ -20,21 +20,37 @@ BeforeAll {
 }
 
 Describe -Name 'Get-ActiveRdpSession' -Fixture {
+
     Context -Name 'When querying local computer with active sessions' -Fixture {
+
         BeforeEach {
-            Mock -CommandName 'New-CimSession' -MockWith {
-                [PSCustomObject]@{ ComputerName = 'localhost' }
+            # Mock with proper parameter handling and module scope
+            Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
+                param($ComputerName, $Credential, $ErrorAction)
+                [PSCustomObject]@{
+                    ComputerName         = if ($ComputerName) {
+                        $ComputerName
+                    } else {
+                        'localhost'
+                    }
+                    CimSessionInstanceId = [guid]::NewGuid()
+                }
             }
 
-            Mock -CommandName 'Get-CimInstance' -MockWith {
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
+                param($CimSession, $ClassName, $ErrorAction)
                 return $script:mockLogonSession
             }
 
-            Mock -CommandName 'Get-CimAssociatedInstance' -MockWith {
+            Mock -CommandName 'Get-CimAssociatedInstance' -ModuleName 'PSWinOps' -MockWith {
+                param($InputObject, $ResultClassName, $ErrorAction)
                 return $script:mockUser
             }
 
-            Mock -CommandName 'Remove-CimSession' -MockWith {}
+            Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {
+                param($CimSession)
+                # Cleanup mock - no action needed
+            }
         }
 
         It -Name 'Should return PSCustomObject with correct type name' -Test {
@@ -58,26 +74,39 @@ Describe -Name 'Get-ActiveRdpSession' -Fixture {
 
         It -Name 'Should invoke New-CimSession exactly once' -Test {
             Get-ActiveRdpSession
-            Should -Invoke -CommandName 'New-CimSession' -Times 1 -Exactly
+            Should -Invoke -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -Times 1 -Exactly
         }
 
         It -Name 'Should invoke Remove-CimSession to clean up' -Test {
             Get-ActiveRdpSession
-            Should -Invoke -CommandName 'Remove-CimSession' -Times 1 -Exactly
+            Should -Invoke -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -Times 1 -Exactly
         }
     }
 
     Context -Name 'When no sessions are found' -Fixture {
+
         BeforeEach {
-            Mock -CommandName 'New-CimSession' -MockWith {
-                [PSCustomObject]@{ ComputerName = 'localhost' }
+            Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
+                param($ComputerName, $Credential, $ErrorAction)
+                [PSCustomObject]@{
+                    ComputerName         = if ($ComputerName) {
+                        $ComputerName
+                    } else {
+                        'localhost'
+                    }
+                    CimSessionInstanceId = [guid]::NewGuid()
+                }
             }
 
-            Mock -CommandName 'Get-CimInstance' -MockWith {
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
+                param($CimSession, $ClassName, $ErrorAction)
                 return $null
             }
 
-            Mock -CommandName 'Remove-CimSession' -MockWith {}
+            Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {
+                param($CimSession)
+                # Cleanup mock
+            }
         }
 
         It -Name 'Should return no output' -Test {
@@ -87,13 +116,15 @@ Describe -Name 'Get-ActiveRdpSession' -Fixture {
 
         It -Name 'Should still clean up CIM session' -Test {
             Get-ActiveRdpSession
-            Should -Invoke -CommandName 'Remove-CimSession' -Times 1 -Exactly
+            Should -Invoke -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -Times 1 -Exactly
         }
     }
 
     Context -Name 'When access is denied' -Fixture {
+
         BeforeEach {
-            Mock -CommandName 'New-CimSession' -MockWith {
+            Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
+                param($ComputerName, $Credential, $ErrorAction)
                 throw [System.UnauthorizedAccessException]::new('Access denied')
             }
         }
@@ -109,20 +140,30 @@ Describe -Name 'Get-ActiveRdpSession' -Fixture {
     }
 
     Context -Name 'When querying multiple computers via pipeline' -Fixture {
+
         BeforeEach {
-            Mock -CommandName 'New-CimSession' -MockWith {
-                [PSCustomObject]@{ ComputerName = $ComputerName }
+            Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
+                param($ComputerName, $Credential, $ErrorAction)
+                [PSCustomObject]@{
+                    ComputerName         = $ComputerName
+                    CimSessionInstanceId = [guid]::NewGuid()
+                }
             }
 
-            Mock -CommandName 'Get-CimInstance' -MockWith {
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
+                param($CimSession, $ClassName, $ErrorAction)
                 return $script:mockLogonSession
             }
 
-            Mock -CommandName 'Get-CimAssociatedInstance' -MockWith {
+            Mock -CommandName 'Get-CimAssociatedInstance' -ModuleName 'PSWinOps' -MockWith {
+                param($InputObject, $ResultClassName, $ErrorAction)
                 return $script:mockUser
             }
 
-            Mock -CommandName 'Remove-CimSession' -MockWith {}
+            Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {
+                param($CimSession)
+                # Cleanup mock
+            }
         }
 
         It -Name 'Should process all computers in pipeline' -Test {
@@ -133,7 +174,7 @@ Describe -Name 'Get-ActiveRdpSession' -Fixture {
 
         It -Name 'Should invoke New-CimSession once per computer' -Test {
             @('SRV01', 'SRV02') | Get-ActiveRdpSession
-            Should -Invoke -CommandName 'New-CimSession' -Times 2 -Exactly
+            Should -Invoke -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -Times 2 -Exactly
         }
     }
 }

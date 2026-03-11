@@ -31,7 +31,7 @@ BeforeAll {
 Describe -Name 'Get-RdpSessionLock' -Fixture {
     Context -Name 'When querying lock events successfully' -Fixture {
         BeforeEach {
-            Mock -CommandName 'Get-WinEvent' -MockWith {
+            Mock -CommandName 'Get-WinEvent' -ModuleName PSWinOps -MockWith {
                 return $script:mockLockEvent
             }
         }
@@ -68,7 +68,7 @@ Describe -Name 'Get-RdpSessionLock' -Fixture {
 
     Context -Name 'When no events are found' -Fixture {
         BeforeEach {
-            Mock -CommandName 'Get-WinEvent' -MockWith {
+            Mock -CommandName 'Get-WinEvent' -ModuleName PSWinOps -MockWith {
                 return $null
             }
         }
@@ -81,7 +81,7 @@ Describe -Name 'Get-RdpSessionLock' -Fixture {
 
     Context -Name 'When access is denied to Security log' -Fixture {
         BeforeEach {
-            Mock -CommandName 'Get-WinEvent' -MockWith {
+            Mock -CommandName 'Get-WinEvent' -ModuleName PSWinOps -MockWith {
                 throw [System.UnauthorizedAccessException]::new('Access denied')
             }
         }
@@ -98,7 +98,7 @@ Describe -Name 'Get-RdpSessionLock' -Fixture {
 
     Context -Name 'When querying multiple computers via pipeline' -Fixture {
         BeforeEach {
-            Mock -CommandName 'Get-WinEvent' -MockWith {
+            Mock -CommandName 'Get-WinEvent' -ModuleName PSWinOps -MockWith {
                 return $script:mockLockEvent
             }
         }
@@ -116,7 +116,7 @@ Describe -Name 'Get-RdpSessionLock' -Fixture {
 
     Context -Name 'When custom StartTime is provided' -Fixture {
         BeforeEach {
-            Mock -CommandName 'Get-WinEvent' -MockWith {
+            Mock -CommandName 'Get-WinEvent' -ModuleName PSWinOps -MockWith {
                 return $script:mockLockEvent
             }
         }

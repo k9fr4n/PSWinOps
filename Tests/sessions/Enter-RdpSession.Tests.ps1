@@ -15,14 +15,15 @@ BeforeAll {
 }
 
 Describe -Name 'Enter-RdpSession' -Fixture {
+
     Context -Name 'When entering a session successfully in Control mode' -Fixture {
+
         BeforeEach {
             Mock -CommandName 'New-CimSession' -MockWith {
                 [PSCustomObject]@{ ComputerName = 'localhost' }
             }
 
             Mock -CommandName 'Get-CimInstance' -MockWith {
-                param($ClassName)
                 if ($ClassName -eq 'Win32_LogonSession') {
                     return $script:mockLogonSession
                 } elseif ($ClassName -eq 'Win32_TerminalService') {
@@ -70,13 +71,13 @@ Describe -Name 'Enter-RdpSession' -Fixture {
     }
 
     Context -Name 'When entering a session in View mode' -Fixture {
+
         BeforeEach {
             Mock -CommandName 'New-CimSession' -MockWith {
                 [PSCustomObject]@{ ComputerName = 'localhost' }
             }
 
             Mock -CommandName 'Get-CimInstance' -MockWith {
-                param($ClassName)
                 if ($ClassName -eq 'Win32_LogonSession') {
                     return $script:mockLogonSession
                 } elseif ($ClassName -eq 'Win32_TerminalService') {
@@ -98,13 +99,13 @@ Describe -Name 'Enter-RdpSession' -Fixture {
     }
 
     Context -Name 'When target session does not exist' -Fixture {
+
         BeforeEach {
             Mock -CommandName 'New-CimSession' -MockWith {
                 [PSCustomObject]@{ ComputerName = 'localhost' }
             }
 
             Mock -CommandName 'Get-CimInstance' -MockWith {
-                param($ClassName)
                 if ($ClassName -eq 'Win32_LogonSession') {
                     return $null
                 } elseif ($ClassName -eq 'Win32_TerminalService') {
@@ -113,6 +114,7 @@ Describe -Name 'Enter-RdpSession' -Fixture {
             }
 
             Mock -CommandName 'Invoke-CimMethod' -MockWith {}
+
             Mock -CommandName 'Remove-CimSession' -MockWith {}
         }
 
@@ -128,8 +130,10 @@ Describe -Name 'Enter-RdpSession' -Fixture {
     }
 
     Context -Name 'When ShouldProcess is declined' -Fixture {
+
         BeforeEach {
             Mock -CommandName 'New-CimSession' -MockWith {}
+
             Mock -CommandName 'Invoke-CimMethod' -MockWith {}
         }
 
@@ -145,13 +149,13 @@ Describe -Name 'Enter-RdpSession' -Fixture {
     }
 
     Context -Name 'When user rejects the connection request' -Fixture {
+
         BeforeEach {
             Mock -CommandName 'New-CimSession' -MockWith {
                 [PSCustomObject]@{ ComputerName = 'localhost' }
             }
 
             Mock -CommandName 'Get-CimInstance' -MockWith {
-                param($ClassName)
                 if ($ClassName -eq 'Win32_LogonSession') {
                     return $script:mockLogonSession
                 } elseif ($ClassName -eq 'Win32_TerminalService') {
@@ -179,13 +183,13 @@ Describe -Name 'Enter-RdpSession' -Fixture {
     }
 
     Context -Name 'When shadow is disabled by Group Policy' -Fixture {
+
         BeforeEach {
             Mock -CommandName 'New-CimSession' -MockWith {
                 [PSCustomObject]@{ ComputerName = 'localhost' }
             }
 
             Mock -CommandName 'Get-CimInstance' -MockWith {
-                param($ClassName)
                 if ($ClassName -eq 'Win32_LogonSession') {
                     return $script:mockLogonSession
                 } elseif ($ClassName -eq 'Win32_TerminalService') {
@@ -213,13 +217,13 @@ Describe -Name 'Enter-RdpSession' -Fixture {
     }
 
     Context -Name 'When processing pipeline input from Get-ActiveRdpSession' -Fixture {
+
         BeforeEach {
             Mock -CommandName 'New-CimSession' -MockWith {
                 [PSCustomObject]@{ ComputerName = $ComputerName }
             }
 
             Mock -CommandName 'Get-CimInstance' -MockWith {
-                param($ClassName)
                 if ($ClassName -eq 'Win32_LogonSession') {
                     return $script:mockLogonSession
                 } elseif ($ClassName -eq 'Win32_TerminalService') {
@@ -242,13 +246,13 @@ Describe -Name 'Enter-RdpSession' -Fixture {
     }
 
     Context -Name 'When NoUserPrompt switch is specified' -Fixture {
+
         BeforeEach {
             Mock -CommandName 'New-CimSession' -MockWith {
                 [PSCustomObject]@{ ComputerName = 'localhost' }
             }
 
             Mock -CommandName 'Get-CimInstance' -MockWith {
-                param($ClassName)
                 if ($ClassName -eq 'Win32_LogonSession') {
                     return $script:mockLogonSession
                 } elseif ($ClassName -eq 'Win32_TerminalService') {
