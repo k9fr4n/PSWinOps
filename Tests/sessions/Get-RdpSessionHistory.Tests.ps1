@@ -1,270 +1,209 @@
 ﻿#Requires -Version 5.1
+#Requires -Modules @{ ModuleName = 'Pester'; ModuleVersion = '5.0.0' }
 
 BeforeAll {
     # Import module
     $script:modulePath = Join-Path -Path $PSScriptRoot -ChildPath '..\..\PSWinOps.psd1'
     Import-Module -Name $script:modulePath -Force -ErrorAction Stop
 
-    # Mock event data
-    $script:mockEventXml = @'
-<Event>
-  <UserData>
-    <EventXML>
-      <User>DOMAIN\testuser</User>
-      <Address>192.168.1.100</Address>
-    </EventXML>
-  </UserData>
-</Event>
-'@
-
-    $script:mockEventEntry = [PSCustomObject]@{
-        TimeCreated = [datetime]'2026-03-11 08:00:00'
-        Id          = 21
-    } | Add-Member -MemberType ScriptMethod -Name 'ToXml' -Value {
-        return $script:mockEventXml
-    } -PassThru
+    # Define test data
+    $script:defaultLength = 16
+    $script:defaultUpperCount = 2
+    $script:defaultLowerCount = 2
+    $script:defaultNumericCount = 2
+    $script:defaultSpecialCount = 2
+    $script:upperCharSet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    $script:lowerCharSet = 'abcdefghijklmnopqrstuvwxyz'
+    $script:numericCharSet = '0123456789'
+    $script:specialCharSet = '@.+-=*!#$%&?'
 }
 
-Describe -Name 'Get-RdpSessionHistory' -Fixture {
+Describe -Name 'Get-RandomPassword' -Fixture {
+
+    Context -Name 'Module integration' -Fixture {
+
+        It -Name 'Should be available after module import' -Test {
+            Get-Command -Name 'Get-RandomPassword' -Module 'PSWinOps' -ErrorAction SilentlyContinue | Should -Not -BeNullOrEmpty
+        }
+
+        It -Name 'Should have correct OutputType attribute' -Test {
+            $command = Get-Command -Name 'Get-RandomPassword'
+            $command.OutputType.Name | Should -Contain 'System.String'
+        }
+    }
 
     Context -Name 'Parameter validation' -Fixture {
 
-        It -Name 'Should accept ComputerName from pipeline by value' -Test {
-            Mock -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -MockWith { return @() }
-
-            { 'SRV01' | Get-RdpSessionHistory } | Should -Not -Throw
-
-            Should -Invoke -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -Times 1 -Exactly
+        It -Name 'Should reject length less than 8' -Test {
+            { Get-RandomPassword -Length 7 } | Should -Throw
         }
 
-        It -Name 'Should accept ComputerName from pipeline by property name' -Test {
-            Mock -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -MockWith { return @() }
-            $inputObject = [PSCustomObject]@{ Name = 'SRV02' }
-
-            { $inputObject | Get-RdpSessionHistory } | Should -Not -Throw
-
-            Should -Invoke -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -Times 1 -Exactly
+        It -Name 'Should reject negative count values' -Test {
+            { Get-RandomPassword -UpperCount -1 } | Should -Throw
         }
 
-        It -Name 'Should default to local computer when no ComputerName specified' -Test {
-            Mock -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -MockWith { return @() }
-
-            Get-RdpSessionHistory
-
-            Should -Invoke -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -Times 1 -Exactly -ParameterFilter {
-                $ComputerName -eq $env:COMPUTERNAME
-            }
+        It -Name 'Should throw when total constraints exceed length' -Test {
+            { Get-RandomPassword -Length 10 -UpperCount 5 -LowerCount 5 -NumericCount 5 -SpecialCount 5 } | Should -Throw -ExpectedMessage '*exceeds password length*'
         }
 
-        It -Name 'Should default StartTime to 1970-01-01' -Test {
-            Mock -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -MockWith { return @() }
-
-            Get-RdpSessionHistory
-
-            Should -Invoke -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -Times 1 -Exactly -ParameterFilter {
-                $FilterHashtable.StartTime -eq [datetime]'1970-01-01'
-            }
+        It -Name 'Should throw when all character class counts are zero' -Test {
+            { Get-RandomPassword -UpperCount 0 -LowerCount 0 -NumericCount 0 -SpecialCount 0 } | Should -Throw -ExpectedMessage '*at least one character class*'
         }
     }
 
-    Context -Name 'When events are found' -Fixture {
+    Context -Name 'Password generation with default parameters' -Fixture {
 
-        It -Name 'Should return PSCustomObject with correct properties' -Test {
-            Mock -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -MockWith { return @($script:mockEventEntry) }
-
-            $result = Get-RdpSessionHistory -ComputerName 'SRV01'
-
-            $result | Should -Not -BeNullOrEmpty
-            $result | Should -BeOfType ([PSCustomObject])
-            # PSTypeName est une clé réservée, pas une propriété : utiliser PSObject.TypeNames
-            $result.PSObject.TypeNames[0] | Should -Be 'PSWinOps.RdpSessionHistory'
+        It -Name 'Should return a string' -Test {
+            $result = Get-RandomPassword
+            $result | Should -BeOfType ([string])
         }
 
-        It -Name 'Should include all expected properties' -Test {
-            Mock -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -MockWith { return @($script:mockEventEntry) }
-
-            $result = Get-RdpSessionHistory -ComputerName 'SRV01'
-
-            $result.PSObject.Properties.Name | Should -Contain 'TimeCreated'
-            $result.PSObject.Properties.Name | Should -Contain 'ComputerName'
-            $result.PSObject.Properties.Name | Should -Contain 'User'
-            $result.PSObject.Properties.Name | Should -Contain 'IPAddress'
-            $result.PSObject.Properties.Name | Should -Contain 'Action'
-            $result.PSObject.Properties.Name | Should -Contain 'EventID'
+        It -Name 'Should return password of default length 16' -Test {
+            $result = Get-RandomPassword
+            $result.Length | Should -Be 16
         }
 
-        It -Name 'Should map Event ID 21 to Logon action' -Test {
-            Mock -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -MockWith { return @($script:mockEventEntry) }
-
-            $result = Get-RdpSessionHistory -ComputerName 'SRV01'
-
-            $result.Action | Should -Be 'Logon'
-            $result.EventID | Should -Be 21
+        It -Name 'Should contain at least 2 uppercase characters' -Test {
+            $result = Get-RandomPassword
+            $upperCount = ($result.ToCharArray() | Where-Object { $_ -cin $script:upperCharSet.ToCharArray() }).Count
+            $upperCount | Should -BeGreaterOrEqual 2
         }
 
-        It -Name 'Should extract user and IP address from event XML' -Test {
-            Mock -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -MockWith { return @($script:mockEventEntry) }
-
-            $result = Get-RdpSessionHistory -ComputerName 'SRV01'
-
-            $result.User | Should -Be 'DOMAIN\testuser'
-            $result.IPAddress | Should -Be '192.168.1.100'
+        It -Name 'Should contain at least 2 lowercase characters' -Test {
+            $result = Get-RandomPassword
+            $lowerCount = ($result.ToCharArray() | Where-Object { $_ -cin $script:lowerCharSet.ToCharArray() }).Count
+            $lowerCount | Should -BeGreaterOrEqual 2
         }
 
-        It -Name 'Should process multiple events' -Test {
-            Mock -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -MockWith {
-                return @($script:mockEventEntry, $script:mockEventEntry)
-            }
+        It -Name 'Should contain at least 2 numeric characters' -Test {
+            $result = Get-RandomPassword
+            $numericCount = ($result.ToCharArray() | Where-Object { $_ -cin $script:numericCharSet.ToCharArray() }).Count
+            $numericCount | Should -BeGreaterOrEqual 2
+        }
 
-            $result = Get-RdpSessionHistory -ComputerName 'SRV01'
-
-            $result.Count | Should -Be 2
+        It -Name 'Should contain at least 2 special characters' -Test {
+            $result = Get-RandomPassword
+            $specialCount = ($result.ToCharArray() | Where-Object { $_ -cin $script:specialCharSet.ToCharArray() }).Count
+            $specialCount | Should -BeGreaterOrEqual 2
         }
     }
 
-    Context -Name 'When no events are found' -Fixture {
+    Context -Name 'Password generation with custom parameters' -Fixture {
 
-        It -Name 'Should return nothing when event log is empty' -Test {
-            Mock -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -MockWith { return @() }
-
-            $result = Get-RdpSessionHistory -ComputerName 'SRV01'
-
-            $result | Should -BeNullOrEmpty
+        It -Name 'Should return password of specified length' -Test {
+            $result = Get-RandomPassword -Length 24
+            $result.Length | Should -Be 24
         }
 
-        It -Name 'Should return nothing when events is null' -Test {
-            Mock -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -MockWith { return $null }
-
-            $result = Get-RdpSessionHistory -ComputerName 'SRV01'
-
-            $result | Should -BeNullOrEmpty
-        }
-    }
-
-    Context -Name 'Error handling' -Fixture {
-
-        It -Name 'Should write error on EventLogException' -Test {
-            Mock -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -MockWith {
-                throw [System.Diagnostics.Eventing.Reader.EventLogException]::new('Log not found')
-            }
-
-            Get-RdpSessionHistory -ComputerName 'SRV01' -ErrorAction SilentlyContinue
-
-            Should -Invoke -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -Times 1 -Exactly
+        It -Name 'Should meet custom uppercase requirement' -Test {
+            $result = Get-RandomPassword -Length 20 -UpperCount 5
+            $upperCount = ($result.ToCharArray() | Where-Object { $_ -cin $script:upperCharSet.ToCharArray() }).Count
+            $upperCount | Should -BeGreaterOrEqual 5
         }
 
-        It -Name 'Should write error on UnauthorizedAccessException' -Test {
-            Mock -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -MockWith {
-                throw [System.UnauthorizedAccessException]::new('Access denied')
-            }
-
-            Get-RdpSessionHistory -ComputerName 'SRV01' -ErrorAction SilentlyContinue
-
-            Should -Invoke -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -Times 1 -Exactly
+        It -Name 'Should generate password with zero special characters when SpecialCount is 0' -Test {
+            $result = Get-RandomPassword -Length 16 -UpperCount 4 -LowerCount 4 -NumericCount 4 -SpecialCount 0
+            $specialCount = ($result.ToCharArray() | Where-Object { $_ -cin $script:specialCharSet.ToCharArray() }).Count
+            $specialCount | Should -Be 0
         }
 
-        It -Name 'Should continue processing other computers if one fails' -Test {
-            Mock -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -MockWith {
-                param($FilterHashtable, $ComputerName, $ErrorAction, $Credential)
-                if ($ComputerName -eq 'SRV-FAIL') {
-                    throw [System.Exception]::new('Connection failed')
-                }
-                return @($script:mockEventEntry)
-            }
-
-            $result = Get-RdpSessionHistory -ComputerName 'SRV-FAIL', 'SRV-OK' -ErrorAction SilentlyContinue
-
-            $result.Count | Should -Be 1
-            $result.ComputerName | Should -Be 'SRV-OK'
-        }
-
-        It -Name 'Should write warning if event XML parsing fails' -Test {
-            $badEventEntry = [PSCustomObject]@{
-                TimeCreated = [datetime]'2026-03-11'
-                Id          = 21
-            } | Add-Member -MemberType ScriptMethod -Name 'ToXml' -Value {
-                return 'NOT_VALID_XML'
-            } -PassThru
-
-            Mock -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -MockWith { return @($badEventEntry) }
-
-            $result = Get-RdpSessionHistory -ComputerName 'SRV01' -WarningAction SilentlyContinue
-
-            $result | Should -BeNullOrEmpty
+        It -Name 'Should generate password with only numeric characters' -Test {
+            $result = Get-RandomPassword -Length 12 -UpperCount 0 -LowerCount 0 -NumericCount 12 -SpecialCount 0
+            $result | Should -Match '^\d+$'
         }
     }
 
-    Context -Name 'Credential handling' -Fixture {
+    Context -Name 'Uniqueness and randomness' -Fixture {
 
-        It -Name 'Should pass Credential parameter to Get-WinEvent when provided' -Test {
-            $secureString = New-Object System.Security.SecureString
-            $testCred = [PSCredential]::new('testuser', $secureString)
-
-            Mock -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -MockWith { return @() }
-
-            Get-RdpSessionHistory -ComputerName 'SRV01' -Credential $testCred
-
-            Should -Invoke -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -Times 1 -Exactly -ParameterFilter {
-                $Credential -eq $testCred
-            }
+        It -Name 'Should generate different passwords on consecutive calls' -Test {
+            $password1 = Get-RandomPassword -Length 20
+            $password2 = Get-RandomPassword -Length 20
+            $password1 | Should -Not -Be $password2
         }
 
-        It -Name 'Should not pass Credential when not specified' -Test {
-            Mock -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -MockWith { return @() }
-
-            Get-RdpSessionHistory -ComputerName 'SRV01'
-
-            Should -Invoke -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -Times 1 -Exactly -ParameterFilter {
-                $null -eq $Credential
-            }
+        It -Name 'Should generate 10 unique passwords' -Test {
+            $passwords = 1..10 | ForEach-Object { Get-RandomPassword -Length 16 }
+            $uniquePasswords = $passwords | Select-Object -Unique
+            $uniquePasswords.Count | Should -Be 10
         }
     }
 
-    Context -Name 'Event ID action mapping' -Fixture {
+    Context -Name 'Error handling and edge cases' -Fixture {
 
-        It -Name 'Should map Event ID 23 to Logoff' -Test {
-            $logoffEvent = [PSCustomObject]@{
-                TimeCreated = [datetime]'2026-03-11'
-                Id          = 23
-            } | Add-Member -MemberType ScriptMethod -Name 'ToXml' -Value {
-                return $script:mockEventXml
-            } -PassThru
-
-            Mock -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -MockWith { return @($logoffEvent) }
-
-            $result = Get-RdpSessionHistory -ComputerName 'SRV01'
-
-            $result.Action | Should -Be 'Logoff'
+        It -Name 'Should throw when constraints exceed length' -Test {
+            { Get-RandomPassword -Length 8 -UpperCount 8 -LowerCount 2 -NumericCount 2 -SpecialCount 2 } | Should -Throw -ExpectedMessage '*exceeds password length*'
         }
 
-        It -Name 'Should map Event ID 24 to Disconnected' -Test {
-            $disconnectEvent = [PSCustomObject]@{
-                TimeCreated = [datetime]'2026-03-11'
-                Id          = 24
-            } | Add-Member -MemberType ScriptMethod -Name 'ToXml' -Value {
-                return $script:mockEventXml
-            } -PassThru
-
-            Mock -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -MockWith { return @($disconnectEvent) }
-
-            $result = Get-RdpSessionHistory -ComputerName 'SRV01'
-
-            $result.Action | Should -Be 'Disconnected'
+        It -Name 'Should throw when constraints are mathematically impossible' -Test {
+            # Impossible: 8 upper + 1 lower + 1 numeric = 10 total required > 8 length
+            { Get-RandomPassword -Length 8 -UpperCount 8 -LowerCount 1 -NumericCount 1 -SpecialCount 0 } | Should -Throw -ExpectedMessage '*exceeds password length*'
         }
 
-        It -Name 'Should map Event ID 25 to Reconnection' -Test {
-            $reconnectEvent = [PSCustomObject]@{
-                TimeCreated = [datetime]'2026-03-11'
-                Id          = 25
-            } | Add-Member -MemberType ScriptMethod -Name 'ToXml' -Value {
-                return $script:mockEventXml
-            } -PassThru
+        It -Name 'Should generate successfully with tight but valid constraints' -Test {
+            $result = Get-RandomPassword -Length 8 -UpperCount 2 -LowerCount 2 -NumericCount 2 -SpecialCount 2
+            $result.Length | Should -Be 8
 
-            Mock -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -MockWith { return @($reconnectEvent) }
+            # Verify all constraints are met
+            $upperCount = ($result.ToCharArray() | Where-Object { $_ -cin $script:upperCharSet.ToCharArray() }).Count
+            $lowerCount = ($result.ToCharArray() | Where-Object { $_ -cin $script:lowerCharSet.ToCharArray() }).Count
+            $numericCount = ($result.ToCharArray() | Where-Object { $_ -cin $script:numericCharSet.ToCharArray() }).Count
+            $specialCount = ($result.ToCharArray() | Where-Object { $_ -cin $script:specialCharSet.ToCharArray() }).Count
 
-            $result = Get-RdpSessionHistory -ComputerName 'SRV01'
+            $upperCount | Should -BeGreaterOrEqual 2
+            $lowerCount | Should -BeGreaterOrEqual 2
+            $numericCount | Should -BeGreaterOrEqual 2
+            $specialCount | Should -BeGreaterOrEqual 2
+        }
 
-            $result.Action | Should -Be 'Reconnection'
+        It -Name 'Should generate successfully with exact constraint match to length' -Test {
+            # Length = 12, constraints = 3+3+3+3 = 12 (no extra random characters)
+            $result = Get-RandomPassword -Length 12 -UpperCount 3 -LowerCount 3 -NumericCount 3 -SpecialCount 3
+            $result.Length | Should -Be 12
+
+            # Verify exact counts
+            $upperCount = ($result.ToCharArray() | Where-Object { $_ -cin $script:upperCharSet.ToCharArray() }).Count
+            $lowerCount = ($result.ToCharArray() | Where-Object { $_ -cin $script:lowerCharSet.ToCharArray() }).Count
+            $numericCount = ($result.ToCharArray() | Where-Object { $_ -cin $script:numericCharSet.ToCharArray() }).Count
+            $specialCount = ($result.ToCharArray() | Where-Object { $_ -cin $script:specialCharSet.ToCharArray() }).Count
+
+            $upperCount | Should -Be 3
+            $lowerCount | Should -Be 3
+            $numericCount | Should -Be 3
+            $specialCount | Should -Be 3
+        }
+
+        It -Name 'Should handle minimum length password' -Test {
+            $result = Get-RandomPassword -Length 8 -UpperCount 2 -LowerCount 2 -NumericCount 2 -SpecialCount 2
+            $result.Length | Should -Be 8
+            $result | Should -BeOfType ([string])
+        }
+
+        It -Name 'Should handle large password generation' -Test {
+            $result = Get-RandomPassword -Length 128 -UpperCount 20 -LowerCount 20 -NumericCount 20 -SpecialCount 20
+            $result.Length | Should -Be 128
+
+            $upperCount = ($result.ToCharArray() | Where-Object { $_ -cin $script:upperCharSet.ToCharArray() }).Count
+            $lowerCount = ($result.ToCharArray() | Where-Object { $_ -cin $script:lowerCharSet.ToCharArray() }).Count
+            $numericCount = ($result.ToCharArray() | Where-Object { $_ -cin $script:numericCharSet.ToCharArray() }).Count
+            $specialCount = ($result.ToCharArray() | Where-Object { $_ -cin $script:specialCharSet.ToCharArray() }).Count
+
+            $upperCount | Should -BeGreaterOrEqual 20
+            $lowerCount | Should -BeGreaterOrEqual 20
+            $numericCount | Should -BeGreaterOrEqual 20
+            $specialCount | Should -BeGreaterOrEqual 20
         }
     }
+
+    Context -Name 'Verbose output' -Fixture {
+
+        It -Name 'Should produce verbose output when -Verbose is specified' -Test {
+            $verboseOutput = Get-RandomPassword -Length 16 -Verbose 4>&1
+            $verboseOutput | Should -Not -BeNullOrEmpty
+            $verboseOutput -join ' ' | Should -Match 'Get-RandomPassword.*Starting password generation|Get-RandomPassword.*Character set size'
+        }
+    }
+}
+
+AfterAll {
+    Remove-Module -Name 'PSWinOps' -Force -ErrorAction SilentlyContinue
 }
