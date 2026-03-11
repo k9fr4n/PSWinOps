@@ -30,39 +30,38 @@ Describe -Name 'Get-RdpSessionHistory' -Fixture {
     Context -Name 'Parameter validation' -Fixture {
 
         It -Name 'Should accept ComputerName from pipeline by value' -Test {
-            Mock -CommandName 'Get-WinEvent' -MockWith { return @() }
+            Mock -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -MockWith { return @() }
 
             { 'SRV01' | Get-RdpSessionHistory } | Should -Not -Throw
 
-            Should -Invoke -CommandName 'Get-WinEvent' -Times 1 -Exactly
+            Should -Invoke -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -Times 1 -Exactly
         }
 
         It -Name 'Should accept ComputerName from pipeline by property name' -Test {
-            Mock -CommandName 'Get-WinEvent' -MockWith { return @() }
-
+            Mock -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -MockWith { return @() }
             $inputObject = [PSCustomObject]@{ Name = 'SRV02' }
 
             { $inputObject | Get-RdpSessionHistory } | Should -Not -Throw
 
-            Should -Invoke -CommandName 'Get-WinEvent' -Times 1 -Exactly
+            Should -Invoke -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -Times 1 -Exactly
         }
 
         It -Name 'Should default to local computer when no ComputerName specified' -Test {
-            Mock -CommandName 'Get-WinEvent' -MockWith { return @() }
+            Mock -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -MockWith { return @() }
 
             Get-RdpSessionHistory
 
-            Should -Invoke -CommandName 'Get-WinEvent' -Times 1 -Exactly -ParameterFilter {
+            Should -Invoke -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -Times 1 -Exactly -ParameterFilter {
                 $ComputerName -eq $env:COMPUTERNAME
             }
         }
 
         It -Name 'Should default StartTime to 1970-01-01' -Test {
-            Mock -CommandName 'Get-WinEvent' -MockWith { return @() }
+            Mock -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -MockWith { return @() }
 
             Get-RdpSessionHistory
 
-            Should -Invoke -CommandName 'Get-WinEvent' -Times 1 -Exactly -ParameterFilter {
+            Should -Invoke -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -Times 1 -Exactly -ParameterFilter {
                 $FilterHashtable.StartTime -eq [datetime]'1970-01-01'
             }
         }
@@ -71,17 +70,18 @@ Describe -Name 'Get-RdpSessionHistory' -Fixture {
     Context -Name 'When events are found' -Fixture {
 
         It -Name 'Should return PSCustomObject with correct properties' -Test {
-            Mock -CommandName 'Get-WinEvent' -MockWith { return @($script:mockEventEntry) }
+            Mock -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -MockWith { return @($script:mockEventEntry) }
 
             $result = Get-RdpSessionHistory -ComputerName 'SRV01'
 
             $result | Should -Not -BeNullOrEmpty
             $result | Should -BeOfType ([PSCustomObject])
-            $result.PSTypeName | Should -Be 'PSWinOps.RdpSessionHistory'
+            # PSTypeName est une clé réservée, pas une propriété : utiliser PSObject.TypeNames
+            $result.PSObject.TypeNames[0] | Should -Be 'PSWinOps.RdpSessionHistory'
         }
 
         It -Name 'Should include all expected properties' -Test {
-            Mock -CommandName 'Get-WinEvent' -MockWith { return @($script:mockEventEntry) }
+            Mock -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -MockWith { return @($script:mockEventEntry) }
 
             $result = Get-RdpSessionHistory -ComputerName 'SRV01'
 
@@ -94,7 +94,7 @@ Describe -Name 'Get-RdpSessionHistory' -Fixture {
         }
 
         It -Name 'Should map Event ID 21 to Logon action' -Test {
-            Mock -CommandName 'Get-WinEvent' -MockWith { return @($script:mockEventEntry) }
+            Mock -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -MockWith { return @($script:mockEventEntry) }
 
             $result = Get-RdpSessionHistory -ComputerName 'SRV01'
 
@@ -103,7 +103,7 @@ Describe -Name 'Get-RdpSessionHistory' -Fixture {
         }
 
         It -Name 'Should extract user and IP address from event XML' -Test {
-            Mock -CommandName 'Get-WinEvent' -MockWith { return @($script:mockEventEntry) }
+            Mock -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -MockWith { return @($script:mockEventEntry) }
 
             $result = Get-RdpSessionHistory -ComputerName 'SRV01'
 
@@ -112,7 +112,7 @@ Describe -Name 'Get-RdpSessionHistory' -Fixture {
         }
 
         It -Name 'Should process multiple events' -Test {
-            Mock -CommandName 'Get-WinEvent' -MockWith {
+            Mock -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -MockWith {
                 return @($script:mockEventEntry, $script:mockEventEntry)
             }
 
@@ -125,7 +125,7 @@ Describe -Name 'Get-RdpSessionHistory' -Fixture {
     Context -Name 'When no events are found' -Fixture {
 
         It -Name 'Should return nothing when event log is empty' -Test {
-            Mock -CommandName 'Get-WinEvent' -MockWith { return @() }
+            Mock -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -MockWith { return @() }
 
             $result = Get-RdpSessionHistory -ComputerName 'SRV01'
 
@@ -133,7 +133,7 @@ Describe -Name 'Get-RdpSessionHistory' -Fixture {
         }
 
         It -Name 'Should return nothing when events is null' -Test {
-            Mock -CommandName 'Get-WinEvent' -MockWith { return $null }
+            Mock -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -MockWith { return $null }
 
             $result = Get-RdpSessionHistory -ComputerName 'SRV01'
 
@@ -144,28 +144,28 @@ Describe -Name 'Get-RdpSessionHistory' -Fixture {
     Context -Name 'Error handling' -Fixture {
 
         It -Name 'Should write error on EventLogException' -Test {
-            Mock -CommandName 'Get-WinEvent' -MockWith {
+            Mock -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -MockWith {
                 throw [System.Diagnostics.Eventing.Reader.EventLogException]::new('Log not found')
             }
 
             Get-RdpSessionHistory -ComputerName 'SRV01' -ErrorAction SilentlyContinue
 
-            Should -Invoke -CommandName 'Get-WinEvent' -Times 1 -Exactly
+            Should -Invoke -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -Times 1 -Exactly
         }
 
         It -Name 'Should write error on UnauthorizedAccessException' -Test {
-            Mock -CommandName 'Get-WinEvent' -MockWith {
+            Mock -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -MockWith {
                 throw [System.UnauthorizedAccessException]::new('Access denied')
             }
 
             Get-RdpSessionHistory -ComputerName 'SRV01' -ErrorAction SilentlyContinue
 
-            Should -Invoke -CommandName 'Get-WinEvent' -Times 1 -Exactly
+            Should -Invoke -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -Times 1 -Exactly
         }
 
         It -Name 'Should continue processing other computers if one fails' -Test {
-            Mock -CommandName 'Get-WinEvent' -MockWith {
-                param($ComputerName)
+            Mock -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -MockWith {
+                param($FilterHashtable, $ComputerName, $ErrorAction, $Credential)
                 if ($ComputerName -eq 'SRV-FAIL') {
                     throw [System.Exception]::new('Connection failed')
                 }
@@ -183,10 +183,10 @@ Describe -Name 'Get-RdpSessionHistory' -Fixture {
                 TimeCreated = [datetime]'2026-03-11'
                 Id          = 21
             } | Add-Member -MemberType ScriptMethod -Name 'ToXml' -Value {
-                return '<Invalid>XML</Invalid>'
+                return 'NOT_VALID_XML'
             } -PassThru
 
-            Mock -CommandName 'Get-WinEvent' -MockWith { return @($badEventEntry) }
+            Mock -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -MockWith { return @($badEventEntry) }
 
             $result = Get-RdpSessionHistory -ComputerName 'SRV01' -WarningAction SilentlyContinue
 
@@ -200,22 +200,22 @@ Describe -Name 'Get-RdpSessionHistory' -Fixture {
             $secureString = New-Object System.Security.SecureString
             $testCred = [PSCredential]::new('testuser', $secureString)
 
-            Mock -CommandName 'Get-WinEvent' -MockWith { return @() }
+            Mock -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -MockWith { return @() }
 
             Get-RdpSessionHistory -ComputerName 'SRV01' -Credential $testCred
 
-            Should -Invoke -CommandName 'Get-WinEvent' -Times 1 -Exactly -ParameterFilter {
+            Should -Invoke -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -Times 1 -Exactly -ParameterFilter {
                 $Credential -eq $testCred
             }
         }
 
         It -Name 'Should not pass Credential when not specified' -Test {
-            Mock -CommandName 'Get-WinEvent' -MockWith { return @() }
+            Mock -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -MockWith { return @() }
 
             Get-RdpSessionHistory -ComputerName 'SRV01'
 
-            Should -Invoke -CommandName 'Get-WinEvent' -Times 1 -Exactly -ParameterFilter {
-                -not $PSBoundParameters.ContainsKey('Credential')
+            Should -Invoke -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -Times 1 -Exactly -ParameterFilter {
+                $null -eq $Credential
             }
         }
     }
@@ -223,14 +223,14 @@ Describe -Name 'Get-RdpSessionHistory' -Fixture {
     Context -Name 'Event ID action mapping' -Fixture {
 
         It -Name 'Should map Event ID 23 to Logoff' -Test {
-            $logoffEventEntry = [PSCustomObject]@{
+            $logoffEvent = [PSCustomObject]@{
                 TimeCreated = [datetime]'2026-03-11'
                 Id          = 23
             } | Add-Member -MemberType ScriptMethod -Name 'ToXml' -Value {
-                return $script:mockEventXml.Replace('<EventID>21</EventID>', '<EventID>23</EventID>')
+                return $script:mockEventXml
             } -PassThru
 
-            Mock -CommandName 'Get-WinEvent' -MockWith { return @($logoffEventEntry) }
+            Mock -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -MockWith { return @($logoffEvent) }
 
             $result = Get-RdpSessionHistory -ComputerName 'SRV01'
 
@@ -238,14 +238,14 @@ Describe -Name 'Get-RdpSessionHistory' -Fixture {
         }
 
         It -Name 'Should map Event ID 24 to Disconnected' -Test {
-            $disconnectEventEntry = [PSCustomObject]@{
+            $disconnectEvent = [PSCustomObject]@{
                 TimeCreated = [datetime]'2026-03-11'
                 Id          = 24
             } | Add-Member -MemberType ScriptMethod -Name 'ToXml' -Value {
-                return $script:mockEventXml.Replace('<EventID>21</EventID>', '<EventID>24</EventID>')
+                return $script:mockEventXml
             } -PassThru
 
-            Mock -CommandName 'Get-WinEvent' -MockWith { return @($disconnectEventEntry) }
+            Mock -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -MockWith { return @($disconnectEvent) }
 
             $result = Get-RdpSessionHistory -ComputerName 'SRV01'
 
@@ -253,14 +253,14 @@ Describe -Name 'Get-RdpSessionHistory' -Fixture {
         }
 
         It -Name 'Should map Event ID 25 to Reconnection' -Test {
-            $reconnectEventEntry = [PSCustomObject]@{
+            $reconnectEvent = [PSCustomObject]@{
                 TimeCreated = [datetime]'2026-03-11'
                 Id          = 25
             } | Add-Member -MemberType ScriptMethod -Name 'ToXml' -Value {
-                return $script:mockEventXml.Replace('<EventID>21</EventID>', '<EventID>25</EventID>')
+                return $script:mockEventXml
             } -PassThru
 
-            Mock -CommandName 'Get-WinEvent' -MockWith { return @($reconnectEventEntry) }
+            Mock -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -MockWith { return @($reconnectEvent) }
 
             $result = Get-RdpSessionHistory -ComputerName 'SRV01'
 
