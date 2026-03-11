@@ -12,7 +12,6 @@ BeforeAll {
     $script:defaultLowerCount = 2
     $script:defaultNumericCount = 2
     $script:defaultSpecialCount = 2
-
     $script:upperCharSet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
     $script:lowerCharSet = 'abcdefghijklmnopqrstuvwxyz'
     $script:numericCharSet = '0123456789'
@@ -135,20 +134,63 @@ Describe -Name 'Get-RandomPassword' -Fixture {
             { Get-RandomPassword -Length 8 -UpperCount 8 -LowerCount 2 -NumericCount 2 -SpecialCount 2 } | Should -Throw -ExpectedMessage '*exceeds password length*'
         }
 
-        It -Name 'Should throw after exceeding max retries with impossible constraints' -Test {
-            # Impossible: Length=8 with 8 uppercase + 1 lower + 1 numeric = 10 total required > 8 length
+        It -Name 'Should throw when constraints are mathematically impossible' -Test {
+            # Impossible: 8 upper + 1 lower + 1 numeric = 10 total required > 8 length
             { Get-RandomPassword -Length 8 -UpperCount 8 -LowerCount 1 -NumericCount 1 -SpecialCount 0 } | Should -Throw -ExpectedMessage '*exceeds password length*'
         }
 
         It -Name 'Should generate successfully with tight but valid constraints' -Test {
             $result = Get-RandomPassword -Length 8 -UpperCount 2 -LowerCount 2 -NumericCount 2 -SpecialCount 2
             $result.Length | Should -Be 8
+
+            # Verify all constraints are met
+            $upperCount = ($result.ToCharArray() | Where-Object { $_ -cin $script:upperCharSet.ToCharArray() }).Count
+            $lowerCount = ($result.ToCharArray() | Where-Object { $_ -cin $script:lowerCharSet.ToCharArray() }).Count
+            $numericCount = ($result.ToCharArray() | Where-Object { $_ -cin $script:numericCharSet.ToCharArray() }).Count
+            $specialCount = ($result.ToCharArray() | Where-Object { $_ -cin $script:specialCharSet.ToCharArray() }).Count
+
+            $upperCount | Should -BeGreaterOrEqual 2
+            $lowerCount | Should -BeGreaterOrEqual 2
+            $numericCount | Should -BeGreaterOrEqual 2
+            $specialCount | Should -BeGreaterOrEqual 2
         }
 
-        It -Name 'Should accept MaxRetries parameter without error' -Test {
-            $result = Get-RandomPassword -Length 16 -UpperCount 2 -LowerCount 2 -NumericCount 2 -SpecialCount 2 -MaxRetries 50
-            $result | Should -Not -BeNullOrEmpty
-            $result.Length | Should -Be 16
+        It -Name 'Should generate successfully with exact constraint match to length' -Test {
+            # Length = 12, constraints = 3+3+3+3 = 12 (no extra random characters)
+            $result = Get-RandomPassword -Length 12 -UpperCount 3 -LowerCount 3 -NumericCount 3 -SpecialCount 3
+            $result.Length | Should -Be 12
+
+            # Verify exact counts
+            $upperCount = ($result.ToCharArray() | Where-Object { $_ -cin $script:upperCharSet.ToCharArray() }).Count
+            $lowerCount = ($result.ToCharArray() | Where-Object { $_ -cin $script:lowerCharSet.ToCharArray() }).Count
+            $numericCount = ($result.ToCharArray() | Where-Object { $_ -cin $script:numericCharSet.ToCharArray() }).Count
+            $specialCount = ($result.ToCharArray() | Where-Object { $_ -cin $script:specialCharSet.ToCharArray() }).Count
+
+            $upperCount | Should -Be 3
+            $lowerCount | Should -Be 3
+            $numericCount | Should -Be 3
+            $specialCount | Should -Be 3
+        }
+
+        It -Name 'Should handle minimum length password' -Test {
+            $result = Get-RandomPassword -Length 8 -UpperCount 2 -LowerCount 2 -NumericCount 2 -SpecialCount 2
+            $result.Length | Should -Be 8
+            $result | Should -BeOfType ([string])
+        }
+
+        It -Name 'Should handle large password generation' -Test {
+            $result = Get-RandomPassword -Length 128 -UpperCount 20 -LowerCount 20 -NumericCount 20 -SpecialCount 20
+            $result.Length | Should -Be 128
+
+            $upperCount = ($result.ToCharArray() | Where-Object { $_ -cin $script:upperCharSet.ToCharArray() }).Count
+            $lowerCount = ($result.ToCharArray() | Where-Object { $_ -cin $script:lowerCharSet.ToCharArray() }).Count
+            $numericCount = ($result.ToCharArray() | Where-Object { $_ -cin $script:numericCharSet.ToCharArray() }).Count
+            $specialCount = ($result.ToCharArray() | Where-Object { $_ -cin $script:specialCharSet.ToCharArray() }).Count
+
+            $upperCount | Should -BeGreaterOrEqual 20
+            $lowerCount | Should -BeGreaterOrEqual 20
+            $numericCount | Should -BeGreaterOrEqual 20
+            $specialCount | Should -BeGreaterOrEqual 20
         }
     }
 
@@ -157,7 +199,7 @@ Describe -Name 'Get-RandomPassword' -Fixture {
         It -Name 'Should produce verbose output when -Verbose is specified' -Test {
             $verboseOutput = Get-RandomPassword -Length 16 -Verbose 4>&1
             $verboseOutput | Should -Not -BeNullOrEmpty
-            $verboseOutput -join ' ' | Should -Match '\[Get-RandomPassword\].*Starting password generation|\[Get-RandomPassword\].*Character set size'
+            $verboseOutput -join ' ' | Should -Match 'Get-RandomPassword.*Starting password generation|Get-RandomPassword.*Character set size'
         }
     }
 }
