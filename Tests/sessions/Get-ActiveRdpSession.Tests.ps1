@@ -1,11 +1,24 @@
 ﻿#Requires -Version 5.1
 
 BeforeAll {
-    # Import module - FIXED: corrected path
-    $script:modulePath = Join-Path -Path $PSScriptRoot -ChildPath '..\..\PSWinOps.psd1'
+    <#
+.SYNOPSIS
+    Test suite for Get-ActiveRdpSession
+
+.DESCRIPTION
+    Validates Get-ActiveRdpSession behavior: session enumeration, CIM session lifecycle,
+    pipeline input, error handling, and cross-computer queries.
+
+.NOTES
+    Author:        Franck SALLET
+    Version:       1.0.0
+    Last Modified: 2026-03-11
+    Requires:      PowerShell 5.1+, Pester 5.x
+    Permissions:   None (mocks CIM operations)
+#>
+    $script:modulePath = Join-Path -Path $PSScriptRoot -ChildPath '..\PSWinOps.psd1'
     Import-Module -Name $script:modulePath -Force -ErrorAction Stop
 
-    # Mock test data
     $script:mockLogonSession = [PSCustomObject]@{
         LogonId               = '123456'
         LogonType             = 10
@@ -20,16 +33,11 @@ BeforeAll {
 }
 
 Describe -Name 'Get-ActiveRdpSession' -Fixture {
-
     Context -Name 'When querying local computer with active sessions' -Fixture {
-
         BeforeEach {
-            # FIXED: Removed unused parameters from all mocks
+            # FIX: New-CimSession MUST return a real [CimSession] object
             Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
-                [PSCustomObject]@{
-                    ComputerName         = 'localhost'
-                    CimSessionInstanceId = [guid]::NewGuid()
-                }
+                New-MockObject -Type 'Microsoft.Management.Infrastructure.CimSession'
             }
 
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
@@ -74,13 +82,9 @@ Describe -Name 'Get-ActiveRdpSession' -Fixture {
     }
 
     Context -Name 'When no sessions are found' -Fixture {
-
         BeforeEach {
             Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
-                [PSCustomObject]@{
-                    ComputerName         = 'localhost'
-                    CimSessionInstanceId = [guid]::NewGuid()
-                }
+                New-MockObject -Type 'Microsoft.Management.Infrastructure.CimSession'
             }
 
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
@@ -102,7 +106,6 @@ Describe -Name 'Get-ActiveRdpSession' -Fixture {
     }
 
     Context -Name 'When access is denied' -Fixture {
-
         BeforeEach {
             Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
                 throw [System.UnauthorizedAccessException]::new('Access denied')
@@ -120,13 +123,9 @@ Describe -Name 'Get-ActiveRdpSession' -Fixture {
     }
 
     Context -Name 'When querying multiple computers via pipeline' -Fixture {
-
         BeforeEach {
             Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
-                [PSCustomObject]@{
-                    ComputerName         = 'MockedServer'
-                    CimSessionInstanceId = [guid]::NewGuid()
-                }
+                New-MockObject -Type 'Microsoft.Management.Infrastructure.CimSession'
             }
 
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
