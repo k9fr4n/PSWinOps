@@ -76,9 +76,10 @@ Describe -Name 'Enter-RdpSession' -Fixture {
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
                 param($ClassName, $Namespace)
                 if ($ClassName -eq 'Win32_TSSession') {
-                    return $script:mockTsSession
+                    return $script:mockTsSession  # PSCustomObject OK ici (pas utilisé comme CimInstance)
                 } elseif ($ClassName -eq 'Win32_TerminalService') {
-                    return $script:mockTsService
+                    # FIX: doit être un vrai CimInstance car passé à Invoke-CimMethod -InputObject
+                    return New-MockObject -Type 'Microsoft.Management.Infrastructure.CimInstance'
                 }
                 return $null
             }
@@ -100,9 +101,10 @@ Describe -Name 'Enter-RdpSession' -Fixture {
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
                 param($ClassName, $Namespace)
                 if ($ClassName -eq 'Win32_TSSession') {
-                    return $null
+                    return $script:mockTsSession  # PSCustomObject OK ici (pas utilisé comme CimInstance)
                 } elseif ($ClassName -eq 'Win32_TerminalService') {
-                    return $script:mockTsService
+                    # FIX: doit être un vrai CimInstance car passé à Invoke-CimMethod -InputObject
+                    return New-MockObject -Type 'Microsoft.Management.Infrastructure.CimInstance'
                 }
                 return $null
             }
@@ -148,9 +150,10 @@ Describe -Name 'Enter-RdpSession' -Fixture {
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
                 param($ClassName, $Namespace)
                 if ($ClassName -eq 'Win32_TSSession') {
-                    return $script:mockTsSession
+                    return $script:mockTsSession  # PSCustomObject OK ici (pas utilisé comme CimInstance)
                 } elseif ($ClassName -eq 'Win32_TerminalService') {
-                    return $script:mockTsService
+                    # FIX: doit être un vrai CimInstance car passé à Invoke-CimMethod -InputObject
+                    return New-MockObject -Type 'Microsoft.Management.Infrastructure.CimInstance'
                 }
                 return $null
             }
@@ -178,9 +181,10 @@ Describe -Name 'Enter-RdpSession' -Fixture {
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
                 param($ClassName, $Namespace)
                 if ($ClassName -eq 'Win32_TSSession') {
-                    return $script:mockTsSession
+                    return $script:mockTsSession  # PSCustomObject OK ici (pas utilisé comme CimInstance)
                 } elseif ($ClassName -eq 'Win32_TerminalService') {
-                    return $script:mockTsService
+                    # FIX: doit être un vrai CimInstance car passé à Invoke-CimMethod -InputObject
+                    return New-MockObject -Type 'Microsoft.Management.Infrastructure.CimInstance'
                 }
                 return $null
             }
@@ -208,9 +212,10 @@ Describe -Name 'Enter-RdpSession' -Fixture {
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
                 param($ClassName, $Namespace)
                 if ($ClassName -eq 'Win32_TSSession') {
-                    return $script:mockTsSession
+                    return $script:mockTsSession  # PSCustomObject OK ici (pas utilisé comme CimInstance)
                 } elseif ($ClassName -eq 'Win32_TerminalService') {
-                    return $script:mockTsService
+                    # FIX: doit être un vrai CimInstance car passé à Invoke-CimMethod -InputObject
+                    return New-MockObject -Type 'Microsoft.Management.Infrastructure.CimInstance'
                 }
                 return $null
             }
@@ -233,9 +238,10 @@ Describe -Name 'Enter-RdpSession' -Fixture {
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
                 param($ClassName, $Namespace)
                 if ($ClassName -eq 'Win32_TSSession') {
-                    return $script:mockTsSession
+                    return $script:mockTsSession  # PSCustomObject OK ici (pas utilisé comme CimInstance)
                 } elseif ($ClassName -eq 'Win32_TerminalService') {
-                    return $script:mockTsService
+                    # FIX: doit être un vrai CimInstance car passé à Invoke-CimMethod -InputObject
+                    return New-MockObject -Type 'Microsoft.Management.Infrastructure.CimInstance'
                 }
                 return $null
             }

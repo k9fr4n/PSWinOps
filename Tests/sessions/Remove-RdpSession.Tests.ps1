@@ -1,30 +1,27 @@
 ﻿#Requires -Version 5.1
 
 BeforeAll {
-    # Import module
+    # FIX: chemin corrigé (... → ..\..)
     $script:modulePath = Join-Path -Path $PSScriptRoot -ChildPath '..\..\PSWinOps.psd1'
     Import-Module -Name $script:modulePath -Force -ErrorAction Stop
-
-    $script:mockTsService = [PSCustomObject]@{
-        Name = 'TerminalServices'
-    }
+    # NOTE: mockTsService supprimé - remplacé par New-MockObject directement dans les mocks
 }
 
 Describe -Name 'Remove-RdpSession' -Fixture {
+
     Context -Name 'When removing a session successfully' -Fixture {
         BeforeEach {
+            # FIX: New-MockObject à la place de PSCustomObject
             Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
-                [PSCustomObject]@{ ComputerName = 'localhost' }
+                New-MockObject -Type 'Microsoft.Management.Infrastructure.CimSession'
             }
-
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
-                return $script:mockTsService
+                # FIX: CimInstance requis car passé à Invoke-CimMethod -InputObject
+                New-MockObject -Type 'Microsoft.Management.Infrastructure.CimInstance'
             }
-
             Mock -CommandName 'Invoke-CimMethod' -ModuleName 'PSWinOps' -MockWith {
                 [PSCustomObject]@{ ReturnValue = 0 }
             }
-
             Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
         }
 
@@ -41,29 +38,29 @@ Describe -Name 'Remove-RdpSession' -Fixture {
 
         It -Name 'Should invoke LogoffSession method' -Test {
             Remove-RdpSession -SessionID 2 -Confirm:$false
-            Should -Invoke -CommandName 'Invoke-CimMethod' -Times 1 -Exactly
+            # FIX: -ModuleName ajouté
+            Should -Invoke -CommandName 'Invoke-CimMethod' -ModuleName 'PSWinOps' -Times 1 -Exactly
         }
 
         It -Name 'Should clean up CIM session' -Test {
             Remove-RdpSession -SessionID 2 -Confirm:$false
-            Should -Invoke -CommandName 'Remove-CimSession' -Times 1 -Exactly
+            # FIX: -ModuleName ajouté
+            Should -Invoke -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -Times 1 -Exactly
         }
     }
 
     Context -Name 'When Force parameter is used' -Fixture {
         BeforeEach {
+            # FIX: New-MockObject à la place de PSCustomObject
             Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
-                [PSCustomObject]@{ ComputerName = 'localhost' }
+                New-MockObject -Type 'Microsoft.Management.Infrastructure.CimSession'
             }
-
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
-                return $script:mockTsService
+                New-MockObject -Type 'Microsoft.Management.Infrastructure.CimInstance'
             }
-
             Mock -CommandName 'Invoke-CimMethod' -ModuleName 'PSWinOps' -MockWith {
                 [PSCustomObject]@{ ReturnValue = 0 }
             }
-
             Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
         }
 
@@ -81,24 +78,23 @@ Describe -Name 'Remove-RdpSession' -Fixture {
 
         It -Name 'Should not invoke logoff when WhatIf is specified' -Test {
             Remove-RdpSession -SessionID 2 -WhatIf
-            Should -Invoke -CommandName 'Invoke-CimMethod' -Times 0 -Exactly
+            # FIX: -ModuleName ajouté
+            Should -Invoke -CommandName 'Invoke-CimMethod' -ModuleName 'PSWinOps' -Times 0 -Exactly
         }
     }
 
     Context -Name 'When processing pipeline input' -Fixture {
         BeforeEach {
+            # FIX: New-MockObject à la place de PSCustomObject
             Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
-                [PSCustomObject]@{ ComputerName = 'localhost' }
+                New-MockObject -Type 'Microsoft.Management.Infrastructure.CimSession'
             }
-
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
-                return $script:mockTsService
+                New-MockObject -Type 'Microsoft.Management.Infrastructure.CimInstance'
             }
-
             Mock -CommandName 'Invoke-CimMethod' -ModuleName 'PSWinOps' -MockWith {
                 [PSCustomObject]@{ ReturnValue = 0 }
             }
-
             Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
         }
 

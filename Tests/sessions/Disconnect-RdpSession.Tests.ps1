@@ -1,44 +1,28 @@
 ﻿#Requires -Version 5.1
 
 BeforeAll {
-    # Import module
+    # FIX: chemin corrigé (... → ..\..)
     $script:modulePath = Join-Path -Path $PSScriptRoot -ChildPath '..\..\PSWinOps.psd1'
     Import-Module -Name $script:modulePath -Force -ErrorAction Stop
 
-    # Mock return values - use simple objects for return values, not for CimSession
-    $script:mockTsService = [PSCustomObject]@{
-        Name    = 'TerminalServices'
-        __CLASS = 'Win32_TerminalService'
-        __PATH  = 'localhost\root\cimv2\TerminalServices:Win32_TerminalService=@'
-    }
-
-    $script:mockSuccessResult = [PSCustomObject]@{
-        ReturnValue = 0
-    }
+    $script:mockSuccessResult = [PSCustomObject]@{ ReturnValue = 0 }
+    # NOTE: mockTsService supprimé - remplacé par New-MockObject directement dans les mocks
 }
 
 Describe -Name 'Disconnect-RdpSession' -Fixture {
 
     Context -Name 'When disconnecting a session successfully' -Fixture {
         BeforeEach {
-            # Mock New-CimSession to return a simple identifier
-            # The actual CimSession object doesn't matter because we're mocking all downstream calls
             Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
-                $mockSession = New-MockObject -Type 'Microsoft.Management.Infrastructure.CimSession'
-                return $mockSession
+                New-MockObject -Type 'Microsoft.Management.Infrastructure.CimSession'
             }
-
-            # Mock Get-CimInstance - parameter filter using -CimSession will match anything
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
-                return $script:mockTsService
+                # FIX: CimInstance requis car passé à Invoke-CimMethod -InputObject
+                New-MockObject -Type 'Microsoft.Management.Infrastructure.CimInstance'
             }
-
-            # Mock Invoke-CimMethod
             Mock -CommandName 'Invoke-CimMethod' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockSuccessResult
             }
-
-            # Mock Remove-CimSession - accepts any input
             Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
         }
 
@@ -80,18 +64,14 @@ Describe -Name 'Disconnect-RdpSession' -Fixture {
 
     Context -Name 'When ShouldProcess is declined' -Fixture {
         BeforeEach {
+            # FIX: New-MockObject à la place de PSCustomObject
             Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
-                return [PSCustomObject]@{ Id = 1; ComputerName = $ComputerName }
+                New-MockObject -Type 'Microsoft.Management.Infrastructure.CimSession'
             }
-
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
-                return $script:mockTsService
+                New-MockObject -Type 'Microsoft.Management.Infrastructure.CimInstance'
             }
-
-            Mock -CommandName 'Invoke-CimMethod' -ModuleName 'PSWinOps' -MockWith {
-                return $script:mockSuccessResult
-            }
-
+            Mock -CommandName 'Invoke-CimMethod' -ModuleName 'PSWinOps' -MockWith { return $script:mockSuccessResult }
             Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
         }
 
@@ -113,18 +93,14 @@ Describe -Name 'Disconnect-RdpSession' -Fixture {
 
     Context -Name 'When disconnecting multiple sessions' -Fixture {
         BeforeEach {
+            # FIX: New-MockObject à la place de PSCustomObject
             Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
-                return [PSCustomObject]@{ Id = 1; ComputerName = $ComputerName }
+                New-MockObject -Type 'Microsoft.Management.Infrastructure.CimSession'
             }
-
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
-                return $script:mockTsService
+                New-MockObject -Type 'Microsoft.Management.Infrastructure.CimInstance'
             }
-
-            Mock -CommandName 'Invoke-CimMethod' -ModuleName 'PSWinOps' -MockWith {
-                return $script:mockSuccessResult
-            }
-
+            Mock -CommandName 'Invoke-CimMethod' -ModuleName 'PSWinOps' -MockWith { return $script:mockSuccessResult }
             Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
         }
 
@@ -143,7 +119,6 @@ Describe -Name 'Disconnect-RdpSession' -Fixture {
 
         It -Name 'Should create and clean up CIM session once per session' -Test {
             Disconnect-RdpSession -SessionID 2, 3, 5 -Confirm:$false
-            # CIM session is created/cleaned once per session due to process block
             Should -Invoke -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -Times 3 -Exactly
             Should -Invoke -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -Times 3 -Exactly
         }
@@ -151,19 +126,15 @@ Describe -Name 'Disconnect-RdpSession' -Fixture {
 
     Context -Name 'When CIM operation fails' -Fixture {
         BeforeEach {
+            # FIX: New-MockObject à la place de PSCustomObject
             Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
-                return [PSCustomObject]@{ Id = 1; ComputerName = $ComputerName }
+                New-MockObject -Type 'Microsoft.Management.Infrastructure.CimSession'
             }
-
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
                 $exception = [Microsoft.Management.Infrastructure.CimException]::new('The WS-Management service cannot process the request.')
                 throw $exception
             }
-
-            Mock -CommandName 'Invoke-CimMethod' -ModuleName 'PSWinOps' -MockWith {
-                return $script:mockSuccessResult
-            }
-
+            Mock -CommandName 'Invoke-CimMethod' -ModuleName 'PSWinOps' -MockWith { return $script:mockSuccessResult }
             Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
         }
 
@@ -187,15 +158,10 @@ Describe -Name 'Disconnect-RdpSession' -Fixture {
             Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
                 throw [System.UnauthorizedAccessException]::new('Access denied')
             }
-
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
-                return $script:mockTsService
+                New-MockObject -Type 'Microsoft.Management.Infrastructure.CimInstance'
             }
-
-            Mock -CommandName 'Invoke-CimMethod' -ModuleName 'PSWinOps' -MockWith {
-                return $script:mockSuccessResult
-            }
-
+            Mock -CommandName 'Invoke-CimMethod' -ModuleName 'PSWinOps' -MockWith { return $script:mockSuccessResult }
             Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
         }
 
@@ -216,22 +182,17 @@ Describe -Name 'Disconnect-RdpSession' -Fixture {
 
     Context -Name 'When using custom credential' -Fixture {
         BeforeEach {
-            # Create a mock credential for testing without exposing plaintext
             $secureString = New-Object System.Security.SecureString
             $script:testCredential = [PSCredential]::new('TestUser', $secureString)
 
+            # FIX: New-MockObject à la place de PSCustomObject
             Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
-                return [PSCustomObject]@{ Id = 1; ComputerName = $ComputerName }
+                New-MockObject -Type 'Microsoft.Management.Infrastructure.CimSession'
             }
-
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
-                return $script:mockTsService
+                New-MockObject -Type 'Microsoft.Management.Infrastructure.CimInstance'
             }
-
-            Mock -CommandName 'Invoke-CimMethod' -ModuleName 'PSWinOps' -MockWith {
-                return $script:mockSuccessResult
-            }
-
+            Mock -CommandName 'Invoke-CimMethod' -ModuleName 'PSWinOps' -MockWith { return $script:mockSuccessResult }
             Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
         }
 
@@ -246,18 +207,16 @@ Describe -Name 'Disconnect-RdpSession' -Fixture {
 
     Context -Name 'When disconnect operation returns failure code' -Fixture {
         BeforeEach {
+            # FIX: New-MockObject à la place de PSCustomObject
             Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
-                return [PSCustomObject]@{ Id = 1; ComputerName = $ComputerName }
+                New-MockObject -Type 'Microsoft.Management.Infrastructure.CimSession'
             }
-
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
-                return $script:mockTsService
+                New-MockObject -Type 'Microsoft.Management.Infrastructure.CimInstance'
             }
-
             Mock -CommandName 'Invoke-CimMethod' -ModuleName 'PSWinOps' -MockWith {
-                return [PSCustomObject]@{ ReturnValue = 1 }
+                [PSCustomObject]@{ ReturnValue = 1 }
             }
-
             Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
         }
 
