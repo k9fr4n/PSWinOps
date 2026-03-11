@@ -17,7 +17,7 @@ BeforeAll {
     Permissions:   None (mocks CIM operations)
 #>
 
-    $script:modulePath = Join-Path -Path $PSScriptRoot -ChildPath '..\PSWinOps.psd1'
+    $script:modulePath = Join-Path -Path $PSScriptRoot -ChildPath '..\..\PSWinOps.psd1'
     Import-Module -Name $script:modulePath -Force -ErrorAction Stop
 }
 
