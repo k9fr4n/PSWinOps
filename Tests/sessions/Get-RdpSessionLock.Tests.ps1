@@ -10,7 +10,6 @@ BeforeAll {
 <Event xmlns="http://schemas.microsoft.com/win/2004/08/events/event">
   <System>
     <EventID>4800</EventID>
-    <TimeCreated SystemTime="2026-03-11T08:30:00.000Z"/>
   </System>
   <EventData>
     <Data Name="TargetUserSid">S-1-5-21-123456789-1234567890-123456789-1001</Data>
@@ -21,15 +20,36 @@ BeforeAll {
 </Event>
 '@
 
-    $script:mockLockEvent = [PSCustomObject]@{
-        Id          = 4800
-        TimeCreated = Get-Date
-        ToXml       = { return $script:mockLockEventXml }.GetNewClosure()
+    # Helper function to create properly mocked event objects with ToXml() method
+    function script:New-MockEventObject {
+        param(
+            [Parameter(Mandatory = $true)]
+            [int]$EventId,
+            [Parameter(Mandatory = $true)]
+            [string]$XmlContent
+        )
+
+        $mockEvent = [PSCustomObject]@{
+            Id          = $EventId
+            TimeCreated = Get-Date
+        }
+
+        # Add ToXml() as a proper ScriptMethod
+        $mockEvent | Add-Member -MemberType ScriptMethod -Name 'ToXml' -Value {
+            return $XmlContent
+        }.GetNewClosure() -Force
+
+        return $mockEvent
     }
+
+    # Create the mock lock event using the helper
+    $script:mockLockEvent = New-MockEventObject -EventId 4800 -XmlContent $script:mockLockEventXml
 }
 
 Describe -Name 'Get-RdpSessionLock' -Fixture {
+
     Context -Name 'When querying lock events successfully' -Fixture {
+
         BeforeEach {
             Mock -CommandName 'Get-WinEvent' -ModuleName PSWinOps -MockWith {
                 return $script:mockLockEvent
@@ -62,11 +82,12 @@ Describe -Name 'Get-RdpSessionLock' -Fixture {
 
         It -Name 'Should invoke Get-WinEvent exactly once' -Test {
             Get-RdpSessionLock
-            Should -Invoke -CommandName 'Get-WinEvent' -Times 1 -Exactly
+            Should -Invoke -CommandName 'Get-WinEvent' -ModuleName PSWinOps -Times 1 -Exactly
         }
     }
 
     Context -Name 'When no events are found' -Fixture {
+
         BeforeEach {
             Mock -CommandName 'Get-WinEvent' -ModuleName PSWinOps -MockWith {
                 return $null
@@ -80,6 +101,7 @@ Describe -Name 'Get-RdpSessionLock' -Fixture {
     }
 
     Context -Name 'When access is denied to Security log' -Fixture {
+
         BeforeEach {
             Mock -CommandName 'Get-WinEvent' -ModuleName PSWinOps -MockWith {
                 throw [System.UnauthorizedAccessException]::new('Access denied')
@@ -97,6 +119,7 @@ Describe -Name 'Get-RdpSessionLock' -Fixture {
     }
 
     Context -Name 'When querying multiple computers via pipeline' -Fixture {
+
         BeforeEach {
             Mock -CommandName 'Get-WinEvent' -ModuleName PSWinOps -MockWith {
                 return $script:mockLockEvent
@@ -110,11 +133,12 @@ Describe -Name 'Get-RdpSessionLock' -Fixture {
 
         It -Name 'Should invoke Get-WinEvent once per computer' -Test {
             @('SRV01', 'SRV02', 'SRV03') | Get-RdpSessionLock
-            Should -Invoke -CommandName 'Get-WinEvent' -Times 3 -Exactly
+            Should -Invoke -CommandName 'Get-WinEvent' -ModuleName PSWinOps -Times 3 -Exactly
         }
     }
 
     Context -Name 'When custom StartTime is provided' -Fixture {
+
         BeforeEach {
             Mock -CommandName 'Get-WinEvent' -ModuleName PSWinOps -MockWith {
                 return $script:mockLockEvent

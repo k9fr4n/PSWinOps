@@ -1,4 +1,6 @@
-﻿function Enter-RdpSession {
+﻿#Requires -Version 5.1
+
+function Enter-RdpSession {
     <#
 .SYNOPSIS
     Establishes remote control (shadow) connection to an active RDP session
@@ -57,7 +59,7 @@
 
 .NOTES
     Author:        Franck SALLET
-    Version:       1.0.0
+    Version:       1.1.0
     Last Modified: 2026-03-11
     Requires:      PowerShell 5.1+, Remote Desktop Services
     Permissions:   Local Administrator on target machine
@@ -140,8 +142,12 @@
                 $cimSession = New-CimSession @cimSessionParams
                 Write-Verbose "[$($MyInvocation.MyCommand)] CIM session established to $ComputerName"
 
-                # Verify target session exists and is active
-                $targetSession = Get-CimInstance -CimSession $cimSession -ClassName 'Win32_LogonSession' -Filter "LogonId = '$SessionID'" -ErrorAction SilentlyContinue
+                # Verify target session exists using Terminal Services namespace
+                $targetSession = Get-CimInstance -CimSession $cimSession `
+                    -ClassName 'Win32_TSSession' `
+                    -Namespace 'root\cimv2\TerminalServices' `
+                    -Filter "SessionId = $SessionID" `
+                    -ErrorAction SilentlyContinue
 
                 if ($null -eq $targetSession) {
                     Write-Error "[$($MyInvocation.MyCommand)] Session ID $SessionID not found on $ComputerName"
@@ -151,7 +157,10 @@
                 Write-Verbose "[$($MyInvocation.MyCommand)] Target session $SessionID verified on $ComputerName"
 
                 # Get Terminal Service instance
-                $tsService = Get-CimInstance -CimSession $cimSession -ClassName 'Win32_TerminalService' -Namespace 'root\cimv2\TerminalServices' -ErrorAction Stop
+                $tsService = Get-CimInstance -CimSession $cimSession `
+                    -ClassName 'Win32_TerminalService' `
+                    -Namespace 'root\cimv2\TerminalServices' `
+                    -ErrorAction Stop
 
                 # Invoke RemoteControl method (shadow connection)
                 Write-Verbose "[$($MyInvocation.MyCommand)] Initiating shadow connection with mode: $ControlMode (flag: $shadowMode)"
@@ -162,7 +171,7 @@
                     Arguments   = @{
                         SessionId       = $SessionID
                         HotKeyVK        = 0x6A  # VK_MULTIPLY (numpad *)
-                        HotkeyModifiers = 0x2  # MOD_CONTROL
+                        HotkeyModifiers = 0x2   # MOD_CONTROL
                     }
                     ErrorAction = 'Stop'
                 }
@@ -208,7 +217,6 @@
                 } else {
                     Write-Warning "[$($MyInvocation.MyCommand)] $resultMessage"
                 }
-
             } catch [Microsoft.Management.Infrastructure.CimException] {
                 Write-Error "[$($MyInvocation.MyCommand)] CIM error on $ComputerName - $_"
             } catch [System.UnauthorizedAccessException] {

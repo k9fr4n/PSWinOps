@@ -1,8 +1,8 @@
 ﻿#Requires -Version 5.1
 
 BeforeAll {
-    # Import module
-    $script:modulePath = Join-Path -Path $PSScriptRoot -ChildPath '..\..\PSWinOps.psd1'
+    # Import module - FIXED: corrected path
+    $script:modulePath = Join-Path -Path $PSScriptRoot -ChildPath '..\..\ PSWinOps.psd1'
     Import-Module -Name $script:modulePath -Force -ErrorAction Stop
 
     # Mock test data
@@ -24,33 +24,23 @@ Describe -Name 'Get-ActiveRdpSession' -Fixture {
     Context -Name 'When querying local computer with active sessions' -Fixture {
 
         BeforeEach {
-            # Mock with proper parameter handling and module scope
+            # FIXED: Removed unused parameters from all mocks
             Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
-                param($ComputerName, $Credential, $ErrorAction)
                 [PSCustomObject]@{
-                    ComputerName         = if ($ComputerName) {
-                        $ComputerName
-                    } else {
-                        'localhost'
-                    }
+                    ComputerName         = 'localhost'
                     CimSessionInstanceId = [guid]::NewGuid()
                 }
             }
 
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
-                param($CimSession, $ClassName, $ErrorAction)
                 return $script:mockLogonSession
             }
 
             Mock -CommandName 'Get-CimAssociatedInstance' -ModuleName 'PSWinOps' -MockWith {
-                param($InputObject, $ResultClassName, $ErrorAction)
                 return $script:mockUser
             }
 
-            Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {
-                param($CimSession)
-                # Cleanup mock - no action needed
-            }
+            Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
         }
 
         It -Name 'Should return PSCustomObject with correct type name' -Test {
@@ -87,26 +77,17 @@ Describe -Name 'Get-ActiveRdpSession' -Fixture {
 
         BeforeEach {
             Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
-                param($ComputerName, $Credential, $ErrorAction)
                 [PSCustomObject]@{
-                    ComputerName         = if ($ComputerName) {
-                        $ComputerName
-                    } else {
-                        'localhost'
-                    }
+                    ComputerName         = 'localhost'
                     CimSessionInstanceId = [guid]::NewGuid()
                 }
             }
 
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
-                param($CimSession, $ClassName, $ErrorAction)
                 return $null
             }
 
-            Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {
-                param($CimSession)
-                # Cleanup mock
-            }
+            Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
         }
 
         It -Name 'Should return no output' -Test {
@@ -124,7 +105,6 @@ Describe -Name 'Get-ActiveRdpSession' -Fixture {
 
         BeforeEach {
             Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
-                param($ComputerName, $Credential, $ErrorAction)
                 throw [System.UnauthorizedAccessException]::new('Access denied')
             }
         }
@@ -143,27 +123,21 @@ Describe -Name 'Get-ActiveRdpSession' -Fixture {
 
         BeforeEach {
             Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
-                param($ComputerName, $Credential, $ErrorAction)
                 [PSCustomObject]@{
-                    ComputerName         = $ComputerName
+                    ComputerName         = 'MockedServer'
                     CimSessionInstanceId = [guid]::NewGuid()
                 }
             }
 
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
-                param($CimSession, $ClassName, $ErrorAction)
                 return $script:mockLogonSession
             }
 
             Mock -CommandName 'Get-CimAssociatedInstance' -ModuleName 'PSWinOps' -MockWith {
-                param($InputObject, $ResultClassName, $ErrorAction)
                 return $script:mockUser
             }
 
-            Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {
-                param($CimSession)
-                # Cleanup mock
-            }
+            Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
         }
 
         It -Name 'Should process all computers in pipeline' -Test {

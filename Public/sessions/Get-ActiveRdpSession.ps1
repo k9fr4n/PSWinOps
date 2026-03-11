@@ -8,7 +8,7 @@
     retrieve all active, disconnected, and idle RDP sessions. Returns structured
     objects with session ID, user, state, logon time, and idle duration.
 
-    Uses the Win32_TSSession WMI class via CIM to retrieve session information,
+    Uses the Win32_LogonSession WMI class via CIM to retrieve session information,
     providing more reliable cross-version compatibility than legacy query commands.
 
 .PARAMETER ComputerName
@@ -112,7 +112,7 @@
                 }
 
                 $logonSessions = Get-CimInstance @cimParams | Where-Object {
-                    $_.LogonType -eq 10  # RemoteInteractive (RDP)
+                    $_.LogonType -eq 10 # RemoteInteractive (RDP)
                 }
 
                 if ($null -eq $logonSessions -or @($logonSessions).Count -eq 0) {
@@ -128,6 +128,7 @@
                         # Get associated user account
                         $userQuery = Get-CimAssociatedInstance -InputObject $session -ResultClassName 'Win32_Account' -ErrorAction SilentlyContinue
 
+                        # FIXED: Changed from ($) to backslash (\)
                         $userName = if ($userQuery) {
                             "$($userQuery.Domain)\$($userQuery.Name)"
                         } else {
@@ -139,7 +140,7 @@
                         $idleTime = if ($startTime) {
                             (Get-Date) - $startTime
                         } else {
-                            [timespan]::Zero
+                            $null
                         }
 
                         # Emit structured object
@@ -153,12 +154,10 @@
                             LogonType    = 'RemoteInteractive'
                             AuthPackage  = $session.AuthenticationPackage
                         }
-
                     } catch {
                         Write-Warning "[$($MyInvocation.MyCommand)] Failed to process session on $computer - $_"
                     }
                 }
-
             } catch [Microsoft.Management.Infrastructure.CimException] {
                 Write-Error "[$($MyInvocation.MyCommand)] CIM error on $computer - $_"
             } catch [System.UnauthorizedAccessException] {

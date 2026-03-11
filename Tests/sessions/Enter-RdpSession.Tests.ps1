@@ -5,30 +5,34 @@ BeforeAll {
     $script:modulePath = Join-Path -Path $PSScriptRoot -ChildPath '..\..\PSWinOps.psd1'
     Import-Module -Name $script:modulePath -Force -ErrorAction Stop
 
+    # Mock objects
     $script:mockTsService = [PSCustomObject]@{
         Name = 'TerminalServices'
     }
 
-    $script:mockLogonSession = [PSCustomObject]@{
-        LogonId = '12345'
+    $script:mockTsSession = [PSCustomObject]@{
+        SessionId = 2
+        UserName  = 'TestUser'
     }
 }
 
 Describe -Name 'Enter-RdpSession' -Fixture {
 
     Context -Name 'When entering a session successfully in Control mode' -Fixture {
-
         BeforeEach {
             Mock -CommandName 'New-CimSession' -MockWith {
-                [PSCustomObject]@{ ComputerName = 'localhost' }
+                [PSCustomObject]@{ ComputerName = $ComputerName }
             }
 
             Mock -CommandName 'Get-CimInstance' -MockWith {
-                if ($ClassName -eq 'Win32_LogonSession') {
-                    return $script:mockLogonSession
+                param($ClassName, $Namespace)
+
+                if ($ClassName -eq 'Win32_TSSession') {
+                    return $script:mockTsSession
                 } elseif ($ClassName -eq 'Win32_TerminalService') {
                     return $script:mockTsService
                 }
+                return $null
             }
 
             Mock -CommandName 'Invoke-CimMethod' -MockWith {
@@ -71,18 +75,20 @@ Describe -Name 'Enter-RdpSession' -Fixture {
     }
 
     Context -Name 'When entering a session in View mode' -Fixture {
-
         BeforeEach {
             Mock -CommandName 'New-CimSession' -MockWith {
-                [PSCustomObject]@{ ComputerName = 'localhost' }
+                [PSCustomObject]@{ ComputerName = $ComputerName }
             }
 
             Mock -CommandName 'Get-CimInstance' -MockWith {
-                if ($ClassName -eq 'Win32_LogonSession') {
-                    return $script:mockLogonSession
+                param($ClassName, $Namespace)
+
+                if ($ClassName -eq 'Win32_TSSession') {
+                    return $script:mockTsSession
                 } elseif ($ClassName -eq 'Win32_TerminalService') {
                     return $script:mockTsService
                 }
+                return $null
             }
 
             Mock -CommandName 'Invoke-CimMethod' -MockWith {
@@ -99,18 +105,20 @@ Describe -Name 'Enter-RdpSession' -Fixture {
     }
 
     Context -Name 'When target session does not exist' -Fixture {
-
         BeforeEach {
             Mock -CommandName 'New-CimSession' -MockWith {
-                [PSCustomObject]@{ ComputerName = 'localhost' }
+                [PSCustomObject]@{ ComputerName = $ComputerName }
             }
 
             Mock -CommandName 'Get-CimInstance' -MockWith {
-                if ($ClassName -eq 'Win32_LogonSession') {
-                    return $null
+                param($ClassName, $Namespace)
+
+                if ($ClassName -eq 'Win32_TSSession') {
+                    return $null  # Session not found
                 } elseif ($ClassName -eq 'Win32_TerminalService') {
                     return $script:mockTsService
                 }
+                return $null
             }
 
             Mock -CommandName 'Invoke-CimMethod' -MockWith {}
@@ -130,10 +138,8 @@ Describe -Name 'Enter-RdpSession' -Fixture {
     }
 
     Context -Name 'When ShouldProcess is declined' -Fixture {
-
         BeforeEach {
             Mock -CommandName 'New-CimSession' -MockWith {}
-
             Mock -CommandName 'Invoke-CimMethod' -MockWith {}
         }
 
@@ -149,18 +155,20 @@ Describe -Name 'Enter-RdpSession' -Fixture {
     }
 
     Context -Name 'When user rejects the connection request' -Fixture {
-
         BeforeEach {
             Mock -CommandName 'New-CimSession' -MockWith {
-                [PSCustomObject]@{ ComputerName = 'localhost' }
+                [PSCustomObject]@{ ComputerName = $ComputerName }
             }
 
             Mock -CommandName 'Get-CimInstance' -MockWith {
-                if ($ClassName -eq 'Win32_LogonSession') {
-                    return $script:mockLogonSession
+                param($ClassName, $Namespace)
+
+                if ($ClassName -eq 'Win32_TSSession') {
+                    return $script:mockTsSession
                 } elseif ($ClassName -eq 'Win32_TerminalService') {
                     return $script:mockTsService
                 }
+                return $null
             }
 
             Mock -CommandName 'Invoke-CimMethod' -MockWith {
@@ -183,18 +191,20 @@ Describe -Name 'Enter-RdpSession' -Fixture {
     }
 
     Context -Name 'When shadow is disabled by Group Policy' -Fixture {
-
         BeforeEach {
             Mock -CommandName 'New-CimSession' -MockWith {
-                [PSCustomObject]@{ ComputerName = 'localhost' }
+                [PSCustomObject]@{ ComputerName = $ComputerName }
             }
 
             Mock -CommandName 'Get-CimInstance' -MockWith {
-                if ($ClassName -eq 'Win32_LogonSession') {
-                    return $script:mockLogonSession
+                param($ClassName, $Namespace)
+
+                if ($ClassName -eq 'Win32_TSSession') {
+                    return $script:mockTsSession
                 } elseif ($ClassName -eq 'Win32_TerminalService') {
                     return $script:mockTsService
                 }
+                return $null
             }
 
             Mock -CommandName 'Invoke-CimMethod' -MockWith {
@@ -217,18 +227,20 @@ Describe -Name 'Enter-RdpSession' -Fixture {
     }
 
     Context -Name 'When processing pipeline input from Get-ActiveRdpSession' -Fixture {
-
         BeforeEach {
             Mock -CommandName 'New-CimSession' -MockWith {
                 [PSCustomObject]@{ ComputerName = $ComputerName }
             }
 
             Mock -CommandName 'Get-CimInstance' -MockWith {
-                if ($ClassName -eq 'Win32_LogonSession') {
-                    return $script:mockLogonSession
+                param($ClassName, $Namespace)
+
+                if ($ClassName -eq 'Win32_TSSession') {
+                    return $script:mockTsSession
                 } elseif ($ClassName -eq 'Win32_TerminalService') {
                     return $script:mockTsService
                 }
+                return $null
             }
 
             Mock -CommandName 'Invoke-CimMethod' -MockWith {
@@ -246,18 +258,20 @@ Describe -Name 'Enter-RdpSession' -Fixture {
     }
 
     Context -Name 'When NoUserPrompt switch is specified' -Fixture {
-
         BeforeEach {
             Mock -CommandName 'New-CimSession' -MockWith {
-                [PSCustomObject]@{ ComputerName = 'localhost' }
+                [PSCustomObject]@{ ComputerName = $ComputerName }
             }
 
             Mock -CommandName 'Get-CimInstance' -MockWith {
-                if ($ClassName -eq 'Win32_LogonSession') {
-                    return $script:mockLogonSession
+                param($ClassName, $Namespace)
+
+                if ($ClassName -eq 'Win32_TSSession') {
+                    return $script:mockTsSession
                 } elseif ($ClassName -eq 'Win32_TerminalService') {
                     return $script:mockTsService
                 }
+                return $null
             }
 
             Mock -CommandName 'Invoke-CimMethod' -MockWith {
