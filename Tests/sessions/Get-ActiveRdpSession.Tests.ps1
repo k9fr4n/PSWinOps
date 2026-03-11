@@ -11,7 +11,7 @@ BeforeAll {
 
 .NOTES
     Author:        Franck SALLET
-    Version:       1.0.3
+    Version:       1.0.4
     Last Modified: 2026-03-11
     Requires:      PowerShell 5.1+, Pester 5.x
     Permissions:   None (mocks CIM operations)
@@ -26,22 +26,18 @@ Describe -Name 'Get-ActiveRdpSession' -Fixture {
     Context -Name 'When querying local computer with active sessions' -Fixture {
 
         BeforeEach {
-            # FIXED: Mock must declare param() to capture New-CimSession parameters correctly
+            # FIXED: No type constraints in mock parameters to avoid PowerShell type conversion
             Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
-                param(
-                    [string]$ComputerName,
-                    [PSCredential]$Credential
-                )
                 [PSCustomObject]@{
                     PSTypeName   = 'Microsoft.Management.Infrastructure.CimSession'
-                    ComputerName = $ComputerName  # Now captures the single string passed to New-CimSession
+                    ComputerName = $ComputerName
                     InstanceId   = [guid]::NewGuid()
                 }
             }
 
-            # Mock Win32_LogonSession query
+            # FIXED: Access parameters via automatic variables, no typed param() block
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
-                param($CimSession, $ClassName)
+                # Use $ClassName from the calling scope automatically bound by Pester
                 if ($ClassName -eq 'Win32_LogonSession') {
                     return @(
                         [PSCustomObject]@{
@@ -55,7 +51,6 @@ Describe -Name 'Get-ActiveRdpSession' -Fixture {
                 return $null
             }
 
-            # Mock associated user object
             Mock -CommandName 'Get-CimAssociatedInstance' -ModuleName 'PSWinOps' -MockWith {
                 return [PSCustomObject]@{
                     Domain = 'TESTDOMAIN'
@@ -100,10 +95,6 @@ Describe -Name 'Get-ActiveRdpSession' -Fixture {
 
         BeforeEach {
             Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
-                param(
-                    [string]$ComputerName,
-                    [PSCredential]$Credential
-                )
                 [PSCustomObject]@{
                     PSTypeName   = 'Microsoft.Management.Infrastructure.CimSession'
                     ComputerName = $ComputerName
@@ -111,7 +102,6 @@ Describe -Name 'Get-ActiveRdpSession' -Fixture {
                 }
             }
 
-            # Return empty array when no sessions found
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
                 return @()
             }
@@ -152,10 +142,6 @@ Describe -Name 'Get-ActiveRdpSession' -Fixture {
 
         BeforeEach {
             Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
-                param(
-                    [string]$ComputerName,
-                    [PSCredential]$Credential
-                )
                 [PSCustomObject]@{
                     PSTypeName   = 'Microsoft.Management.Infrastructure.CimSession'
                     ComputerName = $ComputerName
@@ -164,7 +150,6 @@ Describe -Name 'Get-ActiveRdpSession' -Fixture {
             }
 
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
-                param($CimSession, $ClassName)
                 if ($ClassName -eq 'Win32_LogonSession') {
                     return @(
                         [PSCustomObject]@{
