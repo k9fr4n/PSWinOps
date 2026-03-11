@@ -8,8 +8,8 @@ function Get-RandomPassword {
 .DESCRIPTION
     Generates a random password using RNGCryptoServiceProvider with configurable
     character class requirements. Ensures minimum counts for uppercase, lowercase,
-    numeric, and special characters are met. Uses iterative regeneration with a
-    retry limit to prevent infinite loops.
+    numeric, and special characters are met by guaranteeing placement of required
+    characters followed by cryptographically secure shuffling.
 
 .PARAMETER Length
     Total length of the password. Must be at least 8 characters.
@@ -32,35 +32,29 @@ function Get-RandomPassword {
     Default: 2
     Character set: @.+-=*!#$%&?
 
-.PARAMETER MaxRetries
-    Maximum number of regeneration attempts if constraints are not met.
-    Default: 100
-
 .EXAMPLE
     Get-RandomPassword
-
     Generates a 16-character password with default constraints (2 upper, 2 lower, 2 numeric, 2 special).
 
 .EXAMPLE
     Get-RandomPassword -Length 24 -UpperCount 4 -LowerCount 4 -NumericCount 4 -SpecialCount 4
-
     Generates a 24-character password with higher complexity requirements.
 
 .EXAMPLE
     1..5 | ForEach-Object { Get-RandomPassword -Length 20 }
-
     Generates 5 unique passwords with 20 characters each.
 
 .NOTES
     Author:        PSWinOps Module
-    Version:       1.0.0
-    Last Modified: 2026-02-26
+    Version:       1.1.0
+    Last Modified: 2026-03-11
     Requires:      PowerShell 5.1+
     Permissions:   None required
     Module:        PSWinOps
 
     Uses System.Security.Cryptography.RNGCryptoServiceProvider for
-    cryptographically secure random number generation.
+    cryptographically secure random number generation. Guarantees constraint
+    satisfaction by placing required characters first, then shuffling.
 #>
     [CmdletBinding()]
     [OutputType([string])]
@@ -83,11 +77,7 @@ function Get-RandomPassword {
 
         [Parameter(Mandatory = $false)]
         [ValidateRange(0, [int]::MaxValue)]
-        [int]$SpecialCount = 2,
-
-        [Parameter(Mandatory = $false)]
-        [ValidateRange(1, 1000)]
-        [int]$MaxRetries = 100
+        [int]$SpecialCount = 2
     )
 
     begin {
@@ -131,57 +121,69 @@ function Get-RandomPassword {
     }
 
     process {
-        $rng = New-Object -TypeName 'System.Security.Cryptography.RNGCryptoServiceProvider'
-        $attempt = 0
-        $passwordGenerated = $false
-
+        $rng = $null
         try {
-            while (-not $passwordGenerated -and $attempt -lt $MaxRetries) {
-                $attempt++
-                Write-Verbose "[$($MyInvocation.MyCommand)] Generation attempt: $attempt"
+            $rng = New-Object -TypeName 'System.Security.Cryptography.RNGCryptoServiceProvider'
 
-                # Generate random bytes
-                $bytes = New-Object -TypeName 'byte[]' -ArgumentList $Length
+            # Build password array
+            $passwordChars = [System.Collections.Generic.List[char]]::new()
+
+            # Helper function to get cryptographically random index
+            $getRandomIndex = {
+                param([int]$maxValue)
+                $bytes = New-Object -TypeName 'byte[]' -ArgumentList 4
                 $rng.GetBytes($bytes)
-
-                # Map bytes to character set
-                $result = New-Object -TypeName 'char[]' -ArgumentList $Length
-                for ($i = 0; $i -lt $Length; $i++) {
-                    $result[$i] = $charSet[$bytes[$i] % $charSet.Count]
-                }
-
-                $password = -join $result
-
-                # Validate constraints
-                $upperActual = ($password.ToCharArray() | Where-Object { $_ -cin $upperCharSet.ToCharArray() }).Count
-                $lowerActual = ($password.ToCharArray() | Where-Object { $_ -cin $lowerCharSet.ToCharArray() }).Count
-                $numericActual = ($password.ToCharArray() | Where-Object { $_ -cin $numericCharSet.ToCharArray() }).Count
-                $specialActual = ($password.ToCharArray() | Where-Object { $_ -cin $specialCharSet.ToCharArray() }).Count
-
-                $valid = $true
-                if ($UpperCount -gt $upperActual) {
-                    $valid = $false; Write-Verbose "[$($MyInvocation.MyCommand)] Insufficient uppercase: $upperActual (need $UpperCount)"
-                }
-                if ($LowerCount -gt $lowerActual) {
-                    $valid = $false; Write-Verbose "[$($MyInvocation.MyCommand)] Insufficient lowercase: $lowerActual (need $LowerCount)"
-                }
-                if ($NumericCount -gt $numericActual) {
-                    $valid = $false; Write-Verbose "[$($MyInvocation.MyCommand)] Insufficient numeric: $numericActual (need $NumericCount)"
-                }
-                if ($SpecialCount -gt $specialActual) {
-                    $valid = $false; Write-Verbose "[$($MyInvocation.MyCommand)] Insufficient special: $specialActual (need $SpecialCount)"
-                }
-
-                if ($valid) {
-                    $passwordGenerated = $true
-                    Write-Verbose "[$($MyInvocation.MyCommand)] Password generated successfully on attempt $attempt"
-                    return $password
-                }
+                $randomInt = [System.BitConverter]::ToUInt32($bytes, 0)
+                return [int]($randomInt % $maxValue)
             }
 
-            # Max retries exceeded
-            Write-Error "[$($MyInvocation.MyCommand)] Failed to generate valid password after $MaxRetries attempts. Consider adjusting constraints."
-            throw "[$($MyInvocation.MyCommand)] Password generation failed -- constraints may be too restrictive for the specified length"
+            # Add required uppercase characters
+            for ($i = 0; $i -lt $UpperCount; $i++) {
+                $index = & $getRandomIndex $upperCharSet.Length
+                $passwordChars.Add($upperCharSet[$index])
+            }
+
+            # Add required lowercase characters
+            for ($i = 0; $i -lt $LowerCount; $i++) {
+                $index = & $getRandomIndex $lowerCharSet.Length
+                $passwordChars.Add($lowerCharSet[$index])
+            }
+
+            # Add required numeric characters
+            for ($i = 0; $i -lt $NumericCount; $i++) {
+                $index = & $getRandomIndex $numericCharSet.Length
+                $passwordChars.Add($numericCharSet[$index])
+            }
+
+            # Add required special characters
+            for ($i = 0; $i -lt $SpecialCount; $i++) {
+                $index = & $getRandomIndex $specialCharSet.Length
+                $passwordChars.Add($specialCharSet[$index])
+            }
+
+            # Fill remaining positions with random characters from full character set
+            $remaining = $Length - $totalRequired
+            for ($i = 0; $i -lt $remaining; $i++) {
+                $index = & $getRandomIndex $charSet.Count
+                $passwordChars.Add($charSet[$index])
+            }
+
+            Write-Verbose "[$($MyInvocation.MyCommand)] Generated $($passwordChars.Count) characters before shuffle"
+
+            # Fisher-Yates shuffle using cryptographic RNG
+            for ($i = $passwordChars.Count - 1; $i -gt 0; $i--) {
+                $j = & $getRandomIndex ($i + 1)
+                $temp = $passwordChars[$i]
+                $passwordChars[$i] = $passwordChars[$j]
+                $passwordChars[$j] = $temp
+            }
+
+            $password = -join $passwordChars.ToArray()
+
+            Write-Verbose "[$($MyInvocation.MyCommand)] Password generated successfully (length: $($password.Length))"
+
+            return $password
+
         } finally {
             if ($null -ne $rng) {
                 $rng.Dispose()
