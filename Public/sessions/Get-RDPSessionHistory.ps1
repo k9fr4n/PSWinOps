@@ -117,33 +117,33 @@
 
             try {
                 # Query events from target computer
-                $events = Get-WinEvent @winEventParams
+                $allEvents = Get-WinEvent @winEventParams
 
-                if ($null -eq $events -or $events.Count -eq 0) {
+                if ($null -eq $allEvents -or $allEvents.Count -eq 0) {
                     Write-Verbose "[$($MyInvocation.MyCommand)] No events found on $computer"
                     continue
                 }
 
-                Write-Verbose "[$($MyInvocation.MyCommand)] Retrieved $($events.Count) event(s) from $computer"
+                Write-Verbose "[$($MyInvocation.MyCommand)] Retrieved $($allEvents.Count) event(s) from $computer"
 
                 # Process each event
-                foreach ($event in $events) {
+                foreach ($eventEntry in $allEvents) {
                     try {
-                        $eventXml = [xml]$event.ToXml()
+                        $eventXml = [xml]$eventEntry.ToXml()
                         $eventData = $eventXml.Event.UserData.EventXML
 
                         # Emit structured object
                         [PSCustomObject]@{
                             PSTypeName   = 'PSWinOps.RdpSessionHistory'
-                            TimeCreated  = $event.TimeCreated
+                            TimeCreated  = $eventEntry.TimeCreated
                             ComputerName = $computer
                             User         = $eventData.User
                             IPAddress    = $eventData.Address
-                            Action       = $script:eventActionMap[[int]$event.Id]
-                            EventID      = $event.Id
+                            Action       = $script:eventActionMap[[int]$eventEntry.Id]
+                            EventID      = $eventEntry.Id
                         }
                     } catch {
-                        Write-Warning "[$($MyInvocation.MyCommand)] Failed to parse event ID $($event.Id) on $computer - $_"
+                        Write-Warning "[$($MyInvocation.MyCommand)] Failed to parse event ID $($eventEntry.Id) on $computer - $_"
                     }
                 }
             } catch [System.Diagnostics.Eventing.Reader.EventLogException] {
