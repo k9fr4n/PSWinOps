@@ -11,7 +11,7 @@ BeforeAll {
 
 .NOTES
     Author:        Franck SALLET
-    Version:       2.0.0
+    Version:       2.1.0
     Last Modified: 2026-03-11
     Requires:      PowerShell 5.1+, Pester 5.x
     Permissions:   None (mocks CIM operations)
@@ -26,20 +26,20 @@ Describe -Name 'Get-ActiveRdpSession' -Fixture {
     Context -Name 'When querying local computer with active sessions' -Fixture {
 
         BeforeEach {
-            # Strategy: Do NOT mock New-CimSession - let it create a real local session
-            # Mock only Get-CimInstance to return test data
-
+            # FIXED: Add PSTypeName to trick type validation
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -ParameterFilter {
                 $ClassName -eq 'Win32_LogonSession'
             } -MockWith {
-                @(
-                    [PSCustomObject]@{
-                        LogonId               = '123456'
-                        LogonType             = 10
-                        StartTime             = (Get-Date).AddHours(-2)
-                        AuthenticationPackage = 'Negotiate'
-                    }
-                )
+                $mockSession = [PSCustomObject]@{
+                    PSTypeName            = 'Microsoft.Management.Infrastructure.CimInstance#Win32_LogonSession'
+                    LogonId               = '123456'
+                    LogonType             = 10
+                    StartTime             = (Get-Date).AddHours(-2)
+                    AuthenticationPackage = 'Negotiate'
+                }
+                # Force add the type name
+                $mockSession.PSObject.TypeNames.Insert(0, 'Microsoft.Management.Infrastructure.CimInstance')
+                return @($mockSession)
             }
 
             Mock -CommandName 'Get-CimAssociatedInstance' -ModuleName 'PSWinOps' -MockWith {
@@ -114,10 +114,7 @@ Describe -Name 'Get-ActiveRdpSession' -Fixture {
     Context -Name 'When querying remote computer' -Fixture {
 
         BeforeEach {
-            # For remote queries, we MUST mock New-CimSession
-            # Return $null and verify error handling
             Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
-                # Simulate successful session creation
                 $null
             }
 
