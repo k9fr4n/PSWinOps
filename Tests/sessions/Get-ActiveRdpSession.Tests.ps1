@@ -11,7 +11,7 @@ BeforeAll {
 
 .NOTES
     Author:        Franck SALLET
-    Version:       2.1.0
+    Version:       2.2.0
     Last Modified: 2026-03-11
     Requires:      PowerShell 5.1+, Pester 5.x
     Permissions:   None (mocks CIM operations)
@@ -26,26 +26,29 @@ Describe -Name 'Get-ActiveRdpSession' -Fixture {
     Context -Name 'When querying local computer with active sessions' -Fixture {
 
         BeforeEach {
-            # FIXED: Add PSTypeName to trick type validation
+            # Mock Win32_LogonSession — returns a fake RDP session
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -ParameterFilter {
                 $ClassName -eq 'Win32_LogonSession'
             } -MockWith {
-                $mockSession = [PSCustomObject]@{
-                    PSTypeName            = 'Microsoft.Management.Infrastructure.CimInstance#Win32_LogonSession'
+                [PSCustomObject]@{
                     LogonId               = '123456'
                     LogonType             = 10
                     StartTime             = (Get-Date).AddHours(-2)
                     AuthenticationPackage = 'Negotiate'
                 }
-                # Force add the type name
-                $mockSession.PSObject.TypeNames.Insert(0, 'Microsoft.Management.Infrastructure.CimInstance')
-                return @($mockSession)
             }
 
-            Mock -CommandName 'Get-CimAssociatedInstance' -ModuleName 'PSWinOps' -MockWith {
+            # Mock Win32_LoggedOnUser — returns a simple association object whose
+            # Antecedent property exposes Domain and Name directly, matching both
+            # the real CIM reference object shape and the function's access pattern.
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -ParameterFilter {
+                $ClassName -eq 'Win32_LoggedOnUser'
+            } -MockWith {
                 [PSCustomObject]@{
-                    Domain = 'TESTDOMAIN'
-                    Name   = 'testuser'
+                    Antecedent = [PSCustomObject]@{
+                        Domain = 'TESTDOMAIN'
+                        Name   = 'testuser'
+                    }
                 }
             }
         }

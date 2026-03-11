@@ -136,23 +136,36 @@
 
                 foreach ($session in $logonSessions) {
 
-                    # Resolve the associated user account in its own try/catch so that
-                    # a type mismatch or WMI association failure never aborts object
-                    # construction — the session record is still emitted with UNKNOWN user.
-                    $userQuery = $null
+                    # Resolve the associated user via Win32_LoggedOnUser.
+                    # We query Win32_LoggedOnUser filtered by LogonId, then read the
+                    # Domain and Name properties directly — avoiding Get-CimAssociatedInstance
+                    # which requires a typed CimInstance object and fails across Pester runspaces.
+                    $userName = 'UNKNOWN'
                     try {
-                        $userQuery = Get-CimAssociatedInstance `
-                            -InputObject $session `
-                            -ResultClassName 'Win32_Account' `
-                            -ErrorAction Stop
+                        $logonId = $session.LogonId
+                        $wqlFilter = "Dependent = 'Win32_LogonSession.LogonId=""$logonId""'"
+
+                        $assocParams = @{
+                            ClassName   = 'Win32_LoggedOnUser'
+                            Filter      = $wqlFilter
+                            ErrorAction = 'Stop'
+                        }
+                        if ($null -ne $cimSession) {
+                            $assocParams['CimSession'] = $cimSession
+                        }
+
+                        $association = Get-CimInstance @assocParams | Select-Object -First 1
+
+                        # Real CimInstance exposes Antecedent as a typed reference object
+                        # with Domain and Name properties directly accessible.
+                        if ($association -and $association.Antecedent) {
+                            $ref = $association.Antecedent
+                            if ($ref.Domain -and $ref.Name) {
+                                $userName = "$($ref.Domain)\$($ref.Name)"
+                            }
+                        }
                     } catch {
                         Write-Verbose "[$($MyInvocation.MyCommand)] Could not resolve user for session $($session.LogonId) on $computer - $_"
-                    }
-
-                    $userName = if ($userQuery) {
-                        "$($userQuery.Domain)\$($userQuery.Name)"
-                    } else {
-                        'UNKNOWN'
                     }
 
                     $startTime = $session.StartTime
