@@ -11,46 +11,49 @@ BeforeAll {
 
 .NOTES
     Author:        Franck SALLET
-    Version:       1.0.1
+    Version:       1.0.2
     Last Modified: 2026-03-11
     Requires:      PowerShell 5.1+, Pester 5.x
     Permissions:   None (mocks CIM operations)
 #>
 
-    $script:modulePath = Join-Path -Path $PSScriptRoot -ChildPath '..\..\PSWinOps.psd1'
+    $script:modulePath = Join-Path -Path $PSScriptRoot -ChildPath '..\PSWinOps.psd1'
     Import-Module -Name $script:modulePath -Force -ErrorAction Stop
 }
 
 Describe -Name 'Get-ActiveRdpSession' -Fixture {
-
     Context -Name 'When querying local computer with active sessions' -Fixture {
         BeforeEach {
-            # Mock CimSession object -- returns a mock CimSession instance
+            # Mock CimSession -- return a hashtable that simulates the session object
             Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
-                New-MockObject -Type 'Microsoft.Management.Infrastructure.CimSession'
+                [PSCustomObject]@{
+                    PSTypeName   = 'Microsoft.Management.Infrastructure.CimSession'
+                    ComputerName = $ComputerName
+                    InstanceId   = [guid]::NewGuid()
+                }
             }
 
-            # FIX: Mock CimInstance object with required properties
-            # Use New-MockObject to create a real CimInstance mock
-            $mockCimInstance = New-MockObject -Type 'Microsoft.Management.Infrastructure.CimInstance'
-
-            # Add mock properties using Add-Member (Pester mocks don't have actual CIM properties)
-            $mockCimInstance | Add-Member -MemberType NoteProperty -Name 'LogonId' -Value '123456' -Force
-            $mockCimInstance | Add-Member -MemberType NoteProperty -Name 'LogonType' -Value 10 -Force
-            $mockCimInstance | Add-Member -MemberType NoteProperty -Name 'StartTime' -Value (Get-Date).AddHours(-2) -Force
-            $mockCimInstance | Add-Member -MemberType NoteProperty -Name 'AuthenticationPackage' -Value 'Negotiate' -Force
-
+            # Mock Win32_LogonSession -- return an object that simulates CIM query result
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
-                return $mockCimInstance
+                if ($ClassName -eq 'Win32_LogonSession') {
+                    return @(
+                        [PSCustomObject]@{
+                            LogonId               = '123456'
+                            LogonType             = 10
+                            StartTime             = (Get-Date).AddHours(-2)
+                            AuthenticationPackage = 'Negotiate'
+                        }
+                    )
+                }
+                return $null
             }
 
-            # Mock the associated user object
-            $mockUserInstance = New-MockObject -Type 'Microsoft.Management.Infrastructure.CimInstance'
-            $mockUserInstance | Add-Member -MemberType NoteProperty -Name 'Domain' -Value 'TESTDOMAIN' -Force
-            $mockUserInstance | Add-Member -MemberType NoteProperty -Name 'Name' -Value 'testuser' -Force
-
+            # Mock associated user object
             Mock -CommandName 'Get-CimAssociatedInstance' -ModuleName 'PSWinOps' -MockWith {
-                return $mockUserInstance
+                return [PSCustomObject]@{
+                    Domain = 'TESTDOMAIN'
+                    Name   = 'testuser'
+                }
             }
 
             Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
@@ -58,7 +61,7 @@ Describe -Name 'Get-ActiveRdpSession' -Fixture {
 
         It -Name 'Should return PSCustomObject with correct type name' -Test {
             $result = Get-ActiveRdpSession
-            $result.PSTypeName | Should -Be 'PSWinOps.ActiveRdpSession'
+            $result.PSObject.TypeNames | Should -Contain 'PSWinOps.ActiveRdpSession'
         }
 
         It -Name 'Should include all required properties' -Test {
@@ -89,11 +92,16 @@ Describe -Name 'Get-ActiveRdpSession' -Fixture {
     Context -Name 'When no sessions are found' -Fixture {
         BeforeEach {
             Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
-                New-MockObject -Type 'Microsoft.Management.Infrastructure.CimSession'
+                [PSCustomObject]@{
+                    PSTypeName   = 'Microsoft.Management.Infrastructure.CimSession'
+                    ComputerName = $ComputerName
+                    InstanceId   = [guid]::NewGuid()
+                }
             }
 
+            # Return empty array when no sessions found
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
-                return $null
+                return @()
             }
 
             Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
@@ -130,26 +138,32 @@ Describe -Name 'Get-ActiveRdpSession' -Fixture {
     Context -Name 'When querying multiple computers via pipeline' -Fixture {
         BeforeEach {
             Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
-                New-MockObject -Type 'Microsoft.Management.Infrastructure.CimSession'
+                [PSCustomObject]@{
+                    PSTypeName   = 'Microsoft.Management.Infrastructure.CimSession'
+                    ComputerName = $ComputerName
+                    InstanceId   = [guid]::NewGuid()
+                }
             }
-
-            # Create mock CimInstance with properties
-            $mockCimInstance = New-MockObject -Type 'Microsoft.Management.Infrastructure.CimInstance'
-            $mockCimInstance | Add-Member -MemberType NoteProperty -Name 'LogonId' -Value '123456' -Force
-            $mockCimInstance | Add-Member -MemberType NoteProperty -Name 'LogonType' -Value 10 -Force
-            $mockCimInstance | Add-Member -MemberType NoteProperty -Name 'StartTime' -Value (Get-Date).AddHours(-2) -Force
-            $mockCimInstance | Add-Member -MemberType NoteProperty -Name 'AuthenticationPackage' -Value 'Negotiate' -Force
 
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
-                return $mockCimInstance
+                if ($ClassName -eq 'Win32_LogonSession') {
+                    return @(
+                        [PSCustomObject]@{
+                            LogonId               = '123456'
+                            LogonType             = 10
+                            StartTime             = (Get-Date).AddHours(-2)
+                            AuthenticationPackage = 'Negotiate'
+                        }
+                    )
+                }
+                return $null
             }
 
-            $mockUserInstance = New-MockObject -Type 'Microsoft.Management.Infrastructure.CimInstance'
-            $mockUserInstance | Add-Member -MemberType NoteProperty -Name 'Domain' -Value 'TESTDOMAIN' -Force
-            $mockUserInstance | Add-Member -MemberType NoteProperty -Name 'Name' -Value 'testuser' -Force
-
             Mock -CommandName 'Get-CimAssociatedInstance' -ModuleName 'PSWinOps' -MockWith {
-                return $mockUserInstance
+                return [PSCustomObject]@{
+                    Domain = 'TESTDOMAIN'
+                    Name   = 'testuser'
+                }
             }
 
             Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
