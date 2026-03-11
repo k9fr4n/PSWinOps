@@ -1,5 +1,5 @@
 ﻿function ConvertFrom-MisencodedString {
-    <#
+<#
 .SYNOPSIS
     Converts a misencoded string by reinterpreting bytes from a source encoding
 
@@ -12,9 +12,13 @@
     This is commonly needed when text was stored or transmitted using one encoding
     but displayed or processed as another, resulting in garbled characters.
 
+    Note: PowerShell converts null input to an empty string before parameter
+    validation runs, so passing -String $null is equivalent to -String ''.
+
 .PARAMETER String
     The misencoded string to convert. Accepts input from the pipeline.
     Empty strings are allowed and will be returned unchanged.
+    Note: null values are automatically converted to empty strings by PowerShell.
 
 .PARAMETER SourceEncoding
     The encoding that was incorrectly applied to the original text.
@@ -50,17 +54,19 @@
 
 .NOTES
     Author:        Franck SALLET
-    Version:       1.0.1
-    Last Modified: 2026-02-26
+    Version:       1.0.2
+    Last Modified: 2026-03-11
     Requires:      PowerShell 5.1+
     Permissions:   None required
     Module:        PSWinOps
+
+.LINK
+    https://docs.microsoft.com/en-us/dotnet/api/system.text.encoding
 #>
     [CmdletBinding()]
     [OutputType([string])]
     param(
         [Parameter(Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
-        [ValidateNotNull()]
         [AllowEmptyString()]
         [string]$String,
 
@@ -79,7 +85,8 @@
         try {
             $sourceEncoder = [System.Text.Encoding]::GetEncoding($SourceEncoding)
             Write-Verbose "[$($MyInvocation.MyCommand)] Source encoding: $($sourceEncoder.EncodingName)"
-        } catch {
+        }
+        catch {
             Write-Error "[$($MyInvocation.MyCommand)] Invalid source encoding '$SourceEncoding': $_"
             throw
         }
@@ -87,7 +94,8 @@
         try {
             $targetEncoder = [System.Text.Encoding]::GetEncoding($TargetEncoding)
             Write-Verbose "[$($MyInvocation.MyCommand)] Target encoding: $($targetEncoder.EncodingName)"
-        } catch {
+        }
+        catch {
             Write-Error "[$($MyInvocation.MyCommand)] Invalid target encoding '$TargetEncoding': $_"
             throw
         }
@@ -109,13 +117,16 @@
             Write-Verbose "[$($MyInvocation.MyCommand)] Converted successfully (Length: $($String.Length) --> $($result.Length))"
 
             $result
-        } catch [System.Text.EncoderFallbackException] {
+        }
+        catch [System.Text.EncoderFallbackException] {
             Write-Error "[$($MyInvocation.MyCommand)] Encoding fallback error for '$String': $_"
             return
-        } catch [System.ArgumentException] {
+        }
+        catch [System.ArgumentException] {
             Write-Error "[$($MyInvocation.MyCommand)] Invalid characters in string for encoding '$SourceEncoding': $_"
             return
-        } catch {
+        }
+        catch {
             Write-Error "[$($MyInvocation.MyCommand)] Conversion failed for string '$String': $_"
             return
         }
