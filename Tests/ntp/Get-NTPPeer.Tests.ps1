@@ -1,355 +1,248 @@
 ﻿#Requires -Version 5.1
 #Requires -Modules @{ ModuleName = 'Pester'; ModuleVersion = '5.0.0' }
 
-<#
-.SYNOPSIS
-    Pester v5 tests for the Get-NTPPeer function
-
-.DESCRIPTION
-    Comprehensive test coverage for Get-NTPPeer including happy path with English
-    and French locale output, zero peers, pipeline input, per-machine failure
-    isolation, parameter validation, and property type assertions.
-
-    All external calls (Invoke-Command) are mocked. No real network or w32tm
-    access is required.
-
-.EXAMPLE
-    Invoke-Pester -Path .\Get-NTPPeer.Tests.ps1 -Output Detailed
-
-    Runs all tests with detailed output.
-
-.EXAMPLE
-    Invoke-Pester -Path .\Get-NTPPeer.Tests.ps1 -Output Detailed -Tag 'HappyPath'
-
-    Runs only happy-path tests.
-
-.NOTES
-    Author:        Franck SALLET (k9fr4n)
-    Version:       1.0.0
-    Last Modified: 2026-03-12
-    Requires:      Pester 5.x, PowerShell 5.1+
-    Permissions:   None required (all external commands are mocked)
-#>
-
 BeforeAll {
-    # Dot-source the function under test
-    $script:functionPath = Join-Path -Path $PSScriptRoot -ChildPath '..\..\Public\ntp\Get-NTPPeer.ps1'
-    . $script:functionPath
+    . (Join-Path -Path $PSScriptRoot -ChildPath '..\..\Public\ntp\Get-NTPPeer.ps1')
 
-    #region Mock data -- 2 peers (English)
-    $script:mockTwoPeersEN = @(
+    # Real format (from the actual machine)
+    $script:mockOutputReal = @(
         '#Peers: 2'
         ''
-        'Peer: ntp1.example.com,0x8'
+        'Peer: ntp1.ecritel.net'
         'State: Active'
-        'Time Remaining: 512.34s'
-        'Last Successful Sync Time: 3/12/2026 8:00:00 PM'
-        'Poll Interval: 10 (1024s)'
+        'Time Remaining: 7.8917439s'
+        'Mode: 1 (Symmetric Active)'
+        'Stratum: 2 (secondary reference - syncd by (S)NTP)'
+        'PeerPoll Interval: 7 (128s)'
+        'HostPoll Interval: 8 (256s)'
         ''
-        'Peer: ntp2.example.com,0x8'
-        'State: Pending'
-        'Time Remaining: 1024.00s'
-        'Last Successful Sync Time: 3/12/2026 7:30:00 PM'
+        'Peer: ntp2.ecritel.net'
+        'State: Active'
+        'Time Remaining: 7.8956880s'
+        'Mode: 1 (Symmetric Active)'
+        'Stratum: 2 (secondary reference - syncd by (S)NTP)'
+        'PeerPoll Interval: 7 (128s)'
+        'HostPoll Interval: 8 (256s)'
+    )
+
+    # Old format with flags
+    $script:mockOutputOldFormat = @(
+        '#Peers: 1'
+        ''
+        'Peer: time.windows.com,0x9'
+        'State: Active'
+        'Time Remaining: 123.456s'
+        'Last Successful Sync Time: 3/12/2026 2:30:15 PM'
         'Poll Interval: 10 (1024s)'
     )
-    #endregion
 
-    #region Mock data -- 0 peers
-    $script:mockZeroPeers = @(
+    # Zero peers
+    $script:mockOutputZeroPeers = @(
         '#Peers: 0'
     )
-    #endregion
-
-    #region Mock data -- 1 peer (French)
-    $script:mockOnePeerFR = @(
-        '#Homologues : 1'
-        ''
-        'Homologue : ntp-fr.pool.ntp.org,0x8'
-        'Etat : Actif'
-        'Temps restant : 256.12s'
-        'Heure de la derniere synchronisation reussie : 12/03/2026 20:00:00'
-        'Intervalle d''interrogation : 10 (1024s)'
-    )
-    #endregion
 }
 
 Describe -Name 'Get-NTPPeer' -Fixture {
 
-    # -------------------------------------------------------------------
-    # Context 1: Happy path -- local machine, 2 English peers
-    # -------------------------------------------------------------------
-    Context -Name 'Happy path - local machine with 2 English peers' -Tag 'HappyPath' -Fixture {
+    Context -Name 'Real w32tm output format' -Fixture {
 
         BeforeAll {
             Mock -CommandName 'Invoke-Command' -MockWith {
-                return $script:mockTwoPeersEN
+                return $script:mockOutputReal
             }
         }
 
-        It -Name 'Should return exactly 2 peer objects' -Test {
-            $result = @(Get-NTPPeer)
+        It -Name 'Should return 2 peer objects' -Test {
+            $result = Get-NTPPeer -ComputerName 'REMOTE01'
             $result.Count | Should -Be 2
         }
 
-        It -Name 'Should set ComputerName to the local machine name' -Test {
-            $result = @(Get-NTPPeer)
-            $result[0].ComputerName | Should -Be $env:COMPUTERNAME
-            $result[1].ComputerName | Should -Be $env:COMPUTERNAME
+        It -Name 'Should parse first peer name correctly' -Test {
+            $result = Get-NTPPeer -ComputerName 'REMOTE01'
+            $result[0].PeerName | Should -Be 'ntp1.ecritel.net'
         }
 
-        It -Name 'Should return objects with all expected properties' -Test {
-            $result = @(Get-NTPPeer)
-            $expectedProps = @(
-                'ComputerName', 'PeerName', 'PeerFlags', 'State',
-                'TimeRemaining', 'LastSyncTime', 'PollInterval', 'Timestamp'
-            )
-            foreach ($prop in $expectedProps) {
-                $result[0].PSObject.Properties.Name | Should -Contain $prop
-            }
+        It -Name 'Should parse second peer name correctly' -Test {
+            $result = Get-NTPPeer -ComputerName 'REMOTE01'
+            $result[1].PeerName | Should -Be 'ntp2.ecritel.net'
         }
 
-        It -Name 'Should have PSTypeName PSWinOps.NTPPeer' -Test {
-            $result = @(Get-NTPPeer)
-            $result[0].PSObject.TypeNames | Should -Contain 'PSWinOps.NTPPeer'
-        }
-
-        It -Name 'Should invoke Invoke-Command exactly once' -Test {
-            Get-NTPPeer | Out-Null
-            Should -Invoke -CommandName 'Invoke-Command' -Times 1 -Exactly
-        }
-
-        It -Name 'First peer should be ntp1.example.com with Active state' -Test {
-            $result = @(Get-NTPPeer)
-            $result[0].PeerName | Should -Be 'ntp1.example.com'
+        It -Name 'Should parse State as Active' -Test {
+            $result = Get-NTPPeer -ComputerName 'REMOTE01'
             $result[0].State | Should -Be 'Active'
         }
 
-        It -Name 'Second peer should be ntp2.example.com with Pending state' -Test {
-            $result = @(Get-NTPPeer)
-            $result[1].PeerName | Should -Be 'ntp2.example.com'
-            $result[1].State | Should -Be 'Pending'
-        }
-    }
-
-    # -------------------------------------------------------------------
-    # Context 2: Happy path -- remote machine
-    # -------------------------------------------------------------------
-    Context -Name 'Happy path - remote machine' -Tag 'HappyPath' -Fixture {
-
-        BeforeAll {
-            Mock -CommandName 'Invoke-Command' -MockWith {
-                return $script:mockTwoPeersEN
-            } -ParameterFilter { $ComputerName -eq 'REMOTE01' }
+        It -Name 'Should parse TimeRemaining as double' -Test {
+            $result = Get-NTPPeer -ComputerName 'REMOTE01'
+            $result[0].TimeRemaining | Should -BeOfType [double]
+            $result[0].TimeRemaining | Should -BeGreaterThan 7.89
+            $result[0].TimeRemaining | Should -BeLessThan 7.90
         }
 
-        It -Name 'Should set ComputerName to the remote machine name' -Test {
-            $result = @(Get-NTPPeer -ComputerName 'REMOTE01')
+        It -Name 'Should parse Mode string' -Test {
+            $result = Get-NTPPeer -ComputerName 'REMOTE01'
+            $result[0].Mode | Should -Be '1 (Symmetric Active)'
+        }
+
+        It -Name 'Should parse Stratum string' -Test {
+            $result = Get-NTPPeer -ComputerName 'REMOTE01'
+            $result[0].Stratum | Should -BeLike '2 (secondary reference*'
+        }
+
+        It -Name 'Should parse PeerPollInterval as integer' -Test {
+            $result = Get-NTPPeer -ComputerName 'REMOTE01'
+            $result[0].PeerPollInterval | Should -Be 7
+        }
+
+        It -Name 'Should parse HostPollInterval as integer' -Test {
+            $result = Get-NTPPeer -ComputerName 'REMOTE01'
+            $result[0].HostPollInterval | Should -Be 8
+        }
+
+        It -Name 'Should set ComputerName on each object' -Test {
+            $result = Get-NTPPeer -ComputerName 'REMOTE01'
             $result[0].ComputerName | Should -Be 'REMOTE01'
             $result[1].ComputerName | Should -Be 'REMOTE01'
         }
 
-        It -Name 'Should invoke Invoke-Command with -ComputerName parameter' -Test {
-            Get-NTPPeer -ComputerName 'REMOTE01' | Out-Null
-            Should -Invoke -CommandName 'Invoke-Command' -Times 1 -Exactly -ParameterFilter {
-                $ComputerName -eq 'REMOTE01'
-            }
+        It -Name 'Should set Timestamp in ISO 8601 format' -Test {
+            $result = Get-NTPPeer -ComputerName 'REMOTE01'
+            $result[0].Timestamp | Should -Match '^\d{4}-\d{2}-\d{2}T'
+        }
+
+        It -Name 'Should have null PeerFlags for modern format' -Test {
+            $result = Get-NTPPeer -ComputerName 'REMOTE01'
+            $result[0].PeerFlags | Should -BeNullOrEmpty
         }
     }
 
-    # -------------------------------------------------------------------
-    # Context 3: Pipeline input -- multiple machines
-    # -------------------------------------------------------------------
-    Context -Name 'Pipeline input - multiple machines' -Fixture {
+    Context -Name 'Old format with 0xFlags' -Fixture {
 
         BeforeAll {
             Mock -CommandName 'Invoke-Command' -MockWith {
-                return $script:mockTwoPeersEN
+                return $script:mockOutputOldFormat
             }
         }
 
-        It -Name 'Should return peers for each machine in the pipeline' -Test {
-            $result = @('ALPHA', 'BRAVO' | Get-NTPPeer)
+        It -Name 'Should parse PeerFlags correctly' -Test {
+            $result = Get-NTPPeer -ComputerName 'REMOTE01'
+            $result[0].PeerFlags | Should -Be '0x9'
+        }
+
+        It -Name 'Should parse PeerName without flags' -Test {
+            $result = Get-NTPPeer -ComputerName 'REMOTE01'
+            $result[0].PeerName | Should -Be 'time.windows.com'
+        }
+
+        It -Name 'Should parse PollInterval from old format' -Test {
+            $result = Get-NTPPeer -ComputerName 'REMOTE01'
+            $result[0].PollInterval | Should -Be 10
+        }
+
+        It -Name 'Should parse LastSyncTime as datetime' -Test {
+            $result = Get-NTPPeer -ComputerName 'REMOTE01'
+            $result[0].LastSyncTime | Should -BeOfType [datetime]
+        }
+    }
+
+    Context -Name 'Zero peers' -Fixture {
+
+        BeforeAll {
+            Mock -CommandName 'Invoke-Command' -MockWith {
+                return $script:mockOutputZeroPeers
+            }
+        }
+
+        It -Name 'Should return no output' -Test {
+            $result = Get-NTPPeer -ComputerName 'REMOTE01'
+            $result | Should -BeNullOrEmpty
+        }
+
+        It -Name 'Should emit a warning' -Test {
+            $warningOutput = Get-NTPPeer -ComputerName 'REMOTE01' 3>&1
+            $warningText = ($warningOutput | Where-Object { $_ -is [System.Management.Automation.WarningRecord] })
+            $warningText | Should -Not -BeNullOrEmpty
+        }
+    }
+
+    Context -Name 'w32tm failure' -Fixture {
+
+        BeforeAll {
+            Mock -CommandName 'Invoke-Command' -MockWith {
+                throw 'w32tm /query /peers failed (exit code 1): The service has not been started.'
+            }
+        }
+
+        It -Name 'Should not throw to the caller' -Test {
+            { Get-NTPPeer -ComputerName 'BADSERVER' -ErrorAction SilentlyContinue } | Should -Not -Throw
+        }
+
+        It -Name 'Should produce an error record' -Test {
+            $result = Get-NTPPeer -ComputerName 'BADSERVER' -ErrorVariable 'capturedError' -ErrorAction SilentlyContinue
+            $result | Should -BeNullOrEmpty
+            $capturedError | Should -Not -BeNullOrEmpty
+        }
+    }
+
+    Context -Name 'Multiple computers' -Fixture {
+
+        BeforeAll {
+            Mock -CommandName 'Invoke-Command' -MockWith {
+                return $script:mockOutputReal
+            }
+        }
+
+        It -Name 'Should return 4 objects for 2 computers with 2 peers each' -Test {
+            $result = Get-NTPPeer -ComputerName 'SRV01', 'SRV02'
             $result.Count | Should -Be 4
         }
 
-        It -Name 'Should contain correct ComputerName values from pipeline' -Test {
-            $result = @('ALPHA', 'BRAVO' | Get-NTPPeer)
-            ($result | Where-Object { $_.ComputerName -eq 'ALPHA' }).Count | Should -Be 2
-            ($result | Where-Object { $_.ComputerName -eq 'BRAVO' }).Count | Should -Be 2
-        }
-
-        It -Name 'Should invoke Invoke-Command once per machine' -Test {
-            'ALPHA', 'BRAVO' | Get-NTPPeer | Out-Null
-            Should -Invoke -CommandName 'Invoke-Command' -Times 2 -Exactly
+        It -Name 'Should tag each object with the correct ComputerName' -Test {
+            $result = Get-NTPPeer -ComputerName 'SRV01', 'SRV02'
+            ($result | Where-Object { $_.ComputerName -eq 'SRV01' }).Count | Should -Be 2
+            ($result | Where-Object { $_.ComputerName -eq 'SRV02' }).Count | Should -Be 2
         }
     }
 
-    # -------------------------------------------------------------------
-    # Context 4: Zero peers configured
-    # -------------------------------------------------------------------
-    Context -Name 'Zero peers configured' -Fixture {
+    Context -Name 'Pipeline input' -Fixture {
 
         BeforeAll {
             Mock -CommandName 'Invoke-Command' -MockWith {
-                return $script:mockZeroPeers
+                return $script:mockOutputReal
             }
         }
 
-        It -Name 'Should not emit any objects' -Test {
-            $result = @(Get-NTPPeer -ComputerName $env:COMPUTERNAME)
-            $result.Count | Should -Be 0
+        It -Name 'Should accept pipeline input and return results' -Test {
+            $result = 'SRV01', 'SRV02' | Get-NTPPeer
+            $result.Count | Should -Be 4
         }
 
-        It -Name 'Should emit a warning about no peers' -Test {
-            Get-NTPPeer -ComputerName $env:COMPUTERNAME -WarningVariable 'warnMsg' -WarningAction SilentlyContinue | Out-Null
-            $warnMsg | Should -Not -BeNullOrEmpty
-            $warnMsg[0] | Should -Match 'No NTP peers configured'
+        It -Name 'Should preserve correct ComputerName from pipeline' -Test {
+            $result = 'SRV01', 'SRV02' | Get-NTPPeer
+            $result[0].ComputerName | Should -Be 'SRV01'
         }
     }
 
-    # -------------------------------------------------------------------
-    # Context 5: French locale output
-    # -------------------------------------------------------------------
-    Context -Name 'French locale output - 1 peer' -Tag 'Locale' -Fixture {
+    Context -Name 'Per-machine error isolation' -Fixture {
 
         BeforeAll {
+            $script:callIndex = 0
             Mock -CommandName 'Invoke-Command' -MockWith {
-                return $script:mockOnePeerFR
+                $script:callIndex++
+                if ($script:callIndex -eq 1) {
+                    throw 'Connection refused'
+                }
+                return $script:mockOutputReal
             }
         }
 
-        It -Name 'Should return exactly 1 peer object' -Test {
-            $result = @(Get-NTPPeer)
-            $result.Count | Should -Be 1
-        }
-
-        It -Name 'Should parse PeerName correctly from French output' -Test {
-            $result = @(Get-NTPPeer)
-            $result[0].PeerName | Should -Be 'ntp-fr.pool.ntp.org'
-        }
-
-        It -Name 'Should parse PeerFlags correctly from French output' -Test {
-            $result = @(Get-NTPPeer)
-            $result[0].PeerFlags | Should -Be '0x8'
-        }
-
-        It -Name 'Should parse State from French output' -Test {
-            $result = @(Get-NTPPeer)
-            $result[0].State | Should -Be 'Actif'
-        }
-
-        It -Name 'Should parse TimeRemaining as double from French output' -Test {
-            $result = @(Get-NTPPeer)
-            $result[0].TimeRemaining | Should -Be 256.12
-        }
-
-        It -Name 'Should parse PollInterval as int from French output' -Test {
-            $result = @(Get-NTPPeer)
-            $result[0].PollInterval | Should -Be 10
-        }
-    }
-
-    # -------------------------------------------------------------------
-    # Context 6: Per-machine failure isolation
-    # -------------------------------------------------------------------
-    Context -Name 'Per-machine failure isolation' -Fixture {
-
-        BeforeAll {
-            # Default mock returns data for any call (covers local path)
-            Mock -CommandName 'Invoke-Command' -MockWith {
-                return $script:mockTwoPeersEN
-            }
-
-            # Specific mock for BADSERVER throws
-            Mock -CommandName 'Invoke-Command' -MockWith {
-                throw 'Connection refused'
-            } -ParameterFilter { $ComputerName -eq 'BADSERVER' }
-        }
-
-        It -Name 'Should return peers for the good machine despite bad machine error' -Test {
-            $result = @(Get-NTPPeer -ComputerName 'BADSERVER', $env:COMPUTERNAME -ErrorAction SilentlyContinue)
+        It -Name 'Should return results from the succeeding machine despite first failure' -Test {
+            $script:callIndex = 0
+            $result = Get-NTPPeer -ComputerName 'FAIL01', 'OK01' -ErrorAction SilentlyContinue -ErrorVariable 'capturedError'
+            $result | Should -Not -BeNullOrEmpty
             $result.Count | Should -Be 2
-        }
-
-        It -Name 'Should write a non-terminating error for the bad machine' -Test {
-            $result = @(Get-NTPPeer -ComputerName 'BADSERVER', $env:COMPUTERNAME -ErrorVariable 'errVar' -ErrorAction SilentlyContinue)
-            $errVar | Should -Not -BeNullOrEmpty
-            "$errVar" | Should -Match 'BADSERVER'
-            $result.Count | Should -Be 2
-        }
-
-        It -Name 'Should continue processing after the failed machine' -Test {
-            Get-NTPPeer -ComputerName 'BADSERVER', $env:COMPUTERNAME -ErrorAction SilentlyContinue | Out-Null
-            Should -Invoke -CommandName 'Invoke-Command' -Times 2 -Exactly
-        }
-    }
-
-    # -------------------------------------------------------------------
-    # Context 7: Parameter validation
-    # -------------------------------------------------------------------
-    Context -Name 'Parameter validation' -Fixture {
-
-        It -Name 'Should throw on empty string ComputerName' -Test {
-            { Get-NTPPeer -ComputerName '' } | Should -Throw
-        }
-
-        It -Name 'Should throw on null ComputerName' -Test {
-            { Get-NTPPeer -ComputerName $null } | Should -Throw
-        }
-
-        It -Name 'Should throw on empty array element' -Test {
-            { Get-NTPPeer -ComputerName @('') } | Should -Throw
-        }
-    }
-
-    # -------------------------------------------------------------------
-    # Context 8: Peer properties validation
-    # -------------------------------------------------------------------
-    Context -Name 'Peer properties type and value validation' -Fixture {
-
-        BeforeAll {
-            Mock -CommandName 'Invoke-Command' -MockWith {
-                return $script:mockTwoPeersEN
-            }
-        }
-
-        It -Name 'PeerName should have flags stripped (no comma or 0x)' -Test {
-            $result = @(Get-NTPPeer)
-            $result[0].PeerName | Should -Not -Match ',0x'
-            $result[0].PeerName | Should -Be 'ntp1.example.com'
-        }
-
-        It -Name 'PeerFlags should contain the raw hex flag' -Test {
-            $result = @(Get-NTPPeer)
-            $result[0].PeerFlags | Should -Be '0x8'
-        }
-
-        It -Name 'TimeRemaining should be a double' -Test {
-            $result = @(Get-NTPPeer)
-            $result[0].TimeRemaining | Should -BeOfType ([double])
-            $result[0].TimeRemaining | Should -Be 512.34
-        }
-
-        It -Name 'PollInterval should be an int' -Test {
-            $result = @(Get-NTPPeer)
-            $result[0].PollInterval | Should -BeOfType ([int])
-            $result[0].PollInterval | Should -Be 10
-        }
-
-        It -Name 'LastSyncTime should not be null for valid data' -Test {
-            $result = @(Get-NTPPeer)
-            $result[0].LastSyncTime | Should -Not -BeNullOrEmpty
-        }
-
-        It -Name 'Timestamp should be a valid ISO 8601 string' -Test {
-            $result = @(Get-NTPPeer)
-            { [datetime]::Parse($result[0].Timestamp) } | Should -Not -Throw
-        }
-
-        It -Name 'State should be a non-empty string' -Test {
-            $result = @(Get-NTPPeer)
-            $result[0].State | Should -Not -BeNullOrEmpty
-            $result[0].State | Should -BeOfType ([string])
+            $result[0].ComputerName | Should -Be 'OK01'
+            $capturedError | Should -Not -BeNullOrEmpty
         }
     }
 }

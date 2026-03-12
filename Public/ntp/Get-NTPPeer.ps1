@@ -3,49 +3,29 @@
 function Get-NTPPeer {
     <#
     .SYNOPSIS
-        Lists configured NTP peers on one or more Windows machines
-
+        Retrieves NTP peer information from the Windows Time service
     .DESCRIPTION
-        Queries the Windows Time Service using w32tm /query /peers on local or remote
-        machines and returns structured objects for each configured NTP peer. Supports
-        both English and French locale output from w32tm by using locale-agnostic
-        value-pattern-based parsing (no locale-specific label matching).
-
-        Accepts pipeline input for ComputerName, enabling bulk queries across a fleet.
-        Each machine is queried independently with per-machine error isolation: if one
-        machine fails, the function continues to the next and writes a non-terminating
-        error for the failed machine.
-
-        Uses Invoke-Command for both local and remote execution to provide a uniform
-        code path and simplify testability.
-
+        Parses the output of 'w32tm /query /peers' to return structured NTP peer objects.
+        Supports both modern and legacy w32tm output formats, including French-locale output.
+        Uses block-based parsing: raw output is split on blank lines, the header block is
+        skipped, and each subsequent block is parsed as one peer entry.
     .PARAMETER ComputerName
-        One or more computer names to query. Accepts pipeline input. Defaults to the
-        local machine ($env:COMPUTERNAME). Values 'localhost' and '.' are treated as
-        local. Must be a non-empty string or array of non-empty strings.
-
+        One or more computer names to query. Defaults to the local machine.
     .EXAMPLE
         Get-NTPPeer
-
-        Lists all NTP peers configured on the local machine.
-
+        Returns NTP peer information for the local computer.
     .EXAMPLE
-        Get-NTPPeer -ComputerName 'SRV-DC01' -Verbose
-
-        Queries NTP peers on a remote server with verbose logging enabled.
-
+        Get-NTPPeer -ComputerName 'SRV01', 'SRV02'
+        Returns NTP peer information for two remote servers.
     .EXAMPLE
-        'SRV-DC01', 'SRV-DC02', 'SRV-WEB01' | Get-NTPPeer | Format-Table -AutoSize
-
-        Queries NTP peers on multiple machines via pipeline and formats as a table.
-
+        'SRV01', 'SRV02' | Get-NTPPeer
+        Pipeline usage: queries NTP peers on both servers.
     .NOTES
-        Author:        Franck SALLET (k9fr4n)
+        Author:        Franck SALLET
         Version:       1.0.0
         Last Modified: 2026-03-12
-        Requires:      PowerShell 5.1+ / Windows only
-        Permissions:   Standard user for local queries; remote queries require
-                       WinRM access to the target machine
+        Requires:      PowerShell 5.1+, Windows Time service (w32time)
+        Permissions:   Local user for local queries; remote admin for Invoke-Command remoting
     #>
     [CmdletBinding()]
     [OutputType([PSCustomObject])]
@@ -57,17 +37,16 @@ function Get-NTPPeer {
     )
 
     begin {
-        Write-Verbose "[$($MyInvocation.MyCommand)] Starting - PowerShell $($PSVersionTable.PSVersion)"
+        Write-Verbose "[$($MyInvocation.MyCommand)] Starting"
 
         $w32tmScriptBlock = {
             $w32tmPath = Join-Path -Path $env:SystemRoot -ChildPath 'System32\w32tm.exe'
             if (-not (Test-Path -Path $w32tmPath)) {
-                throw "[ERROR] w32tm.exe not found at '$w32tmPath'"
+                throw "w32tm.exe not found at '$w32tmPath'"
             }
             $peerOutput = & $w32tmPath /query /peers 2>&1
             if ($LASTEXITCODE -ne 0) {
-                $outputText = $peerOutput -join ' '
-                throw "[ERROR] w32tm /query /peers failed with exit code ${LASTEXITCODE}: $outputText"
+                throw "w32tm /query /peers failed (exit code $LASTEXITCODE): $($peerOutput -join ' ')"
             }
             $peerOutput
         }
@@ -75,7 +54,7 @@ function Get-NTPPeer {
 
     process {
         foreach ($targetComputer in $ComputerName) {
-            Write-Verbose "[$($MyInvocation.MyCommand)] Querying NTP peers on '$targetComputer'"
+            Write-Verbose "[$($MyInvocation.MyCommand)] Querying '$targetComputer'"
 
             try {
                 $isLocal = ($targetComputer -eq $env:COMPUTERNAME) -or
@@ -83,114 +62,143 @@ function Get-NTPPeer {
                 ($targetComputer -eq '.')
 
                 if ($isLocal) {
-                    Write-Verbose "[$($MyInvocation.MyCommand)] Executing locally (no -ComputerName)"
-                    $rawOutput = Invoke-Command -ScriptBlock $w32tmScriptBlock -ErrorAction Stop
+                    $rawOutput = & $w32tmScriptBlock
                 } else {
-                    Write-Verbose "[$($MyInvocation.MyCommand)] Executing remotely on '$targetComputer'"
-                    $rawOutput = Invoke-Command -ComputerName $targetComputer -ScriptBlock $w32tmScriptBlock -ErrorAction Stop
+                    $rawOutput = Invoke-Command -ComputerName $targetComputer `
+                        -ScriptBlock $w32tmScriptBlock -ErrorAction Stop
                 }
 
-                if (-not $rawOutput) {
-                    Write-Warning "[$($MyInvocation.MyCommand)] No output from w32tm on '$targetComputer'"
+                # Convert to string array and normalize
+                $lines = @($rawOutput | ForEach-Object { "$_" })
+
+                # Split into blocks on blank lines
+                $blocks = [System.Collections.Generic.List[System.Collections.Generic.List[string]]]::new()
+                $currentBlock = [System.Collections.Generic.List[string]]::new()
+
+                foreach ($line in $lines) {
+                    if ([string]::IsNullOrWhiteSpace($line)) {
+                        if ($currentBlock.Count -gt 0) {
+                            $blocks.Add($currentBlock)
+                            $currentBlock = [System.Collections.Generic.List[string]]::new()
+                        }
+                    } else {
+                        $currentBlock.Add($line.Trim())
+                    }
+                }
+                if ($currentBlock.Count -gt 0) {
+                    $blocks.Add($currentBlock)
+                }
+
+                # First block is the header (#Peers: N) -- skip it
+                if ($blocks.Count -le 1) {
+                    Write-Warning "[$($MyInvocation.MyCommand)] No NTP peers found on '$targetComputer'"
                     continue
                 }
 
-                # --- Parse peer count from header line (#Peers: N / #Homologues : N) ---
-                $peerCount = 0
-                foreach ($headerLine in $rawOutput) {
-                    $headerText = $headerLine.ToString().Trim()
-                    if ($headerText -match '^\s*#\w+') {
-                        if ($headerText -match ':\s*(\d+)') {
-                            $peerCount = [int]$Matches[1]
-                        }
-                        break
-                    }
-                }
+                $peerBlocks = $blocks.GetRange(1, $blocks.Count - 1)
 
-                Write-Verbose "[$($MyInvocation.MyCommand)] Reported $peerCount peer(s) on '$targetComputer'"
+                foreach ($peerBlock in $peerBlocks) {
+                    # First line is the Peer line
+                    $peerLine = $peerBlock[0]
+                    $peerName = $null
+                    $peerFlags = $null
 
-                if ($peerCount -eq 0) {
-                    Write-Warning "[$($MyInvocation.MyCommand)] No NTP peers configured on '$targetComputer'"
-                    continue
-                }
-
-                # --- Parse peer blocks using locale-agnostic value patterns ---
-                $peerBlocks = [System.Collections.Generic.List[hashtable]]::new()
-                $currentBlock = $null
-
-                foreach ($outputLine in $rawOutput) {
-                    $lineText = $outputLine.ToString().Trim()
-                    if ([string]::IsNullOrWhiteSpace($lineText)) {
-                        continue
-                    }
-
-                    # Peer line detection: label : hostname,0xFlags
-                    if ($lineText -match '^[^:]+:\s*(.+),(0x[0-9a-fA-F]+)\s*$') {
-                        if ($currentBlock) {
-                            $peerBlocks.Add($currentBlock)
-                        }
-                        $currentBlock = @{
-                            PeerName      = $Matches[1].Trim()
-                            PeerFlags     = $Matches[2]
-                            State         = $null
-                            TimeRemaining = [double]0
-                            LastSyncTime  = $null
-                            PollInterval  = [int]0
-                        }
-                        continue
-                    }
-
-                    if (-not $currentBlock) {
-                        continue
-                    }
-
-                    # Time remaining: value ends with digits/decimal + 's'
-                    if ($lineText -match ':\s*([\d.]+)\s*s\s*$') {
-                        $currentBlock['TimeRemaining'] = [double]$Matches[1]
-                    }
-                    # Poll interval: digits followed by space and '('
-                    elseif ($lineText -match ':\s*(\d+)\s*\(') {
-                        $currentBlock['PollInterval'] = [int]$Matches[1]
-                    }
-                    # Last sync time: date pattern (digits separated by / . or -)
-                    elseif ($lineText -match ':\s*(\d{1,2}[/.\-]\d{1,2}[/.\-]\d{2,4}\s+.+)$') {
-                        $syncTimeString = $Matches[1].Trim()
-                        try {
-                            $currentBlock['LastSyncTime'] = [datetime]::Parse($syncTimeString)
-                        } catch {
-                            Write-Verbose "[$($MyInvocation.MyCommand)] Could not parse sync time: '$syncTimeString'"
-                            $currentBlock['LastSyncTime'] = $null
+                    if ($peerLine -match '^Peer:\s*(.+)$') {
+                        $peerValue = $Matches[1].Trim()
+                        if ($peerValue -match '^(.+?),\s*(.+)$') {
+                            $peerName = $Matches[1].Trim()
+                            $peerFlags = $Matches[2].Trim()
+                        } else {
+                            $peerName = $peerValue
                         }
                     }
-                    # State: first unmatched key:value line after the peer line
-                    elseif ($null -eq $currentBlock['State'] -and $lineText -match ':\s*(.+)$') {
-                        $currentBlock['State'] = $Matches[1].Trim()
+
+                    # Parse remaining lines as key:value
+                    $peerState = $null
+                    $timeRemaining = [double]0
+                    $peerMode = $null
+                    $peerStratum = $null
+                    $peerPollInterval = $null
+                    $hostPollInterval = $null
+                    $lastSyncTime = $null
+                    $pollInterval = $null
+
+                    for ($i = 1; $i -lt $peerBlock.Count; $i++) {
+                        $kvLine = $peerBlock[$i]
+                        $label = ''
+                        $kvValue = ''
+
+                        if ($kvLine -match '^([^:]+):\s*(.*)$') {
+                            $label = $Matches[1].Trim()
+                            $kvValue = $Matches[2].Trim()
+                        }
+
+                        # State
+                        if ($label -match 'State|tat') {
+                            $peerState = $kvValue
+                        }
+                        # Time Remaining / Temps restant
+                        elseif ($label -match 'Time Remaining|restant') {
+                            if ($kvValue -match '([\d,\.]+)\s*s') {
+                                $numStr = $Matches[1] -replace ',', '.'
+                                $timeRemaining = [double]$numStr
+                            }
+                        }
+                        # Mode
+                        elseif ($label -match '^Mode') {
+                            $peerMode = $kvValue
+                        }
+                        # Stratum
+                        elseif ($label -match 'Strat') {
+                            $peerStratum = $kvValue
+                        }
+                        # PeerPoll Interval
+                        elseif ($label -match 'PeerPoll') {
+                            if ($kvValue -match '(\d+)') {
+                                $peerPollInterval = [int]$Matches[1]
+                            }
+                        }
+                        # HostPoll Interval
+                        elseif ($label -match 'HostPoll') {
+                            if ($kvValue -match '(\d+)') {
+                                $hostPollInterval = [int]$Matches[1]
+                            }
+                        }
+                        # Poll Interval (old format, but NOT PeerPoll/HostPoll)
+                        elseif (($label -match 'Poll') -and ($label -notmatch 'PeerPoll|HostPoll')) {
+                            if ($kvValue -match '(\d+)') {
+                                $pollInterval = [int]$Matches[1]
+                            }
+                        }
+
+                        # Date pattern for LastSyncTime (anywhere on the line)
+                        if ($kvLine -match '\d{1,2}[/.\-]\d{1,2}[/.\-]\d{2,4}') {
+                            # Extract the value portion after the colon
+                            if ($kvValue -and ($kvValue -as [datetime])) {
+                                $lastSyncTime = [datetime]$kvValue
+                            }
+                        }
                     }
-                }
 
-                # Add the last block
-                if ($currentBlock) {
-                    $peerBlocks.Add($currentBlock)
-                }
-
-                Write-Verbose "[$($MyInvocation.MyCommand)] Parsed $($peerBlocks.Count) peer block(s) on '$targetComputer'"
-
-                # --- Emit one object per peer ---
-                foreach ($block in $peerBlocks) {
                     [PSCustomObject]@{
-                        PSTypeName    = 'PSWinOps.NTPPeer'
-                        ComputerName  = $targetComputer
-                        PeerName      = $block['PeerName']
-                        PeerFlags     = $block['PeerFlags']
-                        State         = $block['State']
-                        TimeRemaining = $block['TimeRemaining']
-                        LastSyncTime  = $block['LastSyncTime']
-                        PollInterval  = $block['PollInterval']
-                        Timestamp     = Get-Date -Format 'o'
+                        PSTypeName       = 'PSWinOps.NTPPeer'
+                        ComputerName     = $targetComputer
+                        PeerName         = $peerName
+                        PeerFlags        = $peerFlags
+                        State            = $peerState
+                        TimeRemaining    = $timeRemaining
+                        Mode             = $peerMode
+                        Stratum          = $peerStratum
+                        PeerPollInterval = $peerPollInterval
+                        HostPollInterval = $hostPollInterval
+                        LastSyncTime     = $lastSyncTime
+                        PollInterval     = $pollInterval
+                        Timestamp        = Get-Date -Format 'o'
                     }
                 }
             } catch {
-                Write-Error "[$($MyInvocation.MyCommand)] Failed to query NTP peers on '${targetComputer}': $_"
+                Write-Error "[$($MyInvocation.MyCommand)] Failed to query '$targetComputer': $_"
+                continue
             }
         }
     }
