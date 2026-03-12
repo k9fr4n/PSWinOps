@@ -16,11 +16,11 @@
         Credential forwarding, and error handling.
 
 .NOTES
-    Author:        Franck SALLET
-    Version:       2.0.0
+    Author: Franck SALLET
+    Version: 2.0.0
     Last Modified: 2026-03-11
-    Requires:      PowerShell 5.1+, Pester 5.x, PSWinOps module
-    Permissions:   None -- all system calls are mocked
+    Requires: PowerShell 5.1+, Pester 5.x, PSWinOps module
+    Permissions: None -- all system calls are mocked
 #>
 
 BeforeAll {
@@ -28,25 +28,28 @@ BeforeAll {
     # Fake quser output -- column positions verified against real quser.exe output.
     #
     # Header column offsets:
-    #   colUser    =  1   (start of USERNAME field)
-    #   colSession = 23   (IndexOf 'SESSIONNAME')
-    #   colId      = 42   (IndexOf ' ID ' + 1)
-    #   colState   = 46   (IndexOf 'STATE')
-    #   colIdle    = 54   (IndexOf 'IDLE TIME')
-    #   colLogon   = 65   (IndexOf 'LOGON TIME')
+    #   colUser    =  1 (start of USERNAME field)
+    #   colSession = 23 (IndexOf 'SESSIONNAME')
+    #   colId      = 42 (IndexOf ' ID ' + 1)
+    #   colState   = 46 (IndexOf 'STATE')
+    #   colIdle    = 54 (IndexOf 'IDLE TIME')
+    #   colLogon   = 65 (IndexOf 'LOGON TIME')
     # ---------------------------------------------------------------------------
-    $script:fakeHeader = ' USERNAME              SESSIONNAME        ID  STATE   IDLE TIME  LOGON TIME'
-    $script:fakeActive = '>adm-fsallet           rdp-tcp#3           3  Active      .      11/03/2026 19:35'
-    $script:fakeDisc = ' adm-asaintpierre      rdp-tcp#2           2  Disc    1+08:15    10/03/2026 11:24'
+    $script:fakeHeader        = ' USERNAME              SESSIONNAME        ID  STATE   IDLE TIME  LOGON TIME'
+    $script:fakeActive        = '>adm-fsallet           rdp-tcp#3           3  Active          .  11/03/2026 19:35'
+    $script:fakeDisc          = ' adm-asaintpierre      rdp-tcp#2           2  Disc      1+08:15  10/03/2026 11:24'
+    $script:fakeTwoSessions   = @($script:fakeHeader, $script:fakeActive, $script:fakeDisc)
+    $script:fakeHeaderOnly    = @($script:fakeHeader)
+    $script:fakeRemoteHost    = 'FAKE-REMOTE-HOST'
 
-    $script:fakeTwoSessions = @($script:fakeHeader, $script:fakeActive, $script:fakeDisc)
-    $script:fakeHeaderOnly = @($script:fakeHeader)
-
-    $script:fakeRemoteHost = 'FAKE-REMOTE-HOST'
+    # PSScriptAnalyzer suppression: dummy test credential only, not used in production
+    # cSpell:disable
+    [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingConvertToSecureStringWithPlainText', '', Justification='Test-only credential')]
     $script:fakeCredential = [System.Management.Automation.PSCredential]::new(
         'TESTDOMAIN\testuser',
-        (ConvertTo-SecureString -String 'DummyTestPassword123!' -Force -ErrorAction SilentlyContinue -WarningAction SilentlyContinue)
+        (ConvertTo-SecureString -String 'FakeTestP@ss!' -AsPlainText -Force)
     )
+    # cSpell:enable
 
     $script:modulePath = Join-Path -Path $PSScriptRoot -ChildPath '..\..\PSWinOps.psd1'
     Import-Module -Name $script:modulePath -Force -ErrorAction Stop
