@@ -84,10 +84,10 @@ function Get-NTPPeer {
 
                 if ($isLocal) {
                     Write-Verbose "[$($MyInvocation.MyCommand)] Executing locally (no -ComputerName)"
-                    $rawOutput = Invoke-Command -ScriptBlock $w32tmScriptBlock
+                    $rawOutput = Invoke-Command -ScriptBlock $w32tmScriptBlock -ErrorAction Stop
                 } else {
                     Write-Verbose "[$($MyInvocation.MyCommand)] Executing remotely on '$targetComputer'"
-                    $rawOutput = Invoke-Command -ComputerName $targetComputer -ScriptBlock $w32tmScriptBlock
+                    $rawOutput = Invoke-Command -ComputerName $targetComputer -ScriptBlock $w32tmScriptBlock -ErrorAction Stop
                 }
 
                 if (-not $rawOutput) {
