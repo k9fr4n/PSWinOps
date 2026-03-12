@@ -10,14 +10,17 @@
     assembles the module from Private and Public function directories into a single
     PSM1 file, updates version metadata in the module manifest, and generates a
     distribution package ready for publication to PowerShell Gallery.
+    Additionally provides a standalone SyncManifest task to synchronize the source
+    manifest FunctionsToExport list with the actual Public function files on disk.
 
 .PARAMETER Task
     The build task to execute. Valid options are:
     - Analyze: Run PSScriptAnalyzer static analysis only
     - Test: Execute Pester unit tests only
+    - SyncManifest: Synchronize FunctionsToExport in the source manifest with Public/ files
     - Build: Assemble module files and update manifest
     - Package: Create distribution ZIP file
-    - All: Execute all tasks in sequence (default)
+    - All: Execute Analyze, Test, Build, Package in sequence (default)
 
 .PARAMETER BumpVersion
     The semantic version component to increment during the build.
@@ -36,6 +39,11 @@
     Executes only the Pester test suite without building or packaging.
 
 .EXAMPLE
+    .\build.ps1 -Task SyncManifest
+
+    Synchronizes the source manifest FunctionsToExport with the Public/ directory contents.
+
+.EXAMPLE
     .\build.ps1 -Task Build -BumpVersion Minor
 
     Builds the module and increments the minor version number.
@@ -47,8 +55,8 @@
 
 .NOTES
     Author:        Franck SALLET
-    Version:       1.0.0
-    Last Modified: 2026-02-26
+    Version:       1.1.0
+    Last Modified: 2026-03-12
     Requires:      PowerShell 5.1+, Pester 5.x, PSScriptAnalyzer
     Permissions:   Write access to module directory and output path
 
@@ -62,7 +70,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $false)]
-    [ValidateSet('Analyze', 'Test', 'Build', 'Package', 'All')]
+    [ValidateSet('Analyze', 'Test', 'SyncManifest', 'Build', 'Package', 'All')]
     [string]$Task = 'All',
 
     [Parameter(Mandatory = $false)]
@@ -410,6 +418,74 @@ function Invoke-UnitTest {
 }
 
 # =========================================================================
+# TASK: SYNC MANIFEST
+# =========================================================================
+
+function Sync-ModuleManifest {
+    <#
+.SYNOPSIS
+    Synchronizes the source manifest FunctionsToExport with Public/ files
+
+.DESCRIPTION
+    Scans the Public/ directory recursively for .ps1 files, extracts the
+    base name of each file as the function name, sorts them alphabetically
+    using case-insensitive ordering, and updates the source module manifest
+    FunctionsToExport field via Update-ModuleManifest. This is a standalone
+    utility task intended for use outside the full build pipeline to keep
+    the manifest in sync during development without triggering a full build.
+
+.EXAMPLE
+    Sync-ModuleManifest
+
+    Updates FunctionsToExport in the source manifest based on Public/ contents.
+
+.NOTES
+    Author:        Franck SALLET
+    Version:       1.0.0
+    Last Modified: 2026-03-12
+    Requires:      PowerShell 5.1+
+    Permissions:   Write access to source module manifest
+#>
+    [CmdletBinding()]
+    [OutputType([void])]
+    param()
+
+    process {
+        Write-BuildStep -Message 'Synchronizing module manifest with Public/ functions'
+
+        $publicPath = Join-Path -Path $script:SrcPath -ChildPath 'Public'
+
+        if (-not (Test-Path -Path $publicPath)) {
+            Write-Warning -Message "[$($MyInvocation.MyCommand)] Public directory not found: $publicPath. Nothing to synchronize."
+            return
+        }
+
+        $publicFiles = Get-ChildItem -Path $publicPath -Filter '*.ps1' -Recurse
+
+        if ($null -eq $publicFiles -or $publicFiles.Count -eq 0) {
+            Write-Warning -Message "[$($MyInvocation.MyCommand)] No .ps1 files found in Public/. FunctionsToExport will be empty."
+            Update-ModuleManifest -Path $script:ManifestPath -FunctionsToExport @()
+            Write-BuildSuccess -Message 'Source manifest updated with 0 exported function(s)'
+            return
+        }
+
+        $functionNames = $publicFiles |
+            ForEach-Object { [System.IO.Path]::GetFileNameWithoutExtension($_.Name) } |
+            Sort-Object -Property { $_.ToLowerInvariant() }
+
+        Write-Verbose -Message "[$($MyInvocation.MyCommand)] Detected $($functionNames.Count) function(s) in Public/"
+
+        foreach ($fn in $functionNames) {
+            Write-Verbose -Message "[$($MyInvocation.MyCommand)]   --> $fn"
+        }
+
+        Update-ModuleManifest -Path $script:ManifestPath -FunctionsToExport @($functionNames)
+
+        Write-BuildSuccess -Message "Source manifest updated with $($functionNames.Count) exported function(s)"
+    }
+}
+
+# =========================================================================
 # TASK: MODULE BUILD
 # =========================================================================
 
@@ -610,6 +686,9 @@ try {
         }
         'Test' {
             Invoke-UnitTest
+        }
+        'SyncManifest' {
+            Sync-ModuleManifest
         }
         'Build' {
             Invoke-ModuleBuild
