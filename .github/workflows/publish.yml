@@ -7,7 +7,7 @@ on:
 
 jobs:
   # ─────────────────────────────────────────
-  # JOB 1 — VALIDATION (réutilisation)
+  # JOB 1 — VALIDATION
   # ─────────────────────────────────────────
   validate:
     runs-on: windows-latest
@@ -108,6 +108,33 @@ jobs:
           $version = $tag.TrimStart('v')
           Write-Output "Publishing version: $version"
           Add-Content -Path $env:GITHUB_ENV -Value "MODULE_VERSION=$version" -Encoding UTF8
+
+      - name: Clean unnecessary files before publish
+        shell: pwsh
+        run: |
+          # Remove directories not needed in the published module
+          $dirsToRemove = @('.devcontainer', '.github', 'Tests')
+
+          foreach ($dir in $dirsToRemove) {
+            $path = Join-Path -Path . -ChildPath $dir
+            if (Test-Path $path) {
+              Remove-Item -Path $path -Recurse -Force
+              Write-Output "Removed directory: $dir"
+            }
+          }
+
+          # Remove files not needed in the published module
+          $filesToRemove = @('build.ps1', 'coverage.xml')
+
+          foreach ($file in $filesToRemove) {
+            $path = Join-Path -Path . -ChildPath $file
+            if (Test-Path $path) {
+              Remove-Item -Path $path -Force
+              Write-Output "Removed file: $file"
+            }
+          }
+
+          Write-Output "[OK] Cleanup complete"
 
       - name: Publish to PSGallery
         shell: pwsh
