@@ -1,234 +1,250 @@
 ﻿#Requires -Version 5.1
+#Requires -Modules @{ ModuleName = 'Pester'; ModuleVersion = '5.0.0' }
 
-BeforeAll {
-    # FIX: chemin corrigé (... → ..\..)
-    $script:modulePath = Join-Path -Path $PSScriptRoot -ChildPath '..\..\PSWinOps.psd1'
-    Import-Module -Name $script:modulePath -Force -ErrorAction Stop
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute(
+    'PSAvoidUsingConvertToSecureStringWithPlainText',
+    '',
+    Justification = 'Test fixture only -- not a real credential'
+)]
+param()
 
-    $script:mockSuccessResult = [PSCustomObject]@{ ReturnValue = 0 }
-    # NOTE: mockTsService supprimé - remplacé par New-MockObject directement dans les mocks
+BeforeAll -Scriptblock {
+    $script:functionPath = Join-Path -Path $PSScriptRoot -ChildPath '..\..\Public\sessions\Disconnect-RdpSession.ps1'
+    . $script:functionPath
 }
 
 Describe -Name 'Disconnect-RdpSession' -Fixture {
 
-    Context -Name 'When disconnecting a session successfully' -Fixture {
-        BeforeEach {
-            Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
-                New-MockObject -Type 'Microsoft.Management.Infrastructure.CimSession'
+    BeforeAll -Scriptblock {
+        # Default mock: tsdiscon.exe exists
+        Mock -CommandName 'Get-Command' -MockWith {
+            return [PSCustomObject]@{
+                Name        = 'tsdiscon.exe'
+                CommandType = 'Application'
+                Source      = 'C:\Windows\System32\tsdiscon.exe'
             }
-            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
-                # FIX: CimInstance requis car passé à Invoke-CimMethod -InputObject
-                New-MockObject -Type 'Microsoft.Management.Infrastructure.CimInstance'
+        } -ParameterFilter { $Name -eq 'tsdiscon.exe' }
+
+        # Default mock: Invoke-Command returns exit code 0 (success)
+        Mock -CommandName 'Invoke-Command' -MockWith { return 0 }
+    }
+
+    Context -Name 'When disconnecting a local session' -Fixture {
+
+        It -Name 'Should return a PSCustomObject with all expected properties' -Test {
+            $result = Disconnect-RdpSession -SessionID 3 -Confirm:$false
+            $result | Should -BeOfType -ExpectedType ([PSCustomObject])
+            $result.PSObject.Properties.Name | Should -Contain -ExpectedValue 'ComputerName'
+            $result.PSObject.Properties.Name | Should -Contain -ExpectedValue 'SessionID'
+            $result.PSObject.Properties.Name | Should -Contain -ExpectedValue 'Action'
+            $result.PSObject.Properties.Name | Should -Contain -ExpectedValue 'Success'
+            $result.PSObject.Properties.Name | Should -Contain -ExpectedValue 'Timestamp'
+        }
+
+        It -Name 'Should return Success true when tsdiscon exits with code 0' -Test {
+            $result = Disconnect-RdpSession -SessionID 3 -Confirm:$false
+            $result.Success | Should -BeTrue
+            $result.Action | Should -Be -ExpectedValue 'Disconnect'
+            $result.SessionID | Should -Be -ExpectedValue 3
+        }
+
+        It -Name 'Should default ComputerName to the local machine name' -Test {
+            $result = Disconnect-RdpSession -SessionID 3 -Confirm:$false
+            $result.ComputerName | Should -Be -ExpectedValue $env:COMPUTERNAME
+        }
+
+        It -Name 'Should invoke Invoke-Command without ComputerName for local sessions' -Test {
+            Disconnect-RdpSession -SessionID 3 -Confirm:$false
+            Should -Invoke -CommandName 'Invoke-Command' -Times 1 -Exactly -ParameterFilter {
+                $null -eq $ComputerName
             }
-            Mock -CommandName 'Invoke-CimMethod' -ModuleName 'PSWinOps' -MockWith {
-                return $script:mockSuccessResult
-            }
-            Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
-        }
-
-        It -Name 'Should return success result object' -Test {
-            $result = Disconnect-RdpSession -SessionID 2 -Confirm:$false
-            $result | Should -Not -BeNullOrEmpty
-            $result.Success | Should -Be $true
-            $result.ReturnCode | Should -Be 0
-            $result.SessionID | Should -Be 2
-        }
-
-        It -Name 'Should include correct action type' -Test {
-            $result = Disconnect-RdpSession -SessionID 2 -Confirm:$false
-            $result.Action | Should -Be 'Disconnect'
-        }
-
-        It -Name 'Should invoke DisconnectSession method with correct parameters' -Test {
-            Disconnect-RdpSession -SessionID 2 -Confirm:$false
-            Should -Invoke -CommandName 'Invoke-CimMethod' -ModuleName 'PSWinOps' -Times 1 -Exactly -ParameterFilter {
-                $MethodName -eq 'DisconnectSession' -and
-                $Arguments.SessionId -eq 2
-            }
-        }
-
-        It -Name 'Should clean up CIM session' -Test {
-            Disconnect-RdpSession -SessionID 2 -Confirm:$false
-            Should -Invoke -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -Times 1 -Exactly
-        }
-
-        It -Name 'Should include timestamp in result' -Test {
-            $beforeTime = Get-Date
-            $result = Disconnect-RdpSession -SessionID 2 -Confirm:$false
-            $afterTime = Get-Date
-            $result.Timestamp | Should -BeOfType ([datetime])
-            $result.Timestamp | Should -BeGreaterOrEqual $beforeTime
-            $result.Timestamp | Should -BeLessOrEqual $afterTime
         }
     }
 
-    Context -Name 'When ShouldProcess is declined' -Fixture {
-        BeforeEach {
-            # FIX: New-MockObject à la place de PSCustomObject
-            Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
-                New-MockObject -Type 'Microsoft.Management.Infrastructure.CimSession'
+    Context -Name 'When disconnecting a remote session without credentials' -Fixture {
+
+        It -Name 'Should return Success true with the remote ComputerName' -Test {
+            $result = Disconnect-RdpSession -ComputerName 'SRV-REMOTE-01' -SessionID 5 -Confirm:$false
+            $result.Success | Should -BeTrue
+            $result.ComputerName | Should -Be -ExpectedValue 'SRV-REMOTE-01'
+            $result.SessionID | Should -Be -ExpectedValue 5
+        }
+
+        It -Name 'Should pass ComputerName to Invoke-Command for remote sessions' -Test {
+            Disconnect-RdpSession -ComputerName 'SRV-REMOTE-01' -SessionID 5 -Confirm:$false
+            Should -Invoke -CommandName 'Invoke-Command' -Times 1 -Exactly -ParameterFilter {
+                $ComputerName -eq 'SRV-REMOTE-01'
             }
-            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
-                New-MockObject -Type 'Microsoft.Management.Infrastructure.CimInstance'
+        }
+    }
+
+    Context -Name 'When credentials are provided for a remote session' -Fixture {
+
+        BeforeAll -Scriptblock {
+            $script:testCredential = [PSCredential]::new(
+                'DOMAIN\testuser',
+                (ConvertTo-SecureString -String 'FakeP@ss1' -AsPlainText -Force)
+            )
+        }
+
+        It -Name 'Should pass Credential to Invoke-Command' -Test {
+            Disconnect-RdpSession -ComputerName 'SRV-REMOTE-01' -SessionID 3 -Credential $script:testCredential -Confirm:$false
+            Should -Invoke -CommandName 'Invoke-Command' -Times 1 -Exactly -ParameterFilter {
+                $null -ne $Credential -and $ComputerName -eq 'SRV-REMOTE-01'
             }
-            Mock -CommandName 'Invoke-CimMethod' -ModuleName 'PSWinOps' -MockWith { return $script:mockSuccessResult }
-            Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
         }
 
-        It -Name 'Should not invoke disconnect when WhatIf is specified' -Test {
-            Disconnect-RdpSession -SessionID 2 -WhatIf
-            Should -Invoke -CommandName 'Invoke-CimMethod' -ModuleName 'PSWinOps' -Times 0 -Exactly
+        It -Name 'Should return a valid result object with credentials' -Test {
+            $result = Disconnect-RdpSession -ComputerName 'SRV-REMOTE-01' -SessionID 3 -Credential $script:testCredential -Confirm:$false
+            $result.Success | Should -BeTrue
+            $result.ComputerName | Should -Be -ExpectedValue 'SRV-REMOTE-01'
+        }
+    }
+
+    Context -Name 'When multiple sessions are provided via pipeline' -Fixture {
+
+        It -Name 'Should process each session and return multiple results' -Test {
+            $script:pipelineInput = @(
+                [PSCustomObject]@{ ComputerName = 'SRV01'; SessionID = 3 }
+                [PSCustomObject]@{ ComputerName = 'SRV01'; SessionID = 7 }
+            )
+            $results = $script:pipelineInput | Disconnect-RdpSession -Confirm:$false
+            $results.Count | Should -Be -ExpectedValue 2
+            $results[0].SessionID | Should -Be -ExpectedValue 3
+            $results[1].SessionID | Should -Be -ExpectedValue 7
         }
 
-        It -Name 'Should not create CIM session when WhatIf is specified' -Test {
-            Disconnect-RdpSession -SessionID 2 -WhatIf
-            Should -Invoke -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -Times 0 -Exactly
+        It -Name 'Should call Invoke-Command once per piped session' -Test {
+            $script:pipelineInput = @(
+                [PSCustomObject]@{ ComputerName = 'SRV01'; SessionID = 3 }
+                [PSCustomObject]@{ ComputerName = 'SRV01'; SessionID = 7 }
+            )
+            $script:pipelineInput | Disconnect-RdpSession -Confirm:$false
+            Should -Invoke -CommandName 'Invoke-Command' -Times 2 -Exactly
+        }
+    }
+
+    Context -Name 'When multiple SessionIDs are passed as an array parameter' -Fixture {
+
+        It -Name 'Should disconnect each session ID individually' -Test {
+            $results = Disconnect-RdpSession -ComputerName 'SRV01' -SessionID 2, 4, 6 -Confirm:$false
+            $results.Count | Should -Be -ExpectedValue 3
+            Should -Invoke -CommandName 'Invoke-Command' -Times 3 -Exactly
+        }
+    }
+
+    Context -Name 'When tsdiscon.exe returns a non-zero exit code' -Fixture {
+
+        BeforeAll -Scriptblock {
+            Mock -CommandName 'Invoke-Command' -MockWith { return 1 }
         }
 
-        It -Name 'Should not return any result when WhatIf is specified' -Test {
-            $result = Disconnect-RdpSession -SessionID 2 -WhatIf
+        It -Name 'Should return Success as false' -Test {
+            $result = Disconnect-RdpSession -SessionID 3 -Confirm:$false
+            $result.Success | Should -BeFalse
+        }
+
+        It -Name 'Should still return a complete result object' -Test {
+            $result = Disconnect-RdpSession -SessionID 3 -Confirm:$false
+            $result.ComputerName | Should -Not -BeNullOrEmpty
+            $result.Action | Should -Be -ExpectedValue 'Disconnect'
+            $result.Timestamp | Should -Not -BeNullOrEmpty
+        }
+    }
+
+    Context -Name 'When Invoke-Command returns null exit code' -Fixture {
+
+        BeforeAll -Scriptblock {
+            Mock -CommandName 'Invoke-Command' -MockWith { return $null }
+        }
+
+        It -Name 'Should return Success as false when exit code is null' -Test {
+            $result = Disconnect-RdpSession -SessionID 3 -Confirm:$false
+            $result.Success | Should -BeFalse
+        }
+    }
+
+    Context -Name 'When tsdiscon.exe is not found on the system' -Fixture {
+
+        BeforeAll -Scriptblock {
+            Mock -CommandName 'Get-Command' -MockWith {
+                return $null
+            } -ParameterFilter { $Name -eq 'tsdiscon.exe' }
+        }
+
+        It -Name 'Should throw a terminating error mentioning tsdiscon' -Test {
+            { Disconnect-RdpSession -SessionID 3 -Confirm:$false } | Should -Throw -ExpectedMessage '*tsdiscon.exe*'
+        }
+
+        It -Name 'Should not attempt to invoke any disconnect command' -Test {
+            { Disconnect-RdpSession -SessionID 3 -Confirm:$false } | Should -Throw
+            Should -Invoke -CommandName 'Invoke-Command' -Times 0 -Exactly
+        }
+    }
+
+    Context -Name 'When WhatIf is specified' -Fixture {
+
+        It -Name 'Should not execute any disconnect command' -Test {
+            Disconnect-RdpSession -ComputerName 'SRV01' -SessionID 3 -WhatIf
+            Should -Invoke -CommandName 'Invoke-Command' -Times 0 -Exactly
+        }
+
+        It -Name 'Should not return any output' -Test {
+            $result = Disconnect-RdpSession -ComputerName 'SRV01' -SessionID 3 -WhatIf
             $result | Should -BeNullOrEmpty
         }
     }
 
-    Context -Name 'When disconnecting multiple sessions' -Fixture {
-        BeforeEach {
-            # FIX: New-MockObject à la place de PSCustomObject
-            Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
-                New-MockObject -Type 'Microsoft.Management.Infrastructure.CimSession'
+    Context -Name 'When a WinRM remoting error occurs' -Fixture {
+
+        BeforeAll -Scriptblock {
+            Mock -CommandName 'Invoke-Command' -MockWith {
+                throw [System.Management.Automation.Remoting.PSRemotingTransportException]::new(
+                    'WinRM cannot complete the operation.'
+                )
             }
-            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
-                New-MockObject -Type 'Microsoft.Management.Infrastructure.CimInstance'
-            }
-            Mock -CommandName 'Invoke-CimMethod' -ModuleName 'PSWinOps' -MockWith { return $script:mockSuccessResult }
-            Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
         }
 
-        It -Name 'Should process all session IDs' -Test {
-            $result = Disconnect-RdpSession -SessionID 2, 3, 5 -Confirm:$false
-            $result.Count | Should -Be 3
-            $result[0].SessionID | Should -Be 2
-            $result[1].SessionID | Should -Be 3
-            $result[2].SessionID | Should -Be 5
+        It -Name 'Should return Success as false without terminating the pipeline' -Test {
+            $result = Disconnect-RdpSession -ComputerName 'SRV-UNREACHABLE' -SessionID 3 -Confirm:$false -ErrorAction SilentlyContinue
+            $result.Success | Should -BeFalse
+            $result.ComputerName | Should -Be -ExpectedValue 'SRV-UNREACHABLE'
         }
 
-        It -Name 'Should invoke method once per session' -Test {
-            Disconnect-RdpSession -SessionID 2, 3 -Confirm:$false
-            Should -Invoke -CommandName 'Invoke-CimMethod' -ModuleName 'PSWinOps' -Times 2 -Exactly
-        }
-
-        It -Name 'Should create and clean up CIM session once per session' -Test {
-            Disconnect-RdpSession -SessionID 2, 3, 5 -Confirm:$false
-            Should -Invoke -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -Times 3 -Exactly
-            Should -Invoke -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -Times 3 -Exactly
+        It -Name 'Should write a non-terminating error to the error stream' -Test {
+            $script:disconnectErrors = $null
+            Disconnect-RdpSession -ComputerName 'SRV-UNREACHABLE' -SessionID 3 -Confirm:$false -ErrorVariable script:disconnectErrors -ErrorAction SilentlyContinue
+            $script:disconnectErrors | Should -Not -BeNullOrEmpty
         }
     }
 
-    Context -Name 'When CIM operation fails' -Fixture {
-        BeforeEach {
-            # FIX: New-MockObject à la place de PSCustomObject
-            Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
-                New-MockObject -Type 'Microsoft.Management.Infrastructure.CimSession'
+    Context -Name 'When a generic error occurs during disconnect' -Fixture {
+
+        BeforeAll -Scriptblock {
+            Mock -CommandName 'Invoke-Command' -MockWith {
+                throw [System.InvalidOperationException]::new('Unexpected failure')
             }
-            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
-                $exception = [Microsoft.Management.Infrastructure.CimException]::new('The WS-Management service cannot process the request.')
-                throw $exception
-            }
-            Mock -CommandName 'Invoke-CimMethod' -ModuleName 'PSWinOps' -MockWith { return $script:mockSuccessResult }
-            Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
         }
 
-        It -Name 'Should write error and not throw' -Test {
-            { Disconnect-RdpSession -SessionID 2 -Confirm:$false -ErrorAction SilentlyContinue } | Should -Not -Throw
-        }
-
-        It -Name 'Should clean up CIM session even when Get-CimInstance fails' -Test {
-            Disconnect-RdpSession -SessionID 2 -Confirm:$false -ErrorAction SilentlyContinue
-            Should -Invoke -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -Times 1 -Exactly
-        }
-
-        It -Name 'Should not return result object when CIM operation fails' -Test {
-            $result = Disconnect-RdpSession -SessionID 2 -Confirm:$false -ErrorAction SilentlyContinue
-            $result | Should -BeNullOrEmpty
+        It -Name 'Should return Success as false and continue processing' -Test {
+            $result = Disconnect-RdpSession -SessionID 3 -Confirm:$false -ErrorAction SilentlyContinue
+            $result.Success | Should -BeFalse
         }
     }
 
-    Context -Name 'When access is denied' -Fixture {
-        BeforeEach {
-            Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
-                throw [System.UnauthorizedAccessException]::new('Access denied')
-            }
-            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
-                New-MockObject -Type 'Microsoft.Management.Infrastructure.CimInstance'
-            }
-            Mock -CommandName 'Invoke-CimMethod' -ModuleName 'PSWinOps' -MockWith { return $script:mockSuccessResult }
-            Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
+    Context -Name 'Parameter validation' -Fixture {
+
+        It -Name 'Should reject an empty ComputerName' -Test {
+            { Disconnect-RdpSession -ComputerName '' -SessionID 3 -Confirm:$false } | Should -Throw
         }
 
-        It -Name 'Should write error and not throw' -Test {
-            { Disconnect-RdpSession -SessionID 2 -Confirm:$false -ErrorAction SilentlyContinue } | Should -Not -Throw
+        It -Name 'Should reject a SessionID outside valid range' -Test {
+            { Disconnect-RdpSession -SessionID -1 -Confirm:$false } | Should -Throw
+            { Disconnect-RdpSession -SessionID 65537 -Confirm:$false } | Should -Throw
         }
 
-        It -Name 'Should not invoke Get-CimInstance when session creation fails' -Test {
-            Disconnect-RdpSession -SessionID 2 -Confirm:$false -ErrorAction SilentlyContinue
-            Should -Invoke -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -Times 0 -Exactly
-        }
-
-        It -Name 'Should not return result object when access is denied' -Test {
-            $result = Disconnect-RdpSession -SessionID 2 -Confirm:$false -ErrorAction SilentlyContinue
-            $result | Should -BeNullOrEmpty
-        }
-    }
-
-    Context -Name 'When using custom credential' -Fixture {
-        BeforeEach {
-            $secureString = New-Object System.Security.SecureString
-            $script:testCredential = [PSCredential]::new('TestUser', $secureString)
-
-            # FIX: New-MockObject à la place de PSCustomObject
-            Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
-                New-MockObject -Type 'Microsoft.Management.Infrastructure.CimSession'
-            }
-            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
-                New-MockObject -Type 'Microsoft.Management.Infrastructure.CimInstance'
-            }
-            Mock -CommandName 'Invoke-CimMethod' -ModuleName 'PSWinOps' -MockWith { return $script:mockSuccessResult }
-            Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
-        }
-
-        It -Name 'Should pass credential to New-CimSession' -Test {
-            Disconnect-RdpSession -SessionID 2 -ComputerName 'RemoteServer' -Credential $script:testCredential -Confirm:$false
-            Should -Invoke -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -Times 1 -Exactly -ParameterFilter {
-                $Credential -eq $script:testCredential -and
-                $ComputerName -eq 'RemoteServer'
-            }
-        }
-    }
-
-    Context -Name 'When disconnect operation returns failure code' -Fixture {
-        BeforeEach {
-            # FIX: New-MockObject à la place de PSCustomObject
-            Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
-                New-MockObject -Type 'Microsoft.Management.Infrastructure.CimSession'
-            }
-            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
-                New-MockObject -Type 'Microsoft.Management.Infrastructure.CimInstance'
-            }
-            Mock -CommandName 'Invoke-CimMethod' -ModuleName 'PSWinOps' -MockWith {
-                [PSCustomObject]@{ ReturnValue = 1 }
-            }
-            Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
-        }
-
-        It -Name 'Should return result with Success set to false' -Test {
-            $result = Disconnect-RdpSession -SessionID 2 -Confirm:$false
-            $result.Success | Should -Be $false
-            $result.ReturnCode | Should -Be 1
-        }
-
-        It -Name 'Should still clean up CIM session after failure' -Test {
-            Disconnect-RdpSession -SessionID 2 -Confirm:$false
-            Should -Invoke -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -Times 1 -Exactly
+        It -Name 'Should require SessionID as mandatory' -Test {
+            { Disconnect-RdpSession -ComputerName 'SRV01' -Confirm:$false } | Should -Throw
         }
     }
 }
