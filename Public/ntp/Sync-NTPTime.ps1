@@ -48,18 +48,18 @@ function Sync-NTPTime {
         with verbose logging enabled.
 
     .EXAMPLE
-        Get-Content -Path 'C:\Admin\servers.txt' | Sync-NTPTime -RestartService
+        Get-Content -Path 'C:\\Admin\\servers.txt' | Sync-NTPTime -RestartService
 
         Reads a list of server names from a file and pipelines them into Sync-NTPTime,
         restarting the w32time service on each before resyncing.
 
     .NOTES
-        Author:        Franck SALLET (k9fr4n)
-        Version:       1.0.0
+        Author: Franck SALLET (k9fr4n)
+        Version: 1.0.0
         Last Modified: 2026-03-12
-        Requires:      PowerShell 5.1+ / Windows only
-        Permissions:   Requires admin rights (local and remote) to restart services
-                       and run w32tm /resync. Remote targets require PSRemoting enabled.
+        Requires: PowerShell 5.1+ / Windows only
+        Permissions: Requires admin rights (local and remote) to restart services
+                     and run w32tm /resync. Remote targets require PSRemoting enabled.
     #>
     [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
     [OutputType([PSCustomObject])]
@@ -79,11 +79,12 @@ function Sync-NTPTime {
 
         # Scriptblock: force NTP resynchronization via w32tm
         $resyncScriptBlock = {
-            $w32tmPath = Join-Path -Path $env:SystemRoot -ChildPath 'System32\w32tm.exe'
+            $w32tmPath = Join-Path -Path $env:SystemRoot -ChildPath 'System32\\w32tm.exe'
             if (-not (Test-Path -Path $w32tmPath)) {
                 throw "[ERROR] w32tm.exe not found at '$w32tmPath'"
             }
             $rawOutput = & w32tm.exe /resync 2>&1
+
             [PSCustomObject]@{
                 Output   = ($rawOutput | Out-String).Trim()
                 ExitCode = $LASTEXITCODE
@@ -112,9 +113,9 @@ function Sync-NTPTime {
                     if ($PSCmdlet.ShouldProcess($targetComputer, 'Restart Windows Time service (w32time)')) {
                         Write-Verbose "[$($MyInvocation.MyCommand)] Restarting w32time on '$targetComputer'..."
                         if ($isLocal) {
-                            Invoke-Command -ScriptBlock $restartScriptBlock
+                            $null = Invoke-Command -ScriptBlock $restartScriptBlock
                         } else {
-                            Invoke-Command -ComputerName $targetComputer -ScriptBlock $restartScriptBlock
+                            $null = Invoke-Command -ComputerName $targetComputer -ScriptBlock $restartScriptBlock
                         }
                         $serviceRestarted = $true
                         Write-Verbose "[$($MyInvocation.MyCommand)] w32time restarted on '$targetComputer'"
