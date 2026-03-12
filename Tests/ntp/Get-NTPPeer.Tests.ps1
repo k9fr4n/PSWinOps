@@ -274,7 +274,7 @@ Describe -Name 'Get-NTPPeer' -Fixture {
         It -Name 'Should write a non-terminating error for the bad machine' -Test {
             $result = @(Get-NTPPeer -ComputerName 'BADSERVER', $env:COMPUTERNAME -ErrorVariable 'errVar' -ErrorAction SilentlyContinue)
             $errVar | Should -Not -BeNullOrEmpty
-            $errVar[0].Exception.Message | Should -Match 'BADSERVER'
+            $errVar[0].ToString() | Should -Match 'BADSERVER'
             $result.Count | Should -Be 2
         }
 
