@@ -9,6 +9,9 @@ function Get-NTPPeer {
         Supports both modern and legacy w32tm output formats, including French-locale output.
         Uses block-based parsing: raw output is split on blank lines, the header block is
         skipped, and each subsequent block is parsed as one peer entry.
+
+        Note: LastSyncTime is not available from /query /peers. Use Get-NTPConfiguration
+        (which queries /query /status) for last synchronization information.
     .PARAMETER ComputerName
         One or more computer names to query. Defaults to the local machine.
     .EXAMPLE
@@ -21,11 +24,11 @@ function Get-NTPPeer {
         'SRV01', 'SRV02' | Get-NTPPeer
         Pipeline usage: queries NTP peers on both servers.
     .NOTES
-        Author:        Franck SALLET
-        Version:       1.0.0
-        Last Modified: 2026-03-12
-        Requires:      PowerShell 5.1+, Windows Time service (w32time)
-        Permissions:   Local user for local queries; remote admin for Invoke-Command remoting
+        Author: Franck SALLET
+        Version: 1.1.0
+        Last Modified: 2026-03-13
+        Requires: PowerShell 5.1+, Windows Time service (w32time)
+        Permissions: Local user for local queries; remote admin for Invoke-Command remoting
     #>
     [CmdletBinding()]
     [OutputType([PSCustomObject])]
@@ -45,6 +48,7 @@ function Get-NTPPeer {
                 throw "w32tm.exe not found at '$w32tmPath'"
             }
             $peerOutput = & $w32tmPath /query /peers 2>&1
+
             if ($LASTEXITCODE -ne 0) {
                 throw "w32tm /query /peers failed (exit code $LASTEXITCODE): $($peerOutput -join ' ')"
             }
@@ -58,8 +62,8 @@ function Get-NTPPeer {
 
             try {
                 $isLocal = ($targetComputer -eq $env:COMPUTERNAME) -or
-                ($targetComputer -eq 'localhost') -or
-                ($targetComputer -eq '.')
+                    ($targetComputer -eq 'localhost') -or
+                    ($targetComputer -eq '.')
 
                 if ($isLocal) {
                     $rawOutput = & $w32tmScriptBlock
@@ -120,8 +124,6 @@ function Get-NTPPeer {
                     $peerStratum = $null
                     $peerPollInterval = $null
                     $hostPollInterval = $null
-                    $lastSyncTime = $null
-                    $pollInterval = $null
 
                     for ($i = 1; $i -lt $peerBlock.Count; $i++) {
                         $kvLine = $peerBlock[$i]
@@ -164,20 +166,6 @@ function Get-NTPPeer {
                                 $hostPollInterval = [int]$Matches[1]
                             }
                         }
-                        # Poll Interval (old format, but NOT PeerPoll/HostPoll)
-                        elseif (($label -match 'Poll') -and ($label -notmatch 'PeerPoll|HostPoll')) {
-                            if ($kvValue -match '(\d+)') {
-                                $pollInterval = [int]$Matches[1]
-                            }
-                        }
-
-                        # Date pattern for LastSyncTime (anywhere on the line)
-                        if ($kvLine -match '\d{1,2}[/.\-]\d{1,2}[/.\-]\d{2,4}') {
-                            # Extract the value portion after the colon
-                            if ($kvValue -and ($kvValue -as [datetime])) {
-                                $lastSyncTime = [datetime]$kvValue
-                            }
-                        }
                     }
 
                     [PSCustomObject]@{
@@ -191,8 +179,6 @@ function Get-NTPPeer {
                         Stratum          = $peerStratum
                         PeerPollInterval = $peerPollInterval
                         HostPollInterval = $hostPollInterval
-                        LastSyncTime     = $lastSyncTime
-                        PollInterval     = $pollInterval
                         Timestamp        = Get-Date -Format 'o'
                     }
                 }
