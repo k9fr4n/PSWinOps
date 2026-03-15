@@ -103,7 +103,7 @@ function Get-SystemSummary {
                     OSArchitecture         = $os.OSArchitecture
                     InstallDate            = $os.InstallDate
                     LastBootTime           = $os.LastBootUpTime
-                    UptimeDays             = [math]::Round($uptime.TotalDays, 2)
+                    UptimeDays             = [decimal][math]::Round($uptime.TotalDays, 2)
                     UptimeDisplay          = '{0} days, {1} hours, {2} minutes' -f $uptime.Days, $uptime.Hours, $uptime.Minutes
                     Manufacturer           = $system.Manufacturer
                     Model                  = $system.Model
@@ -112,8 +112,8 @@ function Get-SystemSummary {
                     Processor              = $processor.Name.Trim()
                     TotalCores             = [int]$processor.NumberOfCores
                     TotalLogicalProcessors = [int]$processor.NumberOfLogicalProcessors
-                    TotalRAMGB             = [math]::Round($system.TotalPhysicalMemory / 1GB, 2)
-                    FreeRAMGB              = [math]::Round($os.FreePhysicalMemory / 1MB, 2)
+                    TotalRAMGB             = [decimal][math]::Round($system.TotalPhysicalMemory / 1GB, 2)
+                    FreeRAMGB              = [decimal][math]::Round($os.FreePhysicalMemory / 1MB, 2)
                     RAMUsagePercent        = [decimal][math]::Round((1 - ($os.FreePhysicalMemory / $os.TotalVisibleMemorySize)) * 100, 1)
                     Disks                  = $diskSummary
                     IPAddresses            = $ipv4Addresses

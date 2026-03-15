@@ -17,7 +17,7 @@ function Set-NTPClient {
 
 .PARAMETER NtpServers
     Array of NTP server FQDNs or IP addresses to use for time synchronization.
-    This parameter is mandatory.
+    Default: ntp1.ecritel.net, ntp2.ecritel.net
 
 .PARAMETER MaxPhaseOffset
     Maximum allowed phase offset in seconds before the clock is corrected.
@@ -36,9 +36,9 @@ function Set-NTPClient {
     Must be greater than MinPollInterval. Valid range: 0 to 17. Default: 10 (2^10 = 1024 seconds).
 
 .EXAMPLE
-    Set-NTPClient -NtpServers 'time.windows.com', 'pool.ntp.org'
+    Set-NTPClient
 
-    Configures W32Time with the specified NTP servers and default settings.
+    Uses default NTP servers (ntp1.ecritel.net, ntp2.ecritel.net) with default settings.
 
 .EXAMPLE
     Set-NTPClient -NtpServers 'time.windows.com', 'pool.ntp.org' -MaxPhaseOffset 5 -Verbose
@@ -52,17 +52,18 @@ function Set-NTPClient {
     Shows what would happen if the configuration were applied with custom poll intervals.
 
 .NOTES
-    Version: 2.0.1
+    Author:        Ecritel IT Team
+    Version:       2.0.1
     Last Modified: 2026-03-15
-    Requires: PowerShell 5.1+ / Windows only, Local Administrator rights
-    Permissions: Administrator required to modify registry and manage W32Time service
+    Requires:      PowerShell 5.1+, Local Administrator rights
+    Permissions:   Administrator required to modify registry and manage W32Time service
 #>
     [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
     [OutputType([void])]
     param (
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
-        [string[]]$NtpServers,
+        [string[]]$NtpServers = @('ntp1.ecritel.net', 'ntp2.ecritel.net'),
 
         [Parameter(Mandatory = $false)]
         [ValidateRange(1, 3600)]
@@ -156,11 +157,14 @@ function Set-NTPClient {
             # Step 4: Apply NTP configuration directly via registry
             Write-Verbose "[$($MyInvocation.MyCommand)] Writing NTP configuration to registry..."
 
+            # NtpServer et Type dans la cle Parameters
             Set-ItemProperty -Path $registryPaths['Parameters'] -Name 'NtpServer' -Value $serverList -Type String -ErrorAction Stop
             Set-ItemProperty -Path $registryPaths['Parameters'] -Name 'Type' -Value 'NTP' -Type String -ErrorAction Stop
+
+            # MaxAllowedPhaseOffset dans la cle Config
             Set-ItemProperty -Path $registryPaths['Config'] -Name 'MaxAllowedPhaseOffset' -Value $MaxPhaseOffset -Type DWord -ErrorAction Stop
 
-            # Notify W32Time to re-read its configuration (no .exe suffix for mockability)
+            # Notifier W32Time de relire sa configuration (argument simple, pas de parsing)
             $null = w32tm /config /update
 
             Write-Information -MessageData "[OK] NTP servers configured: $serverList" -InformationAction Continue
@@ -183,18 +187,19 @@ function Set-NTPClient {
 
             # Step 7: Force synchronization
             Write-Verbose "[$($MyInvocation.MyCommand)] Forcing immediate NTP synchronization..."
-            $syncJob = Start-Job -ScriptBlock { w32tm /resync /force 2>&1 }
-
-            # Utiliser -Id (int) au lieu de -Job (Job[]) → compatible avec les mocks Pester
-            $null = Wait-Job -Id $syncJob.Id -Timeout 30
-
-            try {
-                $syncOutput = Receive-Job -Id $syncJob.Id -Keep
-            } finally {
-                Remove-Job -Id $syncJob.Id -Force
+            $syncJob = Start-Job -ScriptBlock {
+                w32tm /resync /force 2>&1
             }
 
-            $successMessageFR = "La commande s'est déroulée correctement."
+            $null = Wait-Job -Job $syncJob -Timeout 30
+
+            try {
+                $syncOutput = Receive-Job -Job $syncJob -Keep
+            } finally {
+                Remove-Job -Job $syncJob -Force
+            }
+
+            $successMessageFR = "La commande s.est d[e`u00e9]roul[e`u00e9]e correctement"
             $successMessageEN = 'The command completed successfully.'
 
             $isSyncSuccessful = ($syncOutput -match $successMessageFR) -or ($syncOutput -match $successMessageEN)
@@ -211,12 +216,27 @@ function Set-NTPClient {
             Write-Verbose "[$($MyInvocation.MyCommand)] Verifying final configuration..."
 
             $config = w32tm /query /configuration
-            $configServers = ($config | Select-String -Pattern 'NtpServer:').ToString() -replace '.*NtpServer:\s*', '' -replace '\s*\(.*', ''
+            $configServersMatch = $config | Select-String -Pattern 'NtpServer:'
+            $configServers = if ($configServersMatch) {
+                $configServersMatch.ToString() -replace '.*NtpServer:\s*', '' -replace '\s*\(.*', ''
+            } else {
+                'N/A (could not parse w32tm output)'
+            }
             Write-Information -MessageData "[OK] Configured servers: $configServers" -InformationAction Continue
 
             $status = w32tm /query /status /verbose
-            $lastSync = ($status | Select-String -Pattern 'Last Successful Sync Time:').ToString()
-            $source = ($status | Select-String -Pattern 'Source:').ToString()
+            $lastSyncMatch = $status | Select-String -Pattern 'Last Successful Sync Time:'
+            $lastSync = if ($lastSyncMatch) {
+                $lastSyncMatch.ToString()
+            } else {
+                'Last Successful Sync Time: N/A'
+            }
+            $sourceMatch = $status | Select-String -Pattern 'Source:'
+            $source = if ($sourceMatch) {
+                $sourceMatch.ToString()
+            } else {
+                'Source: N/A'
+            }
 
             Write-Information -MessageData "[OK] $lastSync" -InformationAction Continue
             Write-Information -MessageData "[OK] $source" -InformationAction Continue

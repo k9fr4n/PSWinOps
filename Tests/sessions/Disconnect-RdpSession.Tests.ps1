@@ -186,7 +186,7 @@ Describe -Name 'Disconnect-RdpSession' -Fixture {
 
         It -Name 'Should not execute any disconnect command' -Test {
             Disconnect-RdpSession -ComputerName 'SRV01' -SessionID 3 -WhatIf
-            Should -Invoke -CommandName 'Invoke-Command' -Times 0 -Exactly
+            Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 0 -Exactly
         }
 
         It -Name 'Should not return any output' -Test {
