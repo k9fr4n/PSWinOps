@@ -7,8 +7,10 @@ function Get-ComputerUptime {
     .DESCRIPTION
         Queries Win32_OperatingSystem via CIM to retrieve the last boot time and
         calculates the current uptime for each target machine. Uses direct CIM queries
-        for local machines and CimSession-based queries for remote machines, with
-        optional credential support for remote authentication.
+        for the local machine and CIM remoting (-ComputerName) for remote machines.
+
+        When the -Credential parameter is specified, a temporary CimSession is created
+        for authentication and automatically cleaned up after use.
 
         Unlike the built-in Get-Uptime cmdlet (PowerShell 6.1+), this function
         supports remote computers, credentials, pipeline input, and structured output
@@ -18,7 +20,7 @@ function Get-ComputerUptime {
         by property name. Defaults to the local machine ($env:COMPUTERNAME).
     .PARAMETER Credential
         Optional PSCredential for authenticating to remote machines. Ignored for
-        local machine queries. Use Get-Credential or SecretManagement to obtain.
+        local machine queries. When specified, a temporary CimSession is created.
     .EXAMPLE
         Get-ComputerUptime
 
@@ -26,17 +28,18 @@ function Get-ComputerUptime {
     .EXAMPLE
         Get-ComputerUptime -ComputerName 'SRV01', 'SRV02'
 
-        Returns uptime information for two remote servers via CimSession.
+        Returns uptime information for two remote servers via CIM remoting.
     .EXAMPLE
         'SRV01', 'SRV02' | Get-ComputerUptime -Credential (Get-Credential)
 
         Queries multiple servers via pipeline with explicit credentials.
     .NOTES
         Author:        PSWinOps
-        Version:       1.0.0
+        Version:       1.2.0
         Last Modified: 2026-03-15
         Requires:      PowerShell 5.1+ / Windows only
         Permissions:   No admin required for reading uptime
+        Remote:        Requires WinRM / WS-Man enabled on target machines
     #>
     [CmdletBinding()]
     [OutputType([PSCustomObject])]
@@ -54,6 +57,7 @@ function Get-ComputerUptime {
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand)] Starting uptime query"
         $localNames = @($env:COMPUTERNAME, 'localhost', '.')
+        $hasCredential = $PSBoundParameters.ContainsKey('Credential')
     }
 
     process {
@@ -66,17 +70,14 @@ function Get-ComputerUptime {
                     Write-Verbose "[$($MyInvocation.MyCommand)] Querying local machine: $machine"
                     $osInfo = Get-CimInstance -ClassName 'Win32_OperatingSystem' -ErrorAction Stop
                 }
+                elseif ($hasCredential) {
+                    Write-Verbose "[$($MyInvocation.MyCommand)] Querying remote machine with credentials: $machine"
+                    $cimSession = New-CimSession -ComputerName $machine -Credential $Credential -ErrorAction Stop
+                    $osInfo = Get-CimInstance -ClassName 'Win32_OperatingSystem' -CimSession $cimSession -ErrorAction Stop
+                }
                 else {
                     Write-Verbose "[$($MyInvocation.MyCommand)] Querying remote machine: $machine"
-                    $sessionParams = @{
-                        ComputerName = $machine
-                        ErrorAction  = 'Stop'
-                    }
-                    if ($PSBoundParameters.ContainsKey('Credential')) {
-                        $sessionParams['Credential'] = $Credential
-                    }
-                    $cimSession = New-CimSession @sessionParams
-                    $osInfo = Get-CimInstance -ClassName 'Win32_OperatingSystem' -CimSession $cimSession -ErrorAction Stop
+                    $osInfo = Get-CimInstance -ClassName 'Win32_OperatingSystem' -ComputerName $machine -ErrorAction Stop
                 }
 
                 $lastBoot = $osInfo.LastBootUpTime

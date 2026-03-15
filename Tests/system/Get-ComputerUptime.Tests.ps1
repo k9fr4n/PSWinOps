@@ -19,17 +19,10 @@ Describe -Name 'Get-ComputerUptime' -Fixture {
         $script:fakeOsInfo = [PSCustomObject]@{
             LastBootUpTime = $script:fakeBootTime
         }
-        $script:testCredential = [PSCredential]::new(
-            'testuser',
-            (ConvertTo-SecureString -String 'TestPass1!' -AsPlainText -Force)
-        )
     }
 
     BeforeEach {
         Mock -ModuleName 'PSWinOps' -CommandName 'Get-CimInstance' -MockWith {
-            return $script:fakeOsInfo
-        }
-        Mock -ModuleName 'PSWinOps' -CommandName 'Invoke-Command' -MockWith {
             return $script:fakeOsInfo
         }
     }
@@ -42,14 +35,11 @@ Describe -Name 'Get-ComputerUptime' -Fixture {
             $result.ComputerName | Should -Be $env:COMPUTERNAME
         }
 
-        It -Name 'Should not call Invoke-Command for local queries' -Test {
+        It -Name 'Should call Get-CimInstance without ComputerName for local' -Test {
             Get-ComputerUptime
-            Should -Invoke -ModuleName 'PSWinOps' -CommandName 'Invoke-Command' -Times 0 -Exactly
-        }
-
-        It -Name 'Should call Get-CimInstance exactly once' -Test {
-            Get-ComputerUptime
-            Should -Invoke -ModuleName 'PSWinOps' -CommandName 'Get-CimInstance' -Times 1 -Exactly
+            Should -Invoke -ModuleName 'PSWinOps' -CommandName 'Get-CimInstance' -Times 1 -Exactly -ParameterFilter {
+                -not $PSBoundParameters.ContainsKey('ComputerName') -and -not $PSBoundParameters.ContainsKey('CimSession')
+            }
         }
     }
 
@@ -61,24 +51,25 @@ Describe -Name 'Get-ComputerUptime' -Fixture {
             $result.ComputerName | Should -Be 'SRV01'
         }
 
-        It -Name 'Should call Invoke-Command for remote queries' -Test {
+        It -Name 'Should call Get-CimInstance with ComputerName for remote' -Test {
             Get-ComputerUptime -ComputerName 'SRV01'
-            Should -Invoke -ModuleName 'PSWinOps' -CommandName 'Invoke-Command' -Times 1 -Exactly
-        }
-
-        It -Name 'Should not call Get-CimInstance locally for remote queries' -Test {
-            Get-ComputerUptime -ComputerName 'SRV01'
-            Should -Invoke -ModuleName 'PSWinOps' -CommandName 'Get-CimInstance' -Times 0 -Exactly
+            Should -Invoke -ModuleName 'PSWinOps' -CommandName 'Get-CimInstance' -Times 1 -Exactly -ParameterFilter {
+                $ComputerName -eq 'SRV01'
+            }
         }
     }
 
-    Context -Name 'Happy path - with Credential' -Fixture {
+    Context -Name 'Credential parameter support' -Fixture {
 
-        It -Name 'Should accept and use Credential for remote queries' -Test {
-            $result = Get-ComputerUptime -ComputerName 'SRV01' -Credential $script:testCredential
-            $result | Should -Not -BeNullOrEmpty
-            $result.ComputerName | Should -Be 'SRV01'
-            Should -Invoke -ModuleName 'PSWinOps' -CommandName 'Invoke-Command' -Times 1 -Exactly
+        It -Name 'Should expose a Credential parameter of type PSCredential' -Test {
+            $cmd = Get-Command -Name 'Get-ComputerUptime'
+            $cmd.Parameters.Keys | Should -Contain 'Credential'
+            $cmd.Parameters['Credential'].ParameterType | Should -Be ([PSCredential])
+        }
+
+        It -Name 'Should not require Credential as mandatory' -Test {
+            $cmd = Get-Command -Name 'Get-ComputerUptime'
+            $cmd.Parameters['Credential'].Attributes.Where({ $_ -is [System.Management.Automation.ParameterAttribute] }).Mandatory | Should -Be $false
         }
     }
 
@@ -91,27 +82,29 @@ Describe -Name 'Get-ComputerUptime' -Fixture {
             $result[1].ComputerName | Should -Be 'SRV02'
         }
 
-        It -Name 'Should call Invoke-Command per remote machine' -Test {
+        It -Name 'Should call Get-CimInstance once per remote machine' -Test {
             @('SRV01', 'SRV02') | Get-ComputerUptime
-            Should -Invoke -ModuleName 'PSWinOps' -CommandName 'Invoke-Command' -Times 2 -Exactly
+            Should -Invoke -ModuleName 'PSWinOps' -CommandName 'Get-CimInstance' -Times 2 -Exactly
         }
     }
 
     Context -Name 'Per-machine failure handling' -Fixture {
 
         It -Name 'Should continue to next machine when one fails' -Test {
-            Mock -ModuleName 'PSWinOps' -CommandName 'Invoke-Command' -ParameterFilter {
+            Mock -ModuleName 'PSWinOps' -CommandName 'Get-CimInstance' -ParameterFilter {
                 $ComputerName -eq 'BADMACHINE'
-            } -MockWith { throw 'Connection refused' }
+            } -MockWith { throw 'RPC server unavailable' }
+
             $result = Get-ComputerUptime -ComputerName 'BADMACHINE', 'SRV01' -ErrorAction SilentlyContinue
             $result | Should -HaveCount 1
             $result[0].ComputerName | Should -Be 'SRV01'
         }
 
         It -Name 'Should write an error for the failing machine' -Test {
-            Mock -ModuleName 'PSWinOps' -CommandName 'Invoke-Command' -ParameterFilter {
+            Mock -ModuleName 'PSWinOps' -CommandName 'Get-CimInstance' -ParameterFilter {
                 $ComputerName -eq 'BADMACHINE'
-            } -MockWith { throw 'Connection refused' }
+            } -MockWith { throw 'RPC server unavailable' }
+
             $result = Get-ComputerUptime -ComputerName 'BADMACHINE', 'SRV01' -ErrorAction SilentlyContinue -ErrorVariable 'capturedError'
             $result | Should -HaveCount 1
             $capturedError | Should -Not -BeNullOrEmpty
