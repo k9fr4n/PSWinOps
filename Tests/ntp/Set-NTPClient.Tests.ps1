@@ -1,242 +1,176 @@
 ﻿#Requires -Version 5.1
-#Requires -RunAsAdministrator
+#Requires -Modules @{ ModuleName = 'Pester'; ModuleVersion = '5.0.0' }
 
-function Set-NTPClient {
-    <#
-.SYNOPSIS
-    Configures Windows Time Service (W32Time) to synchronize with specified NTP servers
+BeforeAll {
+    if (-not (Get-Command -Name 'Get-Service' -ErrorAction SilentlyContinue)) {
+        function global:Get-Service {
+            param([string]$Name, $ErrorAction)
+        }
+    }
+    if (-not (Get-Command -Name 'Start-Service' -ErrorAction SilentlyContinue)) {
+        function global:Start-Service {
+            param([string]$Name, $ErrorAction)
+        }
+    }
+    if (-not (Get-Command -Name 'Restart-Service' -ErrorAction SilentlyContinue)) {
+        function global:Restart-Service {
+            param([string]$Name, [switch]$Force, $ErrorAction)
+        }
+    }
+    if (-not (Get-Command -Name 'w32tm' -ErrorAction SilentlyContinue)) {
+        function global:w32tm {
+            param()
+        }
+    }
 
-.DESCRIPTION
-    This function configures the Windows Time Service (W32Time) to use external NTP servers
-    for time synchronization. It sets the NTP server list, phase offset tolerance, and polling
-    intervals via registry and w32tm commands. The function ensures the service is running,
-    applies the configuration, restarts the service, forces synchronization, and verifies
-    the final state.
+    $script:modulePath = Join-Path -Path $PSScriptRoot -ChildPath '..\..\PSWinOps.psd1'
+    Import-Module -Name $script:modulePath -Force -ErrorAction Stop
 
-    Requires local administrator privileges to modify registry and manage the W32Time service.
-
-.PARAMETER NtpServers
-    Array of NTP server FQDNs or IP addresses to use for time synchronization.
-
-.PARAMETER MaxPhaseOffset
-    Maximum allowed phase offset in seconds before the clock is corrected.
-    Valid range: 1 to 3600 seconds. Default: 1 second.
-
-.PARAMETER SpecialPollInterval
-    Interval in seconds for special polling operations.
-    Valid range: 1 to 86400 seconds. Default: 300 seconds (5 minutes).
-
-.PARAMETER MinPollInterval
-    Minimum poll interval as a power of 2 (2^n seconds).
-    Valid range: 0 to 17. Default: 6 (2^6 = 64 seconds).
-
-.PARAMETER MaxPollInterval
-    Maximum poll interval as a power of 2 (2^n seconds).
-    Must be greater than MinPollInterval. Valid range: 0 to 17. Default: 10 (2^10 = 1024 seconds).
-
-.EXAMPLE
-    Set-NTPClient
-
-.EXAMPLE
-    Set-NTPClient -NtpServers 'time.windows.com', 'pool.ntp.org' -MaxPhaseOffset 5 -Verbose
-
-    Configures W32Time with custom NTP servers and a 5-second phase offset tolerance,
-    with verbose logging enabled.
-
-.EXAMPLE
-    Set-NTPClient -NtpServers 'ntp.example.com' -SpecialPollInterval 600 -MinPollInterval 7 -MaxPollInterval 12 -WhatIf
-
-    Shows what would happen if the configuration were applied with custom poll intervals.
-
-.NOTES
-    Author:        K9FR4N
-    Version:       2.0.0
-    Last Modified: 2026-02-20
-    Requires:      PowerShell 5.1+, Local Administrator rights
-    Permissions:   Administrator required to modify registry and manage W32Time service
-#>
-    [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
-    [OutputType([void])]
-    param (
-        [Parameter(Mandatory = $true)]
-        [ValidateNotNullOrEmpty()]
-        [string[]]$NtpServers,
-
-        [Parameter(Mandatory = $false)]
-        [ValidateRange(1, 3600)]
-        [int]$MaxPhaseOffset = 1,
-
-        [Parameter(Mandatory = $false)]
-        [ValidateRange(1, 86400)]
-        [int]$SpecialPollInterval = 300,
-
-        [Parameter(Mandatory = $false)]
-        [ValidateRange(0, 17)]
-        [int]$MinPollInterval = 6,
-
-        [Parameter(Mandatory = $false)]
-        [ValidateRange(0, 17)]
-        [int]$MaxPollInterval = 10
+    $script:mockConfigOutput = @(
+        'NtpServer: ntp1.example.com,0x9 ntp2.example.com,0x9 (Local)'
+        'Type: NTP (Local)'
+        'SpecialPollInterval: 300 (Local)'
+        'MinPollInterval: 6 (Local)'
+        'MaxPollInterval: 10 (Local)'
     )
+    $script:mockStatusOutput = @(
+        'Leap Indicator: 0(no warning)'
+        'Stratum: 3 (secondary reference)'
+        'Source: ntp1.example.com'
+        'Last Successful Sync Time: 3/15/2026 8:00:00 AM'
+    )
+    $script:mockSyncOutputEN = @(
+        'Sending resync command to local computer...'
+        'The command completed successfully.'
+    )
+    $script:mockSyncOutputFR = @(
+        'Envoi de la commande de resynchronisation a l ordinateur local...'
+        "La commande s'est deroulee correctement."
+    )
+}
 
-    begin {
-        Set-StrictMode -Version Latest
-        $ErrorActionPreference = 'Stop'
-
-        Write-Verbose "[$($MyInvocation.MyCommand)] Starting - PowerShell $($PSVersionTable.PSVersion)"
-
-        # Validate MaxPollInterval > MinPollInterval at runtime
-        if ($MaxPollInterval -le $MinPollInterval) {
-            throw "MaxPollInterval ($MaxPollInterval) must be greater than MinPollInterval ($MinPollInterval)"
+Describe -Name 'Set-NTPClient' -Fixture {
+    Context -Name 'Nominal - service running, w32tm outputs valid data' -Fixture {
+        BeforeEach {
+            Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith {
+                [PSCustomObject]@{ Name = 'w32time'; Status = 'Running' }
+            } -ParameterFilter { $Name -eq 'w32time' }
+            Mock -CommandName 'Test-Path' -ModuleName 'PSWinOps' -MockWith { $true }
+            Mock -CommandName 'Set-ItemProperty' -ModuleName 'PSWinOps' -MockWith {}
+            Mock -CommandName 'Restart-Service' -ModuleName 'PSWinOps' -MockWith {}
+            Mock -CommandName 'Start-Sleep' -ModuleName 'PSWinOps' -MockWith {}
+            Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith { return '' } -ParameterFilter { ($args -join ' ') -match '/register' }
+            Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith { $script:mockConfigOutput } -ParameterFilter { ($args -join ' ') -match '/query.*configuration' }
+            Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith { $script:mockStatusOutput } -ParameterFilter { ($args -join ' ') -match '/query.*status' }
+            Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith { return '' } -ParameterFilter { ($args -join ' ') -match '/config /update' }
+            Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith { $script:mockSyncOutputEN } -ParameterFilter { ($args -join ' ') -match '/resync' }
         }
 
-        # Registry paths
-        $registryPaths = @{
-            Config     = 'HKLM:\SYSTEM\CurrentControlSet\Services\W32Time\Config'
-            NtpClient  = 'HKLM:\SYSTEM\CurrentControlSet\Services\W32Time\TimeProviders\NtpClient'
-            Parameters = 'HKLM:\SYSTEM\CurrentControlSet\Services\W32Time\Parameters'
+        It -Name 'Should complete without throwing' -Test {
+            { Set-NTPClient -NtpServers 'ntp1.example.com', 'ntp2.example.com' -Confirm:$false } | Should -Not -Throw
         }
-    }
-
-    process {
-        if (-not $PSCmdlet.ShouldProcess('Windows Time Service (W32Time)', 'Configure NTP synchronization')) {
-            return
+        It -Name 'Should call Set-ItemProperty for NtpServer registry key' -Test {
+            Set-NTPClient -NtpServers 'ntp1.example.com' -Confirm:$false
+            Should -Invoke -CommandName 'Set-ItemProperty' -ModuleName 'PSWinOps' -Times 1 -Exactly -ParameterFilter { $Name -eq 'NtpServer' }
         }
-
-        try {
-            # Step 1: Ensure W32Time service exists and is running
-            Write-Verbose "[$($MyInvocation.MyCommand)] Checking Windows Time Service status..."
-            $service = Get-Service -Name 'w32time' -ErrorAction SilentlyContinue
-
-            if (-not $service) {
-                Write-Warning "[$($MyInvocation.MyCommand)] Windows Time Service not found - registering service..."
-                $null = w32tm /register
-                Start-Sleep -Seconds 2
-                $service = Get-Service -Name 'w32time' -ErrorAction Stop
-            }
-
-            if ($service.Status -ne 'Running') {
-                Write-Warning "[$($MyInvocation.MyCommand)] Service is stopped - starting..."
-                Start-Service -Name 'w32time' -ErrorAction Stop
-                Write-Information -MessageData '[OK] Windows Time Service started successfully' -InformationAction Continue
-            } else {
-                Write-Verbose "[$($MyInvocation.MyCommand)] Service is already running"
-            }
-
-            # Step 2: Verify registry paths exist
-            Write-Verbose "[$($MyInvocation.MyCommand)] Verifying registry paths..."
-            foreach ($pathInfo in $registryPaths.GetEnumerator()) {
-                if (-not (Test-Path -Path $pathInfo.Value)) {
-                    throw "Registry key not found: $($pathInfo.Value)"
-                }
-            }
-
-            # Step 3: Build NTP server list with default flags
-            Write-Verbose "[$($MyInvocation.MyCommand)] Building NTP server list..."
-            $serverList = ($NtpServers | ForEach-Object {
-                    if ($_ -match '^([^,]+)(,0x[0-9a-fA-F]+)?$') {
-                        $serverName = $matches[1]
-                        $existingFlag = $matches[2]
-                        if ($existingFlag) {
-                            $_
-                        } else {
-                            "$serverName,0x9"
-                        }
-                    } else {
-                        Write-Warning "[$($MyInvocation.MyCommand)] Unusual server format: $_ - applying default flag"
-                        "$_,0x9"
-                    }
-                }) -join ' '
-
-            Write-Verbose "[$($MyInvocation.MyCommand)] NTP servers: $serverList"
-            Write-Verbose "[$($MyInvocation.MyCommand)] MaxAllowedPhaseOffset: $MaxPhaseOffset second(s)"
-
-            # Step 4: Apply NTP configuration directly via registry
-            Write-Verbose "[$($MyInvocation.MyCommand)] Writing NTP configuration to registry..."
-
-            # NtpServer et Type dans la clé Parameters
-            Set-ItemProperty -Path $registryPaths['Parameters'] -Name 'NtpServer' -Value $serverList -Type String -ErrorAction Stop
-            Set-ItemProperty -Path $registryPaths['Parameters'] -Name 'Type' -Value 'NTP' -Type String -ErrorAction Stop
-
-            # MaxAllowedPhaseOffset dans la clé Config
-            Set-ItemProperty -Path $registryPaths['Config'] -Name 'MaxAllowedPhaseOffset' -Value $MaxPhaseOffset -Type DWord -ErrorAction Stop
-
-            # Notifier W32Time de relire sa configuration (argument simple, pas de parsing)
-            $null = w32tm.exe /config /update
-
-            Write-Information -MessageData "[OK] NTP servers configured: $serverList" -InformationAction Continue
-
-            # Step 5: Set poll intervals in registry
-            Write-Verbose "[$($MyInvocation.MyCommand)] Setting poll intervals in registry..."
-            Set-ItemProperty -Path $registryPaths['NtpClient'] -Name 'SpecialPollInterval' -Value $SpecialPollInterval -ErrorAction Stop
-            Set-ItemProperty -Path $registryPaths['Config'] -Name 'MinPollInterval' -Value $MinPollInterval -ErrorAction Stop
-            Set-ItemProperty -Path $registryPaths['Config'] -Name 'MaxPollInterval' -Value $MaxPollInterval -ErrorAction Stop
-
-            $minSeconds = [math]::Pow(2, $MinPollInterval)
-            $maxSeconds = [math]::Pow(2, $MaxPollInterval)
-            Write-Information -MessageData "[OK] Poll intervals set: Special=$SpecialPollInterval s, Min=$minSeconds s, Max=$maxSeconds s" -InformationAction Continue
-
-            # Step 6: Restart W32Time service
-            Write-Verbose "[$($MyInvocation.MyCommand)] Restarting Windows Time Service..."
-            Restart-Service -Name 'w32time' -Force -ErrorAction Stop
-            Start-Sleep -Seconds 2
-            Write-Information -MessageData '[OK] Windows Time Service restarted successfully' -InformationAction Continue
-
-            # Step 7: Force synchronization
-            Write-Verbose "[$($MyInvocation.MyCommand)] Forcing immediate NTP synchronization..."
-            $syncJob = Start-Job -ScriptBlock {
-                w32tm /resync /force 2>&1
-            }
-
-            $null = Wait-Job -Job $syncJob -Timeout 30
-
-            try {
-                $syncOutput = Receive-Job -Job $syncJob -Keep
-            } finally {
-                Remove-Job -Job $syncJob -Force
-            }
-
-            $successMessageFR = "La commande s'est déroulée correctement."
-            $successMessageEN = 'The command completed successfully.'
-
-            $isSyncSuccessful = ($syncOutput -match $successMessageFR) -or ($syncOutput -match $successMessageEN)
-
-            if ($isSyncSuccessful) {
-                Write-Information -MessageData '[OK] Time synchronization completed successfully' -InformationAction Continue
-            } else {
-                Write-Warning "[$($MyInvocation.MyCommand)] Time synchronization may have failed - check output:"
-                $syncOutput | ForEach-Object { Write-Warning "[$($MyInvocation.MyCommand)] $_" }
-            }
-
-            # Step 8: Verify configuration
-            Start-Sleep -Seconds 3
-            Write-Verbose "[$($MyInvocation.MyCommand)] Verifying final configuration..."
-
-            $config = w32tm /query /configuration
-            $configServers = ($config | Select-String -Pattern 'NtpServer:').ToString() -replace '.*NtpServer:\s*', '' -replace '\s*\(.*', ''
-            Write-Information -MessageData "[OK] Configured servers: $configServers" -InformationAction Continue
-
-            $status = w32tm /query /status /verbose
-            $lastSync = ($status | Select-String -Pattern 'Last Successful Sync Time:').ToString()
-            $source = ($status | Select-String -Pattern 'Source:').ToString()
-
-            Write-Information -MessageData "[OK] $lastSync" -InformationAction Continue
-            Write-Information -MessageData "[OK] $source" -InformationAction Continue
-
-            Write-Information -MessageData '[OK] Windows Time Service configuration completed successfully' -InformationAction Continue
-        } catch [System.UnauthorizedAccessException] {
-            Write-Error "[$($MyInvocation.MyCommand)] Access denied - Administrator privileges required: $_"
-            throw
-        } catch [System.InvalidOperationException] {
-            Write-Error "[$($MyInvocation.MyCommand)] Service operation failed: $_"
-            throw
-        } catch {
-            Write-Error "[$($MyInvocation.MyCommand)] Unexpected error during NTP configuration: $_"
-            throw
+        It -Name 'Should call Set-ItemProperty for Type registry key' -Test {
+            Set-NTPClient -NtpServers 'ntp1.example.com' -Confirm:$false
+            Should -Invoke -CommandName 'Set-ItemProperty' -ModuleName 'PSWinOps' -Times 1 -Exactly -ParameterFilter { $Name -eq 'Type' }
+        }
+        It -Name 'Should call Restart-Service for w32time' -Test {
+            Set-NTPClient -NtpServers 'ntp1.example.com' -Confirm:$false
+            Should -Invoke -CommandName 'Restart-Service' -ModuleName 'PSWinOps' -Times 1 -Exactly
+        }
+        It -Name 'Should invoke w32tm for configuration query' -Test {
+            Set-NTPClient -NtpServers 'ntp1.example.com' -Confirm:$false
+            Should -Invoke -CommandName 'w32tm' -ModuleName 'PSWinOps' -Times 1 -Exactly -ParameterFilter { ($args -join ' ') -match '/query.*configuration' }
+        }
+        It -Name 'Should invoke w32tm for status query' -Test {
+            Set-NTPClient -NtpServers 'ntp1.example.com' -Confirm:$false
+            Should -Invoke -CommandName 'w32tm' -ModuleName 'PSWinOps' -Times 1 -Exactly -ParameterFilter { ($args -join ' ') -match '/query.*status' }
         }
     }
 
-    end {
-        Write-Verbose "[$($MyInvocation.MyCommand)] Completed"
+    Context -Name 'WhatIf - should not perform any changes' -Fixture {
+        BeforeEach {
+            Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith {
+                [PSCustomObject]@{ Name = 'w32time'; Status = 'Running' }
+            } -ParameterFilter { $Name -eq 'w32time' }
+            Mock -CommandName 'Set-ItemProperty' -ModuleName 'PSWinOps' -MockWith {}
+            Mock -CommandName 'Restart-Service' -ModuleName 'PSWinOps' -MockWith {}
+            Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith { return '' }
+        }
+        It -Name 'Should not call Set-ItemProperty with -WhatIf' -Test {
+            Set-NTPClient -NtpServers 'ntp1.example.com' -WhatIf
+            Should -Invoke -CommandName 'Set-ItemProperty' -ModuleName 'PSWinOps' -Times 0 -Exactly
+        }
+        It -Name 'Should not call Restart-Service with -WhatIf' -Test {
+            Set-NTPClient -NtpServers 'ntp1.example.com' -WhatIf
+            Should -Invoke -CommandName 'Restart-Service' -ModuleName 'PSWinOps' -Times 0 -Exactly
+        }
+    }
+
+    Context -Name 'Service stopped - should start before configuring' -Fixture {
+        BeforeEach {
+            Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith {
+                [PSCustomObject]@{ Name = 'w32time'; Status = 'Stopped' }
+            } -ParameterFilter { $Name -eq 'w32time' }
+            Mock -CommandName 'Start-Service' -ModuleName 'PSWinOps' -MockWith {}
+            Mock -CommandName 'Test-Path' -ModuleName 'PSWinOps' -MockWith { $true }
+            Mock -CommandName 'Set-ItemProperty' -ModuleName 'PSWinOps' -MockWith {}
+            Mock -CommandName 'Restart-Service' -ModuleName 'PSWinOps' -MockWith {}
+            Mock -CommandName 'Start-Sleep' -ModuleName 'PSWinOps' -MockWith {}
+            Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith { $script:mockConfigOutput } -ParameterFilter { ($args -join ' ') -match '/query.*configuration' }
+            Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith { $script:mockStatusOutput } -ParameterFilter { ($args -join ' ') -match '/query.*status' }
+            Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith { return '' } -ParameterFilter { ($args -join ' ') -match '/config /update' }
+            Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith { $script:mockSyncOutputEN } -ParameterFilter { ($args -join ' ') -match '/resync' }
+        }
+        It -Name 'Should call Start-Service when service is stopped' -Test {
+            Set-NTPClient -NtpServers 'ntp1.example.com' -Confirm:$false
+            Should -Invoke -CommandName 'Start-Service' -ModuleName 'PSWinOps' -Times 1 -Exactly
+        }
+    }
+
+    Context -Name 'French sync output - accent-tolerant regex matching' -Fixture {
+        BeforeEach {
+            Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith {
+                [PSCustomObject]@{ Name = 'w32time'; Status = 'Running' }
+            } -ParameterFilter { $Name -eq 'w32time' }
+            Mock -CommandName 'Test-Path' -ModuleName 'PSWinOps' -MockWith { $true }
+            Mock -CommandName 'Set-ItemProperty' -ModuleName 'PSWinOps' -MockWith {}
+            Mock -CommandName 'Restart-Service' -ModuleName 'PSWinOps' -MockWith {}
+            Mock -CommandName 'Start-Sleep' -ModuleName 'PSWinOps' -MockWith {}
+            Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith { $script:mockConfigOutput } -ParameterFilter { ($args -join ' ') -match '/query.*configuration' }
+            Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith { $script:mockStatusOutput } -ParameterFilter { ($args -join ' ') -match '/query.*status' }
+            Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith { return '' } -ParameterFilter { ($args -join ' ') -match '/config /update' }
+            Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith { $script:mockSyncOutputFR } -ParameterFilter { ($args -join ' ') -match '/resync' }
+        }
+        It -Name 'Should complete without throwing with French sync output' -Test {
+            { Set-NTPClient -NtpServers 'ntp1.example.com' -Confirm:$false } | Should -Not -Throw
+        }
+    }
+
+    Context -Name 'Parameter validation' -Fixture {
+        It -Name 'Should throw when MaxPollInterval is less than or equal to MinPollInterval' -Test {
+            { Set-NTPClient -NtpServers 'ntp1.example.com' -MinPollInterval 10 -MaxPollInterval 5 -Confirm:$false } | Should -Throw -ExpectedMessage '*MaxPollInterval*must be greater*'
+        }
+        It -Name 'Should throw when MaxPollInterval equals MinPollInterval' -Test {
+            { Set-NTPClient -NtpServers 'ntp1.example.com' -MinPollInterval 6 -MaxPollInterval 6 -Confirm:$false } | Should -Throw -ExpectedMessage '*MaxPollInterval*must be greater*'
+        }
+    }
+
+    Context -Name 'Error handling - unexpected w32tm failure' -Fixture {
+        BeforeEach {
+            Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith {
+                [PSCustomObject]@{ Name = 'w32time'; Status = 'Running' }
+            } -ParameterFilter { $Name -eq 'w32time' }
+            Mock -CommandName 'Test-Path' -ModuleName 'PSWinOps' -MockWith { $true }
+            Mock -CommandName 'Set-ItemProperty' -ModuleName 'PSWinOps' -MockWith {
+                throw 'Simulated registry failure'
+            }
+        }
+        It -Name 'Should propagate unexpected errors' -Test {
+            { Set-NTPClient -NtpServers 'ntp1.example.com' -Confirm:$false -ErrorAction Stop } | Should -Throw
+        }
     }
 }

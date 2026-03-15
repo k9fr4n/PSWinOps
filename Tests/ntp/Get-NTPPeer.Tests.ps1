@@ -1,14 +1,18 @@
 ﻿#Requires -Version 5.1
+
 #Requires -Modules @{ ModuleName = 'Pester'; ModuleVersion = '5.0.0' }
 
 BeforeAll {
-    . (Join-Path -Path $PSScriptRoot -ChildPath '..\..\Public\ntp\Get-NTPPeer.ps1')
+
+    $script:modulePath = Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent
+
+    Import-Module -Name "$($script:modulePath)/PSWinOps.psd1" -Force
 
     # Real format (from the actual machine)
     $script:mockOutputReal = @(
         '#Peers: 2'
         ''
-        'Peer: ntp1.ecritel.net'
+        'Peer: ntp1.example.com'
         'State: Active'
         'Time Remaining: 7.8917439s'
         'Mode: 1 (Symmetric Active)'
@@ -16,7 +20,7 @@ BeforeAll {
         'PeerPoll Interval: 7 (128s)'
         'HostPoll Interval: 8 (256s)'
         ''
-        'Peer: ntp2.ecritel.net'
+        'Peer: ntp2.example.com'
         'State: Active'
         'Time Remaining: 7.8956880s'
         'Mode: 1 (Symmetric Active)'
@@ -47,7 +51,7 @@ Describe -Name 'Get-NTPPeer' -Fixture {
     Context -Name 'Real w32tm output format' -Fixture {
 
         BeforeAll {
-            Mock -CommandName 'Invoke-Command' -MockWith {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockOutputReal
             }
         }
@@ -59,12 +63,12 @@ Describe -Name 'Get-NTPPeer' -Fixture {
 
         It -Name 'Should parse first peer name correctly' -Test {
             $result = Get-NTPPeer -ComputerName 'REMOTE01'
-            $result[0].PeerName | Should -Be 'ntp1.ecritel.net'
+            $result[0].PeerName | Should -Be 'ntp1.example.com'
         }
 
         It -Name 'Should parse second peer name correctly' -Test {
             $result = Get-NTPPeer -ComputerName 'REMOTE01'
-            $result[1].PeerName | Should -Be 'ntp2.ecritel.net'
+            $result[1].PeerName | Should -Be 'ntp2.example.com'
         }
 
         It -Name 'Should parse State as Active' -Test {
@@ -119,7 +123,7 @@ Describe -Name 'Get-NTPPeer' -Fixture {
     Context -Name 'Old format with 0xFlags' -Fixture {
 
         BeforeAll {
-            Mock -CommandName 'Invoke-Command' -MockWith {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockOutputOldFormat
             }
         }
@@ -138,7 +142,7 @@ Describe -Name 'Get-NTPPeer' -Fixture {
     Context -Name 'Zero peers' -Fixture {
 
         BeforeAll {
-            Mock -CommandName 'Invoke-Command' -MockWith {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockOutputZeroPeers
             }
         }
@@ -158,7 +162,7 @@ Describe -Name 'Get-NTPPeer' -Fixture {
     Context -Name 'w32tm failure' -Fixture {
 
         BeforeAll {
-            Mock -CommandName 'Invoke-Command' -MockWith {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
                 throw 'w32tm /query /peers failed (exit code 1): The service has not been started.'
             }
         }
@@ -177,7 +181,7 @@ Describe -Name 'Get-NTPPeer' -Fixture {
     Context -Name 'Multiple computers' -Fixture {
 
         BeforeAll {
-            Mock -CommandName 'Invoke-Command' -MockWith {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockOutputReal
             }
         }
@@ -197,7 +201,7 @@ Describe -Name 'Get-NTPPeer' -Fixture {
     Context -Name 'Pipeline input' -Fixture {
 
         BeforeAll {
-            Mock -CommandName 'Invoke-Command' -MockWith {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockOutputReal
             }
         }
@@ -217,7 +221,7 @@ Describe -Name 'Get-NTPPeer' -Fixture {
 
         BeforeAll {
             $script:callIndex = 0
-            Mock -CommandName 'Invoke-Command' -MockWith {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
                 $script:callIndex++
                 if ($script:callIndex -eq 1) {
                     throw 'Connection refused'
