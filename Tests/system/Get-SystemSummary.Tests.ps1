@@ -9,11 +9,11 @@ BeforeAll {
 Describe 'Get-SystemSummary' {
     BeforeAll {
         $script:fakeSystem = [PSCustomObject]@{
-            Name                 = 'TESTPC'
-            Domain               = 'test.local'
-            Manufacturer         = 'Dell Inc.'
-            Model                = 'PowerEdge R740'
-            TotalPhysicalMemory  = 34359738368  # 32 GB
+            Name                = 'TESTPC'
+            Domain              = 'test.local'
+            Manufacturer        = 'Dell Inc.'
+            Model               = 'PowerEdge R740'
+            TotalPhysicalMemory = 34359738368  # 32 GB
         }
         $script:fakeOS = [PSCustomObject]@{
             Caption                = 'Microsoft Windows Server 2022 Standard'
@@ -188,10 +188,10 @@ Describe 'Get-SystemSummary' {
             $script:result.ComputerName | Should -BeOfType [string]
             $script:result.InstallDate | Should -BeOfType [datetime]
             $script:result.LastBootTime | Should -BeOfType [datetime]
-            $script:result.TotalRAMGB | Should -BeOfType [double]
-            $script:result.FreeRAMGB | Should -BeOfType [double]
-            $script:result.RAMUsagePercent | Should -BeOfType [double]
-            $script:result.UptimeDays | Should -BeOfType [double]
+            $script:result.TotalRAMGB | Should -BeOfType [decimal]
+            $script:result.FreeRAMGB | Should -BeOfType [decimal]
+            $script:result.RAMUsagePercent | Should -BeOfType [decimal]
+            $script:result.UptimeDays | Should -BeOfType [decimal]
             $script:result.TotalCores | Should -BeOfType [int]
             $script:result.TotalLogicalProcessors | Should -BeOfType [int]
         }
