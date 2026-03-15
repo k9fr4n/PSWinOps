@@ -48,7 +48,7 @@ Describe -Name 'Get-NTPPeer' -Fixture {
     Context -Name 'Real w32tm output format' -Fixture {
 
         BeforeAll {
-            Mock -CommandName 'Invoke-Command' -MockWith {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockOutputReal
             }
         }
@@ -120,7 +120,7 @@ Describe -Name 'Get-NTPPeer' -Fixture {
     Context -Name 'Old format with 0xFlags' -Fixture {
 
         BeforeAll {
-            Mock -CommandName 'Invoke-Command' -MockWith {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockOutputOldFormat
             }
         }
@@ -139,7 +139,7 @@ Describe -Name 'Get-NTPPeer' -Fixture {
     Context -Name 'Zero peers' -Fixture {
 
         BeforeAll {
-            Mock -CommandName 'Invoke-Command' -MockWith {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockOutputZeroPeers
             }
         }
@@ -159,7 +159,7 @@ Describe -Name 'Get-NTPPeer' -Fixture {
     Context -Name 'w32tm failure' -Fixture {
 
         BeforeAll {
-            Mock -CommandName 'Invoke-Command' -MockWith {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
                 throw 'w32tm /query /peers failed (exit code 1): The service has not been started.'
             }
         }
@@ -178,7 +178,7 @@ Describe -Name 'Get-NTPPeer' -Fixture {
     Context -Name 'Multiple computers' -Fixture {
 
         BeforeAll {
-            Mock -CommandName 'Invoke-Command' -MockWith {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockOutputReal
             }
         }
@@ -198,7 +198,7 @@ Describe -Name 'Get-NTPPeer' -Fixture {
     Context -Name 'Pipeline input' -Fixture {
 
         BeforeAll {
-            Mock -CommandName 'Invoke-Command' -MockWith {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockOutputReal
             }
         }
@@ -218,7 +218,7 @@ Describe -Name 'Get-NTPPeer' -Fixture {
 
         BeforeAll {
             $script:callIndex = 0
-            Mock -CommandName 'Invoke-Command' -MockWith {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
                 $script:callIndex++
                 if ($script:callIndex -eq 1) {
                     throw 'Connection refused'
