@@ -2,7 +2,8 @@
 #Requires -Modules @{ ModuleName = 'Pester'; ModuleVersion = '5.0.0' }
 
 BeforeAll {
-    . (Join-Path -Path $PSScriptRoot -ChildPath '..\..\Public\ntp\Get-NTPPeer.ps1')
+    $script:modulePath = Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent
+    Import-Module -Name "$($script:modulePath)/PSWinOps.psd1" -Force
 
     # Real format (from the actual machine)
     $script:mockOutputReal = @(

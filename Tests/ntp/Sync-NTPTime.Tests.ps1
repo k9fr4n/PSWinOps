@@ -1,7 +1,8 @@
 ﻿#Requires -Version 5.1
 
 BeforeAll {
-    . "$PSScriptRoot/../../Public/ntp/Sync-NTPTime.ps1"
+    $script:modulePath = Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent
+    Import-Module -Name "$($script:modulePath)/PSWinOps.psd1" -Force
 }
 
 Describe -Name 'Sync-NTPTime' -Fixture {

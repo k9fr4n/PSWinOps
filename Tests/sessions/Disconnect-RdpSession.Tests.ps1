@@ -9,8 +9,8 @@
 param()
 
 BeforeAll -Scriptblock {
-    $script:functionPath = Join-Path -Path $PSScriptRoot -ChildPath '..\..\Public\sessions\Disconnect-RdpSession.ps1'
-    . $script:functionPath
+    $script:modulePath = Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent
+    Import-Module -Name "$($script:modulePath)/PSWinOps.psd1" -Force
 }
 
 Describe -Name 'Disconnect-RdpSession' -Fixture {

@@ -21,8 +21,8 @@ BeforeAll {
     Requires:      PowerShell 5.1+, Pester 5.x
     Permissions:   None (all external calls mocked)
 #>
-    $script:modulePath = Join-Path -Path $PSScriptRoot -ChildPath '..\..\PSWinOps.psd1'
-    Import-Module -Name $script:modulePath -Force -ErrorAction Stop
+    $script:modulePath = Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent
+    Import-Module -Name "$($script:modulePath)/PSWinOps.psd1" -Force
 
     # ---------------------------------------------------------------------------
     # Shared qwinsta-formatted output fixtures
