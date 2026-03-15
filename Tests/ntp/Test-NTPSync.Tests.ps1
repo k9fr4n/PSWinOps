@@ -192,7 +192,7 @@ Describe -Name 'Test-NTPSync' -Fixture {
 
         It -Name 'Should call Invoke-Command with -ComputerName for remote target' -Test {
             Test-NTPSync -ComputerName 'REMOTE-DC01'
-            Should -Invoke -CommandName 'Invoke-Command' -Times 1 -Exactly -ParameterFilter {
+            Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 1 -Exactly -ParameterFilter {
                 $ComputerName -eq 'REMOTE-DC01'
             }
         }
