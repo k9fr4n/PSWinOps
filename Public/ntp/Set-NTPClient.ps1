@@ -52,12 +52,11 @@ function Set-NTPClient {
     Shows what would happen if the configuration were applied with custom poll intervals.
 
 .NOTES
-    Version: 2.0.0
-    Last Modified: 2026-02-20
-    Requires: PowerShell 5.1+, Local Administrator rights
+    Version: 2.0.1
+    Last Modified: 2026-03-15
+    Requires: PowerShell 5.1+ / Windows only, Local Administrator rights
     Permissions: Administrator required to modify registry and manage W32Time service
 #>
-
     [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
     [OutputType([void])]
     param (
@@ -161,7 +160,9 @@ function Set-NTPClient {
             Set-ItemProperty -Path $registryPaths['Parameters'] -Name 'Type' -Value 'NTP' -Type String -ErrorAction Stop
             Set-ItemProperty -Path $registryPaths['Config'] -Name 'MaxAllowedPhaseOffset' -Value $MaxPhaseOffset -Type DWord -ErrorAction Stop
 
-            $null = w32tm.exe /config /update
+            # Notify W32Time to re-read its configuration (no .exe suffix for mockability)
+            $null = w32tm /config /update
+
             Write-Information -MessageData "[OK] NTP servers configured: $serverList" -InformationAction Continue
 
             # Step 5: Set poll intervals in registry
@@ -183,6 +184,7 @@ function Set-NTPClient {
             # Step 7: Force synchronization
             Write-Verbose "[$($MyInvocation.MyCommand)] Forcing immediate NTP synchronization..."
             $syncJob = Start-Job -ScriptBlock { w32tm /resync /force 2>&1 }
+
             $null = Wait-Job -Job $syncJob -Timeout 30
 
             try {
@@ -193,6 +195,7 @@ function Set-NTPClient {
 
             $successMessageFR = "La commande s'est déroulée correctement."
             $successMessageEN = 'The command completed successfully.'
+
             $isSyncSuccessful = ($syncOutput -match $successMessageFR) -or ($syncOutput -match $successMessageEN)
 
             if ($isSyncSuccessful) {
@@ -207,7 +210,7 @@ function Set-NTPClient {
             Write-Verbose "[$($MyInvocation.MyCommand)] Verifying final configuration..."
 
             $config = w32tm /query /configuration
-            $configServers = ($config | Select-String -Pattern 'NtpServer:').ToString() -replace '.*NtpServer:\s*', '' -replace '\s*.*', ''
+            $configServers = ($config | Select-String -Pattern 'NtpServer:').ToString() -replace '.*NtpServer:\s*', '' -replace '\s*\(.*', ''
             Write-Information -MessageData "[OK] Configured servers: $configServers" -InformationAction Continue
 
             $status = w32tm /query /status /verbose
@@ -216,8 +219,8 @@ function Set-NTPClient {
 
             Write-Information -MessageData "[OK] $lastSync" -InformationAction Continue
             Write-Information -MessageData "[OK] $source" -InformationAction Continue
-            Write-Information -MessageData '[OK] Windows Time Service configuration completed successfully' -InformationAction Continue
 
+            Write-Information -MessageData '[OK] Windows Time Service configuration completed successfully' -InformationAction Continue
         } catch [System.UnauthorizedAccessException] {
             Write-Error "[$($MyInvocation.MyCommand)] Access denied - Administrator privileges required: $_"
             throw
