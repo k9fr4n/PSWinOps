@@ -41,7 +41,7 @@ Describe -Name 'Sync-NTPTime' -Fixture {
 
         It -Name 'Should call Invoke-Command exactly once' -Test {
             Sync-NTPTime
-            Should -Invoke -CommandName 'Invoke-Command' -Times 1 -Exactly
+            Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 1 -Exactly
         }
     }
 
@@ -63,7 +63,7 @@ Describe -Name 'Sync-NTPTime' -Fixture {
 
         It -Name 'Should invoke Invoke-Command with the remote ComputerName' -Test {
             Sync-NTPTime -ComputerName 'REMOTE-SRV01'
-            Should -Invoke -CommandName 'Invoke-Command' -Times 1 -Exactly -ParameterFilter {
+            Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 1 -Exactly -ParameterFilter {
                 $ComputerName -eq 'REMOTE-SRV01'
             }
         }
@@ -108,7 +108,7 @@ Describe -Name 'Sync-NTPTime' -Fixture {
 
         It -Name 'Should call Invoke-Command twice (restart + resync)' -Test {
             Sync-NTPTime -ComputerName 'REMOTE-SRV01' -RestartService
-            Should -Invoke -CommandName 'Invoke-Command' -Times 2 -Exactly
+            Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 2 -Exactly
         }
     }
 
@@ -134,7 +134,7 @@ Describe -Name 'Sync-NTPTime' -Fixture {
             Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
                 return $script:successOutput
             }
-            Mock -CommandName 'Invoke-Command' -ParameterFilter {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -ParameterFilter {
                 $ComputerName -eq 'BADSERVER'
             } -MockWith {
                 throw 'Connection refused'
@@ -167,12 +167,12 @@ Describe -Name 'Sync-NTPTime' -Fixture {
 
         It -Name 'Should NOT invoke any command with -WhatIf' -Test {
             Sync-NTPTime -ComputerName 'SRV01' -WhatIf
-            Should -Invoke -CommandName 'Invoke-Command' -Times 0 -Exactly
+            Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 0 -Exactly
         }
 
         It -Name 'Should NOT invoke any command with -WhatIf and -RestartService' -Test {
             Sync-NTPTime -ComputerName 'SRV01' -RestartService -WhatIf
-            Should -Invoke -CommandName 'Invoke-Command' -Times 0 -Exactly
+            Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 0 -Exactly
         }
     }
 

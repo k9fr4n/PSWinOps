@@ -17,7 +17,7 @@ Describe -Name 'Disconnect-RdpSession' -Fixture {
 
     BeforeAll -Scriptblock {
         # Default mock: tsdiscon.exe exists
-        Mock -CommandName 'Get-Command' -MockWith {
+        Mock -CommandName 'Get-Command' -ModuleName 'PSWinOps' -MockWith {
             return [PSCustomObject]@{
                 Name        = 'tsdiscon.exe'
                 CommandType = 'Application'
@@ -55,7 +55,7 @@ Describe -Name 'Disconnect-RdpSession' -Fixture {
 
         It -Name 'Should invoke Invoke-Command without ComputerName for local sessions' -Test {
             Disconnect-RdpSession -SessionID 3 -Confirm:$false
-            Should -Invoke -CommandName 'Invoke-Command' -Times 1 -Exactly -ParameterFilter {
+            Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 1 -Exactly -ParameterFilter {
                 $null -eq $ComputerName
             }
         }
@@ -72,7 +72,7 @@ Describe -Name 'Disconnect-RdpSession' -Fixture {
 
         It -Name 'Should pass ComputerName to Invoke-Command for remote sessions' -Test {
             Disconnect-RdpSession -ComputerName 'SRV-REMOTE-01' -SessionID 5 -Confirm:$false
-            Should -Invoke -CommandName 'Invoke-Command' -Times 1 -Exactly -ParameterFilter {
+            Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 1 -Exactly -ParameterFilter {
                 $ComputerName -eq 'SRV-REMOTE-01'
             }
         }
@@ -89,7 +89,7 @@ Describe -Name 'Disconnect-RdpSession' -Fixture {
 
         It -Name 'Should pass Credential to Invoke-Command' -Test {
             Disconnect-RdpSession -ComputerName 'SRV-REMOTE-01' -SessionID 3 -Credential $script:testCredential -Confirm:$false
-            Should -Invoke -CommandName 'Invoke-Command' -Times 1 -Exactly -ParameterFilter {
+            Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 1 -Exactly -ParameterFilter {
                 $null -ne $Credential -and $ComputerName -eq 'SRV-REMOTE-01'
             }
         }
@@ -120,7 +120,7 @@ Describe -Name 'Disconnect-RdpSession' -Fixture {
                 [PSCustomObject]@{ ComputerName = 'SRV01'; SessionID = 7 }
             )
             $script:pipelineInput | Disconnect-RdpSession -Confirm:$false
-            Should -Invoke -CommandName 'Invoke-Command' -Times 2 -Exactly
+            Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 2 -Exactly
         }
     }
 
@@ -129,7 +129,7 @@ Describe -Name 'Disconnect-RdpSession' -Fixture {
         It -Name 'Should disconnect each session ID individually' -Test {
             $results = Disconnect-RdpSession -ComputerName 'SRV01' -SessionID 2, 4, 6 -Confirm:$false
             $results.Count | Should -Be -ExpectedValue 3
-            Should -Invoke -CommandName 'Invoke-Command' -Times 3 -Exactly
+            Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 3 -Exactly
         }
     }
 
@@ -167,7 +167,7 @@ Describe -Name 'Disconnect-RdpSession' -Fixture {
     Context -Name 'When tsdiscon.exe is not found on the system' -Fixture {
 
         BeforeAll -Scriptblock {
-            Mock -CommandName 'Get-Command' -MockWith {
+            Mock -CommandName 'Get-Command' -ModuleName 'PSWinOps' -MockWith {
                 return $null
             } -ParameterFilter { $Name -eq 'tsdiscon.exe' }
         }
@@ -178,7 +178,7 @@ Describe -Name 'Disconnect-RdpSession' -Fixture {
 
         It -Name 'Should not attempt to invoke any disconnect command' -Test {
             { Disconnect-RdpSession -SessionID 3 -Confirm:$false } | Should -Throw
-            Should -Invoke -CommandName 'Invoke-Command' -Times 0 -Exactly
+            Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 0 -Exactly
         }
     }
 

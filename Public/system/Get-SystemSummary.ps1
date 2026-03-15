@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 function Get-SystemSummary {
     <#
     .SYNOPSIS
@@ -59,18 +59,17 @@ function Get-SystemSummary {
                     if ($hasCredential) {
                         $cimSession = New-CimSession -ComputerName $machine -Credential $Credential -ErrorAction Stop
                         $cimParams['CimSession'] = $cimSession
-                    }
-                    else {
+                    } else {
                         $cimParams['ComputerName'] = $machine
                     }
                 }
 
                 # Query all 6 CIM classes
-                $system    = Get-CimInstance -ClassName 'Win32_ComputerSystem' @cimParams
-                $os        = Get-CimInstance -ClassName 'Win32_OperatingSystem' @cimParams
-                $bios      = Get-CimInstance -ClassName 'Win32_BIOS' @cimParams
+                $system = Get-CimInstance -ClassName 'Win32_ComputerSystem' @cimParams
+                $os = Get-CimInstance -ClassName 'Win32_OperatingSystem' @cimParams
+                $bios = Get-CimInstance -ClassName 'Win32_BIOS' @cimParams
                 $processor = Get-CimInstance -ClassName 'Win32_Processor' @cimParams | Select-Object -First 1
-                $disks     = Get-CimInstance -ClassName 'Win32_LogicalDisk' @cimParams | Where-Object -FilterScript { $_.DriveType -eq 3 }
+                $disks = Get-CimInstance -ClassName 'Win32_LogicalDisk' @cimParams | Where-Object -FilterScript { $_.DriveType -eq 3 }
                 $networkAdapters = Get-CimInstance -ClassName 'Win32_NetworkAdapterConfiguration' @cimParams | Where-Object -FilterScript { $null -ne $_.DefaultIPGateway }
 
                 # Calculate uptime
@@ -78,11 +77,11 @@ function Get-SystemSummary {
 
                 # Build disk summary strings
                 $diskSummary = ($disks | ForEach-Object -Process {
-                    '[{0}] {1} ({2}) {3:N2}/{4:N2} GB ({5:N1}% Free)' -f
+                        '[{0}] {1} ({2}) {3:N2}/{4:N2} GB ({5:N1}% Free)' -f
                         $_.FileSystem, $_.DeviceID, $_.VolumeName,
                         ($_.FreeSpace / 1GB), ($_.Size / 1GB),
                         (($_.FreeSpace / $_.Size) * 100)
-                }) -join ' | '
+                    }) -join ' | '
 
                 # Extract IPv4 addresses only
                 $ipv4Addresses = ($networkAdapters.IPAddress | Where-Object -FilterScript { $_ -match '^\d+\.\d+\.\d+\.\d+$' }) -join ', '
@@ -90,7 +89,11 @@ function Get-SystemSummary {
                 $dnsList = ($networkAdapters.DNSServerSearchOrder) -join ', '
 
                 # Determine PS version string
-                $psVersionString = if ($isLocal) { $PSVersionTable.PSVersion.ToString() } else { 'N/A (remote)' }
+                $psVersionString = if ($isLocal) {
+                    $PSVersionTable.PSVersion.ToString()
+                } else {
+                    'N/A (remote)'
+                }
 
                 [PSCustomObject]@{
                     ComputerName           = $machine
@@ -111,7 +114,7 @@ function Get-SystemSummary {
                     TotalLogicalProcessors = [int]$processor.NumberOfLogicalProcessors
                     TotalRAMGB             = [math]::Round($system.TotalPhysicalMemory / 1GB, 2)
                     FreeRAMGB              = [math]::Round($os.FreePhysicalMemory / 1MB, 2)
-                    RAMUsagePercent        = [math]::Round((1 - ($os.FreePhysicalMemory / $os.TotalVisibleMemorySize)) * 100, 1)
+                    RAMUsagePercent        = [decimal][math]::Round((1 - ($os.FreePhysicalMemory / $os.TotalVisibleMemorySize)) * 100, 1)
                     Disks                  = $diskSummary
                     IPAddresses            = $ipv4Addresses
                     DefaultGateway         = $gatewayList
@@ -119,11 +122,9 @@ function Get-SystemSummary {
                     PSVersion              = $psVersionString
                     Timestamp              = Get-Date -Format 'o'
                 }
-            }
-            catch {
+            } catch {
                 Write-Error "[$($MyInvocation.MyCommand)] Failed on '${machine}': $_"
-            }
-            finally {
+            } finally {
                 if ($null -ne $cimSession) {
                     Remove-CimSession -CimSession $cimSession -ErrorAction SilentlyContinue
                 }

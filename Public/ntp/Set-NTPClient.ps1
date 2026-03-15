@@ -185,12 +185,13 @@ function Set-NTPClient {
             Write-Verbose "[$($MyInvocation.MyCommand)] Forcing immediate NTP synchronization..."
             $syncJob = Start-Job -ScriptBlock { w32tm /resync /force 2>&1 }
 
-            $null = Wait-Job -Job $syncJob -Timeout 30
+            # Utiliser -Id (int) au lieu de -Job (Job[]) → compatible avec les mocks Pester
+            $null = Wait-Job -Id $syncJob.Id -Timeout 30
 
             try {
-                $syncOutput = Receive-Job -Job $syncJob -Keep
+                $syncOutput = Receive-Job -Id $syncJob.Id -Keep
             } finally {
-                Remove-Job -Job $syncJob -Force
+                Remove-Job -Id $syncJob.Id -Force
             }
 
             $successMessageFR = "La commande s'est déroulée correctement."
