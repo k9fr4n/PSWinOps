@@ -28,29 +28,33 @@ Describe 'Set-NTPClient' -Tag 'Unit' {
     # ──────────────────────────────────────────────────────────────────────────
     BeforeEach {
         # Services
-        Mock Get-Service     { [PSCustomObject]@{ Name = 'w32time'; Status = 'Running' } }
-        Mock Start-Service   {}
+        Mock Get-Service { [PSCustomObject]@{ Name = 'w32time'; Status = 'Running' } }
+        Mock Start-Service {}
         Mock Restart-Service {}
-        Mock Start-Sleep     {}
+        Mock Start-Sleep {}
 
         # Registre
-        Mock Test-Path        { $true }
+        Mock Test-Path { $true }
         Mock Set-ItemProperty {}
 
         # Exécutable w32tm (appels directs hors job)
         Mock w32tm {
             $a = $args -join ' '
-            if ($a -match '/register')             { return '' }
-            if ($a -match '/config')               { return '' }
+            if ($a -match '/register') {
+                return ''
+            }
+            if ($a -match '/config') {
+                return ''
+            }
             if ($a -match '/query.*configuration') {
                 return @(
-                    'NtpServer: ntp1.ecritel.net,0x9 ntp2.ecritel.net,0x9 (Local)',
+                    'NtpServer: ntp1.example.com,0x9 ntp2.example.com,0x9 (Local)',
                     'Type: NTP (Local)'
                 )
             }
             if ($a -match '/query.*status') {
                 return @(
-                    'Source: ntp1.ecritel.net,0x9',
+                    'Source: ntp1.example.com,0x9',
                     'Last Successful Sync Time: 20/02/2026 19:00:00'
                 )
             }
@@ -67,16 +71,18 @@ Describe 'Set-NTPClient' -Tag 'Unit' {
         }
         Mock Receive-Job {
             param($Job, [switch]$Keep)
-            if ($Keep) { return "La commande s'est déroulée correctement." }
+            if ($Keep) {
+                return "La commande s'est déroulée correctement."
+            }
             return ''
         }
         Mock Remove-Job {}
-        Mock Stop-Job   {}
+        Mock Stop-Job {}
     }
 
     # ==========================================================================
     Describe '1. Validation des paramètres' {
-    # ==========================================================================
+        # ==========================================================================
 
         Context 'NtpServers' {
             It 'Accepte un serveur valide' {
@@ -84,7 +90,7 @@ Describe 'Set-NTPClient' -Tag 'Unit' {
                     Should -Not -Throw
             }
             It 'Accepte plusieurs serveurs valides' {
-                { Set-NTPClient -NtpServers 'ntp1.ecritel.net', 'ntp2.ecritel.net' -Confirm:$false } |
+                { Set-NTPClient -NtpServers 'ntp1.example.com', 'ntp2.example.com' -Confirm:$false } |
                     Should -Not -Throw
             }
             It 'Rejette une valeur null' {
@@ -167,18 +173,18 @@ Describe 'Set-NTPClient' -Tag 'Unit' {
 
     # ==========================================================================
     Describe '2. Valeurs par défaut des paramètres' {
-    # ==========================================================================
+        # ==========================================================================
 
-        It 'NtpServers par défaut contient ntp1.ecritel.net' {
+        It 'NtpServers par défaut contient ntp1.example.com' {
             Set-NTPClient -Confirm:$false
             Should -Invoke Set-ItemProperty -Times 1 -ParameterFilter {
-                $Name -eq 'NtpServer' -and $Value -like '*ntp1.ecritel.net*'
+                $Name -eq 'NtpServer' -and $Value -like '*ntp1.example.com*'
             }
         }
-        It 'NtpServers par défaut contient ntp2.ecritel.net' {
+        It 'NtpServers par défaut contient ntp2.example.com' {
             Set-NTPClient -Confirm:$false
             Should -Invoke Set-ItemProperty -Times 1 -ParameterFilter {
-                $Name -eq 'NtpServer' -and $Value -like '*ntp2.ecritel.net*'
+                $Name -eq 'NtpServer' -and $Value -like '*ntp2.example.com*'
             }
         }
         It 'MaxPhaseOffset par défaut = 1' {
@@ -209,7 +215,7 @@ Describe 'Set-NTPClient' -Tag 'Unit' {
 
     # ==========================================================================
     Describe '3. Gestion du service W32Time' {
-    # ==========================================================================
+        # ==========================================================================
 
         It 'Interroge le service w32time au démarrage' {
             Set-NTPClient -Confirm:$false
@@ -229,7 +235,9 @@ Describe 'Set-NTPClient' -Tag 'Unit' {
             $call = 0
             Mock Get-Service {
                 $call++
-                if ($call -eq 1) { return $null }
+                if ($call -eq 1) {
+                    return $null
+                }
                 return [PSCustomObject]@{ Name = 'w32time'; Status = 'Running' }
             }
             Set-NTPClient -Confirm:$false
@@ -243,7 +251,7 @@ Describe 'Set-NTPClient' -Tag 'Unit' {
 
     # ==========================================================================
     Describe '4. Vérification des chemins registre (3 chemins)' {
-    # ==========================================================================
+        # ==========================================================================
 
         It 'Vérifie exactement 3 chemins registre' {
             Set-NTPClient -Confirm:$false
@@ -268,26 +276,26 @@ Describe 'Set-NTPClient' -Tag 'Unit' {
 
     # ==========================================================================
     Describe '5. Construction de la liste de serveurs NTP' {
-    # ==========================================================================
+        # ==========================================================================
 
         It 'Ajoute le flag 0x9 aux serveurs sans flag existant' {
-            Set-NTPClient -NtpServers 'ntp1.ecritel.net', 'ntp2.ecritel.net' -Confirm:$false
+            Set-NTPClient -NtpServers 'ntp1.example.com', 'ntp2.example.com' -Confirm:$false
             Should -Invoke Set-ItemProperty -Times 1 -ParameterFilter {
                 $Name -eq 'NtpServer' -and
-                $Value -eq 'ntp1.ecritel.net,0x9 ntp2.ecritel.net,0x9'
+                $Value -eq 'ntp1.example.com,0x9 ntp2.example.com,0x9'
             }
         }
         It 'Préserve un flag existant' {
-            Set-NTPClient -NtpServers 'ntp1.ecritel.net,0x1' -Confirm:$false
+            Set-NTPClient -NtpServers 'ntp1.example.com,0x1' -Confirm:$false
             Should -Invoke Set-ItemProperty -Times 1 -ParameterFilter {
-                $Name -eq 'NtpServer' -and $Value -eq 'ntp1.ecritel.net,0x1'
+                $Name -eq 'NtpServer' -and $Value -eq 'ntp1.example.com,0x1'
             }
         }
         It 'Gère un mix : flag existant + flag par défaut' {
-            Set-NTPClient -NtpServers 'ntp1.ecritel.net,0x8', 'ntp2.ecritel.net' -Confirm:$false
+            Set-NTPClient -NtpServers 'ntp1.example.com,0x8', 'ntp2.example.com' -Confirm:$false
             Should -Invoke Set-ItemProperty -Times 1 -ParameterFilter {
                 $Name -eq 'NtpServer' -and
-                $Value -eq 'ntp1.ecritel.net,0x8 ntp2.ecritel.net,0x9'
+                $Value -eq 'ntp1.example.com,0x8 ntp2.example.com,0x9'
             }
         }
         It 'Gère un serveur unique sans flag' {
@@ -306,7 +314,7 @@ Describe 'Set-NTPClient' -Tag 'Unit' {
 
     # ==========================================================================
     Describe '6. Écriture registre – 6 appels Set-ItemProperty attendus' {
-    # ==========================================================================
+        # ==========================================================================
 
         It 'Effectue exactement 6 appels Set-ItemProperty' {
             Set-NTPClient -Confirm:$false
@@ -356,7 +364,7 @@ Describe 'Set-NTPClient' -Tag 'Unit' {
 
     # ==========================================================================
     Describe '7. Synchronisation NTP (Step 7 – w32tm /resync)' {
-    # ==========================================================================
+        # ==========================================================================
 
         It 'Lance exactement 1 job background (resync uniquement)' {
             Set-NTPClient -Confirm:$false
@@ -369,7 +377,9 @@ Describe 'Set-NTPClient' -Tag 'Unit' {
         It 'N''émet PAS de warning si le message FR de succès est retourné' {
             Mock Receive-Job {
                 param($Job, [switch]$Keep)
-                if ($Keep) { return "La commande s'est déroulée correctement." }
+                if ($Keep) {
+                    return "La commande s'est déroulée correctement."
+                }
             }
             $warnings = $null
             Set-NTPClient -Confirm:$false -WarningVariable warnings
@@ -379,7 +389,9 @@ Describe 'Set-NTPClient' -Tag 'Unit' {
         It 'N''émet PAS de warning si le message EN de succès est retourné' {
             Mock Receive-Job {
                 param($Job, [switch]$Keep)
-                if ($Keep) { return 'The command completed successfully.' }
+                if ($Keep) {
+                    return 'The command completed successfully.'
+                }
             }
             $warnings = $null
             Set-NTPClient -Confirm:$false -WarningVariable warnings
@@ -389,7 +401,9 @@ Describe 'Set-NTPClient' -Tag 'Unit' {
         It 'Émet un warning si la sortie ne contient aucun message de succès' {
             Mock Receive-Job {
                 param($Job, [switch]$Keep)
-                if ($Keep) { return 'Error: peer unreachable' }
+                if ($Keep) {
+                    return 'Error: peer unreachable'
+                }
             }
             $warnings = $null
             Set-NTPClient -Confirm:$false -WarningVariable warnings
@@ -400,7 +414,7 @@ Describe 'Set-NTPClient' -Tag 'Unit' {
 
     # ==========================================================================
     Describe '8. SupportsShouldProcess / -WhatIf' {
-    # ==========================================================================
+        # ==========================================================================
 
         It 'N''écrit rien en registre avec -WhatIf' {
             Set-NTPClient -WhatIf
@@ -423,7 +437,7 @@ Describe 'Set-NTPClient' -Tag 'Unit' {
 
     # ==========================================================================
     Describe '9. Gestion des erreurs' {
-    # ==========================================================================
+        # ==========================================================================
 
         It 'Propage UnauthorizedAccessException depuis Set-ItemProperty' {
             Mock Set-ItemProperty {
@@ -455,7 +469,9 @@ Describe 'Set-NTPClient' -Tag 'Unit' {
             $call = 0
             Mock Get-Service {
                 $call++
-                if ($call -eq 1) { return $null }
+                if ($call -eq 1) {
+                    return $null
+                }
                 throw [System.Exception]::new('Impossible de trouver le service w32time')
             }
             { Set-NTPClient -Confirm:$false } |
