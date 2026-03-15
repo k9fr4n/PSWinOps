@@ -199,7 +199,7 @@ function Set-NTPClient {
                 Remove-Job -Job $syncJob -Force
             }
 
-            $successMessageFR = "La commande s.est d[e`u00e9]roul[e`u00e9]e correctement"
+            $successMessageFR = "La commande s'est déroulée correctement."
             $successMessageEN = 'The command completed successfully.'
 
             $isSyncSuccessful = ($syncOutput -match $successMessageFR) -or ($syncOutput -match $successMessageEN)
