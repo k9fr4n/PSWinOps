@@ -24,7 +24,7 @@ Describe -Name 'Sync-NTPTime' -Fixture {
     Context -Name 'When resyncing the local machine (happy path)' -Fixture {
 
         BeforeAll {
-            Mock -CommandName 'Invoke-Command' -MockWith {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
                 return $script:successOutput
             }
         }
@@ -48,7 +48,7 @@ Describe -Name 'Sync-NTPTime' -Fixture {
     Context -Name 'When resyncing a remote machine (happy path)' -Fixture {
 
         BeforeAll {
-            Mock -CommandName 'Invoke-Command' -MockWith {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
                 return $script:successOutput
             }
         }
@@ -72,7 +72,7 @@ Describe -Name 'Sync-NTPTime' -Fixture {
     Context -Name 'When pipeline input provides multiple machines' -Fixture {
 
         BeforeAll {
-            Mock -CommandName 'Invoke-Command' -MockWith {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
                 return $script:successOutput
             }
         }
@@ -94,7 +94,7 @@ Describe -Name 'Sync-NTPTime' -Fixture {
     Context -Name 'When -RestartService is specified' -Fixture {
 
         BeforeAll {
-            Mock -CommandName 'Invoke-Command' -MockWith {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
                 return $script:successOutput
             }
         }
@@ -115,7 +115,7 @@ Describe -Name 'Sync-NTPTime' -Fixture {
     Context -Name 'When w32tm resync reports failure' -Fixture {
 
         BeforeAll {
-            Mock -CommandName 'Invoke-Command' -MockWith {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
                 return $script:failureOutput
             }
         }
@@ -131,7 +131,7 @@ Describe -Name 'Sync-NTPTime' -Fixture {
     Context -Name 'When per-machine failure occurs' -Fixture {
 
         BeforeAll {
-            Mock -CommandName 'Invoke-Command' -MockWith {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
                 return $script:successOutput
             }
             Mock -CommandName 'Invoke-Command' -ParameterFilter {
@@ -160,7 +160,7 @@ Describe -Name 'Sync-NTPTime' -Fixture {
     Context -Name 'When ShouldProcess is respected (-WhatIf)' -Fixture {
 
         BeforeAll {
-            Mock -CommandName 'Invoke-Command' -MockWith {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
                 return $script:successOutput
             }
         }
