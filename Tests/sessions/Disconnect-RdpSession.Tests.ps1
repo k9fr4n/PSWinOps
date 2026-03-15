@@ -26,7 +26,7 @@ Describe -Name 'Disconnect-RdpSession' -Fixture {
         } -ParameterFilter { $Name -eq 'tsdiscon.exe' }
 
         # Default mock: Invoke-Command returns exit code 0 (success)
-        Mock -CommandName 'Invoke-Command' -MockWith { return 0 }
+        Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return 0 }
     }
 
     Context -Name 'When disconnecting a local session' -Fixture {
@@ -136,7 +136,7 @@ Describe -Name 'Disconnect-RdpSession' -Fixture {
     Context -Name 'When tsdiscon.exe returns a non-zero exit code' -Fixture {
 
         BeforeAll -Scriptblock {
-            Mock -CommandName 'Invoke-Command' -MockWith { return 1 }
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return 1 }
         }
 
         It -Name 'Should return Success as false' -Test {
@@ -155,7 +155,7 @@ Describe -Name 'Disconnect-RdpSession' -Fixture {
     Context -Name 'When Invoke-Command returns null exit code' -Fixture {
 
         BeforeAll -Scriptblock {
-            Mock -CommandName 'Invoke-Command' -MockWith { return $null }
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $null }
         }
 
         It -Name 'Should return Success as false when exit code is null' -Test {
@@ -198,7 +198,7 @@ Describe -Name 'Disconnect-RdpSession' -Fixture {
     Context -Name 'When a WinRM remoting error occurs' -Fixture {
 
         BeforeAll -Scriptblock {
-            Mock -CommandName 'Invoke-Command' -MockWith {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
                 throw [System.Management.Automation.Remoting.PSRemotingTransportException]::new(
                     'WinRM cannot complete the operation.'
                 )
@@ -221,7 +221,7 @@ Describe -Name 'Disconnect-RdpSession' -Fixture {
     Context -Name 'When a generic error occurs during disconnect' -Fixture {
 
         BeforeAll -Scriptblock {
-            Mock -CommandName 'Invoke-Command' -MockWith {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
                 throw [System.InvalidOperationException]::new('Unexpected failure')
             }
         }
