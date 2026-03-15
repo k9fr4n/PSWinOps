@@ -73,7 +73,8 @@ FunctionsToExport = 'Connect-RdpSession', 'ConvertFrom-MisencodedString',
                'Disconnect-RdpSession', 'Get-ActiveRdpSession', 'Get-ComputerUptime', 
                'Get-NTPConfiguration', 'Get-NTPPeer', 'Get-RandomPassword', 
                'Get-RdpSession', 'Get-RDPSessionHistory', 'Get-RdpSessionLock', 
-               'Remove-RdpSession', 'Set-NTPClient', 'Sync-NTPTime', 'Test-NTPSync'
+               'Get-SystemSummary', 'Remove-RdpSession', 'Set-NTPClient', 
+               'Sync-NTPTime', 'Test-NTPSync'
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = '*'
