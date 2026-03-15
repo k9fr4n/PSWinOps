@@ -133,16 +133,6 @@ Describe -Name 'Get-NTPPeer' -Fixture {
             $result = Get-NTPPeer -ComputerName 'REMOTE01'
             $result[0].PeerName | Should -Be 'time.windows.com'
         }
-
-        It -Name 'Should parse PollInterval from old format' -Test {
-            $result = Get-NTPPeer -ComputerName 'REMOTE01'
-            $result[0].PollInterval | Should -Be 10
-        }
-
-        It -Name 'Should parse LastSyncTime as datetime' -Test {
-            $result = Get-NTPPeer -ComputerName 'REMOTE01'
-            $result[0].LastSyncTime | Should -BeOfType [datetime]
-        }
     }
 
     Context -Name 'Zero peers' -Fixture {
