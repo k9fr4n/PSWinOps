@@ -17,9 +17,8 @@
 #>
 
 BeforeAll {
-    $scriptPath = Join-Path $PSScriptRoot 'Set-NTPClient.ps1'
-    if (-not (Test-Path $scriptPath)) { throw "Script introuvable : $scriptPath" }
-    . $scriptPath
+    $script:modulePath = Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent
+    Import-Module -Name "$($script:modulePath)/PSWinOps.psd1" -Force
 }
 
 Describe 'Set-NTPClient' -Tag 'Unit' {
