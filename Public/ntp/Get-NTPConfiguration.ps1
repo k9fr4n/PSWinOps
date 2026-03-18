@@ -2,45 +2,39 @@
 
 function Get-NTPConfiguration {
     <#
-.SYNOPSIS
-    Retrieves the current Windows Time Service (W32Time) NTP configuration and status
+    .SYNOPSIS
+        Retrieves the current Windows Time Service (W32Time) NTP configuration and status
+    .DESCRIPTION
+        This function queries the Windows Time Service using w32tm commands to retrieve
+        the complete NTP configuration, including configured servers, poll intervals,
+        synchronization status, peer details, and last successful sync time.
 
-.DESCRIPTION
-    This function queries the Windows Time Service using w32tm commands to retrieve
-    the complete NTP configuration, including configured servers, poll intervals,
-    synchronization status, peer details, and last successful sync time.
+        Returns a structured PSCustomObject with all relevant NTP configuration data
+        for easy consumption by other scripts or for display purposes.
+    .PARAMETER IncludePeerDetails
+        When specified, includes detailed peer information in the output object.
+        This adds verbose information about each configured NTP peer.
+    .EXAMPLE
+        Get-NTPConfiguration
 
-    Returns a structured PSCustomObject with all relevant NTP configuration data
-    for easy consumption by other scripts or for display purposes.
+        Retrieves the current NTP configuration and displays it as a structured object.
+    .EXAMPLE
+        Get-NTPConfiguration -Verbose | Format-List
 
-.PARAMETER IncludePeerDetails
-    When specified, includes detailed peer information in the output object.
-    This adds verbose information about each configured NTP peer.
+        Retrieves NTP configuration with verbose logging and displays all properties as a list.
+    .EXAMPLE
+        $ntpConfig = Get-NTPConfiguration -IncludePeerDetails
+        $ntpConfig.ConfiguredServers
+        $ntpConfig.Peers
 
-.EXAMPLE
-    Get-NTPConfiguration
-
-    Retrieves the current NTP configuration and displays it as a structured object.
-
-.EXAMPLE
-    Get-NTPConfiguration -Verbose | Format-List
-
-    Retrieves NTP configuration with verbose logging and displays all properties as a list.
-
-.EXAMPLE
-    $ntpConfig = Get-NTPConfiguration -IncludePeerDetails
-    $ntpConfig.ConfiguredServers
-    $ntpConfig.Peers
-
-    Retrieves configuration with peer details and accesses specific properties.
-
-.NOTES
-    Author:        Ecritel IT Team
-    Version:       1.0.0
-    Last Modified: 2026-02-20
-    Requires:      PowerShell 5.1+, Windows Time Service (w32time)
-    Permissions:   Standard user rights (no elevation required for read-only operations)
-#>
+        Retrieves configuration with peer details and accesses specific properties.
+    .NOTES
+        Author: Franck SALLET
+        Version: 1.1.0
+        Last Modified: 2026-03-18
+        Requires: PowerShell 5.1+, Windows Time Service (w32time)
+        Permissions: Standard user rights (no elevation required for read-only operations)
+    #>
     [CmdletBinding()]
     [OutputType([PSCustomObject])]
     param(
@@ -49,8 +43,9 @@ function Get-NTPConfiguration {
     )
 
     begin {
+        # Do NOT set $ErrorActionPreference here -- it would pollute the caller's scope.
+        # Use -ErrorAction Stop on individual calls instead.
         Write-Verbose "[$($MyInvocation.MyCommand)] Starting - PowerShell $($PSVersionTable.PSVersion)"
-        $ErrorActionPreference = 'Stop'
     }
 
     process {
@@ -131,7 +126,6 @@ function Get-NTPConfiguration {
                 $null
             }
 
-            # Parse leap indicator
             $leapMatch = $statusOutput | Select-String -Pattern 'Leap Indicator:\s*(.+)' | Select-Object -First 1
             $leapIndicator = if ($leapMatch) {
                 $leapMatch.Matches.Groups[1].Value.Trim()
@@ -173,6 +167,7 @@ function Get-NTPConfiguration {
 
             Write-Verbose "[$($MyInvocation.MyCommand)] Configuration retrieved successfully"
             return $result
+
         } catch [Microsoft.PowerShell.Commands.ServiceCommandException] {
             Write-Error "[$($MyInvocation.MyCommand)] Windows Time Service not found or inaccessible: $_"
             throw
