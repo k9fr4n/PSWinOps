@@ -2,16 +2,16 @@
 
 <#
 .SYNOPSIS
-    Pester v5 test suite for Get-ActiveRdpSession v2.0 (quser-based implementation).
+    Pester v5 test suite for Get-RdpSession v2.0 (quser-based implementation).
 
 .DESCRIPTION
-    Validates ConvertFrom-QUserIdleTime and Get-ActiveRdpSession using controlled
+    Validates ConvertFrom-QUserIdleTime and Get-RdpSession using controlled
     quser output strings. Invoke-Command is mocked throughout remote-query tests
     to return deterministic output independent of the test environment.
 
     Test scope:
       - ConvertFrom-QUserIdleTime: all idle-time formats and edge cases.
-      - Get-ActiveRdpSession: output parsing, object shape, IsCurrentSession flag,
+      - Get-RdpSession: output parsing, object shape, IsCurrentSession flag,
         idle-time conversion, pipeline input, local-vs-remote code path,
         Credential forwarding, and error handling.
 
@@ -35,23 +35,23 @@ BeforeAll {
     #   colIdle    = 54 (IndexOf 'IDLE TIME')
     #   colLogon   = 65 (IndexOf 'LOGON TIME')
     # ---------------------------------------------------------------------------
-    $script:fakeHeader        = ' USERNAME              SESSIONNAME        ID  STATE   IDLE TIME  LOGON TIME'
-    $script:fakeActive        = '>adm-fsallet           rdp-tcp#3           3  Active          .  11/03/2026 19:35'
-    $script:fakeDisc          = ' adm-asaintpierre      rdp-tcp#2           2  Disc      1+08:15  10/03/2026 11:24'
-    $script:fakeTwoSessions   = @($script:fakeHeader, $script:fakeActive, $script:fakeDisc)
-    $script:fakeHeaderOnly    = @($script:fakeHeader)
-    $script:fakeRemoteHost    = 'FAKE-REMOTE-HOST'
+    $script:fakeHeader = ' USERNAME              SESSIONNAME        ID  STATE   IDLE TIME  LOGON TIME'
+    $script:fakeActive = '>adm-fsallet           rdp-tcp#3           3  Active          .  11/03/2026 19:35'
+    $script:fakeDisc = ' adm-asaintpierre      rdp-tcp#2           2  Disc      1+08:15  10/03/2026 11:24'
+    $script:fakeTwoSessions = @($script:fakeHeader, $script:fakeActive, $script:fakeDisc)
+    $script:fakeHeaderOnly = @($script:fakeHeader)
+    $script:fakeRemoteHost = 'FAKE-REMOTE-HOST'
 
     # PSScriptAnalyzer suppression: dummy test credential only, not used in production
     # cSpell:disable
-    [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingConvertToSecureStringWithPlainText', '', Justification='Test-only credential')]
+    [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingConvertToSecureStringWithPlainText', '', Justification = 'Test-only credential')]
     $script:fakeCredential = [System.Management.Automation.PSCredential]::new(
         'TESTDOMAIN\testuser',
         (ConvertTo-SecureString -String 'FakeTestP@ss!' -AsPlainText -Force)
     )
     # cSpell:enable
 
-    $script:modulePath = Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent
+    $script:modulePath = Split-Path -Path (Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent) -Parent
     Import-Module -Name "$($script:modulePath)/PSWinOps.psd1" -Force
 }
 
@@ -155,10 +155,10 @@ Describe -Name 'ConvertFrom-QUserIdleTime' -Fixture {
 }
 
 # ===========================================================================
-# Get-ActiveRdpSession -- public exported function
+# Get-RdpSession -- public exported function
 # ===========================================================================
 
-Describe -Name 'Get-ActiveRdpSession' -Fixture {
+Describe -Name 'Get-RdpSession' -Fixture {
 
     Context -Name 'When a remote computer returns active and disconnected sessions' -Fixture {
 
@@ -169,17 +169,17 @@ Describe -Name 'Get-ActiveRdpSession' -Fixture {
         }
 
         It -Name 'Should return one object per data row' -Test {
-            $result = Get-ActiveRdpSession -ComputerName $script:fakeRemoteHost
+            $result = Get-RdpSession -ComputerName $script:fakeRemoteHost
             $result.Count | Should -Be 2
         }
 
         It -Name 'Should stamp the correct PSTypeName on each returned object' -Test {
-            $result = Get-ActiveRdpSession -ComputerName $script:fakeRemoteHost
+            $result = Get-RdpSession -ComputerName $script:fakeRemoteHost
             $result[0].PSObject.TypeNames | Should -Contain 'PSWinOps.ActiveRdpSession'
         }
 
         It -Name 'Should expose all expected properties on the returned object' -Test {
-            $result = Get-ActiveRdpSession -ComputerName $script:fakeRemoteHost
+            $result = Get-RdpSession -ComputerName $script:fakeRemoteHost
             $propNames = $result[0].PSObject.Properties.Name
             $propNames | Should -Contain 'ComputerName'
             $propNames | Should -Contain 'SessionID'
@@ -192,69 +192,69 @@ Describe -Name 'Get-ActiveRdpSession' -Fixture {
         }
 
         It -Name 'Should set IsCurrentSession to true only for the line prefixed with >' -Test {
-            $result = Get-ActiveRdpSession -ComputerName $script:fakeRemoteHost
+            $result = Get-RdpSession -ComputerName $script:fakeRemoteHost
             $result[0].IsCurrentSession | Should -BeTrue
             $result[1].IsCurrentSession | Should -BeFalse
         }
 
         It -Name 'Should parse the Active state for the first session' -Test {
-            $result = Get-ActiveRdpSession -ComputerName $script:fakeRemoteHost
+            $result = Get-RdpSession -ComputerName $script:fakeRemoteHost
             $result[0].State | Should -Be 'Active'
         }
 
         It -Name 'Should parse the Disc state for the disconnected session' -Test {
-            $result = Get-ActiveRdpSession -ComputerName $script:fakeRemoteHost
+            $result = Get-RdpSession -ComputerName $script:fakeRemoteHost
             $result[1].State | Should -Be 'Disc'
         }
 
         It -Name 'Should set IdleTime to TimeSpan.Zero for the active session' -Test {
-            $result = Get-ActiveRdpSession -ComputerName $script:fakeRemoteHost
+            $result = Get-RdpSession -ComputerName $script:fakeRemoteHost
             $result[0].IdleTime | Should -Be ([TimeSpan]::Zero)
         }
 
         It -Name 'Should parse D+H:MM idle time for the disconnected session' -Test {
-            $result = Get-ActiveRdpSession -ComputerName $script:fakeRemoteHost
+            $result = Get-RdpSession -ComputerName $script:fakeRemoteHost
             $result[1].IdleTime | Should -Be ([TimeSpan]::new(1, 8, 15, 0))
         }
 
         It -Name 'Should parse the correct UserName from the active session' -Test {
-            $result = Get-ActiveRdpSession -ComputerName $script:fakeRemoteHost
+            $result = Get-RdpSession -ComputerName $script:fakeRemoteHost
             $result[0].UserName | Should -Be 'adm-fsallet'
         }
 
         It -Name 'Should parse the correct UserName from the disconnected session' -Test {
-            $result = Get-ActiveRdpSession -ComputerName $script:fakeRemoteHost
+            $result = Get-RdpSession -ComputerName $script:fakeRemoteHost
             $result[1].UserName | Should -Be 'adm-asaintpierre'
         }
 
         It -Name 'Should parse the correct SessionName from the active session' -Test {
-            $result = Get-ActiveRdpSession -ComputerName $script:fakeRemoteHost
+            $result = Get-RdpSession -ComputerName $script:fakeRemoteHost
             $result[0].SessionName | Should -Be 'rdp-tcp#3'
         }
 
         It -Name 'Should set ComputerName to the queried computer on every object' -Test {
-            $result = Get-ActiveRdpSession -ComputerName $script:fakeRemoteHost
+            $result = Get-RdpSession -ComputerName $script:fakeRemoteHost
             $result[0].ComputerName | Should -Be $script:fakeRemoteHost
             $result[1].ComputerName | Should -Be $script:fakeRemoteHost
         }
 
         It -Name 'Should set SessionID to the parsed integer for the active session' -Test {
-            $result = Get-ActiveRdpSession -ComputerName $script:fakeRemoteHost
+            $result = Get-RdpSession -ComputerName $script:fakeRemoteHost
             $result[0].SessionID | Should -Be 3
         }
 
         It -Name 'Should set SessionID to the parsed integer for the disconnected session' -Test {
-            $result = Get-ActiveRdpSession -ComputerName $script:fakeRemoteHost
+            $result = Get-RdpSession -ComputerName $script:fakeRemoteHost
             $result[1].SessionID | Should -Be 2
         }
 
         It -Name 'Should populate LogonTime as a DateTime object' -Test {
-            $result = Get-ActiveRdpSession -ComputerName $script:fakeRemoteHost
+            $result = Get-RdpSession -ComputerName $script:fakeRemoteHost
             $result[0].LogonTime | Should -BeOfType ([datetime])
         }
 
         It -Name 'Should invoke Invoke-Command exactly once for a single remote query' -Test {
-            Get-ActiveRdpSession -ComputerName $script:fakeRemoteHost
+            Get-RdpSession -ComputerName $script:fakeRemoteHost
             Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 1 -Exactly
         }
     }
@@ -268,7 +268,7 @@ Describe -Name 'Get-ActiveRdpSession' -Fixture {
         }
 
         It -Name 'Should return nothing when quser outputs only a header line' -Test {
-            $result = Get-ActiveRdpSession -ComputerName $script:fakeRemoteHost
+            $result = Get-RdpSession -ComputerName $script:fakeRemoteHost
             $result | Should -BeNullOrEmpty
         }
     }
@@ -281,7 +281,7 @@ Describe -Name 'Get-ActiveRdpSession' -Fixture {
 
         It -Name 'Should not call Invoke-Command when the target is the local machine' -Test {
             # quser.exe is invoked directly for local queries -- WinRM is not used.
-            Get-ActiveRdpSession -ComputerName $env:COMPUTERNAME -ErrorAction SilentlyContinue
+            Get-RdpSession -ComputerName $env:COMPUTERNAME -ErrorAction SilentlyContinue
             Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 0 -Exactly
         }
     }
@@ -295,7 +295,7 @@ Describe -Name 'Get-ActiveRdpSession' -Fixture {
         }
 
         It -Name 'Should invoke Invoke-Command exactly once per remote computer' -Test {
-            @('FAKE-SRV01', 'FAKE-SRV02') | Get-ActiveRdpSession -ErrorAction SilentlyContinue
+            @('FAKE-SRV01', 'FAKE-SRV02') | Get-RdpSession -ErrorAction SilentlyContinue
             Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 2 -Exactly
         }
     }
@@ -309,7 +309,7 @@ Describe -Name 'Get-ActiveRdpSession' -Fixture {
         }
 
         It -Name 'Should forward the Credential parameter to Invoke-Command' -Test {
-            Get-ActiveRdpSession -ComputerName $script:fakeRemoteHost -Credential $script:fakeCredential -ErrorAction SilentlyContinue
+            Get-RdpSession -ComputerName $script:fakeRemoteHost -Credential $script:fakeCredential -ErrorAction SilentlyContinue
             Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 1 -Exactly -ParameterFilter {
                 $null -ne $Credential
             }
@@ -325,11 +325,11 @@ Describe -Name 'Get-ActiveRdpSession' -Fixture {
         }
 
         It -Name 'Should not throw when an unexpected error is caught' -Test {
-            { Get-ActiveRdpSession -ComputerName $script:fakeRemoteHost -ErrorAction SilentlyContinue } | Should -Not -Throw
+            { Get-RdpSession -ComputerName $script:fakeRemoteHost -ErrorAction SilentlyContinue } | Should -Not -Throw
         }
 
         It -Name 'Should return no objects when an unexpected error occurs' -Test {
-            $result = Get-ActiveRdpSession -ComputerName $script:fakeRemoteHost -ErrorAction SilentlyContinue
+            $result = Get-RdpSession -ComputerName $script:fakeRemoteHost -ErrorAction SilentlyContinue
             $result | Should -BeNullOrEmpty
         }
     }
@@ -343,11 +343,11 @@ Describe -Name 'Get-ActiveRdpSession' -Fixture {
         }
 
         It -Name 'Should not throw when an UnauthorizedAccessException is caught' -Test {
-            { Get-ActiveRdpSession -ComputerName $script:fakeRemoteHost -ErrorAction SilentlyContinue } | Should -Not -Throw
+            { Get-RdpSession -ComputerName $script:fakeRemoteHost -ErrorAction SilentlyContinue } | Should -Not -Throw
         }
 
         It -Name 'Should return no objects when access is denied' -Test {
-            $result = Get-ActiveRdpSession -ComputerName $script:fakeRemoteHost -ErrorAction SilentlyContinue
+            $result = Get-RdpSession -ComputerName $script:fakeRemoteHost -ErrorAction SilentlyContinue
             $result | Should -BeNullOrEmpty
         }
     }

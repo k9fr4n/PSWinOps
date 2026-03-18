@@ -54,7 +54,7 @@ BeforeAll {
     #endregion
 
     # Import module -- two levels above Tests\ntp\
-    $script:modulePath = Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent
+    $script:modulePath = Split-Path -Path (Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent) -Parent
     Import-Module -Name "$($script:modulePath)/PSWinOps.psd1" -Force
 
     #region Mock data
