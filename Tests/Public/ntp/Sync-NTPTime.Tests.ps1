@@ -1,7 +1,7 @@
 ﻿#Requires -Version 5.1
 
 BeforeAll {
-    $script:modulePath = Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent
+    $script:modulePath = Split-Path -Path (Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent) -Parent
     Import-Module -Name "$($script:modulePath)/PSWinOps.psd1" -Force
 }
 

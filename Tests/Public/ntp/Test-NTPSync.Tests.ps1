@@ -35,7 +35,7 @@
 
 BeforeAll {
     # Dot-source the function under test
-    $script:modulePath = Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent
+    $script:modulePath = Split-Path -Path (Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent) -Parent
     Import-Module -Name "$($script:modulePath)/PSWinOps.psd1" -Force
 
     #region Mock data -- English locale, synced with small offset

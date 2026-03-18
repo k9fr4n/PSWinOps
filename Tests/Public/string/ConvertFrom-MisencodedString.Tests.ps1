@@ -3,7 +3,7 @@
 
 BeforeAll {
     # Import module
-    $script:modulePath = Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent
+    $script:modulePath = Split-Path -Path (Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent) -Parent
     Import-Module -Name "$($script:modulePath)/PSWinOps.psd1" -Force
 
     # Test data: Create misencoded strings for testing
@@ -113,27 +113,27 @@ Describe -Name 'ConvertFrom-MisencodedString' -Fixture {
 
             # Alternative reliable approach: Force GetBytes to fail by mocking it
             Mock -CommandName 'Write-Verbose' -MockWith {} -ModuleName 'PSWinOps'
-            
+
             # Create a string that will cause issues when converting between incompatible encodings
             # UTF-8 emoji (4-byte sequence) misinterpreted as ASCII then re-encoded
             $problematicString = [char]0xFFFD  # Replacement character - signals encoding issues
-            
+
             # Actually, let's use a more direct approach: inject a mock that throws
             # This is more reliable than trying to find encoding edge cases
             $testString = 'test'
-            
+
             # We'll verify the error handling by checking that non-throwing errors are handled gracefully
             # The current function catches exceptions and calls Write-Error without re-throwing
-            
+
             # Create a test that actually triggers the catch block
             # Use InModuleScope to directly test error handling
             InModuleScope -ModuleName 'PSWinOps' -ScriptBlock {
                 Mock -CommandName 'Write-Error' -MockWith {}
-                
+
                 # Simulate the scenario by directly invoking with a mock that throws
                 # We need to test that the function handles encoding errors gracefully
                 $result = ConvertFrom-MisencodedString -String 'test' -ErrorAction SilentlyContinue
-                
+
                 # Since we can't reliably trigger an encoding error with real data,
                 # we verify that the function's error handling structure is correct
                 # by checking it doesn't throw and returns gracefully
@@ -144,10 +144,10 @@ Describe -Name 'ConvertFrom-MisencodedString' -Fixture {
         It -Name 'Should handle encoding exception gracefully without terminating' -Test {
             # Verify that encoding errors are non-terminating
             # The function should write an error and continue, not throw
-            
+
             # Test with a valid string - should not throw
             { ConvertFrom-MisencodedString -String 'valid text' -ErrorAction SilentlyContinue } | Should -Not -Throw
-            
+
             # Test with empty string - should not throw
             { ConvertFrom-MisencodedString -String '' -ErrorAction SilentlyContinue } | Should -Not -Throw
         }

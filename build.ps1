@@ -582,6 +582,22 @@ function Invoke-ModuleBuild {
         $psd1Output = Join-Path -Path $script:ModuleOutput -ChildPath "$script:ModuleName.psd1"
         Copy-Item -Path $script:ManifestPath -Destination $psd1Output
 
+        # Copy format files if they exist
+        $formatFiles = Get-ChildItem -Path $script:SrcPath -Filter '*.Format.ps1xml'
+        foreach ($formatFile in $formatFiles) {
+            Write-Verbose -Message "[$($MyInvocation.MyCommand)] Copying format file: $($formatFile.Name)"
+            Copy-Item -Path $formatFile.FullName -Destination (Join-Path -Path $script:ModuleOutput -ChildPath $formatFile.Name)
+            Write-BuildSuccess -Message "Format file copied: $($formatFile.Name)"
+        }
+
+        # Copy type files if they exist
+        $typeFiles = Get-ChildItem -Path $script:SrcPath -Filter '*.Types.ps1xml'
+        foreach ($typeFile in $typeFiles) {
+            Write-Verbose -Message "[$($MyInvocation.MyCommand)] Copying type file: $($typeFile.Name)"
+            Copy-Item -Path $typeFile.FullName -Destination (Join-Path -Path $script:ModuleOutput -ChildPath $typeFile.Name)
+            Write-BuildSuccess -Message "Type file copied: $($typeFile.Name)"
+        }
+
         # Calculate new version
         $manifest = Import-PowerShellDataFile -Path $script:ManifestPath
         $currentVersion = [version]$manifest.ModuleVersion
