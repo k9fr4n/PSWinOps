@@ -62,8 +62,8 @@ function Get-NTPPeer {
 
             try {
                 $isLocal = ($targetComputer -eq $env:COMPUTERNAME) -or
-                    ($targetComputer -eq 'localhost') -or
-                    ($targetComputer -eq '.')
+                ($targetComputer -eq 'localhost') -or
+                ($targetComputer -eq '.')
 
                 if ($isLocal) {
                     $rawOutput = & $w32tmScriptBlock
@@ -169,7 +169,7 @@ function Get-NTPPeer {
                     }
 
                     [PSCustomObject]@{
-                        PSTypeName       = 'PSWinOps.NTPPeer'
+                        PSTypeName       = 'PSWinOps.NtpPeer'
                         ComputerName     = $targetComputer
                         PeerName         = $peerName
                         PeerFlags        = $peerFlags

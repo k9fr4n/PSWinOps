@@ -96,6 +96,7 @@ function Get-SystemSummary {
                 }
 
                 [PSCustomObject]@{
+                    PSTypeName             = 'PSWinOps.SystemSummary'
                     ComputerName           = $machine
                     Domain                 = $system.Domain
                     OSName                 = $os.Caption

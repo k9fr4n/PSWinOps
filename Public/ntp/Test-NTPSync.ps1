@@ -178,7 +178,7 @@ function Test-NTPSync {
 
                 # --- Emit result object ---
                 [PSCustomObject]@{
-                    PSTypeName    = 'PSWinOps.NTPSyncStatus'
+                    PSTypeName    = 'PSWinOps.NtpSyncResult'
                     ComputerName  = $targetComputer
                     IsSynced      = $isSynced
                     Source        = $sourceValue

@@ -135,6 +135,7 @@ function Get-NTPConfiguration {
 
             # Build result object
             $result = [PSCustomObject]@{
+                PSTypeName          = 'PSWinOps.NtpConfiguration'
                 ServiceName         = 'w32time'
                 ServiceStatus       = $service.Status
                 SyncType            = $syncType
