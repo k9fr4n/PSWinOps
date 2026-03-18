@@ -23,7 +23,7 @@ BeforeAll {
         }
     }
 
-    $script:modulePath = Join-Path -Path $PSScriptRoot -ChildPath '..\..\PSWinOps.psd1'
+    $script:modulePath = Split-Path -Path (Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent) -Parent
     Import-Module -Name $script:modulePath -Force -ErrorAction Stop
 
     $script:mockConfigOutput = @(
