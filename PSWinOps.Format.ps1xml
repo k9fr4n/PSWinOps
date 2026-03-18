@@ -192,6 +192,35 @@
     </View>
 
     <!-- ============================================================ -->
+    <!-- PSWinOps.NtpResyncResult                                     -->
+    <!-- Used by: Sync-NTPTime                                        -->
+    <!-- ============================================================ -->
+    <View>
+    <Name>PSWinOps.NtpResyncResult</Name>
+    <ViewSelectedBy>
+        <TypeName>PSWinOps.NtpResyncResult</TypeName>
+    </ViewSelectedBy>
+    <TableControl>
+        <TableHeaders>
+        <TableColumnHeader><Label>ComputerName</Label><Width>20</Width></TableColumnHeader>
+        <TableColumnHeader><Label>Success</Label><Width>8</Width></TableColumnHeader>
+        <TableColumnHeader><Label>ServiceRestarted</Label><Width>17</Width></TableColumnHeader>
+        <TableColumnHeader><Label>Message</Label><Width>50</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+        <TableRowEntry>
+            <TableColumnItems>
+            <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+            <TableColumnItem><PropertyName>Success</PropertyName></TableColumnItem>
+            <TableColumnItem><PropertyName>ServiceRestarted</PropertyName></TableColumnItem>
+            <TableColumnItem><PropertyName>Message</PropertyName></TableColumnItem>
+            </TableColumnItems>
+        </TableRowEntry>
+        </TableRowEntries>
+    </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
     <!-- PSWinOps.NtpConfiguration                                    -->
     <!-- Used by: Get-NTPConfiguration                                -->
     <!-- ============================================================ -->

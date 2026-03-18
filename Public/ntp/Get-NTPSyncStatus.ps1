@@ -1,12 +1,12 @@
 ﻿#Requires -Version 5.1
 
-function Test-NTPSync {
+function Get-NTPSyncStatus {
     <#
     .SYNOPSIS
-        Tests NTP synchronization status on Windows machines
+        Retrieves NTP synchronization status on Windows machines
     .DESCRIPTION
-        Queries the Windows Time Service (w32tm) to determine whether NTP
-        synchronization is healthy on one or more machines. Parses the output
+        Queries the Windows Time Service (w32tm) to retrieve NTP
+        synchronization details on one or more machines. Parses the output
         of 'w32tm /query /status' to extract source, stratum, phase offset,
         last sync time, leap indicator, and poll interval.
 
@@ -14,28 +14,28 @@ function Test-NTPSync {
         regex patterns. Uses Invoke-Command for both local and remote execution,
         enabling uniform testability and consistent error handling across targets.
     .PARAMETER ComputerName
-        One or more computer names to test. Accepts pipeline input by value and
+        One or more computer names to query. Accepts pipeline input by value and
         by property name. Defaults to the local machine ($env:COMPUTERNAME).
     .PARAMETER MaxOffsetMs
         Maximum acceptable time offset in milliseconds. If the absolute parsed
         offset exceeds this value, IsSynced is set to $false. Must be at least 1.
         Defaults to 1000.
     .EXAMPLE
-        Test-NTPSync
+        Get-NTPSyncStatus
 
-        Tests NTP sync status on the local machine with the default 1000ms threshold.
+        Retrieves NTP sync status on the local machine with the default 1000ms threshold.
     .EXAMPLE
-        Test-NTPSync -ComputerName 'DC01' -MaxOffsetMs 500
+        Get-NTPSyncStatus -ComputerName 'DC01' -MaxOffsetMs 500
 
-        Tests NTP sync on remote server DC01 with a 500ms offset threshold.
+        Retrieves NTP sync status on remote server DC01 with a 500ms offset threshold.
     .EXAMPLE
-        'DC01', 'DC02', 'WEB01' | Test-NTPSync -MaxOffsetMs 2000
+        'DC01', 'DC02', 'WEB01' | Get-NTPSyncStatus -MaxOffsetMs 2000
 
-        Pipeline example: tests NTP sync on multiple machines with a 2-second threshold.
+        Pipeline example: retrieves NTP sync status on multiple machines with a 2-second threshold.
     .NOTES
-        Author:        Ecritel IT Team
-        Version:       1.0.0
-        Last Modified: 2026-03-12
+        Author:        Franck SALLET
+        Version:       2.0.0
+        Last Modified: 2026-03-18
         Requires:      PowerShell 5.1+ / Windows only
         Permissions:   Admin rights required for remote queries (WinRM access)
     #>

@@ -3,10 +3,10 @@
 
 <#
 .SYNOPSIS
-    Pester v5 tests for the Test-NTPSync function
+    Pester v5 tests for the Get-NTPSyncStatus function
 
 .DESCRIPTION
-    Comprehensive test coverage for Test-NTPSync, including:
+    Comprehensive test coverage for Get-NTPSyncStatus, including:
     - Happy path local and remote scenarios
     - Pipeline input with multiple machines
     - Offset exceeding threshold (IsSynced = false)
@@ -16,17 +16,17 @@
     - Custom MaxOffsetMs threshold behaviour
 
 .EXAMPLE
-    Invoke-Pester -Path .\Test-NTPSync.Tests.ps1 -Output Detailed
+    Invoke-Pester -Path .\Get-NTPSyncStatus.Tests.ps1 -Output Detailed
 
     Runs all tests with detailed output.
 
 .EXAMPLE
-    Invoke-Pester -Path .\Test-NTPSync.Tests.ps1 -Output Detailed -Tag 'Nominal'
+    Invoke-Pester -Path .\Get-NTPSyncStatus.Tests.ps1 -Output Detailed -Tag 'Nominal'
 
     Runs only tests tagged as nominal scenarios.
 
 .NOTES
-    Author:        Ecritel IT Team
+    Author:        Franck SALLET
     Version:       1.0.0
     Last Modified: 2026-03-12
     Requires:      Pester 5.x, PowerShell 5.1+
@@ -99,7 +99,7 @@ BeforeAll {
     #endregion
 }
 
-Describe -Name 'Test-NTPSync' -Fixture {
+Describe -Name 'Get-NTPSyncStatus' -Fixture {
 
     # -------------------------------------------------------------------
     # Context 1: Happy path -- local machine, synced
@@ -113,13 +113,13 @@ Describe -Name 'Test-NTPSync' -Fixture {
         }
 
         It -Name 'Should return a PSCustomObject with IsSynced true' -Test {
-            $result = Test-NTPSync
+            $result = Get-NTPSyncStatus
             $result | Should -BeOfType ([PSCustomObject])
             $result.IsSynced | Should -BeTrue
         }
 
         It -Name 'Should expose all expected properties' -Test {
-            $result = Test-NTPSync
+            $result = Get-NTPSyncStatus
             $script:expectedProperties = @(
                 'ComputerName', 'IsSynced', 'Source', 'Stratum',
                 'OffsetMs', 'MaxOffsetMs', 'LastSyncTime',
@@ -131,44 +131,44 @@ Describe -Name 'Test-NTPSync' -Fixture {
         }
 
         It -Name 'Should parse Source correctly' -Test {
-            $result = Test-NTPSync
+            $result = Get-NTPSyncStatus
             $result.Source | Should -Be 'ntp.example.com'
         }
 
         It -Name 'Should parse Stratum as integer equal to 3' -Test {
-            $result = Test-NTPSync
+            $result = Get-NTPSyncStatus
             $result.Stratum | Should -BeOfType ([int])
             $result.Stratum | Should -Be 3
         }
 
         It -Name 'Should parse OffsetMs from Phase Offset line' -Test {
-            $result = Test-NTPSync
+            $result = Get-NTPSyncStatus
             $result.OffsetMs | Should -BeGreaterThan 0
             $result.OffsetMs | Should -BeLessOrEqual 1000
         }
 
         It -Name 'Should parse LastSyncTime as datetime' -Test {
-            $result = Test-NTPSync
+            $result = Get-NTPSyncStatus
             $result.LastSyncTime | Should -BeOfType ([datetime])
         }
 
         It -Name 'Should parse PollInterval as 10' -Test {
-            $result = Test-NTPSync
+            $result = Get-NTPSyncStatus
             $result.PollInterval | Should -Be 10
         }
 
         It -Name 'Should default MaxOffsetMs to 1000' -Test {
-            $result = Test-NTPSync
+            $result = Get-NTPSyncStatus
             $result.MaxOffsetMs | Should -Be 1000
         }
 
         It -Name 'Should have a valid ISO 8601 Timestamp' -Test {
-            $result = Test-NTPSync
+            $result = Get-NTPSyncStatus
             { [datetime]::Parse($result.Timestamp) } | Should -Not -Throw
         }
 
         It -Name 'Should parse LeapIndicator' -Test {
-            $result = Test-NTPSync
+            $result = Get-NTPSyncStatus
             $result.LeapIndicator | Should -Not -Be 'Unknown'
         }
     }
@@ -185,13 +185,13 @@ Describe -Name 'Test-NTPSync' -Fixture {
         }
 
         It -Name 'Should return IsSynced true for remote machine' -Test {
-            $result = Test-NTPSync -ComputerName 'REMOTE-DC01'
+            $result = Get-NTPSyncStatus -ComputerName 'REMOTE-DC01'
             $result.IsSynced | Should -BeTrue
             $result.ComputerName | Should -Be 'REMOTE-DC01'
         }
 
         It -Name 'Should call Invoke-Command with -ComputerName for remote target' -Test {
-            Test-NTPSync -ComputerName 'REMOTE-DC01'
+            Get-NTPSyncStatus -ComputerName 'REMOTE-DC01'
             Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 1 -Exactly -ParameterFilter {
                 $ComputerName -eq 'REMOTE-DC01'
             }
@@ -210,12 +210,12 @@ Describe -Name 'Test-NTPSync' -Fixture {
         }
 
         It -Name 'Should return one result per piped machine' -Test {
-            $result = @('Server1', 'Server2', 'Server3') | Test-NTPSync
+            $result = @('Server1', 'Server2', 'Server3') | Get-NTPSyncStatus
             $result | Should -HaveCount 3
         }
 
         It -Name 'Should preserve ComputerName for each result' -Test {
-            $result = @('Server1', 'Server2') | Test-NTPSync
+            $result = @('Server1', 'Server2') | Get-NTPSyncStatus
             $result[0].ComputerName | Should -Be 'Server1'
             $result[1].ComputerName | Should -Be 'Server2'
         }
@@ -233,12 +233,12 @@ Describe -Name 'Test-NTPSync' -Fixture {
         }
 
         It -Name 'Should return IsSynced false when offset exceeds threshold' -Test {
-            $result = Test-NTPSync -ComputerName 'REMOTE-DC01'
+            $result = Get-NTPSyncStatus -ComputerName 'REMOTE-DC01'
             $result.IsSynced | Should -BeFalse
         }
 
         It -Name 'Should report OffsetMs greater than default MaxOffsetMs' -Test {
-            $result = Test-NTPSync -ComputerName 'REMOTE-DC01'
+            $result = Get-NTPSyncStatus -ComputerName 'REMOTE-DC01'
             $result.OffsetMs | Should -BeGreaterThan 1000
         }
     }
@@ -255,12 +255,12 @@ Describe -Name 'Test-NTPSync' -Fixture {
         }
 
         It -Name 'Should return IsSynced false for Free-Running source' -Test {
-            $result = Test-NTPSync -ComputerName 'STANDALONE01'
+            $result = Get-NTPSyncStatus -ComputerName 'STANDALONE01'
             $result.IsSynced | Should -BeFalse
         }
 
         It -Name 'Should report the Free-Running source name' -Test {
-            $result = Test-NTPSync -ComputerName 'STANDALONE01'
+            $result = Get-NTPSyncStatus -ComputerName 'STANDALONE01'
             $result.Source | Should -Be 'Free-Running System Clock'
         }
     }
@@ -277,12 +277,12 @@ Describe -Name 'Test-NTPSync' -Fixture {
         }
 
         It -Name 'Should return IsSynced false for Local CMOS Clock' -Test {
-            $result = Test-NTPSync -ComputerName 'ISOLATED01'
+            $result = Get-NTPSyncStatus -ComputerName 'ISOLATED01'
             $result.IsSynced | Should -BeFalse
         }
 
         It -Name 'Should report the Local CMOS Clock source name' -Test {
-            $result = Test-NTPSync -ComputerName 'ISOLATED01'
+            $result = Get-NTPSyncStatus -ComputerName 'ISOLATED01'
             $result.Source | Should -Be 'Local CMOS Clock'
         }
     }
@@ -305,13 +305,13 @@ Describe -Name 'Test-NTPSync' -Fixture {
         }
 
         It -Name 'Should return results for healthy machines and write error for failing one' -Test {
-            $result = Test-NTPSync -ComputerName 'GOODSERVER', 'BADSERVER', 'OTHERSERVER' -ErrorAction SilentlyContinue -ErrorVariable capturedError
+            $result = Get-NTPSyncStatus -ComputerName 'GOODSERVER', 'BADSERVER', 'OTHERSERVER' -ErrorAction SilentlyContinue -ErrorVariable capturedError
             $result | Should -HaveCount 2
             $capturedError | Should -Not -BeNullOrEmpty
         }
 
         It -Name 'Should continue processing after a per-machine failure' -Test {
-            $result = Test-NTPSync -ComputerName 'BADSERVER', 'GOODSERVER' -ErrorAction SilentlyContinue
+            $result = Get-NTPSyncStatus -ComputerName 'BADSERVER', 'GOODSERVER' -ErrorAction SilentlyContinue
             $result | Should -HaveCount 1
             $result[0].ComputerName | Should -Be 'GOODSERVER'
         }
@@ -329,15 +329,15 @@ Describe -Name 'Test-NTPSync' -Fixture {
         }
 
         It -Name 'Should throw when MaxOffsetMs is zero' -Test {
-            { Test-NTPSync -MaxOffsetMs 0 } | Should -Throw
+            { Get-NTPSyncStatus -MaxOffsetMs 0 } | Should -Throw
         }
 
         It -Name 'Should throw when MaxOffsetMs is negative' -Test {
-            { Test-NTPSync -MaxOffsetMs -1 } | Should -Throw
+            { Get-NTPSyncStatus -MaxOffsetMs -1 } | Should -Throw
         }
 
         It -Name 'Should throw when ComputerName is empty string' -Test {
-            { Test-NTPSync -ComputerName '' } | Should -Throw
+            { Get-NTPSyncStatus -ComputerName '' } | Should -Throw
         }
     }
 
@@ -353,13 +353,13 @@ Describe -Name 'Test-NTPSync' -Fixture {
         }
 
         It -Name 'Should return IsSynced true when custom threshold is large enough' -Test {
-            $result = Test-NTPSync -ComputerName 'REMOTE-DC01' -MaxOffsetMs 5000
+            $result = Get-NTPSyncStatus -ComputerName 'REMOTE-DC01' -MaxOffsetMs 5000
             $result.IsSynced | Should -BeTrue
             $result.MaxOffsetMs | Should -Be 5000
         }
 
         It -Name 'Should return IsSynced false when custom threshold is too small' -Test {
-            $result = Test-NTPSync -ComputerName 'REMOTE-DC01' -MaxOffsetMs 100
+            $result = Get-NTPSyncStatus -ComputerName 'REMOTE-DC01' -MaxOffsetMs 100
             $result.IsSynced | Should -BeFalse
             $result.MaxOffsetMs | Should -Be 100
         }

@@ -25,7 +25,7 @@
     Runs only tests tagged as nominal/happy path scenarios.
 
 .NOTES
-    Author:        K9FR4N
+    Author:        Franck SALLET
     Version:       1.1.0
     Last Modified: 2026-02-26
     Requires:      Pester 5.x, PowerShell 5.1+

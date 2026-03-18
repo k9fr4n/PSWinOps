@@ -39,7 +39,7 @@ function Set-NTPClient {
     Set-NTPClient -NtpServers 'ntp.example.com' -SpecialPollInterval 600 -MinPollInterval 7 -MaxPollInterval 12 -WhatIf
     Shows what would happen if the configuration were applied with custom poll intervals.
 .NOTES
-    Author: Ecritel IT Team
+    Author: Franck SALLET
     Version: 2.0.2
     Last Modified: 2026-03-15
     Requires: PowerShell 5.1+, Local Administrator rights
