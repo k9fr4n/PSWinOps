@@ -1,7 +1,8 @@
 ﻿#Requires -Version 5.1
 
 BeforeAll {
-    . "$PSScriptRoot/../../Public/ntp/Sync-NTPTime.ps1"
+    $script:modulePath = Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent
+    Import-Module -Name "$($script:modulePath)/PSWinOps.psd1" -Force
 }
 
 Describe -Name 'Sync-NTPTime' -Fixture {
@@ -23,7 +24,7 @@ Describe -Name 'Sync-NTPTime' -Fixture {
     Context -Name 'When resyncing the local machine (happy path)' -Fixture {
 
         BeforeAll {
-            Mock -CommandName 'Invoke-Command' -MockWith {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
                 return $script:successOutput
             }
         }
@@ -40,14 +41,14 @@ Describe -Name 'Sync-NTPTime' -Fixture {
 
         It -Name 'Should call Invoke-Command exactly once' -Test {
             Sync-NTPTime
-            Should -Invoke -CommandName 'Invoke-Command' -Times 1 -Exactly
+            Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 1 -Exactly
         }
     }
 
     Context -Name 'When resyncing a remote machine (happy path)' -Fixture {
 
         BeforeAll {
-            Mock -CommandName 'Invoke-Command' -MockWith {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
                 return $script:successOutput
             }
         }
@@ -62,7 +63,7 @@ Describe -Name 'Sync-NTPTime' -Fixture {
 
         It -Name 'Should invoke Invoke-Command with the remote ComputerName' -Test {
             Sync-NTPTime -ComputerName 'REMOTE-SRV01'
-            Should -Invoke -CommandName 'Invoke-Command' -Times 1 -Exactly -ParameterFilter {
+            Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 1 -Exactly -ParameterFilter {
                 $ComputerName -eq 'REMOTE-SRV01'
             }
         }
@@ -71,7 +72,7 @@ Describe -Name 'Sync-NTPTime' -Fixture {
     Context -Name 'When pipeline input provides multiple machines' -Fixture {
 
         BeforeAll {
-            Mock -CommandName 'Invoke-Command' -MockWith {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
                 return $script:successOutput
             }
         }
@@ -93,7 +94,7 @@ Describe -Name 'Sync-NTPTime' -Fixture {
     Context -Name 'When -RestartService is specified' -Fixture {
 
         BeforeAll {
-            Mock -CommandName 'Invoke-Command' -MockWith {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
                 return $script:successOutput
             }
         }
@@ -107,14 +108,14 @@ Describe -Name 'Sync-NTPTime' -Fixture {
 
         It -Name 'Should call Invoke-Command twice (restart + resync)' -Test {
             Sync-NTPTime -ComputerName 'REMOTE-SRV01' -RestartService
-            Should -Invoke -CommandName 'Invoke-Command' -Times 2 -Exactly
+            Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 2 -Exactly
         }
     }
 
     Context -Name 'When w32tm resync reports failure' -Fixture {
 
         BeforeAll {
-            Mock -CommandName 'Invoke-Command' -MockWith {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
                 return $script:failureOutput
             }
         }
@@ -130,10 +131,10 @@ Describe -Name 'Sync-NTPTime' -Fixture {
     Context -Name 'When per-machine failure occurs' -Fixture {
 
         BeforeAll {
-            Mock -CommandName 'Invoke-Command' -MockWith {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
                 return $script:successOutput
             }
-            Mock -CommandName 'Invoke-Command' -ParameterFilter {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -ParameterFilter {
                 $ComputerName -eq 'BADSERVER'
             } -MockWith {
                 throw 'Connection refused'
@@ -159,19 +160,19 @@ Describe -Name 'Sync-NTPTime' -Fixture {
     Context -Name 'When ShouldProcess is respected (-WhatIf)' -Fixture {
 
         BeforeAll {
-            Mock -CommandName 'Invoke-Command' -MockWith {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
                 return $script:successOutput
             }
         }
 
         It -Name 'Should NOT invoke any command with -WhatIf' -Test {
             Sync-NTPTime -ComputerName 'SRV01' -WhatIf
-            Should -Invoke -CommandName 'Invoke-Command' -Times 0 -Exactly
+            Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 0 -Exactly
         }
 
         It -Name 'Should NOT invoke any command with -WhatIf and -RestartService' -Test {
             Sync-NTPTime -ComputerName 'SRV01' -RestartService -WhatIf
-            Should -Invoke -CommandName 'Invoke-Command' -Times 0 -Exactly
+            Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 0 -Exactly
         }
     }
 

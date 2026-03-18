@@ -35,8 +35,8 @@
 
 BeforeAll {
     # Dot-source the function under test
-    $script:functionPath = Join-Path -Path $PSScriptRoot -ChildPath '..\..\Public\ntp\Test-NTPSync.ps1'
-    . $script:functionPath
+    $script:modulePath = Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent
+    Import-Module -Name "$($script:modulePath)/PSWinOps.psd1" -Force
 
     #region Mock data -- English locale, synced with small offset
     $script:mockOutputSynced = @(
@@ -107,7 +107,7 @@ Describe -Name 'Test-NTPSync' -Fixture {
     Context -Name 'Happy path - local machine, synced' -Fixture {
 
         BeforeEach {
-            Mock -CommandName 'Invoke-Command' -MockWith {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockOutputSynced
             }
         }
@@ -179,7 +179,7 @@ Describe -Name 'Test-NTPSync' -Fixture {
     Context -Name 'Happy path - explicit remote machine name' -Fixture {
 
         BeforeEach {
-            Mock -CommandName 'Invoke-Command' -MockWith {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockOutputSynced
             }
         }
@@ -192,7 +192,7 @@ Describe -Name 'Test-NTPSync' -Fixture {
 
         It -Name 'Should call Invoke-Command with -ComputerName for remote target' -Test {
             Test-NTPSync -ComputerName 'REMOTE-DC01'
-            Should -Invoke -CommandName 'Invoke-Command' -Times 1 -Exactly -ParameterFilter {
+            Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 1 -Exactly -ParameterFilter {
                 $ComputerName -eq 'REMOTE-DC01'
             }
         }
@@ -204,7 +204,7 @@ Describe -Name 'Test-NTPSync' -Fixture {
     Context -Name 'Pipeline input - multiple machine names' -Fixture {
 
         BeforeEach {
-            Mock -CommandName 'Invoke-Command' -MockWith {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockOutputSynced
             }
         }
@@ -227,7 +227,7 @@ Describe -Name 'Test-NTPSync' -Fixture {
     Context -Name 'Not synced - offset exceeds MaxOffsetMs' -Fixture {
 
         BeforeEach {
-            Mock -CommandName 'Invoke-Command' -MockWith {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockOutputHighOffset
             }
         }
@@ -249,7 +249,7 @@ Describe -Name 'Test-NTPSync' -Fixture {
     Context -Name 'Not synced - Free-Running System Clock source' -Fixture {
 
         BeforeEach {
-            Mock -CommandName 'Invoke-Command' -MockWith {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockOutputFreeRunning
             }
         }
@@ -271,7 +271,7 @@ Describe -Name 'Test-NTPSync' -Fixture {
     Context -Name 'Not synced - Local CMOS Clock source' -Fixture {
 
         BeforeEach {
-            Mock -CommandName 'Invoke-Command' -MockWith {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockOutputLocalCmos
             }
         }
@@ -294,12 +294,12 @@ Describe -Name 'Test-NTPSync' -Fixture {
 
         BeforeEach {
             # Default mock returns good data
-            Mock -CommandName 'Invoke-Command' -MockWith {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockOutputSynced
             }
 
             # Override for the failing machine
-            Mock -CommandName 'Invoke-Command' -MockWith {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
                 throw 'WinRM connection refused'
             } -ParameterFilter { $ComputerName -eq 'BADSERVER' }
         }
@@ -323,7 +323,7 @@ Describe -Name 'Test-NTPSync' -Fixture {
     Context -Name 'Parameter validation' -Fixture {
 
         BeforeEach {
-            Mock -CommandName 'Invoke-Command' -MockWith {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockOutputSynced
             }
         }
@@ -347,7 +347,7 @@ Describe -Name 'Test-NTPSync' -Fixture {
     Context -Name 'Custom MaxOffsetMs threshold' -Fixture {
 
         BeforeEach {
-            Mock -CommandName 'Invoke-Command' -MockWith {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockOutputHighOffset
             }
         }

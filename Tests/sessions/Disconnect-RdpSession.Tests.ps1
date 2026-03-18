@@ -9,15 +9,15 @@
 param()
 
 BeforeAll -Scriptblock {
-    $script:functionPath = Join-Path -Path $PSScriptRoot -ChildPath '..\..\Public\sessions\Disconnect-RdpSession.ps1'
-    . $script:functionPath
+    $script:modulePath = Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent
+    Import-Module -Name "$($script:modulePath)/PSWinOps.psd1" -Force
 }
 
 Describe -Name 'Disconnect-RdpSession' -Fixture {
 
     BeforeAll -Scriptblock {
         # Default mock: tsdiscon.exe exists
-        Mock -CommandName 'Get-Command' -MockWith {
+        Mock -CommandName 'Get-Command' -ModuleName 'PSWinOps' -MockWith {
             return [PSCustomObject]@{
                 Name        = 'tsdiscon.exe'
                 CommandType = 'Application'
@@ -26,7 +26,7 @@ Describe -Name 'Disconnect-RdpSession' -Fixture {
         } -ParameterFilter { $Name -eq 'tsdiscon.exe' }
 
         # Default mock: Invoke-Command returns exit code 0 (success)
-        Mock -CommandName 'Invoke-Command' -MockWith { return 0 }
+        Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return 0 }
     }
 
     Context -Name 'When disconnecting a local session' -Fixture {
@@ -55,7 +55,7 @@ Describe -Name 'Disconnect-RdpSession' -Fixture {
 
         It -Name 'Should invoke Invoke-Command without ComputerName for local sessions' -Test {
             Disconnect-RdpSession -SessionID 3 -Confirm:$false
-            Should -Invoke -CommandName 'Invoke-Command' -Times 1 -Exactly -ParameterFilter {
+            Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 1 -Exactly -ParameterFilter {
                 $null -eq $ComputerName
             }
         }
@@ -72,7 +72,7 @@ Describe -Name 'Disconnect-RdpSession' -Fixture {
 
         It -Name 'Should pass ComputerName to Invoke-Command for remote sessions' -Test {
             Disconnect-RdpSession -ComputerName 'SRV-REMOTE-01' -SessionID 5 -Confirm:$false
-            Should -Invoke -CommandName 'Invoke-Command' -Times 1 -Exactly -ParameterFilter {
+            Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 1 -Exactly -ParameterFilter {
                 $ComputerName -eq 'SRV-REMOTE-01'
             }
         }
@@ -89,7 +89,7 @@ Describe -Name 'Disconnect-RdpSession' -Fixture {
 
         It -Name 'Should pass Credential to Invoke-Command' -Test {
             Disconnect-RdpSession -ComputerName 'SRV-REMOTE-01' -SessionID 3 -Credential $script:testCredential -Confirm:$false
-            Should -Invoke -CommandName 'Invoke-Command' -Times 1 -Exactly -ParameterFilter {
+            Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 1 -Exactly -ParameterFilter {
                 $null -ne $Credential -and $ComputerName -eq 'SRV-REMOTE-01'
             }
         }
@@ -120,7 +120,7 @@ Describe -Name 'Disconnect-RdpSession' -Fixture {
                 [PSCustomObject]@{ ComputerName = 'SRV01'; SessionID = 7 }
             )
             $script:pipelineInput | Disconnect-RdpSession -Confirm:$false
-            Should -Invoke -CommandName 'Invoke-Command' -Times 2 -Exactly
+            Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 2 -Exactly
         }
     }
 
@@ -129,14 +129,14 @@ Describe -Name 'Disconnect-RdpSession' -Fixture {
         It -Name 'Should disconnect each session ID individually' -Test {
             $results = Disconnect-RdpSession -ComputerName 'SRV01' -SessionID 2, 4, 6 -Confirm:$false
             $results.Count | Should -Be -ExpectedValue 3
-            Should -Invoke -CommandName 'Invoke-Command' -Times 3 -Exactly
+            Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 3 -Exactly
         }
     }
 
     Context -Name 'When tsdiscon.exe returns a non-zero exit code' -Fixture {
 
         BeforeAll -Scriptblock {
-            Mock -CommandName 'Invoke-Command' -MockWith { return 1 }
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return 1 }
         }
 
         It -Name 'Should return Success as false' -Test {
@@ -155,7 +155,7 @@ Describe -Name 'Disconnect-RdpSession' -Fixture {
     Context -Name 'When Invoke-Command returns null exit code' -Fixture {
 
         BeforeAll -Scriptblock {
-            Mock -CommandName 'Invoke-Command' -MockWith { return $null }
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $null }
         }
 
         It -Name 'Should return Success as false when exit code is null' -Test {
@@ -167,7 +167,7 @@ Describe -Name 'Disconnect-RdpSession' -Fixture {
     Context -Name 'When tsdiscon.exe is not found on the system' -Fixture {
 
         BeforeAll -Scriptblock {
-            Mock -CommandName 'Get-Command' -MockWith {
+            Mock -CommandName 'Get-Command' -ModuleName 'PSWinOps' -MockWith {
                 return $null
             } -ParameterFilter { $Name -eq 'tsdiscon.exe' }
         }
@@ -178,7 +178,7 @@ Describe -Name 'Disconnect-RdpSession' -Fixture {
 
         It -Name 'Should not attempt to invoke any disconnect command' -Test {
             { Disconnect-RdpSession -SessionID 3 -Confirm:$false } | Should -Throw
-            Should -Invoke -CommandName 'Invoke-Command' -Times 0 -Exactly
+            Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 0 -Exactly
         }
     }
 
@@ -186,7 +186,7 @@ Describe -Name 'Disconnect-RdpSession' -Fixture {
 
         It -Name 'Should not execute any disconnect command' -Test {
             Disconnect-RdpSession -ComputerName 'SRV01' -SessionID 3 -WhatIf
-            Should -Invoke -CommandName 'Invoke-Command' -Times 0 -Exactly
+            Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 0 -Exactly
         }
 
         It -Name 'Should not return any output' -Test {
@@ -198,7 +198,7 @@ Describe -Name 'Disconnect-RdpSession' -Fixture {
     Context -Name 'When a WinRM remoting error occurs' -Fixture {
 
         BeforeAll -Scriptblock {
-            Mock -CommandName 'Invoke-Command' -MockWith {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
                 throw [System.Management.Automation.Remoting.PSRemotingTransportException]::new(
                     'WinRM cannot complete the operation.'
                 )
@@ -221,7 +221,7 @@ Describe -Name 'Disconnect-RdpSession' -Fixture {
     Context -Name 'When a generic error occurs during disconnect' -Fixture {
 
         BeforeAll -Scriptblock {
-            Mock -CommandName 'Invoke-Command' -MockWith {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
                 throw [System.InvalidOperationException]::new('Unexpected failure')
             }
         }

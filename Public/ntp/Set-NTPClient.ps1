@@ -5,7 +5,6 @@ function Set-NTPClient {
     <#
 .SYNOPSIS
     Configures Windows Time Service (W32Time) to synchronize with specified NTP servers
-
 .DESCRIPTION
     This function configures the Windows Time Service (W32Time) to use external NTP servers
     for time synchronization. It sets the NTP server list, phase offset tolerance, and polling
@@ -14,49 +13,37 @@ function Set-NTPClient {
     the final state.
 
     Requires local administrator privileges to modify registry and manage the W32Time service.
-
 .PARAMETER NtpServers
     Array of NTP server FQDNs or IP addresses to use for time synchronization.
     Default: ntp1.ecritel.net, ntp2.ecritel.net
-
 .PARAMETER MaxPhaseOffset
     Maximum allowed phase offset in seconds before the clock is corrected.
     Valid range: 1 to 3600 seconds. Default: 1 second.
-
 .PARAMETER SpecialPollInterval
     Interval in seconds for special polling operations.
     Valid range: 1 to 86400 seconds. Default: 300 seconds (5 minutes).
-
 .PARAMETER MinPollInterval
     Minimum poll interval as a power of 2 (2^n seconds).
     Valid range: 0 to 17. Default: 6 (2^6 = 64 seconds).
-
 .PARAMETER MaxPollInterval
     Maximum poll interval as a power of 2 (2^n seconds).
     Must be greater than MinPollInterval. Valid range: 0 to 17. Default: 10 (2^10 = 1024 seconds).
-
 .EXAMPLE
     Set-NTPClient
-
     Uses default NTP servers (ntp1.ecritel.net, ntp2.ecritel.net) with default settings.
-
 .EXAMPLE
     Set-NTPClient -NtpServers 'time.windows.com', 'pool.ntp.org' -MaxPhaseOffset 5 -Verbose
-
     Configures W32Time with custom NTP servers and a 5-second phase offset tolerance,
     with verbose logging enabled.
-
 .EXAMPLE
     Set-NTPClient -NtpServers 'ntp.example.com' -SpecialPollInterval 600 -MinPollInterval 7 -MaxPollInterval 12 -WhatIf
-
     Shows what would happen if the configuration were applied with custom poll intervals.
-
 .NOTES
-    Author:        Ecritel IT Team
-    Version:       2.0.0
-    Last Modified: 2026-02-20
-    Requires:      PowerShell 5.1+, Local Administrator rights
-    Permissions:   Administrator required to modify registry and manage W32Time service
+    Author: Ecritel IT Team
+    Version: 2.0.2
+    Last Modified: 2026-03-15
+    Requires: PowerShell 5.1+, Local Administrator rights
+    Permissions: Administrator required to modify registry and manage W32Time service
 #>
     [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
     [OutputType([void])]
@@ -88,12 +75,10 @@ function Set-NTPClient {
 
         Write-Verbose "[$($MyInvocation.MyCommand)] Starting - PowerShell $($PSVersionTable.PSVersion)"
 
-        # Validate MaxPollInterval > MinPollInterval at runtime
         if ($MaxPollInterval -le $MinPollInterval) {
             throw "MaxPollInterval ($MaxPollInterval) must be greater than MinPollInterval ($MinPollInterval)"
         }
 
-        # Registry paths
         $registryPaths = @{
             Config     = 'HKLM:\SYSTEM\CurrentControlSet\Services\W32Time\Config'
             NtpClient  = 'HKLM:\SYSTEM\CurrentControlSet\Services\W32Time\TimeProviders\NtpClient'
@@ -157,15 +142,11 @@ function Set-NTPClient {
             # Step 4: Apply NTP configuration directly via registry
             Write-Verbose "[$($MyInvocation.MyCommand)] Writing NTP configuration to registry..."
 
-            # NtpServer et Type dans la clé Parameters
             Set-ItemProperty -Path $registryPaths['Parameters'] -Name 'NtpServer' -Value $serverList -Type String -ErrorAction Stop
             Set-ItemProperty -Path $registryPaths['Parameters'] -Name 'Type' -Value 'NTP' -Type String -ErrorAction Stop
-
-            # MaxAllowedPhaseOffset dans la clé Config
             Set-ItemProperty -Path $registryPaths['Config'] -Name 'MaxAllowedPhaseOffset' -Value $MaxPhaseOffset -Type DWord -ErrorAction Stop
 
-            # Notifier W32Time de relire sa configuration (argument simple, pas de parsing)
-            $null = w32tm.exe /config /update
+            $null = w32tm /config /update
 
             Write-Information -MessageData "[OK] NTP servers configured: $serverList" -InformationAction Continue
 
@@ -187,17 +168,7 @@ function Set-NTPClient {
 
             # Step 7: Force synchronization
             Write-Verbose "[$($MyInvocation.MyCommand)] Forcing immediate NTP synchronization..."
-            $syncJob = Start-Job -ScriptBlock {
-                w32tm /resync /force 2>&1
-            }
-
-            $null = Wait-Job -Job $syncJob -Timeout 30
-
-            try {
-                $syncOutput = Receive-Job -Job $syncJob -Keep
-            } finally {
-                Remove-Job -Job $syncJob -Force
-            }
+            $syncOutput = w32tm /resync /force 2>&1
 
             $successMessageFR = "La commande s'est déroulée correctement."
             $successMessageEN = 'The command completed successfully.'
@@ -216,16 +187,30 @@ function Set-NTPClient {
             Write-Verbose "[$($MyInvocation.MyCommand)] Verifying final configuration..."
 
             $config = w32tm /query /configuration
-            $configServers = ($config | Select-String -Pattern 'NtpServer:').ToString() -replace '.*NtpServer:\s*', '' -replace '\s*\(.*', ''
+            $configServersMatch = $config | Select-String -Pattern 'NtpServer:'
+            $configServers = if ($configServersMatch) {
+                $configServersMatch.ToString() -replace '.*NtpServer:\s*', '' -replace '\s*.*', ''
+            } else {
+                'N/A (could not parse w32tm output)'
+            }
             Write-Information -MessageData "[OK] Configured servers: $configServers" -InformationAction Continue
 
             $status = w32tm /query /status /verbose
-            $lastSync = ($status | Select-String -Pattern 'Last Successful Sync Time:').ToString()
-            $source = ($status | Select-String -Pattern 'Source:').ToString()
+            $lastSyncMatch = $status | Select-String -Pattern 'Last Successful Sync Time:'
+            $lastSync = if ($lastSyncMatch) {
+                $lastSyncMatch.ToString()
+            } else {
+                'Last Successful Sync Time: N/A'
+            }
+            $sourceMatch = $status | Select-String -Pattern 'Source:'
+            $source = if ($sourceMatch) {
+                $sourceMatch.ToString()
+            } else {
+                'Source: N/A'
+            }
 
             Write-Information -MessageData "[OK] $lastSync" -InformationAction Continue
             Write-Information -MessageData "[OK] $source" -InformationAction Continue
-
             Write-Information -MessageData '[OK] Windows Time Service configuration completed successfully' -InformationAction Continue
         } catch [System.UnauthorizedAccessException] {
             Write-Error "[$($MyInvocation.MyCommand)] Access denied - Administrator privileges required: $_"
