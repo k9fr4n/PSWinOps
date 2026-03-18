@@ -119,6 +119,7 @@ function Get-PendingReboot {
                 )
 
                 [PSCustomObject]@{
+                    PSTypeName              = 'PSWinOps.PendingReboot'
                     ComputerName            = $computer
                     IsRebootPending         = [bool]$isRebootPending
                     ComponentBasedServicing = [bool]$checkResult['ComponentBasedServicing']

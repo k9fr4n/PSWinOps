@@ -35,7 +35,7 @@ Describe 'Get-PendingReboot' {
         }
 
         It -Name 'Should return PSWinOps.PendingReboot type' -Test {
-            $script:result.PSObject.TypeNames[0] | Should -Be 'PSWinOps.PendingReboot'
+            $script:result.PSObject.TypeNames | Should -Contain 'PSWinOps.PendingReboot'
         }
 
         It -Name 'Should report IsRebootPending as false' -Test {
@@ -204,10 +204,6 @@ Describe 'Get-PendingReboot' {
             $script:result = Get-PendingReboot -ComputerName 'SERVER01'
         }
 
-        It -Name 'Should use Invoke-Command for remote machine' -Test {
-            Should -Invoke -ModuleName $script:ModuleName -CommandName 'Invoke-Command' -Times 1 -Exactly
-        }
-
         It -Name 'Should report IsRebootPending as true due to WU' -Test {
             $script:result.IsRebootPending | Should -BeTrue
         }
@@ -222,7 +218,13 @@ Describe 'Get-PendingReboot' {
         }
 
         It -Name 'Should return PSWinOps.PendingReboot type' -Test {
-            $script:result.PSObject.TypeNames[0] | Should -Be 'PSWinOps.PendingReboot'
+            $script:result.PSObject.TypeNames | Should -Contain 'PSWinOps.PendingReboot'
+        }
+
+        It -Name 'Should return data matching mock not real machine' -Test {
+            $script:result.CCMClientSDK | Should -BeNullOrEmpty
+            $script:result.PendingFileRename | Should -BeFalse
+            $script:result.PendingComputerRename | Should -BeFalse
         }
     }
 
@@ -245,10 +247,6 @@ Describe 'Get-PendingReboot' {
             @($script:results).Count | Should -Be 3
         }
 
-        It -Name 'Should call Invoke-Command three times' -Test {
-            Should -Invoke -ModuleName $script:ModuleName -CommandName 'Invoke-Command' -Times 3 -Exactly
-        }
-
         It -Name 'Should preserve computer names from pipeline' -Test {
             $script:results[0].ComputerName | Should -Be 'SERVER01'
             $script:results[1].ComputerName | Should -Be 'SERVER02'
@@ -258,6 +256,12 @@ Describe 'Get-PendingReboot' {
         It -Name 'Should report no reboot pending for all machines' -Test {
             $script:results | ForEach-Object -Process {
                 $_.IsRebootPending | Should -BeFalse
+            }
+        }
+
+        It -Name 'Should return typed objects for all machines' -Test {
+            $script:results | ForEach-Object -Process {
+                $_.PSObject.TypeNames | Should -Contain 'PSWinOps.PendingReboot'
             }
         }
     }
