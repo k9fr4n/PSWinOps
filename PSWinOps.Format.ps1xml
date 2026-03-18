@@ -2,7 +2,10 @@
 <Configuration>
   <ViewDefinitions>
 
-    <!-- Default table view for PSWinOps.ActiveRdpSession -->
+    <!-- ============================================================ -->
+    <!-- PSWinOps.ActiveRdpSession                                    -->
+    <!-- Used by: Get-RdpSession, Get-ActiveRdpSession               -->
+    <!-- ============================================================ -->
     <View>
       <Name>PSWinOps.ActiveRdpSession</Name>
       <ViewSelectedBy>
@@ -10,54 +13,22 @@
       </ViewSelectedBy>
       <TableControl>
         <TableHeaders>
-          <TableColumnHeader>
-            <Label>ComputerName</Label>
-            <Width>20</Width>
-          </TableColumnHeader>
-          <TableColumnHeader>
-            <Label>UserName</Label>
-            <Width>20</Width>
-          </TableColumnHeader>
-          <TableColumnHeader>
-            <Label>SessionName</Label>
-            <Width>16</Width>
-          </TableColumnHeader>
-          <TableColumnHeader>
-            <Label>ID</Label>
-            <Width>4</Width>
-            <Alignment>Right</Alignment>
-          </TableColumnHeader>
-          <TableColumnHeader>
-            <Label>State</Label>
-            <Width>8</Width>
-          </TableColumnHeader>
-          <TableColumnHeader>
-            <Label>IdleTime</Label>
-            <Width>12</Width>
-          </TableColumnHeader>
-          <TableColumnHeader>
-            <Label>LogonTime</Label>
-            <Width>22</Width>
-          </TableColumnHeader>
+          <TableColumnHeader><Label>ComputerName</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>UserName</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>SessionName</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>ID</Label><Width>4</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>State</Label><Width>8</Width></TableColumnHeader>
+          <TableColumnHeader><Label>IdleTime</Label><Width>12</Width></TableColumnHeader>
+          <TableColumnHeader><Label>LogonTime</Label><Width>22</Width></TableColumnHeader>
         </TableHeaders>
         <TableRowEntries>
           <TableRowEntry>
             <TableColumnItems>
-              <TableColumnItem>
-                <PropertyName>ComputerName</PropertyName>
-              </TableColumnItem>
-              <TableColumnItem>
-                <PropertyName>UserName</PropertyName>
-              </TableColumnItem>
-              <TableColumnItem>
-                <PropertyName>SessionName</PropertyName>
-              </TableColumnItem>
-              <TableColumnItem>
-                <PropertyName>SessionID</PropertyName>
-              </TableColumnItem>
-              <TableColumnItem>
-                <PropertyName>State</PropertyName>
-              </TableColumnItem>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>UserName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>SessionName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>SessionID</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>State</PropertyName></TableColumnItem>
               <TableColumnItem>
                 <ScriptBlock>
                   if ($_.IdleTime -eq [TimeSpan]::Zero) { '.' } else { $_.IdleTime.ToString('d\+hh\:mm') -replace '^0\+', '' }
@@ -72,6 +43,259 @@
           </TableRowEntry>
         </TableRowEntries>
       </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.RdpSessionHistory                                   -->
+    <!-- Used by: Get-RDPSessionHistory                               -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.RdpSessionHistory</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.RdpSessionHistory</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>ComputerName</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>TimeCreated</Label><Width>22</Width></TableColumnHeader>
+          <TableColumnHeader><Label>User</Label><Width>24</Width></TableColumnHeader>
+          <TableColumnHeader><Label>IPAddress</Label><Width>18</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Action</Label><Width>14</Width></TableColumnHeader>
+          <TableColumnHeader><Label>EventID</Label><Width>8</Width><Alignment>Right</Alignment></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>$_.TimeCreated.ToString('yyyy-MM-dd HH:mm:ss')</ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem><PropertyName>User</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>IPAddress</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Action</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>EventID</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.RdpSessionLock                                      -->
+    <!-- Used by: Get-RdpSessionLock                                  -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.RdpSessionLock</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.RdpSessionLock</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>ComputerName</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>TimeCreated</Label><Width>22</Width></TableColumnHeader>
+          <TableColumnHeader><Label>UserName</Label><Width>28</Width></TableColumnHeader>
+          <TableColumnHeader><Label>SessionName</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Action</Label><Width>10</Width></TableColumnHeader>
+          <TableColumnHeader><Label>EventID</Label><Width>8</Width><Alignment>Right</Alignment></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>$_.TimeCreated.ToString('yyyy-MM-dd HH:mm:ss')</ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem><PropertyName>UserName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>SessionName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Action</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>EventID</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.NtpPeer                                             -->
+    <!-- Used by: Get-NTPPeer                                         -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.NtpPeer</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.NtpPeer</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>ComputerName</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>PeerName</Label><Width>30</Width></TableColumnHeader>
+          <TableColumnHeader><Label>State</Label><Width>14</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Stratum</Label><Width>8</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Mode</Label><Width>10</Width></TableColumnHeader>
+          <TableColumnHeader><Label>PeerPoll</Label><Width>9</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>HostPoll</Label><Width>9</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>TimeRemaining</Label><Width>14</Width><Alignment>Right</Alignment></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>PeerName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>State</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Stratum</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Mode</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>PeerPollInterval</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>HostPollInterval</PropertyName></TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>'{0:N2}s' -f $_.TimeRemaining</ScriptBlock>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.NtpSyncResult                                       -->
+    <!-- Used by: Test-NTPSync                                        -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.NtpSyncResult</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.NtpSyncResult</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>ComputerName</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>IsSynced</Label><Width>9</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Source</Label><Width>28</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Stratum</Label><Width>8</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>OffsetMs</Label><Width>10</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>LastSyncTime</Label><Width>22</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>IsSynced</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Source</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Stratum</PropertyName></TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>'{0:N4}' -f $_.OffsetMs</ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>if ($_.LastSyncTime) { $_.LastSyncTime.ToString('yyyy-MM-dd HH:mm:ss') } else { 'Never' }</ScriptBlock>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.NtpConfiguration                                    -->
+    <!-- Used by: Get-NTPConfiguration                                -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.NtpConfiguration</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.NtpConfiguration</TypeName>
+      </ViewSelectedBy>
+      <ListControl>
+        <ListEntries>
+          <ListEntry>
+            <ListItems>
+              <ListItem><Label>Service name</Label><PropertyName>ServiceName</PropertyName></ListItem>
+              <ListItem><Label>Service status</Label><PropertyName>ServiceStatus</PropertyName></ListItem>
+              <ListItem><Label>Sync type</Label><PropertyName>SyncType</PropertyName></ListItem>
+              <ListItem><Label>Configured servers</Label>
+                <ScriptBlock>$_.ConfiguredServers -join ', '</ScriptBlock>
+              </ListItem>
+              <ListItem><Label>Current source</Label><PropertyName>CurrentSource</PropertyName></ListItem>
+              <ListItem><Label>Last successful sync</Label><PropertyName>LastSuccessfulSync</PropertyName></ListItem>
+              <ListItem><Label>Stratum</Label><PropertyName>Stratum</PropertyName></ListItem>
+              <ListItem><Label>Leap indicator</Label><PropertyName>LeapIndicator</PropertyName></ListItem>
+              <ListItem><Label>Special poll interval (s)</Label><PropertyName>SpecialPollInterval</PropertyName></ListItem>
+              <ListItem><Label>Min poll interval (s)</Label><PropertyName>MinPollIntervalSec</PropertyName></ListItem>
+              <ListItem><Label>Max poll interval (s)</Label><PropertyName>MaxPollIntervalSec</PropertyName></ListItem>
+              <ListItem><Label>Queried at</Label><PropertyName>QueryTimestamp</PropertyName></ListItem>
+            </ListItems>
+          </ListEntry>
+        </ListEntries>
+      </ListControl>
+    </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.ComputerUptime                                      -->
+    <!-- Used by: Get-ComputerUptime                                  -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.ComputerUptime</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.ComputerUptime</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>ComputerName</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>LastBootTime</Label><Width>22</Width></TableColumnHeader>
+          <TableColumnHeader><Label>UptimeDays</Label><Width>11</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>UptimeDisplay</Label><Width>36</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>$_.LastBootTime.ToString('yyyy-MM-dd HH:mm:ss')</ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem><PropertyName>UptimeDays</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>UptimeDisplay</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.SystemSummary                                       -->
+    <!-- Used by: Get-SystemSummary                                   -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.SystemSummary</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.SystemSummary</TypeName>
+      </ViewSelectedBy>
+      <ListControl>
+        <ListEntries>
+          <ListEntry>
+            <ListItems>
+              <ListItem><Label>Computer name</Label><PropertyName>ComputerName</PropertyName></ListItem>
+              <ListItem><Label>Domain</Label><PropertyName>Domain</PropertyName></ListItem>
+              <ListItem><Label>OS name</Label><PropertyName>OSName</PropertyName></ListItem>
+              <ListItem><Label>OS version</Label><PropertyName>OSVersion</PropertyName></ListItem>
+              <ListItem><Label>Architecture</Label><PropertyName>OSArchitecture</PropertyName></ListItem>
+              <ListItem><Label>Last boot time</Label><PropertyName>LastBootTime</PropertyName></ListItem>
+              <ListItem><Label>Uptime</Label><PropertyName>UptimeDisplay</PropertyName></ListItem>
+              <ListItem><Label>Manufacturer</Label><PropertyName>Manufacturer</PropertyName></ListItem>
+              <ListItem><Label>Model</Label><PropertyName>Model</PropertyName></ListItem>
+              <ListItem><Label>Serial number</Label><PropertyName>SerialNumber</PropertyName></ListItem>
+              <ListItem><Label>BIOS version</Label><PropertyName>BIOSVersion</PropertyName></ListItem>
+              <ListItem><Label>Processor</Label><PropertyName>Processor</PropertyName></ListItem>
+              <ListItem><Label>Cores / Logical</Label>
+                <ScriptBlock>'{0} cores / {1} logical' -f $_.TotalCores, $_.TotalLogicalProcessors</ScriptBlock>
+              </ListItem>
+              <ListItem><Label>RAM (GB)</Label>
+                <ScriptBlock>'{0} GB total / {1} GB free ({2}% used)' -f $_.TotalRAMGB, $_.FreeRAMGB, $_.RAMUsagePercent</ScriptBlock>
+              </ListItem>
+              <ListItem><Label>Disks</Label><PropertyName>Disks</PropertyName></ListItem>
+              <ListItem><Label>IP addresses</Label><PropertyName>IPAddresses</PropertyName></ListItem>
+              <ListItem><Label>Default gateway</Label><PropertyName>DefaultGateway</PropertyName></ListItem>
+              <ListItem><Label>DNS servers</Label><PropertyName>DNSServers</PropertyName></ListItem>
+              <ListItem><Label>PS version</Label><PropertyName>PSVersion</PropertyName></ListItem>
+              <ListItem><Label>Queried at</Label><PropertyName>Timestamp</PropertyName></ListItem>
+            </ListItems>
+          </ListEntry>
+        </ListEntries>
+      </ListControl>
     </View>
 
   </ViewDefinitions>
