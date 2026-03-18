@@ -33,7 +33,7 @@ function Test-NTPSync {
 
         Pipeline example: tests NTP sync on multiple machines with a 2-second threshold.
     .NOTES
-        Author:        Ecritel IT Team
+        Author:        Franck SALLET
         Version:       1.0.0
         Last Modified: 2026-03-12
         Requires:      PowerShell 5.1+ / Windows only

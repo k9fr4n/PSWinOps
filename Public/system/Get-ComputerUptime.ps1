@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 
 function Get-ComputerUptime {
     <#
@@ -34,7 +34,7 @@ function Get-ComputerUptime {
 
         Queries multiple servers via pipeline with explicit credentials.
     .NOTES
-        Author:        PSWinOps
+        Author:        Franck SALLET
         Version:       1.2.0
         Last Modified: 2026-03-15
         Requires:      PowerShell 5.1+ / Windows only
@@ -69,13 +69,11 @@ function Get-ComputerUptime {
                 if ($isLocal) {
                     Write-Verbose "[$($MyInvocation.MyCommand)] Querying local machine: $machine"
                     $osInfo = Get-CimInstance -ClassName 'Win32_OperatingSystem' -ErrorAction Stop
-                }
-                elseif ($hasCredential) {
+                } elseif ($hasCredential) {
                     Write-Verbose "[$($MyInvocation.MyCommand)] Querying remote machine with credentials: $machine"
                     $cimSession = New-CimSession -ComputerName $machine -Credential $Credential -ErrorAction Stop
                     $osInfo = Get-CimInstance -ClassName 'Win32_OperatingSystem' -CimSession $cimSession -ErrorAction Stop
-                }
-                else {
+                } else {
                     Write-Verbose "[$($MyInvocation.MyCommand)] Querying remote machine: $machine"
                     $osInfo = Get-CimInstance -ClassName 'Win32_OperatingSystem' -ComputerName $machine -ErrorAction Stop
                 }
@@ -85,6 +83,7 @@ function Get-ComputerUptime {
                 $uptimeDisplay = '{0} days, {1} hours, {2} minutes' -f $uptime.Days, $uptime.Hours, $uptime.Minutes
 
                 [PSCustomObject]@{
+                    PSTypeName    = 'PSWinOps.ComputerUptime'
                     ComputerName  = $machine
                     LastBootTime  = $lastBoot
                     Uptime        = $uptime
@@ -92,11 +91,9 @@ function Get-ComputerUptime {
                     UptimeDisplay = $uptimeDisplay
                     Timestamp     = Get-Date -Format 'o'
                 }
-            }
-            catch {
+            } catch {
                 Write-Error "[$($MyInvocation.MyCommand)] Failed to query '${machine}': $_"
-            }
-            finally {
+            } finally {
                 if ($null -ne $cimSession) {
                     Remove-CimSession -CimSession $cimSession -ErrorAction SilentlyContinue
                     Write-Verbose "[$($MyInvocation.MyCommand)] Cleaned up CimSession for: $machine"

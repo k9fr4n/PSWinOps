@@ -54,7 +54,7 @@ function Sync-NTPTime {
         restarting the w32time service on each before resyncing.
 
     .NOTES
-        Author: Franck SALLET (k9fr4n)
+        Author: Franck SALLET
         Version: 1.0.0
         Last Modified: 2026-03-12
         Requires: PowerShell 5.1+ / Windows only
@@ -142,7 +142,7 @@ function Sync-NTPTime {
                     }
 
                     [PSCustomObject]@{
-                        PSTypeName       = 'PSWinOps.NTPSyncResult'
+                        PSTypeName       = 'PSWinOps.NtpResyncResult'
                         ComputerName     = $targetComputer
                         Success          = $isSuccess
                         ServiceRestarted = $serviceRestarted

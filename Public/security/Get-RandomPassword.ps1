@@ -45,7 +45,7 @@ function Get-RandomPassword {
     Generates 5 unique passwords with 20 characters each.
 
 .NOTES
-    Author:        PSWinOps Module
+    Author:        Franck SALLET
     Version:       1.1.0
     Last Modified: 2026-03-11
     Requires:      PowerShell 5.1+

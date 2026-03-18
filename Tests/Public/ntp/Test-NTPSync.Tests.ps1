@@ -26,7 +26,7 @@
     Runs only tests tagged as nominal scenarios.
 
 .NOTES
-    Author:        Ecritel IT Team
+    Author:        Franck SALLET
     Version:       1.0.0
     Last Modified: 2026-03-12
     Requires:      Pester 5.x, PowerShell 5.1+
