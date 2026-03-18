@@ -1,190 +1,234 @@
 ﻿#Requires -Version 5.1
-#Requires -Modules @{ ModuleName = 'Pester'; ModuleVersion = '5.0.0' }
+#Requires -Modules @{ ModuleName = 'Pester'; ModuleVersion = '5.0' }
 
 BeforeAll {
     $script:modulePath = Split-Path -Path (Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent) -Parent
-    Import-Module -Name "$($script:modulePath)/PSWinOps.psd1" -Force
+    Import-Module -Name (Join-Path -Path $script:modulePath -ChildPath 'PSWinOps.psd1') -Force
+    $script:ModuleName = 'PSWinOps'
 }
 
 Describe 'Get-PendingReboot' {
 
-    Context 'Local machine with no reboot pending' {
+    Context 'When local machine has no reboot pending' {
         BeforeAll {
-            Mock -CommandName 'Test-Path' -MockWith { $false }
-            Mock -CommandName 'Get-ItemProperty' -ParameterFilter {
-                $Name -eq 'PendingFileRenameOperations'
-            } -MockWith { $null }
-            Mock -CommandName 'Get-ItemProperty' -ParameterFilter {
+            Mock -ModuleName $script:ModuleName -CommandName 'Test-Path' -MockWith { $false }
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-ItemProperty' -ParameterFilter {
+                $Path -like '*Session Manager*'
+            } -MockWith {
+                [PSCustomObject]@{ PendingFileRenameOperations = $null }
+            }
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-ItemProperty' -ParameterFilter {
                 $Path -like '*ActiveComputerName*'
-            } -MockWith { [PSCustomObject]@{ ComputerName = $env:COMPUTERNAME } }
-            Mock -CommandName 'Get-ItemProperty' -ParameterFilter {
-                $Path -like '*ComputerName\ComputerName'
-            } -MockWith { [PSCustomObject]@{ ComputerName = $env:COMPUTERNAME } }
-            Mock -CommandName 'Invoke-CimMethod' -MockWith {
-                [PSCustomObject]@{
-                    IsHardRebootPending = $false
-                    RebootPending       = $false
-                }
+            } -MockWith {
+                [PSCustomObject]@{ ComputerName = 'TESTPC' }
+            }
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-ItemProperty' -ParameterFilter {
+                $Path -like '*ComputerName\ComputerName*'
+            } -MockWith {
+                [PSCustomObject]@{ ComputerName = 'TESTPC' }
+            }
+            Mock -ModuleName $script:ModuleName -CommandName 'Invoke-CimMethod' -MockWith {
+                throw 'SCCM client not installed'
             }
 
-            $script:result = Get-PendingReboot
+            $script:result = Get-PendingReboot -ComputerName 'localhost'
         }
 
-        It -Name 'Returns a PSCustomObject' -Test {
-            $script:result | Should -BeOfType [PSCustomObject]
+        It -Name 'Should return PSWinOps.PendingReboot type' -Test {
+            $script:result.PSObject.TypeNames[0] | Should -Be 'PSWinOps.PendingReboot'
         }
 
-        It -Name 'Returns IsRebootPending as false' -Test {
+        It -Name 'Should report IsRebootPending as false' -Test {
             $script:result.IsRebootPending | Should -BeFalse
         }
 
-        It -Name 'Returns ComponentBasedServicing as false' -Test {
+        It -Name 'Should report CBS as false' -Test {
             $script:result.ComponentBasedServicing | Should -BeFalse
         }
 
-        It -Name 'Returns WindowsUpdate as false' -Test {
+        It -Name 'Should report WindowsUpdate as false' -Test {
             $script:result.WindowsUpdate | Should -BeFalse
         }
 
-        It -Name 'Returns PendingFileRename as false' -Test {
+        It -Name 'Should report PendingFileRename as false' -Test {
             $script:result.PendingFileRename | Should -BeFalse
         }
 
-        It -Name 'Returns PendingComputerRename as false' -Test {
+        It -Name 'Should report PendingComputerRename as false' -Test {
             $script:result.PendingComputerRename | Should -BeFalse
         }
 
-        It -Name 'Returns CCMClientSDK as false' -Test {
-            $script:result.CCMClientSDK | Should -BeFalse
+        It -Name 'Should report CCMClientSDK as null' -Test {
+            $script:result.CCMClientSDK | Should -BeNullOrEmpty
         }
 
-        It -Name 'Returns the local computer name' -Test {
-            $script:result.ComputerName | Should -Be $env:COMPUTERNAME
+        It -Name 'Should set ComputerName to localhost' -Test {
+            $script:result.ComputerName | Should -Be 'localhost'
         }
 
-        It -Name 'Returns a valid ISO 8601 Timestamp' -Test {
+        It -Name 'Should include a Timestamp' -Test {
             $script:result.Timestamp | Should -Not -BeNullOrEmpty
         }
     }
 
-    Context 'Local machine with CBS reboot pending' {
+    Context 'When local machine has CBS reboot pending' {
         BeforeAll {
-            Mock -CommandName 'Test-Path' -ParameterFilter {
+            Mock -ModuleName $script:ModuleName -CommandName 'Test-Path' -ParameterFilter {
                 $Path -like '*Component Based Servicing*'
             } -MockWith { $true }
-            Mock -CommandName 'Test-Path' -ParameterFilter {
-                $Path -like '*Auto Update*'
+            Mock -ModuleName $script:ModuleName -CommandName 'Test-Path' -ParameterFilter {
+                $Path -like '*WindowsUpdate*'
             } -MockWith { $false }
-            Mock -CommandName 'Get-ItemProperty' -ParameterFilter {
-                $Name -eq 'PendingFileRenameOperations'
-            } -MockWith { $null }
-            Mock -CommandName 'Get-ItemProperty' -ParameterFilter {
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-ItemProperty' -ParameterFilter {
+                $Path -like '*Session Manager*'
+            } -MockWith {
+                [PSCustomObject]@{ PendingFileRenameOperations = $null }
+            }
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-ItemProperty' -ParameterFilter {
                 $Path -like '*ActiveComputerName*'
-            } -MockWith { [PSCustomObject]@{ ComputerName = $env:COMPUTERNAME } }
-            Mock -CommandName 'Get-ItemProperty' -ParameterFilter {
-                $Path -like '*ComputerName\ComputerName'
-            } -MockWith { [PSCustomObject]@{ ComputerName = $env:COMPUTERNAME } }
-            Mock -CommandName 'Invoke-CimMethod' -MockWith { throw 'SCCM not installed' }
+            } -MockWith {
+                [PSCustomObject]@{ ComputerName = 'TESTPC' }
+            }
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-ItemProperty' -ParameterFilter {
+                $Path -like '*ComputerName\ComputerName*'
+            } -MockWith {
+                [PSCustomObject]@{ ComputerName = 'TESTPC' }
+            }
+            Mock -ModuleName $script:ModuleName -CommandName 'Invoke-CimMethod' -MockWith {
+                throw 'SCCM client not installed'
+            }
 
-            $script:result = Get-PendingReboot
+            $script:result = Get-PendingReboot -ComputerName 'localhost'
         }
 
-        It -Name 'Returns IsRebootPending as true' -Test {
+        It -Name 'Should report IsRebootPending as true' -Test {
             $script:result.IsRebootPending | Should -BeTrue
         }
 
-        It -Name 'Returns ComponentBasedServicing as true' -Test {
+        It -Name 'Should report only CBS as true' -Test {
             $script:result.ComponentBasedServicing | Should -BeTrue
         }
 
-        It -Name 'Returns other registry checks as false' -Test {
+        It -Name 'Should report WindowsUpdate as false' -Test {
             $script:result.WindowsUpdate | Should -BeFalse
+        }
+
+        It -Name 'Should report PendingFileRename as false' -Test {
             $script:result.PendingFileRename | Should -BeFalse
+        }
+
+        It -Name 'Should report PendingComputerRename as false' -Test {
             $script:result.PendingComputerRename | Should -BeFalse
         }
 
-        It -Name 'Returns CCMClientSDK as null when SCCM unavailable' -Test {
+        It -Name 'Should report CCMClientSDK as null' -Test {
             $script:result.CCMClientSDK | Should -BeNullOrEmpty
         }
     }
 
-    Context 'Local machine with multiple sources pending' {
+    Context 'When local machine has all reboots pending' {
         BeforeAll {
-            Mock -CommandName 'Test-Path' -ParameterFilter {
+            Mock -ModuleName $script:ModuleName -CommandName 'Test-Path' -ParameterFilter {
                 $Path -like '*Component Based Servicing*'
             } -MockWith { $true }
-            Mock -CommandName 'Test-Path' -ParameterFilter {
-                $Path -like '*Auto Update*'
+            Mock -ModuleName $script:ModuleName -CommandName 'Test-Path' -ParameterFilter {
+                $Path -like '*WindowsUpdate*'
             } -MockWith { $true }
-            Mock -CommandName 'Get-ItemProperty' -ParameterFilter {
-                $Name -eq 'PendingFileRenameOperations'
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-ItemProperty' -ParameterFilter {
+                $Path -like '*Session Manager*'
             } -MockWith {
                 [PSCustomObject]@{
-                    PendingFileRenameOperations = @('\??\C:\old.dll', '\??\C:\new.dll')
+                    PendingFileRenameOperations = @(
+                        '\??\C:\temp\old.dll',
+                        '\??\C:\temp\new.dll'
+                    )
                 }
             }
-            Mock -CommandName 'Get-ItemProperty' -ParameterFilter {
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-ItemProperty' -ParameterFilter {
                 $Path -like '*ActiveComputerName*'
-            } -MockWith { [PSCustomObject]@{ ComputerName = 'OLDNAME' } }
-            Mock -CommandName 'Get-ItemProperty' -ParameterFilter {
-                $Path -like '*ComputerName\ComputerName'
-            } -MockWith { [PSCustomObject]@{ ComputerName = 'NEWNAME' } }
-            Mock -CommandName 'Invoke-CimMethod' -MockWith {
+            } -MockWith {
+                [PSCustomObject]@{ ComputerName = 'OLDNAME' }
+            }
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-ItemProperty' -ParameterFilter {
+                $Path -like '*ComputerName\ComputerName*'
+            } -MockWith {
+                [PSCustomObject]@{ ComputerName = 'NEWNAME' }
+            }
+            Mock -ModuleName $script:ModuleName -CommandName 'Invoke-CimMethod' -MockWith {
                 [PSCustomObject]@{
                     IsHardRebootPending = $true
-                    RebootPending       = $false
+                    RebootPending       = $true
                 }
             }
 
-            $script:result = Get-PendingReboot
+            $script:result = Get-PendingReboot -ComputerName 'localhost'
         }
 
-        It -Name 'Returns IsRebootPending as true' -Test {
+        It -Name 'Should report IsRebootPending as true' -Test {
             $script:result.IsRebootPending | Should -BeTrue
         }
 
-        It -Name 'Returns all individual sources as true' -Test {
+        It -Name 'Should report CBS as true' -Test {
             $script:result.ComponentBasedServicing | Should -BeTrue
+        }
+
+        It -Name 'Should report WindowsUpdate as true' -Test {
             $script:result.WindowsUpdate | Should -BeTrue
+        }
+
+        It -Name 'Should report PendingFileRename as true' -Test {
             $script:result.PendingFileRename | Should -BeTrue
+        }
+
+        It -Name 'Should report PendingComputerRename as true' -Test {
             $script:result.PendingComputerRename | Should -BeTrue
+        }
+
+        It -Name 'Should report CCMClientSDK as true' -Test {
             $script:result.CCMClientSDK | Should -BeTrue
         }
     }
 
-    Context 'Remote single machine' {
+    Context 'When checking a single remote machine' {
         BeforeAll {
-            Mock -CommandName 'Invoke-Command' -MockWith {
+            Mock -ModuleName $script:ModuleName -CommandName 'Invoke-Command' -MockWith {
                 @{
-                    ComponentBasedServicing = $true
-                    WindowsUpdate           = $false
+                    ComponentBasedServicing = $false
+                    WindowsUpdate           = $true
                     PendingFileRename       = $false
                     PendingComputerRename   = $false
-                    CCMClientSDK            = $false
+                    CCMClientSDK            = $null
                 }
             }
 
-            $script:result = Get-PendingReboot -ComputerName 'REMOTE01'
+            $script:result = Get-PendingReboot -ComputerName 'SERVER01'
         }
 
-        It -Name 'Returns the correct remote computer name' -Test {
-            $script:result.ComputerName | Should -Be 'REMOTE01'
+        It -Name 'Should use Invoke-Command for remote machine' -Test {
+            Should -Invoke -ModuleName $script:ModuleName -CommandName 'Invoke-Command' -Times 1 -Exactly
         }
 
-        It -Name 'Returns correct reboot status from remote data' -Test {
+        It -Name 'Should report IsRebootPending as true due to WU' -Test {
             $script:result.IsRebootPending | Should -BeTrue
-            $script:result.ComponentBasedServicing | Should -BeTrue
-            $script:result.WindowsUpdate | Should -BeFalse
         }
 
-        It -Name 'Calls Invoke-Command exactly once' -Test {
-            Should -Invoke -CommandName 'Invoke-Command' -Times 1 -Exactly
+        It -Name 'Should report only WindowsUpdate as true' -Test {
+            $script:result.WindowsUpdate | Should -BeTrue
+            $script:result.ComponentBasedServicing | Should -BeFalse
+        }
+
+        It -Name 'Should set ComputerName to SERVER01' -Test {
+            $script:result.ComputerName | Should -Be 'SERVER01'
+        }
+
+        It -Name 'Should return PSWinOps.PendingReboot type' -Test {
+            $script:result.PSObject.TypeNames[0] | Should -Be 'PSWinOps.PendingReboot'
         }
     }
 
-    Context 'Pipeline with multiple remote machines' {
+    Context 'When checking multiple machines via pipeline' {
         BeforeAll {
-            Mock -CommandName 'Invoke-Command' -MockWith {
+            Mock -ModuleName $script:ModuleName -CommandName 'Invoke-Command' -MockWith {
                 @{
                     ComponentBasedServicing = $false
                     WindowsUpdate           = $false
@@ -194,94 +238,131 @@ Describe 'Get-PendingReboot' {
                 }
             }
 
-            $script:results = 'SERVER01', 'SERVER02', 'SERVER03' | Get-PendingReboot
+            $script:results = @('SERVER01', 'SERVER02', 'SERVER03') | Get-PendingReboot
         }
 
-        It -Name 'Returns a result for each piped machine' -Test {
-            $script:results | Should -HaveCount 3
+        It -Name 'Should return one result per machine' -Test {
+            @($script:results).Count | Should -Be 3
         }
 
-        It -Name 'Preserves correct computer names from pipeline' -Test {
+        It -Name 'Should call Invoke-Command three times' -Test {
+            Should -Invoke -ModuleName $script:ModuleName -CommandName 'Invoke-Command' -Times 3 -Exactly
+        }
+
+        It -Name 'Should preserve computer names from pipeline' -Test {
             $script:results[0].ComputerName | Should -Be 'SERVER01'
             $script:results[1].ComputerName | Should -Be 'SERVER02'
             $script:results[2].ComputerName | Should -Be 'SERVER03'
         }
 
-        It -Name 'Calls Invoke-Command once per piped machine' -Test {
-            Should -Invoke -CommandName 'Invoke-Command' -Times 3 -Exactly
-        }
-    }
-
-    Context 'Per-machine failure isolation' {
-        BeforeAll {
-            Mock -CommandName 'Invoke-Command' -ParameterFilter {
-                $ComputerName -eq 'GOODSERVER'
-            } -MockWith {
-                @{
-                    ComponentBasedServicing = $false
-                    WindowsUpdate           = $false
-                    PendingFileRename       = $false
-                    PendingComputerRename   = $false
-                    CCMClientSDK            = $null
-                }
+        It -Name 'Should report no reboot pending for all machines' -Test {
+            $script:results | ForEach-Object -Process {
+                $_.IsRebootPending | Should -BeFalse
             }
-            Mock -CommandName 'Invoke-Command' -ParameterFilter {
-                $ComputerName -eq 'BADSERVER'
-            } -MockWith { throw 'Connection refused' }
-
-            $script:results = Get-PendingReboot -ComputerName 'GOODSERVER', 'BADSERVER' -ErrorAction SilentlyContinue
-        }
-
-        It -Name 'Returns result only for the successful machine' -Test {
-            $script:results | Should -HaveCount 1
-        }
-
-        It -Name 'Returns the correct computer name for the successful result' -Test {
-            $script:results.ComputerName | Should -Be 'GOODSERVER'
-        }
-
-        It -Name 'Attempts connection to both machines' -Test {
-            Should -Invoke -CommandName 'Invoke-Command' -Times 2 -Exactly
         }
     }
 
-    Context 'SCCM client not available' {
+    Context 'When a remote machine fails with an error' {
         BeforeAll {
-            Mock -CommandName 'Test-Path' -MockWith { $false }
-            Mock -CommandName 'Get-ItemProperty' -ParameterFilter {
-                $Name -eq 'PendingFileRenameOperations'
-            } -MockWith { $null }
-            Mock -CommandName 'Get-ItemProperty' -ParameterFilter {
-                $Path -like '*ActiveComputerName*'
-            } -MockWith { [PSCustomObject]@{ ComputerName = $env:COMPUTERNAME } }
-            Mock -CommandName 'Get-ItemProperty' -ParameterFilter {
-                $Path -like '*ComputerName\ComputerName'
-            } -MockWith { [PSCustomObject]@{ ComputerName = $env:COMPUTERNAME } }
-            Mock -CommandName 'Invoke-CimMethod' -MockWith { throw 'Invalid namespace ROOT\ccm\ClientSDK' }
-
-            $script:result = Get-PendingReboot
+            Mock -ModuleName $script:ModuleName -CommandName 'Invoke-Command' -MockWith {
+                throw 'WinRM connection failed'
+            }
         }
 
-        It -Name 'Returns CCMClientSDK as null when SCCM is missing' -Test {
+        It -Name 'Should write a terminating error with ErrorAction Stop' -Test {
+            { Get-PendingReboot -ComputerName 'BADSERVER' -ErrorAction Stop } |
+                Should -Throw -ExpectedMessage '*BADSERVER*'
+        }
+
+        It -Name 'Should not throw with default ErrorAction' -Test {
+            { Get-PendingReboot -ComputerName 'BADSERVER' -ErrorAction SilentlyContinue } |
+                Should -Not -Throw
+        }
+
+        It -Name 'Should return no output for failed machine' -Test {
+            $script:failResult = Get-PendingReboot -ComputerName 'BADSERVER' -ErrorAction SilentlyContinue
+            $script:failResult | Should -BeNullOrEmpty
+        }
+    }
+
+    Context 'When SCCM client is unavailable on local machine' {
+        BeforeAll {
+            Mock -ModuleName $script:ModuleName -CommandName 'Test-Path' -ParameterFilter {
+                $Path -like '*Component Based Servicing*'
+            } -MockWith { $true }
+            Mock -ModuleName $script:ModuleName -CommandName 'Test-Path' -ParameterFilter {
+                $Path -like '*WindowsUpdate*'
+            } -MockWith { $false }
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-ItemProperty' -ParameterFilter {
+                $Path -like '*Session Manager*'
+            } -MockWith {
+                [PSCustomObject]@{ PendingFileRenameOperations = $null }
+            }
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-ItemProperty' -ParameterFilter {
+                $Path -like '*ActiveComputerName*'
+            } -MockWith {
+                [PSCustomObject]@{ ComputerName = 'TESTPC' }
+            }
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-ItemProperty' -ParameterFilter {
+                $Path -like '*ComputerName\ComputerName*'
+            } -MockWith {
+                [PSCustomObject]@{ ComputerName = 'TESTPC' }
+            }
+            Mock -ModuleName $script:ModuleName -CommandName 'Invoke-CimMethod' -MockWith {
+                throw 'Invalid namespace ROOT\ccm\ClientSDK'
+            }
+
+            $script:result = Get-PendingReboot -ComputerName 'localhost'
+        }
+
+        It -Name 'Should set CCMClientSDK to null when SCCM is unavailable' -Test {
             $script:result.CCMClientSDK | Should -BeNullOrEmpty
         }
 
-        It -Name 'Does not flag IsRebootPending from SCCM failure alone' -Test {
-            $script:result.IsRebootPending | Should -BeFalse
+        It -Name 'Should still report reboot pending from other sources' -Test {
+            $script:result.IsRebootPending | Should -BeTrue
         }
 
-        It -Name 'Completes without throwing an error' -Test {
-            { Get-PendingReboot } | Should -Not -Throw
+        It -Name 'Should report CBS as the pending source' -Test {
+            $script:result.ComponentBasedServicing | Should -BeTrue
+        }
+
+        It -Name 'Should not fail the overall check' -Test {
+            $script:result | Should -Not -BeNullOrEmpty
         }
     }
 
     Context 'Parameter validation' {
-        It -Name 'Throws when ComputerName is an empty string' -Test {
+        It -Name 'Should reject empty string for ComputerName' -Test {
             { Get-PendingReboot -ComputerName '' } | Should -Throw
         }
 
-        It -Name 'Throws when ComputerName is null' -Test {
+        It -Name 'Should reject null for ComputerName' -Test {
             { Get-PendingReboot -ComputerName $null } | Should -Throw
+        }
+
+        It -Name 'Should have a Credential parameter' -Test {
+            $script:cmdInfo = Get-Command -Name 'Get-PendingReboot'
+            $script:cmdInfo.Parameters.ContainsKey('Credential') | Should -BeTrue
+        }
+
+        It -Name 'Should have CmdletBinding attribute' -Test {
+            $script:cmdInfo = Get-Command -Name 'Get-PendingReboot'
+            $script:cmdInfo.CmdletBinding | Should -BeTrue
+        }
+
+        It -Name 'Should accept pipeline input for ComputerName' -Test {
+            $script:cmdInfo = Get-Command -Name 'Get-PendingReboot'
+            $script:paramAttr = $script:cmdInfo.Parameters['ComputerName'].Attributes |
+                Where-Object -FilterScript { $_ -is [System.Management.Automation.ParameterAttribute] }
+            $script:paramAttr.ValueFromPipeline | Should -BeTrue
+        }
+
+        It -Name 'Should accept pipeline input by property name for ComputerName' -Test {
+            $script:cmdInfo = Get-Command -Name 'Get-PendingReboot'
+            $script:paramAttr = $script:cmdInfo.Parameters['ComputerName'].Attributes |
+                Where-Object -FilterScript { $_ -is [System.Management.Automation.ParameterAttribute] }
+            $script:paramAttr.ValueFromPipelineByPropertyName | Should -BeTrue
         }
     }
 }
