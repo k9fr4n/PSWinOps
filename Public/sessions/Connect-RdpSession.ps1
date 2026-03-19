@@ -24,7 +24,7 @@ function Connect-RdpSession {
     machine. Accepts pipeline input by property name.
 
 .PARAMETER SessionID
-    The numeric session ID to shadow. Retrieve this value with Get-ActiveRdpSession.
+    The numeric session ID to shadow. Retrieve this value with Get-RdpSession.
     Accepts pipeline input by value and by property name.
 
 .PARAMETER ControlMode
@@ -47,7 +47,7 @@ function Connect-RdpSession {
     The user receives a consent prompt (default behavior).
 
 .EXAMPLE
-    Get-ActiveRdpSession -ComputerName 'APP01' |
+    Get-RdpSession -ComputerName 'APP01' |
         Where-Object { $_.UserName -eq 'adm-fsallet' } |
         Connect-RdpSession -ControlMode View
     Finds the session for adm-fsallet via pipeline and connects in view-only mode.

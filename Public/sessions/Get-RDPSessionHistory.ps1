@@ -54,8 +54,8 @@
 
 .NOTES
     Author:        Franck SALLET
-    Version:       1.0.0
-    Last Modified: 2026-03-11
+    Version:       1.1.0
+    Last Modified: 2026-03-19
     Requires:      PowerShell 5.1+
     Permissions:   Remote Event Log Readers group or local Administrator on target machines
 
@@ -83,7 +83,7 @@
         Write-Verbose "[$($MyInvocation.MyCommand)] Starting - PowerShell $($PSVersionTable.PSVersion)"
 
         # Event ID to Action mapping
-        $script:eventActionMap = @{
+        $eventActionMap = @{
             21 = 'Logon'
             23 = 'Logoff'
             24 = 'Disconnected'
@@ -91,7 +91,7 @@
         }
 
         # Filter configuration
-        $script:logFilter = @{
+        $logFilter = @{
             LogName   = 'Microsoft-Windows-TerminalServices-LocalSessionManager/Operational'
             ID        = 21, 23, 24, 25
             StartTime = $StartTime
@@ -106,7 +106,7 @@
 
             # Build Get-WinEvent parameters
             $winEventParams = @{
-                FilterHashtable = $script:logFilter
+                FilterHashtable = $logFilter
                 ComputerName    = $computer
                 ErrorAction     = 'Stop'
             }
@@ -139,8 +139,9 @@
                             ComputerName = $computer
                             User         = $eventData.User
                             IPAddress    = $eventData.Address
-                            Action       = $script:eventActionMap[[int]$eventEntry.Id]
+                            Action       = $eventActionMap[[int]$eventEntry.Id]
                             EventID      = $eventEntry.Id
+                            Timestamp    = Get-Date -Format 'o'
                         }
                     } catch {
                         Write-Warning "[$($MyInvocation.MyCommand)] Failed to parse event ID $($eventEntry.Id) on $computer - $_"

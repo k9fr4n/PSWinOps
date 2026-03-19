@@ -225,7 +225,7 @@ Describe -Name 'Connect-RdpSession' -Fixture {
     }
 
     # ===========================================================================
-    Context -Name 'When processing pipeline input from Get-ActiveRdpSession' -Fixture {
+    Context -Name 'When processing pipeline input from Get-RdpSession' -Fixture {
 
         It -Name 'Should accept SessionID and ComputerName from pipeline by property name' -Test {
             Mock -CommandName 'Invoke-QwinstaQuery' -ModuleName 'PSWinOps' -MockWith {

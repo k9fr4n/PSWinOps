@@ -43,8 +43,8 @@
 
 .NOTES
     Author:        Franck SALLET
-    Version:       1.0.0
-    Last Modified: 2026-03-11
+    Version:       1.1.0
+    Last Modified: 2026-03-19
     Requires:      PowerShell 5.1+
     Permissions:   Event Log Readers group or local Administrator on target machines
     Note:          Security log access requires elevated permissions
@@ -73,13 +73,13 @@
         Write-Verbose "[$($MyInvocation.MyCommand)] Starting - PowerShell $($PSVersionTable.PSVersion)"
 
         # Event ID to Action mapping
-        $script:lockActionMap = @{
+        $lockActionMap = @{
             4800 = 'Locked'
             4801 = 'Unlocked'
         }
 
         # Filter configuration for Security log
-        $script:securityFilter = @{
+        $securityFilter = @{
             LogName   = 'Security'
             ID        = 4800, 4801
             StartTime = $StartTime
@@ -94,7 +94,7 @@
 
             # Build Get-WinEvent parameters
             $winEventParams = @{
-                FilterHashtable = $script:securityFilter
+                FilterHashtable = $securityFilter
                 ComputerName    = $computer
                 ErrorAction     = 'Stop'
             }
@@ -141,9 +141,10 @@
                             ComputerName = $computer
                             UserName     = $fullUserName
                             SessionName  = $sessionName
-                            Action       = $script:lockActionMap[[int]$lockEvent.Id]
+                            Action       = $lockActionMap[[int]$lockEvent.Id]
                             EventID      = $lockEvent.Id
                             UserSID      = $targetUserSid
+                            Timestamp    = Get-Date -Format 'o'
                         }
 
                     } catch {
