@@ -119,7 +119,7 @@ Describe -Name 'Get-NTPConfiguration' -Fixture {
                 'ServiceName', 'ServiceStatus', 'SyncType', 'ConfiguredServers',
                 'CurrentSource', 'LastSuccessfulSync', 'Stratum', 'LeapIndicator',
                 'SpecialPollInterval', 'MinPollInterval', 'MaxPollInterval',
-                'MinPollIntervalSec', 'MaxPollIntervalSec', 'QueryTimestamp'
+                'MinPollIntervalSec', 'MaxPollIntervalSec', 'Timestamp'
             )
             foreach ($prop in $expected) {
                 $result.PSObject.Properties.Name | Should -Contain $prop
@@ -190,9 +190,9 @@ Describe -Name 'Get-NTPConfiguration' -Fixture {
             $result.MaxPollIntervalSec | Should -Be 1024
         }
 
-        It -Name 'QueryTimestamp should be parseable as ISO 8601' -Test {
+        It -Name 'Timestamp should be parseable as ISO 8601' -Test {
             $result = Get-NTPConfiguration
-            { [datetime]::Parse($result.QueryTimestamp) } | Should -Not -Throw
+            { [datetime]::Parse($result.Timestamp) } | Should -Not -Throw
         }
 
         It -Name 'LeapIndicator should not be Unknown' -Test {

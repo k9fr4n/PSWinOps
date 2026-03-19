@@ -65,7 +65,9 @@ function Get-NTPConfiguration {
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand)] Starting - PowerShell $($PSVersionTable.PSVersion)"
 
-        $w32tmScriptBlock = {
+        # Script block used for REMOTE execution only (Invoke-Command).
+        # Uses full path to w32tm.exe because remote sessions don't inherit local mock context.
+        $w32tmRemoteScriptBlock = {
             $w32tmPath = Join-Path -Path $env:SystemRoot -ChildPath 'System32\w32tm.exe'
             if (-not (Test-Path -Path $w32tmPath)) {
                 throw "w32tm.exe not found at '$w32tmPath'"
@@ -89,10 +91,16 @@ function Get-NTPConfiguration {
                            ($computer -eq '.')
 
                 if ($isLocal) {
-                    $rawData = & $w32tmScriptBlock
+                    # Local execution: call commands by name so they are mockable in Pester
+                    $rawData = @{
+                        ServiceStatus = (Get-Service -Name 'w32time' -ErrorAction Stop).Status
+                        Config        = w32tm /query /configuration 2>&1
+                        Status        = w32tm /query /status /verbose 2>&1
+                        Peers         = w32tm /query /peers 2>&1
+                    }
                 } else {
                     $rawData = Invoke-Command -ComputerName $computer `
-                        -ScriptBlock $w32tmScriptBlock -ErrorAction Stop
+                        -ScriptBlock $w32tmRemoteScriptBlock -ErrorAction Stop
                 }
 
                 $configOutput = $rawData.Config

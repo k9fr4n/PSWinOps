@@ -101,8 +101,8 @@ Describe 'ConvertFrom-QUserIdleTime' {
 
         It 'Always returns a TimeSpan object' {
             $inputs = @('.', 'none', '', '5', '8:05', '1+08:15', 'bogus')
-            foreach ($input in $inputs) {
-                $result = & (Get-Module -Name 'PSWinOps') { ConvertFrom-QUserIdleTime -IdleTimeString $using:input }
+            foreach ($val in $inputs) {
+                $result = & (Get-Module -Name 'PSWinOps') { param($v) ConvertFrom-QUserIdleTime -IdleTimeString $v } $val
                 $result | Should -BeOfType [TimeSpan]
             }
         }
