@@ -72,9 +72,10 @@ FormatsToProcess = 'PSWinOps.Format.ps1xml'
 FunctionsToExport = 'Connect-RdpSession', 'ConvertFrom-MisencodedString', 
                'Disconnect-RdpSession', 'Get-ComputerUptime', 
                'Get-NTPConfiguration', 'Get-NTPPeer', 'Get-NTPSyncStatus', 
-               'Get-PendingReboot', 'Get-RandomPassword', 'Get-RdpSession', 
-               'Get-RDPSessionHistory', 'Get-RdpSessionLock', 'Get-SystemSummary', 
-               'Remove-RdpSession', 'Set-NTPClient', 'Sync-NTPTime'
+               'Get-PendingReboot', 'Get-ProxyConfiguration', 'Get-RandomPassword', 
+               'Get-RdpSession', 'Get-RDPSessionHistory', 'Get-RdpSessionLock', 
+               'Get-SystemSummary', 'Remove-RdpSession', 'Set-NTPClient', 
+               'Sync-NTPTime'
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = @()
