@@ -39,7 +39,7 @@
     Shows what would happen if session 3 were removed from WEB01.
 
 .EXAMPLE
-    'APP01' | Get-ActiveRdpSession | Where-Object { $_.UserName -eq 'DOMAIN\olduser' } | Remove-RdpSession -Credential $cred
+    'APP01' | Get-RdpSession | Where-Object { $_.UserName -eq 'DOMAIN\olduser' } | Remove-RdpSession -Credential $cred
     Removes all sessions for a specific user on APP01 using provided credentials.
 
 .NOTES

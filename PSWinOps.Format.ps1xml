@@ -4,7 +4,7 @@
 
     <!-- ============================================================ -->
     <!-- PSWinOps.ActiveRdpSession                                    -->
-    <!-- Used by: Get-RdpSession, Get-ActiveRdpSession               -->
+    <!-- Used by: Get-RdpSession                                      -->
     <!-- ============================================================ -->
     <View>
       <Name>PSWinOps.ActiveRdpSession</Name>
@@ -113,6 +113,116 @@
           </TableRowEntry>
         </TableRowEntries>
       </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.RdpSessionAction                                    -->
+    <!-- Used by: Connect-RdpSession, Disconnect-RdpSession,          -->
+    <!--          Remove-RdpSession                                    -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.RdpSessionAction</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.RdpSessionAction</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>ComputerName</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>ID</Label><Width>4</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Action</Label><Width>12</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Success</Label><Width>9</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Timestamp</Label><Width>26</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>SessionID</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Action</PropertyName></TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>if ($_.Success) { 'True' } else { 'False' }</ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>
+                  if ($_.Timestamp -is [datetime]) { $_.Timestamp.ToString('yyyy-MM-dd HH:mm:ss') } else { $_.Timestamp }
+                </ScriptBlock>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.PendingReboot                                       -->
+    <!-- Used by: Get-PendingReboot                                   -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.PendingReboot.Table</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.PendingReboot</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>ComputerName</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Pending</Label><Width>9</Width></TableColumnHeader>
+          <TableColumnHeader><Label>CBS</Label><Width>5</Width></TableColumnHeader>
+          <TableColumnHeader><Label>WU</Label><Width>5</Width></TableColumnHeader>
+          <TableColumnHeader><Label>FileRename</Label><Width>11</Width></TableColumnHeader>
+          <TableColumnHeader><Label>PCRename</Label><Width>9</Width></TableColumnHeader>
+          <TableColumnHeader><Label>CCM</Label><Width>5</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>if ($_.IsRebootPending) { 'True' } else { 'False' }</ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>if ($_.ComponentBasedServicing) { 'True' } else { 'False' }</ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>if ($_.WindowsUpdate) { 'True' } else { 'False' }</ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>if ($_.PendingFileRename) { 'True' } else { 'False' }</ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>if ($_.PendingComputerRename) { 'True' } else { 'False' }</ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>if ($null -eq $_.CCMClientSDK) { 'N/A' } elseif ($_.CCMClientSDK) { 'True' } else { 'False' }</ScriptBlock>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <View>
+      <Name>PSWinOps.PendingReboot.List</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.PendingReboot</TypeName>
+      </ViewSelectedBy>
+      <ListControl>
+        <ListEntries>
+          <ListEntry>
+            <ListItems>
+              <ListItem><Label>Computer name</Label><PropertyName>ComputerName</PropertyName></ListItem>
+              <ListItem><Label>Reboot pending</Label><PropertyName>IsRebootPending</PropertyName></ListItem>
+              <ListItem><Label>Component Based Servicing</Label><PropertyName>ComponentBasedServicing</PropertyName></ListItem>
+              <ListItem><Label>Windows Update</Label><PropertyName>WindowsUpdate</PropertyName></ListItem>
+              <ListItem><Label>Pending file rename</Label><PropertyName>PendingFileRename</PropertyName></ListItem>
+              <ListItem><Label>Pending computer rename</Label><PropertyName>PendingComputerRename</PropertyName></ListItem>
+              <ListItem><Label>CCM Client SDK</Label>
+                <ScriptBlock>if ($null -eq $_.CCMClientSDK) { 'N/A (SCCM not installed)' } else { $_.CCMClientSDK }</ScriptBlock>
+              </ListItem>
+              <ListItem><Label>Queried at</Label><PropertyName>Timestamp</PropertyName></ListItem>
+            </ListItems>
+          </ListEntry>
+        </ListEntries>
+      </ListControl>
     </View>
 
     <!-- ============================================================ -->

@@ -7,14 +7,14 @@ function Disconnect-RdpSession {
     .DESCRIPTION
         Uses the built-in tsdiscon.exe utility to disconnect RDP sessions by session ID.
         Supports local and remote computers with optional credential pass-through via
-        WinRM remoting. Accepts pipeline input from Get-ActiveRdpSession for bulk
+        WinRM remoting. Accepts pipeline input from Get-RdpSession for bulk
         operations. Returns a result object per session indicating success or failure.
         For remote targets without credentials, Invoke-Command sends the disconnect
         command over WinRM. When credentials are provided, they are passed through
         Invoke-Command's -Credential parameter.
     .PARAMETER ComputerName
         The target computer name or IP address. Defaults to the local computer name.
-        Accepts pipeline input by property name for integration with Get-ActiveRdpSession.
+        Accepts pipeline input by property name for integration with Get-RdpSession.
     .PARAMETER SessionID
         One or more RDP session IDs to disconnect. Valid range is 0 to 65536.
         Accepts pipeline input directly or by property name.
@@ -26,7 +26,7 @@ function Disconnect-RdpSession {
         Disconnect-RdpSession -ComputerName 'SRV01' -SessionID 3
         Disconnects session ID 3 on server SRV01 after confirmation prompt.
     .EXAMPLE
-        Get-ActiveRdpSession -ComputerName 'SRV01' | Disconnect-RdpSession -Confirm:$false
+        Get-RdpSession -ComputerName 'SRV01' | Disconnect-RdpSession -Confirm:$false
         Pipes all active sessions from SRV01 and disconnects them without prompting.
     .EXAMPLE
         Disconnect-RdpSession -ComputerName 'SRV01' -SessionID 3, 5 -Credential (Get-Credential) -Verbose

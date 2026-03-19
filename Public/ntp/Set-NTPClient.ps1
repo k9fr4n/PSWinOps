@@ -71,8 +71,6 @@ function Set-NTPClient {
 
     begin {
         Set-StrictMode -Version Latest
-        $ErrorActionPreference = 'Stop'
-
         Write-Verbose "[$($MyInvocation.MyCommand)] Starting - PowerShell $($PSVersionTable.PSVersion)"
 
         if ($MaxPollInterval -le $MinPollInterval) {
