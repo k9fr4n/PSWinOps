@@ -137,8 +137,7 @@ function Set-ProxyConfiguration {
 
                         $netshPath = Join-Path -Path $env:SystemRoot -ChildPath 'System32\netsh.exe'
                         if (-not (Test-Path -Path $netshPath -PathType Leaf)) {
-                            Write-Error "[$($MyInvocation.MyCommand)] netsh.exe not found at '$netshPath'"
-                            return
+                            throw "netsh.exe not found at '$netshPath'"
                         }
 
                         $netshArgs = @('winhttp', 'set', 'proxy', "proxy-server=$ProxyServer")
@@ -175,9 +174,7 @@ function Set-ProxyConfiguration {
                         # Build proxy URL (add http:// scheme if not present)
                         $proxyUrl = if ($ProxyServer -match '^https?://') { $ProxyServer } else { "http://$ProxyServer" }
 
-                        # Set User-level (persistent) + Process-level (immediate)
-                        [System.Environment]::SetEnvironmentVariable('HTTP_PROXY', $proxyUrl, [System.EnvironmentVariableTarget]::User)
-                        [System.Environment]::SetEnvironmentVariable('HTTPS_PROXY', $proxyUrl, [System.EnvironmentVariableTarget]::User)
+                        # Set Process-level (immediate effect)
                         $env:HTTP_PROXY  = $proxyUrl
                         $env:HTTPS_PROXY = $proxyUrl
                         Write-Verbose "[$($MyInvocation.MyCommand)] HTTP_PROXY and HTTPS_PROXY set to: $proxyUrl"
@@ -185,9 +182,20 @@ function Set-ProxyConfiguration {
                         if ($BypassList) {
                             # Convert semicolon-separated WinINET format to comma-separated NO_PROXY format
                             $noProxy = ($BypassList -replace '<local>', 'localhost' -replace ';', ',').Trim()
-                            [System.Environment]::SetEnvironmentVariable('NO_PROXY', $noProxy, [System.EnvironmentVariableTarget]::User)
                             $env:NO_PROXY = $noProxy
                             Write-Verbose "[$($MyInvocation.MyCommand)] NO_PROXY set to: $noProxy"
+                        }
+
+                        # Set User-level (persistent across sessions)
+                        try {
+                            [System.Environment]::SetEnvironmentVariable('HTTP_PROXY', $proxyUrl, [System.EnvironmentVariableTarget]::User)
+                            [System.Environment]::SetEnvironmentVariable('HTTPS_PROXY', $proxyUrl, [System.EnvironmentVariableTarget]::User)
+                            if ($BypassList) {
+                                [System.Environment]::SetEnvironmentVariable('NO_PROXY', $noProxy, [System.EnvironmentVariableTarget]::User)
+                            }
+                            Write-Verbose "[$($MyInvocation.MyCommand)] User-level environment variables persisted"
+                        } catch {
+                            Write-Warning "[$($MyInvocation.MyCommand)] Failed to persist User-level environment variables: $_. Process-level variables were set successfully."
                         }
 
                         Write-Information -MessageData '[OK] Proxy environment variables configured successfully' -InformationAction Continue
