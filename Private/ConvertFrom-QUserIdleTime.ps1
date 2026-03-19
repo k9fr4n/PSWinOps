@@ -27,8 +27,8 @@ function ConvertFrom-QUserIdleTime {
 
 .NOTES
     Author:        Franck SALLET
-    Version:       1.0.0
-    Last Modified: 2026-03-11
+    Version:       1.0.1
+    Last Modified: 2026-03-20
     Requires:      PowerShell 5.1+
     Permissions:   None -- pure in-memory string parsing, no system calls
 #>
@@ -48,20 +48,17 @@ function ConvertFrom-QUserIdleTime {
         }
 
         # Format: D+H:MM -- e.g., "1+08:15"
-        if ($IdleTimeString -match '^(?<d>\d+)\+(?<h>\d+):(?<m>\d+)
-) {
+        if ($IdleTimeString -match '^(?<d>\d+)\+(?<h>\d+):(?<m>\d+)$') {
             return [TimeSpan]::new([int]$Matches['d'], [int]$Matches['h'], [int]$Matches['m'], 0)
         }
 
         # Format: H:MM -- e.g., "8:05"
-        if ($IdleTimeString -match '^(?<h>\d+):(?<m>\d+)
-) {
+        if ($IdleTimeString -match '^(?<h>\d+):(?<m>\d+)$') {
             return [TimeSpan]::new([int]$Matches['h'], [int]$Matches['m'], 0)
         }
 
         # Format: minutes only -- e.g., "5"
-        if ($IdleTimeString -match '^\d+
-) {
+        if ($IdleTimeString -match '^\d+$') {
             return [TimeSpan]::FromMinutes([int]$IdleTimeString)
         }
 
