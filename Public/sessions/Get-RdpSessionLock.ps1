@@ -59,7 +59,7 @@ PSWinOps.RdpSessionLock
     https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4800
 #>
     [CmdletBinding()]
-    [OutputType([PSCustomObject])]
+    [OutputType('PSWinOps.RdpSessionLock')]
     param(
         [Parameter(Mandatory = $false, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]

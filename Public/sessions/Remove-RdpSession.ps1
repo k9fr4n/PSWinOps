@@ -68,7 +68,7 @@ PSWinOps.RdpSessionAction
     https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/logoff
 #>
     [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
-    [OutputType([PSCustomObject])]
+    [OutputType('PSWinOps.RdpSessionAction')]
     param(
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]

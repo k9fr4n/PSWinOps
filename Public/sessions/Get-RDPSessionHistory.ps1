@@ -69,7 +69,7 @@ PSWinOps.RdpSessionHistory
     https://docs.microsoft.com/en-us/windows/win32/termserv/terminal-services-events
 #>
     [CmdletBinding()]
-    [OutputType([PSCustomObject])]
+    [OutputType('PSWinOps.RdpSessionHistory')]
     param(
         [Parameter(Mandatory = $false, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]

@@ -44,7 +44,7 @@ function Get-PendingReboot {
     https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-movefileexw
     #>
     [CmdletBinding()]
-    [OutputType([PSCustomObject])]
+    [OutputType('PSWinOps.PendingReboot')]
     param(
         [Parameter(ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]

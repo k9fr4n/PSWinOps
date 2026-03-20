@@ -87,7 +87,7 @@ PSWinOps.RdpSessionAction
     https://docs.microsoft.com/en-us/windows-server/remote/remote-desktop-services/rds-remote-control
 #>
     [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
-    [OutputType([PSCustomObject])]
+    [OutputType('PSWinOps.RdpSessionAction')]
     param(
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]

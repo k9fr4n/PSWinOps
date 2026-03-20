@@ -58,7 +58,7 @@ function Get-NTPConfiguration {
     https://docs.microsoft.com/en-us/windows-server/networking/windows-time-service/windows-time-service-tools-and-settings
     #>
     [CmdletBinding()]
-    [OutputType([PSCustomObject])]
+    [OutputType('PSWinOps.NtpConfiguration')]
     param(
         [Parameter(Mandatory = $false, ValueFromPipeline = $true,
             ValueFromPipelineByPropertyName = $true)]

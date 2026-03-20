@@ -62,7 +62,7 @@ PSWinOps.ActiveRdpSession
     https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/query-user
     #>
     [CmdletBinding()]
-    [OutputType([PSCustomObject])]
+    [OutputType('PSWinOps.ActiveRdpSession')]
     param(
         [Parameter(Mandatory = $false, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]

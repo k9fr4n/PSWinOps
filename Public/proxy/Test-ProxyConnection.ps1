@@ -50,7 +50,7 @@ function Test-ProxyConnection {
     https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/invoke-webrequest
     #>
     [CmdletBinding()]
-    [OutputType([PSCustomObject])]
+    [OutputType('PSWinOps.ProxyTestResult')]
     param (
         [Parameter(Mandatory = $false)]
         [ValidateNotNullOrEmpty()]

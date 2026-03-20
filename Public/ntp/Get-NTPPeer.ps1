@@ -38,7 +38,7 @@ function Get-NTPPeer {
     https://docs.microsoft.com/en-us/windows-server/networking/windows-time-service/windows-time-service-tools-and-settings
     #>
     [CmdletBinding()]
-    [OutputType([PSCustomObject])]
+    [OutputType('PSWinOps.NtpPeer')]
     param(
         [Parameter(Mandatory = $false, ValueFromPipeline = $true,
             ValueFromPipelineByPropertyName = $true)]

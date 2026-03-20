@@ -42,7 +42,7 @@ function Get-ProxyConfiguration {
     https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/netsh-winhttp
     #>
     [CmdletBinding()]
-    [OutputType([PSCustomObject])]
+    [OutputType('PSWinOps.ProxyConfiguration')]
     param()
 
     begin {
