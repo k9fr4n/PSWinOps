@@ -540,5 +540,44 @@
       </TableControl>
     </View>
 
+    <!-- ============================================================ -->
+    <!-- PSWinOps.PublicIPAddress                                      -->
+    <!-- Used by: Get-PublicIPAddress                                  -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.PublicIPAddress</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.PublicIPAddress</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>ComputerName</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>IPv4Address</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>IPv6Address</Label><Width>40</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Provider</Label><Width>14</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Timestamp</Label><Width>26</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>if ($_.IPv4Address) { $_.IPv4Address } else { '-' }</ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>if ($_.IPv6Address) { $_.IPv6Address } else { '-' }</ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem><PropertyName>Provider</PropertyName></TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>
+                  if ($_.Timestamp -is [datetime]) { $_.Timestamp.ToString('yyyy-MM-dd HH:mm:ss') } else { $_.Timestamp }
+                </ScriptBlock>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
   </ViewDefinitions>
 </Configuration>
