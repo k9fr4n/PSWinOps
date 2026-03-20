@@ -11,8 +11,8 @@ function Sync-NTPTime {
         resyncing to ensure a clean state. Uses the w32tm exit code (locale-agnostic)
         to determine success or failure per machine.
 
-        Uses Invoke-Command for uniform local and remote execution, enabling consistent
-        behavior and straightforward mocking in tests. Each machine is processed
+        Uses direct w32tm calls for local execution (mockable in Pester) and
+        Invoke-Command for remote targets, matching the pattern used by all NTP functions. Each machine is processed
         independently with per-machine error isolation -- a failure on one target does
         not prevent processing of subsequent targets.
 
@@ -95,7 +95,8 @@ function Sync-NTPTime {
             )
         }
 
-        # Scriptblock: force NTP resynchronization via w32tm
+        # Script block used for REMOTE execution only (Invoke-Command).
+        # Uses full path because remote sessions don't inherit local mock context.
         $resyncScriptBlock = {
             $w32tmPath = Join-Path -Path $env:SystemRoot -ChildPath 'System32\w32tm.exe'
             if (-not (Test-Path -Path $w32tmPath)) {
@@ -109,7 +110,7 @@ function Sync-NTPTime {
             }
         }
 
-        # Scriptblock: restart the Windows Time service
+        # Script block used for REMOTE execution only (Invoke-Command).
         $restartScriptBlock = {
             Restart-Service -Name 'w32time' -Force -ErrorAction Stop
             Start-Sleep -Seconds 2
@@ -129,9 +130,10 @@ function Sync-NTPTime {
                     if ($PSCmdlet.ShouldProcess($targetComputer, 'Restart Windows Time service (w32time)')) {
                         Write-Verbose "[$($MyInvocation.MyCommand)] Restarting w32time on '$targetComputer'..."
                         if ($isLocal) {
-                            $null = Invoke-Command -ScriptBlock $restartScriptBlock
+                            Restart-Service -Name 'w32time' -Force -ErrorAction Stop
+                            Start-Sleep -Seconds 2
                         } else {
-                            $null = Invoke-Command -ComputerName $targetComputer -ScriptBlock $restartScriptBlock
+                            $null = Invoke-Command -ComputerName $targetComputer -ScriptBlock $restartScriptBlock -ErrorAction Stop
                         }
                         $serviceRestarted = $true
                         Write-Verbose "[$($MyInvocation.MyCommand)] w32time restarted on '$targetComputer'"
@@ -142,9 +144,14 @@ function Sync-NTPTime {
                 if ($PSCmdlet.ShouldProcess($targetComputer, 'Force NTP resynchronization')) {
                     Write-Verbose "[$($MyInvocation.MyCommand)] Running w32tm /resync on '$targetComputer'..."
                     if ($isLocal) {
-                        $resyncResult = Invoke-Command -ScriptBlock $resyncScriptBlock
+                        # Local execution: call by bare name so Pester can mock it
+                        $rawOutput = w32tm /resync 2>&1
+                        $resyncResult = [PSCustomObject]@{
+                            Output   = ($rawOutput | Out-String).Trim()
+                            ExitCode = $LASTEXITCODE
+                        }
                     } else {
-                        $resyncResult = Invoke-Command -ComputerName $targetComputer -ScriptBlock $resyncScriptBlock
+                        $resyncResult = Invoke-Command -ComputerName $targetComputer -ScriptBlock $resyncScriptBlock -ErrorAction Stop
                     }
 
                     $outputText = [string]$resyncResult.Output

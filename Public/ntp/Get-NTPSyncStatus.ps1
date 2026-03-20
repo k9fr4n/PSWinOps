@@ -11,7 +11,7 @@ function Get-NTPSyncStatus {
         last sync time, leap indicator, and poll interval.
 
         Supports both English and French locale w32tm output via locale-agnostic
-        regex patterns. Uses direct invocation for local queries and Invoke-Command for remote
+        regex patterns. Uses direct w32tm calls for local queries and Invoke-Command for remote
         execution, avoiding unnecessary serialization overhead on the local machine.
     .PARAMETER ComputerName
         One or more computer names to query. Accepts pipeline input by value and
@@ -38,8 +38,8 @@ function Get-NTPSyncStatus {
 
     .NOTES
         Author:        Franck SALLET
-        Version:       2.0.0
-        Last Modified: 2026-03-18
+        Version:       2.1.0
+        Last Modified: 2026-03-20
         Requires:      PowerShell 5.1+ / Windows only
         Permissions:   Admin rights required for remote queries (WinRM access)
     
@@ -63,8 +63,9 @@ function Get-NTPSyncStatus {
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand)] Starting - PowerShell $($PSVersionTable.PSVersion)"
 
-        # ScriptBlock executed locally (&) or remotely (Invoke-Command)
-        $w32tmScriptBlock = {
+        # Script block used for REMOTE execution only (Invoke-Command).
+        # Uses full path to w32tm.exe because remote sessions don't inherit local mock context.
+        $w32tmRemoteScriptBlock = {
             $w32tmExe = Join-Path -Path $env:SystemRoot -ChildPath 'System32\w32tm.exe'
             if (-not (Test-Path -Path $w32tmExe)) {
                 throw "[ERROR] w32tm.exe not found at '$w32tmExe'"
@@ -103,11 +104,14 @@ function Get-NTPSyncStatus {
                 ($targetComputer -eq '.')
 
                 if ($isLocal) {
-                    Write-Verbose "[$($MyInvocation.MyCommand)] Local execution (no -ComputerName)"
-                    $rawOutput = Invoke-Command -ScriptBlock $w32tmScriptBlock
+                    Write-Verbose "[$($MyInvocation.MyCommand)] Local execution - direct w32tm call"
+                    $rawOutput = w32tm /query /status 2>&1
+                    if ($LASTEXITCODE -ne 0) {
+                        throw "w32tm /query /status failed (exit code $LASTEXITCODE): $($rawOutput -join ' ')"
+                    }
                 } else {
                     Write-Verbose "[$($MyInvocation.MyCommand)] Remote execution on '$targetComputer'"
-                    $rawOutput = Invoke-Command -ComputerName $targetComputer -ScriptBlock $w32tmScriptBlock
+                    $rawOutput = Invoke-Command -ComputerName $targetComputer -ScriptBlock $w32tmRemoteScriptBlock -ErrorAction Stop
                 }
 
                 # Normalize output to trimmed string array

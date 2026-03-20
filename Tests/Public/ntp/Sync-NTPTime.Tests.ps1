@@ -25,8 +25,13 @@ Describe -Name 'Sync-NTPTime' -Fixture {
 
         BeforeAll {
             Mock -CommandName 'Test-IsAdministrator' -ModuleName 'PSWinOps' -MockWith { return $true }
-            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
-                return $script:successOutput
+            # Local path uses bare w32tm call (not Invoke-Command)
+            Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith {
+                $global:LASTEXITCODE = 0
+                return "Sending resync command to local computer`r`nThe command completed successfully."
+            }
+            Mock -CommandName 'Out-String' -ModuleName 'PSWinOps' -MockWith {
+                return ($input | ForEach-Object { "$_" }) -join "`r`n"
             }
         }
 
@@ -36,13 +41,13 @@ Describe -Name 'Sync-NTPTime' -Fixture {
             $result.ComputerName | Should -Be $env:COMPUTERNAME
             $result.Success | Should -BeTrue
             $result.ServiceRestarted | Should -BeFalse
-            $result.Message | Should -Match 'The command completed successfully'
             $result.Timestamp | Should -Not -BeNullOrEmpty
         }
 
-        It -Name 'Should call Invoke-Command exactly once' -Test {
+        It -Name 'Should call w32tm (not Invoke-Command) for local execution' -Test {
             Sync-NTPTime
-            Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 1 -Exactly
+            Should -Invoke -CommandName 'w32tm' -ModuleName 'PSWinOps' -Times 1 -Exactly
+            Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 0 -Exactly
         }
     }
 

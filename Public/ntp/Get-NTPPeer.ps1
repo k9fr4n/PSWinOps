@@ -29,8 +29,8 @@ function Get-NTPPeer {
 
     .NOTES
         Author: Franck SALLET
-        Version: 1.1.0
-        Last Modified: 2026-03-13
+        Version: 1.2.0
+        Last Modified: 2026-03-20
         Requires: PowerShell 5.1+, Windows Time service (w32time)
         Permissions: Local user for local queries; remote admin for Invoke-Command remoting
     
@@ -50,7 +50,9 @@ function Get-NTPPeer {
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand)] Starting"
 
-        $w32tmScriptBlock = {
+        # Script block used for REMOTE execution only (Invoke-Command).
+        # Uses full path to w32tm.exe because remote sessions don't inherit local mock context.
+        $w32tmRemoteScriptBlock = {
             $w32tmPath = Join-Path -Path $env:SystemRoot -ChildPath 'System32\w32tm.exe'
             if (-not (Test-Path -Path $w32tmPath)) {
                 throw "w32tm.exe not found at '$w32tmPath'"
@@ -74,10 +76,14 @@ function Get-NTPPeer {
                 ($targetComputer -eq '.')
 
                 if ($isLocal) {
-                    $rawOutput = Invoke-Command -ScriptBlock $w32tmScriptBlock
+                    # Local execution: call by bare name so Pester can mock it
+                    $rawOutput = w32tm /query /peers 2>&1
+                    if ($LASTEXITCODE -ne 0) {
+                        throw "w32tm /query /peers failed (exit code $LASTEXITCODE): $($rawOutput -join ' ')"
+                    }
                 } else {
                     $rawOutput = Invoke-Command -ComputerName $targetComputer `
-                        -ScriptBlock $w32tmScriptBlock -ErrorAction Stop
+                        -ScriptBlock $w32tmRemoteScriptBlock -ErrorAction Stop
                 }
 
                 # Convert to string array and normalize
