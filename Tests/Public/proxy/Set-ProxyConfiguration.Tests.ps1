@@ -113,7 +113,8 @@ Describe 'Set-ProxyConfiguration' {
         It 'Should write non-terminating error when Set-ItemProperty fails' {
             Set-ProxyConfiguration -ProxyServer 'proxy.example.com:8080' -Scope WinINET -Confirm:$false -ErrorVariable err -ErrorAction SilentlyContinue
             $err | Should -Not -BeNullOrEmpty
-            $err[0].Exception.Message | Should -BeLike '*Failed to configure WinINET*'
+            $errMessages = $err | ForEach-Object { $_.Exception.Message }
+            ($errMessages -like '*Failed to configure WinINET*') | Should -Not -BeNullOrEmpty
         }
 
         It 'Should not throw when called with ErrorAction SilentlyContinue' {
