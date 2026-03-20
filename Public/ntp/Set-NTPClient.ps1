@@ -15,7 +15,7 @@ function Set-NTPClient {
     Requires local administrator privileges to modify registry and manage the W32Time service.
 .PARAMETER NtpServers
     Array of NTP server FQDNs or IP addresses to use for time synchronization.
-    Default: ntp1.ecritel.net, ntp2.ecritel.net
+    At least one server must be specified.
 .PARAMETER MaxPhaseOffset
     Maximum allowed phase offset in seconds before the clock is corrected.
     Valid range: 1 to 3600 seconds. Default: 1 second.
@@ -29,8 +29,8 @@ function Set-NTPClient {
     Maximum poll interval as a power of 2 (2^n seconds).
     Must be greater than MinPollInterval. Valid range: 0 to 17. Default: 10 (2^10 = 1024 seconds).
 .EXAMPLE
-    Set-NTPClient
-    Uses default NTP servers (ntp1.ecritel.net, ntp2.ecritel.net) with default settings.
+    Set-NTPClient -NtpServers 'time.windows.com', 'pool.ntp.org'
+    Configures W32Time with two public NTP servers using default poll settings.
 .EXAMPLE
     Set-NTPClient -NtpServers 'time.windows.com', 'pool.ntp.org' -MaxPhaseOffset 5 -Verbose
     Configures W32Time with custom NTP servers and a 5-second phase offset tolerance,
@@ -48,9 +48,9 @@ function Set-NTPClient {
     [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
     [OutputType([void])]
     param (
-        [Parameter(Mandatory = $false)]
+        [Parameter(Mandatory = $true, Position = 0)]
         [ValidateNotNullOrEmpty()]
-        [string[]]$NtpServers = @('ntp1.ecritel.net', 'ntp2.ecritel.net'),
+        [string[]]$NtpServers,
 
         [Parameter(Mandatory = $false)]
         [ValidateRange(1, 3600)]

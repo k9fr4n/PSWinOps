@@ -36,6 +36,7 @@ function Get-NTPPeer {
         [Parameter(Mandatory = $false, ValueFromPipeline = $true,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
+        [Alias('CN', 'Name', 'DNSHostName')]
         [string[]]$ComputerName = $env:COMPUTERNAME
     )
 

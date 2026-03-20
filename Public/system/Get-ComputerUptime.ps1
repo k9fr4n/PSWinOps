@@ -48,6 +48,7 @@ function Get-ComputerUptime {
             ValueFromPipeline = $true,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
+        [Alias('CN', 'Name', 'DNSHostName')]
         [string[]]$ComputerName = @($env:COMPUTERNAME),
 
         [Parameter(Mandatory = $false)]
