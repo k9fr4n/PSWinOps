@@ -43,8 +43,8 @@ None
 
 .NOTES
     Author: Franck SALLET
-    Version: 2.0.2
-    Last Modified: 2026-03-15
+    Version: 2.1.0
+    Last Modified: 2026-03-20
     Requires: PowerShell 5.1+, Local Administrator rights
     Permissions: Administrator required to modify registry and manage W32Time service
 
@@ -183,16 +183,17 @@ None
             # Step 7: Force synchronization
             Write-Verbose "[$($MyInvocation.MyCommand)] Forcing immediate NTP synchronization..."
             $syncOutput = w32tm /resync /force 2>&1
+            $syncExitCode = $LASTEXITCODE
 
-            $successMessageFR = "La commande s'est déroulée correctement."
-            $successMessageEN = 'The command completed successfully.'
-
-            $isSyncSuccessful = ($syncOutput -match $successMessageFR) -or ($syncOutput -match $successMessageEN)
+            # Exit code is the authoritative success indicator (locale-agnostic).
+            # w32tm output text varies by OS language and is logged for diagnostics only.
+            $isSyncSuccessful = ($syncExitCode -eq 0)
 
             if ($isSyncSuccessful) {
                 Write-Information -MessageData '[OK] Time synchronization completed successfully' -InformationAction Continue
+                Write-Verbose "[$($MyInvocation.MyCommand)] w32tm /resync output: $($syncOutput -join ' ')"
             } else {
-                Write-Warning "[$($MyInvocation.MyCommand)] Time synchronization may have failed - check output:"
+                Write-Warning "[$($MyInvocation.MyCommand)] Time synchronization failed (exit code $syncExitCode):"
                 $syncOutput | ForEach-Object { Write-Warning "[$($MyInvocation.MyCommand)] $_" }
             }
 

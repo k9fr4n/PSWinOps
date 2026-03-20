@@ -8,8 +8,8 @@ function Sync-NTPTime {
     .DESCRIPTION
         Forces a resynchronization of the Windows Time Service (w32tm) on one or more
         local or remote machines. Optionally restarts the Windows Time service before
-        resyncing to ensure a clean state. Parses the output of w32tm /resync to report
-        success or failure per machine, supporting both English and French OS locales.
+        resyncing to ensure a clean state. Uses the w32tm exit code (locale-agnostic)
+        to determine success or failure per machine.
 
         Uses Invoke-Command for uniform local and remote execution, enabling consistent
         behavior and straightforward mocking in tests. Each machine is processed
@@ -48,7 +48,7 @@ function Sync-NTPTime {
         with verbose logging enabled.
 
     .EXAMPLE
-        Get-Content -Path 'C:\\Admin\\servers.txt' | Sync-NTPTime -RestartService
+        Get-Content -Path 'C:\Admin\servers.txt' | Sync-NTPTime -RestartService
 
         Reads a list of server names from a file and pipelines them into Sync-NTPTime,
         restarting the w32time service on each before resyncing.
@@ -59,8 +59,8 @@ function Sync-NTPTime {
 
     .NOTES
         Author: Franck SALLET
-        Version: 1.0.0
-        Last Modified: 2026-03-12
+        Version: 1.1.0
+        Last Modified: 2026-03-20
         Requires: PowerShell 5.1+ / Windows only
         Permissions: Requires admin rights (local and remote) to restart services
                      and run w32tm /resync. Remote targets require PSRemoting enabled.
@@ -115,8 +115,6 @@ function Sync-NTPTime {
             Start-Sleep -Seconds 2
         }
 
-        # Locale-agnostic success pattern (EN + FR)
-        $successPattern = '(The command completed successfully|Sending resync command to local computer|La commande s.est correctement|Envoi de la commande de resynchronisation)'
     }
 
     process {
@@ -151,12 +149,13 @@ function Sync-NTPTime {
 
                     $outputText = [string]$resyncResult.Output
                     $exitCode = [int]$resyncResult.ExitCode
-                    $isSuccess = ($exitCode -eq 0) -and ($outputText -match $successPattern)
+                    $isSuccess = ($exitCode -eq 0)
 
                     if ($isSuccess) {
                         Write-Verbose "[$($MyInvocation.MyCommand)] [OK] Resync succeeded on '$targetComputer'"
+                        Write-Verbose "[$($MyInvocation.MyCommand)] w32tm output: $outputText"
                     } else {
-                        Write-Warning "[$($MyInvocation.MyCommand)] Resync may have failed on '$targetComputer': $outputText"
+                        Write-Warning "[$($MyInvocation.MyCommand)] Resync failed on '$targetComputer' (exit code $exitCode): $outputText"
                     }
 
                     [PSCustomObject]@{

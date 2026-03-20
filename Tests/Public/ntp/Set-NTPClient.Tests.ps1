@@ -43,9 +43,9 @@ BeforeAll {
         'Sending resync command to local computer...'
         'The command completed successfully.'
     )
-    $script:mockSyncOutputFR = @(
-        'Envoi de la commande de resynchronisation a l ordinateur local...'
-        "La commande s'est deroulee correctement."
+    $script:mockSyncOutputDE = @(
+        'Sendet den Befehl zur erneuten Synchronisierung an den lokalen Computer...'
+        'Der Befehl wurde erfolgreich ausgeführt.'
     )
 }
 
@@ -64,7 +64,7 @@ Describe -Name 'Set-NTPClient' -Fixture {
             Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith { $script:mockConfigOutput } -ParameterFilter { ($args -join ' ') -match '/query.*configuration' }
             Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith { $script:mockStatusOutput } -ParameterFilter { ($args -join ' ') -match '/query.*status' }
             Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith { return '' } -ParameterFilter { ($args -join ' ') -match '/config /update' }
-            Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith { $script:mockSyncOutputEN } -ParameterFilter { ($args -join ' ') -match '/resync' }
+            Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith { $global:LASTEXITCODE = 0; $script:mockSyncOutputEN } -ParameterFilter { ($args -join ' ') -match '/resync' }
         }
 
         It -Name 'Should complete without throwing' -Test {
@@ -126,7 +126,7 @@ Describe -Name 'Set-NTPClient' -Fixture {
             Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith { $script:mockConfigOutput } -ParameterFilter { ($args -join ' ') -match '/query.*configuration' }
             Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith { $script:mockStatusOutput } -ParameterFilter { ($args -join ' ') -match '/query.*status' }
             Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith { return '' } -ParameterFilter { ($args -join ' ') -match '/config /update' }
-            Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith { $script:mockSyncOutputEN } -ParameterFilter { ($args -join ' ') -match '/resync' }
+            Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith { $global:LASTEXITCODE = 0; $script:mockSyncOutputEN } -ParameterFilter { ($args -join ' ') -match '/resync' }
         }
         It -Name 'Should call Start-Service when service is stopped' -Test {
             Set-NTPClient -NtpServers 'ntp1.example.com' -Confirm:$false
@@ -134,7 +134,7 @@ Describe -Name 'Set-NTPClient' -Fixture {
         }
     }
 
-    Context -Name 'French sync output - accent-tolerant regex matching' -Fixture {
+    Context -Name 'Locale-agnostic - German output with exit code 0' -Fixture {
         BeforeEach {
             Mock -CommandName 'Test-IsAdministrator' -ModuleName 'PSWinOps' -MockWith { return $true }
             Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith {
@@ -147,9 +147,9 @@ Describe -Name 'Set-NTPClient' -Fixture {
             Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith { $script:mockConfigOutput } -ParameterFilter { ($args -join ' ') -match '/query.*configuration' }
             Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith { $script:mockStatusOutput } -ParameterFilter { ($args -join ' ') -match '/query.*status' }
             Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith { return '' } -ParameterFilter { ($args -join ' ') -match '/config /update' }
-            Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith { $script:mockSyncOutputFR } -ParameterFilter { ($args -join ' ') -match '/resync' }
+            Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith { $global:LASTEXITCODE = 0; $script:mockSyncOutputDE } -ParameterFilter { ($args -join ' ') -match '/resync' }
         }
-        It -Name 'Should complete without throwing with French sync output' -Test {
+        It -Name 'Should complete without throwing with non-EN/FR output when exit code is 0' -Test {
             { Set-NTPClient -NtpServers 'ntp1.example.com' -Confirm:$false } | Should -Not -Throw
         }
     }
