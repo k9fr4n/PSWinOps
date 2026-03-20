@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 
 function New-NetworkRoute {
     <#
@@ -147,7 +147,13 @@ function New-NetworkRoute {
                 InterfaceAlias    = $route.InterfaceAlias
                 InterfaceIndex    = $route.InterfaceIndex
                 RouteMetric       = $route.RouteMetric
-                AddressFamily     = if ($route.AddressFamily -eq 2) { 'IPv4' } elseif ($route.AddressFamily -eq 23) { 'IPv6' } else { [string]$route.AddressFamily }
+                AddressFamily     = if ($route.AddressFamily -eq 2) {
+                    'IPv4'
+                } elseif ($route.AddressFamily -eq 23) {
+                    'IPv6'
+                } else {
+                    [string]$route.AddressFamily
+                }
                 Protocol          = [string]$route.Protocol
                 Store             = [string]$route.Store
             }
@@ -170,10 +176,22 @@ function New-NetworkRoute {
                 $queryArgs = @(
                     $DestinationPrefix
                     $NextHop
-                    $(if ($PSBoundParameters.ContainsKey('InterfaceIndex')) { $InterfaceIndex } else { 0 })
-                    $(if ($PSBoundParameters.ContainsKey('InterfaceAlias')) { $InterfaceAlias } else { $null })
+                    $(if ($PSBoundParameters.ContainsKey('InterfaceIndex')) {
+                            $InterfaceIndex
+                        } else {
+                            0
+                        })
+                    $(if ($PSBoundParameters.ContainsKey('InterfaceAlias')) {
+                            $InterfaceAlias
+                        } else {
+                            $null
+                        })
                     $RouteMetric
-                    $(if ($AddressFamily) { $AddressFamily } else { $null })
+                    $(if ($AddressFamily) {
+                            $AddressFamily
+                        } else {
+                            $null
+                        })
                 )
 
                 if ($isLocal) {

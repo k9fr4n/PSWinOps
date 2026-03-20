@@ -149,7 +149,9 @@ function Get-NetworkStatistic {
                 foreach ($conn in $tcpConnections) {
                     $procName = if ($processLookup.ContainsKey($conn.OwningProcess)) {
                         $processLookup[$conn.OwningProcess]
-                    } else { 'Unknown' }
+                    } else {
+                        'Unknown'
+                    }
 
                     $obj = [PSCustomObject]@{
                         Protocol      = 'TCP'
@@ -172,7 +174,9 @@ function Get-NetworkStatistic {
                 foreach ($ep in $udpEndpoints) {
                     $procName = if ($processLookup.ContainsKey($ep.OwningProcess)) {
                         $processLookup[$ep.OwningProcess]
-                    } else { 'Unknown' }
+                    } else {
+                        'Unknown'
+                    }
 
                     $obj = [PSCustomObject]@{
                         Protocol      = 'UDP'
@@ -221,12 +225,36 @@ function Get-NetworkStatistic {
 
                 $queryArgs = @(
                     , $Protocol
-                    $(if ($State) { , $State } else { , $null })
-                    $(if ($PSBoundParameters.ContainsKey('LocalAddress')) { $LocalAddress } else { $null })
-                    $(if ($PSBoundParameters.ContainsKey('LocalPort')) { $LocalPort } else { 0 })
-                    $(if ($PSBoundParameters.ContainsKey('RemoteAddress')) { $RemoteAddress } else { $null })
-                    $(if ($PSBoundParameters.ContainsKey('RemotePort')) { $RemotePort } else { 0 })
-                    $(if ($PSBoundParameters.ContainsKey('ProcessName')) { $ProcessName } else { $null })
+                    $(if ($State) {
+                            , $State
+                        } else {
+                            , $null
+                        })
+                    $(if ($PSBoundParameters.ContainsKey('LocalAddress')) {
+                            $LocalAddress
+                        } else {
+                            $null
+                        })
+                    $(if ($PSBoundParameters.ContainsKey('LocalPort')) {
+                            $LocalPort
+                        } else {
+                            0
+                        })
+                    $(if ($PSBoundParameters.ContainsKey('RemoteAddress')) {
+                            $RemoteAddress
+                        } else {
+                            $null
+                        })
+                    $(if ($PSBoundParameters.ContainsKey('RemotePort')) {
+                            $RemotePort
+                        } else {
+                            0
+                        })
+                    $(if ($PSBoundParameters.ContainsKey('ProcessName')) {
+                            $ProcessName
+                        } else {
+                            $null
+                        })
                 )
 
                 if ($isLocal) {

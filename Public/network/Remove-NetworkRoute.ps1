@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 
 function Remove-NetworkRoute {
     <#
@@ -130,9 +130,21 @@ function Remove-NetworkRoute {
 
                 $queryArgs = @(
                     $DestinationPrefix
-                    $(if ($PSBoundParameters.ContainsKey('InterfaceIndex')) { $InterfaceIndex } else { 0 })
-                    $(if ($PSBoundParameters.ContainsKey('InterfaceAlias')) { $InterfaceAlias } else { $null })
-                    $(if ($PSBoundParameters.ContainsKey('NextHop')) { $NextHop } else { $null })
+                    $(if ($PSBoundParameters.ContainsKey('InterfaceIndex')) {
+                            $InterfaceIndex
+                        } else {
+                            0
+                        })
+                    $(if ($PSBoundParameters.ContainsKey('InterfaceAlias')) {
+                            $InterfaceAlias
+                        } else {
+                            $null
+                        })
+                    $(if ($PSBoundParameters.ContainsKey('NextHop')) {
+                            $NextHop
+                        } else {
+                            $null
+                        })
                 )
 
                 if ($isLocal) {

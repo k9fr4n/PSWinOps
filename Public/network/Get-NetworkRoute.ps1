@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 
 function Get-NetworkRoute {
     <#
@@ -121,7 +121,13 @@ function Get-NetworkRoute {
                     InterfaceAlias    = $route.InterfaceAlias
                     InterfaceIndex    = $route.InterfaceIndex
                     RouteMetric       = $route.RouteMetric
-                    AddressFamily     = if ($route.AddressFamily -eq 2) { 'IPv4' } elseif ($route.AddressFamily -eq 23) { 'IPv6' } else { [string]$route.AddressFamily }
+                    AddressFamily     = if ($route.AddressFamily -eq 2) {
+                        'IPv4'
+                    } elseif ($route.AddressFamily -eq 23) {
+                        'IPv6'
+                    } else {
+                        [string]$route.AddressFamily
+                    }
                     Protocol          = [string]$route.Protocol
                     Store             = [string]$route.Store
                 }
@@ -138,10 +144,26 @@ function Get-NetworkRoute {
                 Write-Verbose "[$($MyInvocation.MyCommand)] Querying '$targetComputer' (local: $isLocal)"
 
                 $queryArgs = @(
-                    $(if ($AddressFamily) { $AddressFamily } else { $null })
-                    $(if ($PSBoundParameters.ContainsKey('DestinationPrefix')) { $DestinationPrefix } else { $null })
-                    $(if ($PSBoundParameters.ContainsKey('NextHop')) { $NextHop } else { $null })
-                    $(if ($PSBoundParameters.ContainsKey('InterfaceAlias')) { $InterfaceAlias } else { $null })
+                    $(if ($AddressFamily) {
+                            $AddressFamily
+                        } else {
+                            $null
+                        })
+                    $(if ($PSBoundParameters.ContainsKey('DestinationPrefix')) {
+                            $DestinationPrefix
+                        } else {
+                            $null
+                        })
+                    $(if ($PSBoundParameters.ContainsKey('NextHop')) {
+                            $NextHop
+                        } else {
+                            $null
+                        })
+                    $(if ($PSBoundParameters.ContainsKey('InterfaceAlias')) {
+                            $InterfaceAlias
+                        } else {
+                            $null
+                        })
                 )
 
                 if ($isLocal) {
