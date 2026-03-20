@@ -437,5 +437,69 @@
       </ListControl>
     </View>
 
+    <!-- ============================================================ -->
+    <!-- PSWinOps.ProxyConfiguration                                  -->
+    <!-- Used by: Get-ProxyConfiguration                              -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.ProxyConfiguration</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.ProxyConfiguration</TypeName>
+      </ViewSelectedBy>
+      <ListControl>
+        <ListEntries>
+          <ListEntry>
+            <ListItems>
+              <ListItem><Label>Computer name</Label><PropertyName>ComputerName</PropertyName></ListItem>
+              <ListItem><Label>WinINET enabled</Label><PropertyName>WinInetEnabled</PropertyName></ListItem>
+              <ListItem><Label>WinINET server</Label><PropertyName>WinInetServer</PropertyName></ListItem>
+              <ListItem><Label>WinINET bypass</Label><PropertyName>WinInetBypass</PropertyName></ListItem>
+              <ListItem><Label>WinINET auto-config</Label><PropertyName>WinInetAutoConfig</PropertyName></ListItem>
+              <ListItem><Label>WinHTTP enabled</Label><PropertyName>WinHttpEnabled</PropertyName></ListItem>
+              <ListItem><Label>WinHTTP server</Label><PropertyName>WinHttpServer</PropertyName></ListItem>
+              <ListItem><Label>WinHTTP bypass</Label><PropertyName>WinHttpBypass</PropertyName></ListItem>
+              <ListItem><Label>HTTP_PROXY</Label><PropertyName>EnvHttpProxy</PropertyName></ListItem>
+              <ListItem><Label>HTTPS_PROXY</Label><PropertyName>EnvHttpsProxy</PropertyName></ListItem>
+              <ListItem><Label>NO_PROXY</Label><PropertyName>EnvNoProxy</PropertyName></ListItem>
+              <ListItem><Label>Queried at</Label><PropertyName>Timestamp</PropertyName></ListItem>
+            </ListItems>
+          </ListEntry>
+        </ListEntries>
+      </ListControl>
+    </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.ProxyTestResult                                     -->
+    <!-- Used by: Test-ProxyConnection                                -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.ProxyTestResult</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.ProxyTestResult</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>Computer</Label><Width>15</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Uri</Label><Width>45</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Proxy</Label><Width>30</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Status</Label><Width>7</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Success</Label><Width>8</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Time(ms)</Label><Width>9</Width><Alignment>Right</Alignment></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Uri</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>ProxyUsed</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>StatusCode</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Success</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>ResponseTime</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
   </ViewDefinitions>
 </Configuration>
