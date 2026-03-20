@@ -130,11 +130,13 @@ function Get-NetworkStatistic {
 
             $results = [System.Collections.Generic.List[PSObject]]::new()
 
-            # Build process lookup table once
+            # Build process lookup table once (cast to [int] — OwningProcess is UInt32,
+            # Process.Id is Int32; mismatched key types cause lookup failures)
             $processLookup = @{}
             foreach ($proc in (Get-Process -ErrorAction SilentlyContinue)) {
-                if (-not $processLookup.ContainsKey($proc.Id)) {
-                    $processLookup[$proc.Id] = $proc.ProcessName
+                $pidKey = [int]$proc.Id
+                if (-not $processLookup.ContainsKey($pidKey)) {
+                    $processLookup[$pidKey] = $proc.ProcessName
                 }
             }
 
@@ -147,8 +149,9 @@ function Get-NetworkStatistic {
                 $tcpConnections = Get-NetTCPConnection @tcpParams
 
                 foreach ($conn in $tcpConnections) {
-                    $procName = if ($processLookup.ContainsKey($conn.OwningProcess)) {
-                        $processLookup[$conn.OwningProcess]
+                    $ownerPid = [int]$conn.OwningProcess
+                    $procName = if ($processLookup.ContainsKey($ownerPid)) {
+                        $processLookup[$ownerPid]
                     } else {
                         'Unknown'
                     }
@@ -172,8 +175,9 @@ function Get-NetworkStatistic {
                 $udpEndpoints = Get-NetUDPEndpoint -ErrorAction SilentlyContinue
 
                 foreach ($ep in $udpEndpoints) {
-                    $procName = if ($processLookup.ContainsKey($ep.OwningProcess)) {
-                        $processLookup[$ep.OwningProcess]
+                    $ownerPid = [int]$ep.OwningProcess
+                    $procName = if ($processLookup.ContainsKey($ownerPid)) {
+                        $processLookup[$ownerPid]
                     } else {
                         'Unknown'
                     }
