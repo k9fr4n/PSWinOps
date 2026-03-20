@@ -1,12 +1,20 @@
-﻿function Remove-RdpSession {
+﻿#Requires -Version 5.1
+
+function Remove-RdpSession {
     <#
 .SYNOPSIS
     Logs off (removes) an RDP session on local or remote computers
 
 .DESCRIPTION
-    Forces a logoff of specified RDP sessions by session ID on one or more computers.
-    This terminates the session completely and closes all applications. Unsaved work
-    will be lost. Use Disconnect-RdpSession for a graceful disconnect without logoff.
+    Forces a logoff of specified RDP sessions by session ID on one or more computers
+    using logoff.exe. This terminates the session completely and closes all
+    applications. Unsaved work will be lost. Use Disconnect-RdpSession for a
+    graceful disconnect without logoff.
+
+    Local machines are targeted directly via logoff.exe with no WinRM dependency.
+    Remote machines are targeted via Invoke-Command (WinRM), which executes
+    logoff.exe in the remote session. When -Credential is provided, it is
+    forwarded to Invoke-Command for authentication.
 
     Supports ShouldProcess for -WhatIf and -Confirm operations.
 
@@ -15,12 +23,13 @@
     Defaults to the local machine. Supports pipeline input by property name.
 
 .PARAMETER SessionID
-    The session ID(s) to remove. Can be retrieved using Get-ActiveRdpSession.
+    The session ID(s) to remove. Can be retrieved using Get-RdpSession.
     Supports pipeline input by value and by property name.
 
 .PARAMETER Credential
-    Credential to use when connecting to remote computers. If not specified,
-    uses the current user's credentials.
+    Credential to use when connecting to remote computers via WinRM.
+    If not specified, uses the current user's credentials. Not used for
+    local session logoff.
 
 .PARAMETER Force
     Bypass confirmation prompts. Use with caution as this will forcefully
@@ -31,7 +40,7 @@
     Logs off session ID 2 on the local computer after confirmation.
 
 .EXAMPLE
-    Get-ActiveRdpSession -ComputerName 'SRV01' | Where-Object { $_.IdleTime -gt (New-TimeSpan -Days 1) } | Remove-RdpSession -Force
+    Get-RdpSession -ComputerName 'SRV01' | Where-Object { $_.IdleTime -gt (New-TimeSpan -Days 1) } | Remove-RdpSession -Force
     Forcefully removes all sessions idle for more than 1 day on SRV01 without confirmation.
 
 .EXAMPLE
@@ -44,14 +53,15 @@
 
 .NOTES
     Author:        Franck SALLET
-    Version:       1.0.0
-    Last Modified: 2026-03-11
-    Requires:      PowerShell 5.1+
+    Version:       2.0.0
+    Last Modified: 2026-03-20
+    Requires:      PowerShell 5.1+, logoff.exe (built-in on all Windows editions)
     Permissions:   Local Administrator on target machines
+                   WinRM access required when using the -Credential parameter
     WARNING:       This operation terminates sessions forcefully and may cause data loss
 
 .LINK
-    https://docs.microsoft.com/en-us/windows/win32/termserv/win32-terminalservice
+    https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/logoff
 #>
     [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
     [OutputType([PSCustomObject])]
@@ -76,69 +86,80 @@
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand)] Starting - PowerShell $($PSVersionTable.PSVersion)"
 
+        $logoffCmd = Get-Command -Name 'logoff.exe' -CommandType Application -ErrorAction SilentlyContinue
+        if ($null -eq $logoffCmd) {
+            $errorRecord = [System.Management.Automation.ErrorRecord]::new(
+                [System.IO.FileNotFoundException]::new(
+                    'logoff.exe was not found on this system. Ensure Remote Desktop Services tools are available.'
+                ),
+                'LogoffNotFound',
+                [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+                'logoff.exe'
+            )
+            $PSCmdlet.ThrowTerminatingError($errorRecord)
+        }
+
+        Write-Verbose "[$($MyInvocation.MyCommand)] Found logoff.exe at: $($logoffCmd.Source)"
+
         if ($Force -and -not $WhatIfPreference) {
             $ConfirmPreference = 'None'
+        }
+
+        $LOCAL_IDENTIFIERS = @($env:COMPUTERNAME, 'localhost', '.', '127.0.0.1', '::1')
+
+        $logoffBlock = {
+            param([int]$SessId)
+            $null = & logoff.exe $SessId 2>&1
+            return $LASTEXITCODE
         }
     }
 
     process {
         foreach ($session in $SessionID) {
-            Write-Verbose "[$($MyInvocation.MyCommand)] Processing session ID $session on $ComputerName"
+            $targetDescription = "$ComputerName (Session ID: $session)"
+            Write-Verbose "[$($MyInvocation.MyCommand)] Processing $targetDescription"
 
-            if ($PSCmdlet.ShouldProcess("$ComputerName - Session $session", 'Log off RDP session (FORCE TERMINATE)')) {
-                # Build CIM session parameters
-                $cimSessionParams = @{
-                    ComputerName = $ComputerName
-                    ErrorAction  = 'Stop'
-                }
-
-                if ($PSBoundParameters.ContainsKey('Credential')) {
-                    $cimSessionParams['Credential'] = $Credential
-                }
-
-                $cimSession = $null
+            if ($PSCmdlet.ShouldProcess($targetDescription, 'Log off RDP session (FORCE TERMINATE)')) {
+                $isLocalMachine = $ComputerName -in $LOCAL_IDENTIFIERS
+                $success = $false
 
                 try {
-                    # Create CIM session
-                    $cimSession = New-CimSession @cimSessionParams
-                    Write-Verbose "[$($MyInvocation.MyCommand)] CIM session established to $ComputerName"
-
-                    # Get Terminal Service instance
-                    $tsService = Get-CimInstance -CimSession $cimSession -ClassName 'Win32_TerminalService' -Namespace 'root\cimv2\TerminalServices' -ErrorAction Stop
-
-                    # Invoke LogoffSession method
-                    $result = Invoke-CimMethod -InputObject $tsService -MethodName 'LogoffSession' -Arguments @{ SessionId = $session } -ErrorAction Stop
-
-                    # Check return value
-                    $success = ($result.ReturnValue -eq 0)
-
-                    [PSCustomObject]@{
-                        PSTypeName   = 'PSWinOps.RdpSessionAction'
-                        ComputerName = $ComputerName
-                        SessionID    = $session
-                        Action       = 'Logoff'
-                        Success      = $success
-                        ReturnCode   = $result.ReturnValue
-                        Timestamp    = Get-Date
+                    $invokeParams = @{
+                        ScriptBlock  = $logoffBlock
+                        ArgumentList = @($session)
+                        ErrorAction  = 'Stop'
                     }
+
+                    if (-not $isLocalMachine) {
+                        $invokeParams['ComputerName'] = $ComputerName
+                        if ($PSBoundParameters.ContainsKey('Credential')) {
+                            $invokeParams['Credential'] = $Credential
+                        }
+                    }
+
+                    $exitCode = Invoke-Command @invokeParams
+                    $success = ($null -ne $exitCode -and $exitCode -eq 0)
 
                     if ($success) {
-                        Write-Verbose "[$($MyInvocation.MyCommand)] Successfully logged off session $session on $ComputerName"
+                        Write-Verbose "[$($MyInvocation.MyCommand)] [OK] Logged off $targetDescription"
                     } else {
-                        Write-Warning "[$($MyInvocation.MyCommand)] Failed to log off session $session on $ComputerName - Return code: $($result.ReturnValue)"
+                        Write-Warning "[$($MyInvocation.MyCommand)] logoff.exe returned exit code $exitCode for $targetDescription"
                     }
-
-                } catch [Microsoft.Management.Infrastructure.CimException] {
-                    Write-Error "[$($MyInvocation.MyCommand)] CIM error on $ComputerName - $_"
+                } catch [System.Management.Automation.Remoting.PSRemotingTransportException] {
+                    Write-Error "[$($MyInvocation.MyCommand)] WinRM connection failed to $ComputerName - $_"
                 } catch [System.UnauthorizedAccessException] {
                     Write-Error "[$($MyInvocation.MyCommand)] Access denied to $ComputerName - Requires administrative permissions"
                 } catch {
-                    Write-Error "[$($MyInvocation.MyCommand)] Failed to log off session $session on $ComputerName - $_"
-                } finally {
-                    if ($null -ne $cimSession) {
-                        Remove-CimSession -CimSession $cimSession
-                        Write-Verbose "[$($MyInvocation.MyCommand)] CIM session closed for $ComputerName"
-                    }
+                    Write-Error "[$($MyInvocation.MyCommand)] Failed to log off $targetDescription - $_"
+                }
+
+                [PSCustomObject]@{
+                    PSTypeName   = 'PSWinOps.RdpSessionAction'
+                    ComputerName = $ComputerName
+                    SessionID    = $session
+                    Action       = 'Logoff'
+                    Success      = $success
+                    Timestamp    = Get-Date -Format 'o'
                 }
             }
         }

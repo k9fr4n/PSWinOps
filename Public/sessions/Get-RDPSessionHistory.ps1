@@ -1,4 +1,6 @@
-﻿function Get-RdpSessionHistory {
+﻿#Requires -Version 5.1
+
+function Get-RdpSessionHistory {
     <#
 .SYNOPSIS
     Retrieves Remote Desktop Protocol (RDP) session history from Windows Event Log

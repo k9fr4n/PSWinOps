@@ -1,4 +1,6 @@
-﻿function Get-RdpSessionLock {
+﻿#Requires -Version 5.1
+
+function Get-RdpSessionLock {
     <#
 .SYNOPSIS
     Retrieves RDP session lock and unlock event history from Windows Event Log

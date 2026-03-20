@@ -1,4 +1,6 @@
-﻿function ConvertFrom-MisencodedString {
+﻿#Requires -Version 5.1
+
+function ConvertFrom-MisencodedString {
 <#
 .SYNOPSIS
     Converts a misencoded string by reinterpreting bytes from a source encoding

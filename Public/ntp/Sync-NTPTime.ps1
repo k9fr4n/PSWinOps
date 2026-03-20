@@ -74,12 +74,11 @@ function Sync-NTPTime {
     )
 
     begin {
-        Set-StrictMode -Version Latest
         Write-Verbose "[$($MyInvocation.MyCommand)] Starting - PowerShell $($PSVersionTable.PSVersion)"
 
         # Scriptblock: force NTP resynchronization via w32tm
         $resyncScriptBlock = {
-            $w32tmPath = Join-Path -Path $env:SystemRoot -ChildPath 'System32\\w32tm.exe'
+            $w32tmPath = Join-Path -Path $env:SystemRoot -ChildPath 'System32\w32tm.exe'
             if (-not (Test-Path -Path $w32tmPath)) {
                 throw "[ERROR] w32tm.exe not found at '$w32tmPath'"
             }

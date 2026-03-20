@@ -1,45 +1,5 @@
 ﻿#Requires -Version 5.1
 
-<#
-.SYNOPSIS
-    Enumerates live Terminal Services user sessions on local or remote computers.
-
-.DESCRIPTION
-    This version replaces the original Win32_LogonSession-based implementation.
-    Win32_LogonSession with LogonType=10 queries the LSA session database, which:
-      - Retains records for weeks after sessions are closed (stale entries).
-      - Creates two entries per RDP connection (one per auth package: Negotiate
-        and Kerberos), causing duplicates for every live or past session.
-
-    This script uses quser.exe, which queries the live Terminal Services session
-    table maintained by the Windows Session Manager, returning exactly one row per
-    active or disconnected user session with no historical artefacts.
-
-.EXAMPLE
-    . .\Get-RdpSession.ps1
-    Get-RdpSession
-
-    Dot-sources the script then lists all live user sessions on the local computer.
-
-.EXAMPLE
-    . .\Get-RdpSession.ps1
-    'SRV01', 'SRV02' | Get-RdpSession -Credential (Get-Credential)
-
-    Dot-sources the script then queries two remote servers.
-
-.NOTES
-    Author:        Franck SALLET
-    Version:       2.1.0
-    Last Modified: 2026-03-19
-    Requires:      PowerShell 5.1+; WinRM enabled on remote targets
-    Permissions:   Local Administrator or Remote Desktop Users on each target
-    Note:          ConvertFrom-QUserIdleTime is a private helper loaded from Private/
-
-.LINK
-    https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/quser
-#>
-
-
 function Get-RdpSession {
     <#
 .SYNOPSIS

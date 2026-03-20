@@ -222,7 +222,7 @@ function Connect-RdpSession {
                     Success      = $exitSuccess
                     ExitCode     = $mstscProcess.ExitCode
                     Message      = $resultMessage
-                    Timestamp    = Get-Date
+                    Timestamp    = Get-Date -Format 'o'
                 }
 
                 if ($exitSuccess) {
