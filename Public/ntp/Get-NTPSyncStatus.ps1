@@ -11,8 +11,8 @@ function Get-NTPSyncStatus {
         last sync time, leap indicator, and poll interval.
 
         Supports both English and French locale w32tm output via locale-agnostic
-        regex patterns. Uses Invoke-Command for both local and remote execution,
-        enabling uniform testability and consistent error handling across targets.
+        regex patterns. Uses direct invocation for local queries and Invoke-Command for remote
+        execution, avoiding unnecessary serialization overhead on the local machine.
     .PARAMETER ComputerName
         One or more computer names to query. Accepts pipeline input by value and
         by property name. Defaults to the local machine ($env:COMPUTERNAME).
@@ -60,7 +60,7 @@ function Get-NTPSyncStatus {
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand)] Starting - PowerShell $($PSVersionTable.PSVersion)"
 
-        # ScriptBlock executed on each target via Invoke-Command
+        # ScriptBlock executed locally (&) or remotely (Invoke-Command)
         $w32tmScriptBlock = {
             $w32tmExe = Join-Path -Path $env:SystemRoot -ChildPath 'System32\w32tm.exe'
             if (-not (Test-Path -Path $w32tmExe)) {
@@ -101,7 +101,7 @@ function Get-NTPSyncStatus {
 
                 if ($isLocal) {
                     Write-Verbose "[$($MyInvocation.MyCommand)] Local execution (no -ComputerName)"
-                    $rawOutput = Invoke-Command -ScriptBlock $w32tmScriptBlock
+                    $rawOutput = & $w32tmScriptBlock
                 } else {
                     Write-Verbose "[$($MyInvocation.MyCommand)] Remote execution on '$targetComputer'"
                     $rawOutput = Invoke-Command -ComputerName $targetComputer -ScriptBlock $w32tmScriptBlock

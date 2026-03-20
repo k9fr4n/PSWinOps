@@ -6,7 +6,7 @@ function Get-RandomPassword {
     Generate a cryptographically secure random password
 
 .DESCRIPTION
-    Generates a random password using RNGCryptoServiceProvider with configurable
+    Generates a random password using RandomNumberGenerator with configurable
     character class requirements. Ensures minimum counts for uppercase, lowercase,
     numeric, and special characters are met by guaranteeing placement of required
     characters followed by cryptographically secure shuffling.
@@ -56,8 +56,11 @@ System.String
     Permissions:   None required
     Module:        PSWinOps
 
-    Uses System.Security.Cryptography.RNGCryptoServiceProvider for
-    cryptographically secure random number generation. Guarantees constraint
+    Uses System.Security.Cryptography.RandomNumberGenerator for
+    cryptographically secure random number generation. Uses the factory
+    method RandomNumberGenerator.Create() which is compatible with both
+    .NET Framework (PS 5.1) and .NET 6+ (PS 7.2+) without deprecation
+    warnings. Guarantees constraint
     satisfaction by placing required characters first, then shuffling.
 #>
     [CmdletBinding()]
@@ -127,7 +130,7 @@ System.String
     process {
         $rng = $null
         try {
-            $rng = New-Object -TypeName 'System.Security.Cryptography.RNGCryptoServiceProvider'
+            $rng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
 
             # Build password array
             $passwordChars = [System.Collections.Generic.List[char]]::new()
