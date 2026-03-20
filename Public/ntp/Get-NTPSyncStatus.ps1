@@ -1,4 +1,4 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 
 function Get-NTPSyncStatus {
     <#
@@ -42,6 +42,9 @@ function Get-NTPSyncStatus {
         Last Modified: 2026-03-18
         Requires:      PowerShell 5.1+ / Windows only
         Permissions:   Admin rights required for remote queries (WinRM access)
+    
+    .LINK
+    https://docs.microsoft.com/en-us/windows-server/networking/windows-time-service/windows-time-service-tools-and-settings
     #>
     [CmdletBinding()]
     [OutputType([PSCustomObject])]

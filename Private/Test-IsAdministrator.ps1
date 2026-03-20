@@ -14,6 +14,9 @@ function Test-IsAdministrator {
         Version: 1.0.0
         Last Modified: 2026-03-20
         Requires: PowerShell 5.1+ / Windows only
+    
+    .LINK
+    https://docs.microsoft.com/en-us/dotnet/api/system.security.principal.windowsprincipal
     #>
     [CmdletBinding()]
     [OutputType([bool])]

@@ -1,4 +1,4 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 
 function Get-ComputerUptime {
     <#
@@ -44,6 +44,9 @@ function Get-ComputerUptime {
         Requires:      PowerShell 5.1+ / Windows only
         Permissions:   No admin required for reading uptime
         Remote:        Requires WinRM / WS-Man enabled on target machines
+    
+    .LINK
+    https://docs.microsoft.com/en-us/windows/win32/cimwin32prov/win32-operatingsystem
     #>
     [CmdletBinding()]
     [OutputType([PSCustomObject])]

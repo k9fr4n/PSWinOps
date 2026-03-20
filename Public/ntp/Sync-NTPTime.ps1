@@ -1,4 +1,4 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 
 function Sync-NTPTime {
     <#
@@ -64,6 +64,9 @@ function Sync-NTPTime {
         Requires: PowerShell 5.1+ / Windows only
         Permissions: Requires admin rights (local and remote) to restart services
                      and run w32tm /resync. Remote targets require PSRemoting enabled.
+    
+    .LINK
+    https://docs.microsoft.com/en-us/windows-server/networking/windows-time-service/windows-time-service-tools-and-settings
     #>
     [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
     [OutputType([PSCustomObject])]

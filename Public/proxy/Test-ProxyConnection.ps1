@@ -45,6 +45,9 @@ function Test-ProxyConnection {
         The default test URI (msftconnecttest.com) is used by Windows itself for
         internet connectivity detection. It returns the text 'Microsoft Connect Test'
         when successful.
+    
+    .LINK
+    https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/invoke-webrequest
     #>
     [CmdletBinding()]
     [OutputType([PSCustomObject])]

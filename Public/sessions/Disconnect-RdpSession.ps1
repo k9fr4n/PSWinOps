@@ -1,4 +1,4 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 
 function Disconnect-RdpSession {
     <#
@@ -42,6 +42,9 @@ function Disconnect-RdpSession {
         Requires:      PowerShell 5.1+, tsdiscon.exe (built-in on all Windows editions)
         Permissions:   Local admin or Remote Desktop Services disconnect rights on the target
                        WinRM access required when using the -Credential parameter
+    
+    .LINK
+    https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/logoff
     #>
     [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
     [OutputType([PSCustomObject])]

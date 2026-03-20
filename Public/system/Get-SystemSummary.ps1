@@ -1,4 +1,4 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 function Get-SystemSummary {
     <#
     .SYNOPSIS
@@ -33,6 +33,9 @@ function Get-SystemSummary {
         Last Modified: 2026-03-15
         Requires:      PowerShell 5.1+, CIM/WMI access on target machines
         Permissions:   Local admin or equivalent WMI read permissions on remote targets
+    
+    .LINK
+    https://docs.microsoft.com/en-us/windows/win32/cimwin32prov/win32-operatingsystem
     #>
     [CmdletBinding()]
     [OutputType([PSCustomObject])]

@@ -58,6 +58,9 @@ function Set-ProxyConfiguration {
         WinINET writes to HKCU (no elevation needed, applies to current user).
         Environment scope sets User-level variables (persistent across sessions).
         Process-level env vars ($env:) are also updated for immediate effect.
+    
+    .LINK
+    https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/netsh-winhttp
     #>
     [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'Medium')]
     [OutputType([void])]

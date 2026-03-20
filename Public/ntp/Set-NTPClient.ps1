@@ -1,4 +1,4 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 
 function Set-NTPClient {
     <#
@@ -47,7 +47,10 @@ None
     Last Modified: 2026-03-15
     Requires: PowerShell 5.1+, Local Administrator rights
     Permissions: Administrator required to modify registry and manage W32Time service
-#>
+
+    .LINK
+    https://docs.microsoft.com/en-us/windows-server/networking/windows-time-service/windows-time-service-tools-and-settings
+    #>
     [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
     [OutputType([void])]
     param (

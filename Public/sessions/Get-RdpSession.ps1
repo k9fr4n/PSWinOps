@@ -1,4 +1,4 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 
 function Get-RdpSession {
     <#
@@ -57,7 +57,10 @@ PSWinOps.ActiveRdpSession
     Last Modified: 2026-03-19
     Requires:      PowerShell 5.1+; WinRM enabled on remote targets
     Permissions:   Local Administrator or Remote Desktop Users on each target
-#>
+
+    .LINK
+    https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/query-user
+    #>
     [CmdletBinding()]
     [OutputType([PSCustomObject])]
     param(

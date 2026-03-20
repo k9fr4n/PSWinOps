@@ -1,4 +1,4 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 
 function Get-NTPPeer {
     <#
@@ -33,6 +33,9 @@ function Get-NTPPeer {
         Last Modified: 2026-03-13
         Requires: PowerShell 5.1+, Windows Time service (w32time)
         Permissions: Local user for local queries; remote admin for Invoke-Command remoting
+    
+    .LINK
+    https://docs.microsoft.com/en-us/windows-server/networking/windows-time-service/windows-time-service-tools-and-settings
     #>
     [CmdletBinding()]
     [OutputType([PSCustomObject])]

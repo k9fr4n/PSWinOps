@@ -1,4 +1,4 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 
 function Get-RandomPassword {
     <#
@@ -62,7 +62,10 @@ System.String
     .NET Framework (PS 5.1) and .NET 6+ (PS 7.2+) without deprecation
     warnings. Guarantees constraint
     satisfaction by placing required characters first, then shuffling.
-#>
+
+    .LINK
+    https://docs.microsoft.com/en-us/dotnet/api/system.security.cryptography.rngcryptoserviceprovider
+    #>
     [CmdletBinding()]
     [OutputType([string])]
     param(

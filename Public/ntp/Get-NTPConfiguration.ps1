@@ -1,4 +1,4 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 
 function Get-NTPConfiguration {
     <#
@@ -53,6 +53,9 @@ function Get-NTPConfiguration {
         Last Modified: 2026-03-19
         Requires:      PowerShell 5.1+, Windows Time Service (w32time)
         Permissions:   Standard user for local queries; WinRM + admin rights for remote
+    
+    .LINK
+    https://docs.microsoft.com/en-us/windows-server/networking/windows-time-service/windows-time-service-tools-and-settings
     #>
     [CmdletBinding()]
     [OutputType([PSCustomObject])]

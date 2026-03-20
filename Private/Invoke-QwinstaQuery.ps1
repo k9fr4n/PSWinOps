@@ -1,4 +1,4 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 
 function Invoke-QwinstaQuery {
     <#
@@ -31,7 +31,10 @@ function Invoke-QwinstaQuery {
     Last Modified: 2026-03-11
     Requires:      PowerShell 5.1+, qwinsta.exe (Remote Desktop Services tools)
     Permissions:   None -- internal function, not exported
-#>
+
+    .LINK
+    https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/query-session
+    #>
     [CmdletBinding()]
     [OutputType([PSCustomObject])]
     param(

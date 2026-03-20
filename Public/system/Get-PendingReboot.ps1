@@ -1,4 +1,4 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 function Get-PendingReboot {
     <#
     .SYNOPSIS
@@ -39,6 +39,9 @@ function Get-PendingReboot {
             SCCM checks require the ConfigMgr client to be installed.
             Local computer name detection covers $env:COMPUTERNAME, 'localhost', and '.'.
             FQDN or IP of the local machine will be treated as a remote target.
+    
+    .LINK
+    https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-movefileexw
     #>
     [CmdletBinding()]
     [OutputType([PSCustomObject])]

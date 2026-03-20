@@ -31,7 +31,10 @@ function ConvertFrom-QUserIdleTime {
     Last Modified: 2026-03-20
     Requires:      PowerShell 5.1+
     Permissions:   None -- pure in-memory string parsing, no system calls
-#>
+
+    .LINK
+    https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/query-user
+    #>
     [CmdletBinding()]
     [OutputType([TimeSpan])]
     param(
