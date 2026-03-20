@@ -23,6 +23,10 @@ function Get-NTPPeer {
     .EXAMPLE
         'SRV01', 'SRV02' | Get-NTPPeer
         Pipeline usage: queries NTP peers on both servers.
+    .OUTPUTS
+    PSWinOps.NtpPeer
+        NTP peer status including stratum, delay, and offset.
+
     .NOTES
         Author: Franck SALLET
         Version: 1.1.0

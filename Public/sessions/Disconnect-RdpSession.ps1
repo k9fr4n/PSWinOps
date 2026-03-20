@@ -31,6 +31,10 @@ function Disconnect-RdpSession {
     .EXAMPLE
         Disconnect-RdpSession -ComputerName 'SRV01' -SessionID 3, 5 -Credential (Get-Credential) -Verbose
         Disconnects sessions 3 and 5 on SRV01 using alternate credentials with verbose output.
+    .OUTPUTS
+    PSWinOps.RdpSessionAction
+        Disconnection action result with session details and status.
+
     .NOTES
         Author:        Franck SALLET
         Version:       2.0.0

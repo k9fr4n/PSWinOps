@@ -25,6 +25,10 @@ function Get-PendingReboot {
         'SERVER01', 'SERVER02' | Get-PendingReboot -Credential (Get-Credential)
 
         Checks multiple remote machines via pipeline input with alternate credentials.
+    .OUTPUTS
+    PSWinOps.PendingReboot
+        Pending reboot status from multiple detection sources.
+
     .NOTES
         Author: Franck SALLET
         Version: 1.0.0

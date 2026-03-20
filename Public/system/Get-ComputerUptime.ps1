@@ -33,6 +33,10 @@ function Get-ComputerUptime {
         'SRV01', 'SRV02' | Get-ComputerUptime -Credential (Get-Credential)
 
         Queries multiple servers via pipeline with explicit credentials.
+    .OUTPUTS
+    PSWinOps.ComputerUptime
+        Uptime details including last boot time and duration.
+
     .NOTES
         Author:        Franck SALLET
         Version:       1.2.0

@@ -51,6 +51,10 @@ function Remove-RdpSession {
     'APP01' | Get-RdpSession | Where-Object { $_.UserName -eq 'DOMAIN\olduser' } | Remove-RdpSession -Credential $cred
     Removes all sessions for a specific user on APP01 using provided credentials.
 
+.OUTPUTS
+PSWinOps.RdpSessionAction
+    Logoff action result with session details and status.
+
 .NOTES
     Author:        Franck SALLET
     Version:       2.0.0

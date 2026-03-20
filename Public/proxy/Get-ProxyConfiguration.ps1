@@ -23,6 +23,10 @@ function Get-ProxyConfiguration {
         Get-ProxyConfiguration | Select-Object -Property WinInet*, WinHttp*
 
         Returns only WinINET and WinHTTP proxy settings, excluding environment variables.
+    .OUTPUTS
+    PSWinOps.ProxyConfiguration
+        Current proxy settings from system and user scopes.
+
     .NOTES
         Author: Franck SALLET
         Version: 1.0.0

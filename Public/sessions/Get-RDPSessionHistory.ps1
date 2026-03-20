@@ -54,6 +54,10 @@ function Get-RdpSessionHistory {
 
     Retrieves last 30 days of RDP logon events and groups them by user.
 
+.OUTPUTS
+PSWinOps.RdpSessionHistory
+    RDP logon/logoff event history from the event log.
+
 .NOTES
     Author:        Franck SALLET
     Version:       1.1.0

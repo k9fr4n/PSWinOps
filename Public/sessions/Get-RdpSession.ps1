@@ -47,6 +47,10 @@ function Get-RdpSession {
     Get-RdpSession | Where-Object { $_.IdleTime -gt [TimeSpan]::FromHours(4) }
     Returns all sessions idle for more than 4 hours on the local machine.
 
+.OUTPUTS
+PSWinOps.ActiveRdpSession
+    Active RDP session details including user, state, and logon time.
+
 .NOTES
     Author:        Franck SALLET
     Version:       2.2.0

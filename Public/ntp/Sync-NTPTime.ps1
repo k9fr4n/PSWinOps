@@ -53,6 +53,10 @@ function Sync-NTPTime {
         Reads a list of server names from a file and pipelines them into Sync-NTPTime,
         restarting the w32time service on each before resyncing.
 
+    .OUTPUTS
+    PSWinOps.NtpResyncResult
+        Resynchronization result with status and any error details.
+
     .NOTES
         Author: Franck SALLET
         Version: 1.0.0

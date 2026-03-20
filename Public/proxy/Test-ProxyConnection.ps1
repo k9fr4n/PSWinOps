@@ -32,6 +32,10 @@ function Test-ProxyConnection {
         Test-ProxyConnection -Uri 'https://www.google.com' -ProxyServer 'proxy.example.com:8080' -TimeoutSec 5
 
         Tests connectivity to Google through a specific proxy with a 5-second timeout.
+    .OUTPUTS
+    PSWinOps.ProxyTestResult
+        Proxy connectivity test result with latency and status code.
+
     .NOTES
         Author: Franck SALLET
         Version: 1.0.0

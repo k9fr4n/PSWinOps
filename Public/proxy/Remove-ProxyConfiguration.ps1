@@ -33,6 +33,10 @@ function Remove-ProxyConfiguration {
         Remove-ProxyConfiguration -Scope Environment -Confirm:$false
 
         Clears proxy environment variables without confirmation prompt.
+    .OUTPUTS
+    None
+        This function does not produce pipeline output.
+
     .NOTES
         Author: Franck SALLET
         Version: 1.0.0

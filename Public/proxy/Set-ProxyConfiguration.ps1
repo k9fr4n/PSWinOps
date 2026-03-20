@@ -44,6 +44,10 @@ function Set-ProxyConfiguration {
         Set-ProxyConfiguration -AutoConfigURL 'http://wpad.example.com/proxy.pac' -Scope WinINET
 
         Configures WinINET to use a PAC auto-configuration URL (no static proxy).
+    .OUTPUTS
+    None
+        This function does not produce pipeline output.
+
     .NOTES
         Author: Franck SALLET
         Version: 1.0.0

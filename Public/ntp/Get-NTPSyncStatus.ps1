@@ -32,6 +32,10 @@ function Get-NTPSyncStatus {
         'DC01', 'DC02', 'WEB01' | Get-NTPSyncStatus -MaxOffsetMs 2000
 
         Pipeline example: retrieves NTP sync status on multiple machines with a 2-second threshold.
+    .OUTPUTS
+    PSWinOps.NtpSyncResult
+        NTP synchronization status with offset and compliance flag.
+
     .NOTES
         Author:        Franck SALLET
         Version:       2.0.0

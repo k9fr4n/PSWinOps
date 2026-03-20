@@ -43,6 +43,10 @@ function Get-NTPConfiguration {
         $ntpConfig.PeerDetails
 
         Retrieves configuration with peer details and accesses specific properties.
+    .OUTPUTS
+    PSWinOps.NtpConfiguration
+        NTP client configuration including source, type, and poll intervals.
+
     .NOTES
         Author:        Franck SALLET
         Version:       2.0.0

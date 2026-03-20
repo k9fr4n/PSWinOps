@@ -38,6 +38,10 @@ function Set-NTPClient {
 .EXAMPLE
     Set-NTPClient -NtpServers 'ntp.example.com' -SpecialPollInterval 600 -MinPollInterval 7 -MaxPollInterval 12 -WhatIf
     Shows what would happen if the configuration were applied with custom poll intervals.
+.OUTPUTS
+None
+    This function does not produce pipeline output.
+
 .NOTES
     Author: Franck SALLET
     Version: 2.0.2

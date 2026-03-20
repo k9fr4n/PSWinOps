@@ -23,6 +23,10 @@ function Get-SystemSummary {
     .EXAMPLE
         'WEB01', 'WEB02' | Get-SystemSummary -Verbose
         Queries two machines via pipeline input with verbose logging.
+    .OUTPUTS
+    PSWinOps.SystemSummary
+        System information summary including OS, CPU, RAM, and uptime.
+
     .NOTES
         Author:        Franck SALLET
         Version:       1.0.0

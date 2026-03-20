@@ -43,6 +43,10 @@ function Get-RdpSessionLock {
     Get-ADComputer -Filter "OperatingSystem -like '*Server*'" | Get-RdpSessionLock -StartTime (Get-Date).AddHours(-24) | Group-Object -Property UserName
     Retrieves last 24 hours of lock events from all domain servers and groups by user.
 
+.OUTPUTS
+PSWinOps.RdpSessionLock
+    Session lock and unlock events with timestamps.
+
 .NOTES
     Author:        Franck SALLET
     Version:       1.1.0

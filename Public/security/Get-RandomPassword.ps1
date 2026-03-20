@@ -44,6 +44,10 @@ function Get-RandomPassword {
     1..5 | ForEach-Object { Get-RandomPassword -Length 20 }
     Generates 5 unique passwords with 20 characters each.
 
+.OUTPUTS
+System.String
+    A randomly generated password string.
+
 .NOTES
     Author:        Franck SALLET
     Version:       1.1.0
