@@ -468,5 +468,38 @@
       </ListControl>
     </View>
 
+    <!-- ============================================================ -->
+    <!-- PSWinOps.ProxyTestResult                                     -->
+    <!-- Used by: Test-ProxyConnection                                -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.ProxyTestResult</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.ProxyTestResult</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>Computer</Label><Width>15</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Uri</Label><Width>45</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Proxy</Label><Width>30</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Status</Label><Width>7</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Success</Label><Width>8</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Time(ms)</Label><Width>9</Width><Alignment>Right</Alignment></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Uri</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>ProxyUsed</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>StatusCode</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Success</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>ResponseTime</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
   </ViewDefinitions>
 </Configuration>

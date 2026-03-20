@@ -75,7 +75,8 @@ FunctionsToExport = 'Connect-RdpSession', 'ConvertFrom-MisencodedString',
                'Get-ProxyConfiguration', 'Get-RandomPassword', 'Get-RdpSession', 
                'Get-RDPSessionHistory', 'Get-RdpSessionLock', 'Get-SystemSummary', 
                'Remove-ProxyConfiguration', 'Remove-RdpSession', 
-               'Set-NTPClient', 'Set-ProxyConfiguration', 'Sync-NTPTime'
+               'Set-NTPClient', 'Set-ProxyConfiguration', 'Sync-NTPTime', 
+               'Test-ProxyConnection'
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = @()
