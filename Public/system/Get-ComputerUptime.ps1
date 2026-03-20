@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 
 function Get-ComputerUptime {
     <#
@@ -56,7 +56,7 @@ function Get-ComputerUptime {
             ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
         [Alias('CN', 'Name', 'DNSHostName')]
-        [string[]]$ComputerName = @($env:COMPUTERNAME),
+        [string[]]$ComputerName = $env:COMPUTERNAME,
 
         [Parameter(Mandatory = $false)]
         [PSCredential]$Credential

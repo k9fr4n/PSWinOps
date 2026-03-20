@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 function Get-SystemSummary {
     <#
     .SYNOPSIS
@@ -43,7 +43,7 @@ function Get-SystemSummary {
         [Parameter(Mandatory = $false, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
         [Alias('CN', 'Name', 'DNSHostName')]
-        [string[]]$ComputerName = @($env:COMPUTERNAME),
+        [string[]]$ComputerName = $env:COMPUTERNAME,
 
         [Parameter(Mandatory = $false)]
         [PSCredential]$Credential

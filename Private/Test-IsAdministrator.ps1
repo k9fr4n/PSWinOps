@@ -1,4 +1,4 @@
-function Test-IsAdministrator {
+﻿function Test-IsAdministrator {
     <#
     .SYNOPSIS
         Tests whether the current PowerShell session is running with Administrator privileges.
