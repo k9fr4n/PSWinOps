@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 function Test-ProxyConnection {
     <#
     .SYNOPSIS
@@ -32,6 +32,10 @@ function Test-ProxyConnection {
         Test-ProxyConnection -Uri 'https://www.google.com' -ProxyServer 'proxy.example.com:8080' -TimeoutSec 5
 
         Tests connectivity to Google through a specific proxy with a 5-second timeout.
+    .OUTPUTS
+    PSWinOps.ProxyTestResult
+        Proxy connectivity test result with latency and status code.
+
     .NOTES
         Author: Franck SALLET
         Version: 1.0.0
@@ -41,9 +45,12 @@ function Test-ProxyConnection {
         The default test URI (msftconnecttest.com) is used by Windows itself for
         internet connectivity detection. It returns the text 'Microsoft Connect Test'
         when successful.
+    
+    .LINK
+    https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/invoke-webrequest
     #>
     [CmdletBinding()]
-    [OutputType([PSCustomObject])]
+    [OutputType('PSWinOps.ProxyTestResult')]
     param (
         [Parameter(Mandatory = $false)]
         [ValidateNotNullOrEmpty()]

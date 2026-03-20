@@ -43,19 +43,27 @@ function Get-NTPConfiguration {
         $ntpConfig.PeerDetails
 
         Retrieves configuration with peer details and accesses specific properties.
+    .OUTPUTS
+    PSWinOps.NtpConfiguration
+        NTP client configuration including source, type, and poll intervals.
+
     .NOTES
         Author:        Franck SALLET
         Version:       2.0.0
         Last Modified: 2026-03-19
         Requires:      PowerShell 5.1+, Windows Time Service (w32time)
         Permissions:   Standard user for local queries; WinRM + admin rights for remote
+    
+    .LINK
+    https://docs.microsoft.com/en-us/windows-server/networking/windows-time-service/windows-time-service-tools-and-settings
     #>
     [CmdletBinding()]
-    [OutputType([PSCustomObject])]
+    [OutputType('PSWinOps.NtpConfiguration')]
     param(
         [Parameter(Mandatory = $false, ValueFromPipeline = $true,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
+        [Alias('CN', 'Name', 'DNSHostName')]
         [string[]]$ComputerName = $env:COMPUTERNAME,
 
         [Parameter(Mandatory = $false)]

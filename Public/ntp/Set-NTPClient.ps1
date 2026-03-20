@@ -1,5 +1,4 @@
 ﻿#Requires -Version 5.1
-#Requires -RunAsAdministrator
 
 function Set-NTPClient {
     <#
@@ -15,7 +14,7 @@ function Set-NTPClient {
     Requires local administrator privileges to modify registry and manage the W32Time service.
 .PARAMETER NtpServers
     Array of NTP server FQDNs or IP addresses to use for time synchronization.
-    Default: ntp1.ecritel.net, ntp2.ecritel.net
+    At least one server must be specified.
 .PARAMETER MaxPhaseOffset
     Maximum allowed phase offset in seconds before the clock is corrected.
     Valid range: 1 to 3600 seconds. Default: 1 second.
@@ -29,8 +28,8 @@ function Set-NTPClient {
     Maximum poll interval as a power of 2 (2^n seconds).
     Must be greater than MinPollInterval. Valid range: 0 to 17. Default: 10 (2^10 = 1024 seconds).
 .EXAMPLE
-    Set-NTPClient
-    Uses default NTP servers (ntp1.ecritel.net, ntp2.ecritel.net) with default settings.
+    Set-NTPClient -NtpServers 'time.windows.com', 'pool.ntp.org'
+    Configures W32Time with two public NTP servers using default poll settings.
 .EXAMPLE
     Set-NTPClient -NtpServers 'time.windows.com', 'pool.ntp.org' -MaxPhaseOffset 5 -Verbose
     Configures W32Time with custom NTP servers and a 5-second phase offset tolerance,
@@ -38,19 +37,26 @@ function Set-NTPClient {
 .EXAMPLE
     Set-NTPClient -NtpServers 'ntp.example.com' -SpecialPollInterval 600 -MinPollInterval 7 -MaxPollInterval 12 -WhatIf
     Shows what would happen if the configuration were applied with custom poll intervals.
+.OUTPUTS
+None
+    This function does not produce pipeline output.
+
 .NOTES
     Author: Franck SALLET
-    Version: 2.0.2
-    Last Modified: 2026-03-15
+    Version: 2.1.0
+    Last Modified: 2026-03-20
     Requires: PowerShell 5.1+, Local Administrator rights
     Permissions: Administrator required to modify registry and manage W32Time service
-#>
+
+    .LINK
+    https://docs.microsoft.com/en-us/windows-server/networking/windows-time-service/windows-time-service-tools-and-settings
+    #>
     [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
     [OutputType([void])]
     param (
-        [Parameter(Mandatory = $false)]
+        [Parameter(Mandatory = $true, Position = 0)]
         [ValidateNotNullOrEmpty()]
-        [string[]]$NtpServers = @('ntp1.ecritel.net', 'ntp2.ecritel.net'),
+        [string[]]$NtpServers,
 
         [Parameter(Mandatory = $false)]
         [ValidateRange(1, 3600)]
@@ -71,6 +77,17 @@ function Set-NTPClient {
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand)] Starting - PowerShell $($PSVersionTable.PSVersion)"
+
+        if (-not (Test-IsAdministrator)) {
+            $PSCmdlet.ThrowTerminatingError(
+                [System.Management.Automation.ErrorRecord]::new(
+                    [System.UnauthorizedAccessException]::new('This operation requires Administrator privileges.'),
+                    'ElevationRequired',
+                    [System.Management.Automation.ErrorCategory]::PermissionDenied,
+                    $null
+                )
+            )
+        }
 
         if ($MaxPollInterval -le $MinPollInterval) {
             throw "MaxPollInterval ($MaxPollInterval) must be greater than MinPollInterval ($MinPollInterval)"
@@ -166,16 +183,17 @@ function Set-NTPClient {
             # Step 7: Force synchronization
             Write-Verbose "[$($MyInvocation.MyCommand)] Forcing immediate NTP synchronization..."
             $syncOutput = w32tm /resync /force 2>&1
+            $syncExitCode = $LASTEXITCODE
 
-            $successMessageFR = "La commande s'est déroulée correctement."
-            $successMessageEN = 'The command completed successfully.'
-
-            $isSyncSuccessful = ($syncOutput -match $successMessageFR) -or ($syncOutput -match $successMessageEN)
+            # Exit code is the authoritative success indicator (locale-agnostic).
+            # w32tm output text varies by OS language and is logged for diagnostics only.
+            $isSyncSuccessful = ($syncExitCode -eq 0)
 
             if ($isSyncSuccessful) {
                 Write-Information -MessageData '[OK] Time synchronization completed successfully' -InformationAction Continue
+                Write-Verbose "[$($MyInvocation.MyCommand)] w32tm /resync output: $($syncOutput -join ' ')"
             } else {
-                Write-Warning "[$($MyInvocation.MyCommand)] Time synchronization may have failed - check output:"
+                Write-Warning "[$($MyInvocation.MyCommand)] Time synchronization failed (exit code $syncExitCode):"
                 $syncOutput | ForEach-Object { Write-Warning "[$($MyInvocation.MyCommand)] $_" }
             }
 

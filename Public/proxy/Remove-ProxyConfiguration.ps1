@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 function Remove-ProxyConfiguration {
     <#
     .SYNOPSIS
@@ -33,6 +33,10 @@ function Remove-ProxyConfiguration {
         Remove-ProxyConfiguration -Scope Environment -Confirm:$false
 
         Clears proxy environment variables without confirmation prompt.
+    .OUTPUTS
+    None
+        This function does not produce pipeline output.
+
     .NOTES
         Author: Franck SALLET
         Version: 1.0.0
@@ -42,6 +46,9 @@ function Remove-ProxyConfiguration {
         WinHTTP scope requires local administrator privileges (netsh winhttp reset proxy).
         WinINET writes to HKCU (no elevation needed, applies to current user).
         Environment scope clears both User-level (persistent) and Process-level variables.
+    
+    .LINK
+    https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/netsh-winhttp
     #>
     [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'Medium')]
     [OutputType([void])]
@@ -91,6 +98,10 @@ function Remove-ProxyConfiguration {
         if ($resolvedScopes -contains 'WinHTTP') {
             if ($PSCmdlet.ShouldProcess('WinHTTP (netsh winhttp)', 'Reset proxy to direct access')) {
                 try {
+                    if (-not (Test-IsAdministrator)) {
+                        throw [System.UnauthorizedAccessException]::new('WinHTTP scope requires Administrator privileges.')
+                    }
+
                     Write-Verbose "[$($MyInvocation.MyCommand)] Resetting WinHTTP proxy settings"
 
                     $netshPath = Join-Path -Path $env:SystemRoot -ChildPath 'System32\netsh.exe'

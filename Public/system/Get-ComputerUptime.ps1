@@ -33,6 +33,10 @@ function Get-ComputerUptime {
         'SRV01', 'SRV02' | Get-ComputerUptime -Credential (Get-Credential)
 
         Queries multiple servers via pipeline with explicit credentials.
+    .OUTPUTS
+    PSWinOps.ComputerUptime
+        Uptime details including last boot time and duration.
+
     .NOTES
         Author:        Franck SALLET
         Version:       1.2.0
@@ -40,15 +44,19 @@ function Get-ComputerUptime {
         Requires:      PowerShell 5.1+ / Windows only
         Permissions:   No admin required for reading uptime
         Remote:        Requires WinRM / WS-Man enabled on target machines
+    
+    .LINK
+    https://docs.microsoft.com/en-us/windows/win32/cimwin32prov/win32-operatingsystem
     #>
     [CmdletBinding()]
-    [OutputType([PSCustomObject])]
+    [OutputType('PSWinOps.ComputerUptime')]
     param(
         [Parameter(Mandatory = $false,
             ValueFromPipeline = $true,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
-        [string[]]$ComputerName = @($env:COMPUTERNAME),
+        [Alias('CN', 'Name', 'DNSHostName')]
+        [string[]]$ComputerName = $env:COMPUTERNAME,
 
         [Parameter(Mandatory = $false)]
         [PSCredential]$Credential

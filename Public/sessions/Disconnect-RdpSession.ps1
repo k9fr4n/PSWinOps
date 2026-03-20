@@ -15,6 +15,8 @@ function Disconnect-RdpSession {
     .PARAMETER ComputerName
         The target computer name or IP address. Defaults to the local computer name.
         Accepts pipeline input by property name for integration with Get-RdpSession.
+        Accepts a single computer name only — use the pipeline with Get-RdpSession
+        to operate across multiple machines sequentially.
     .PARAMETER SessionID
         One or more RDP session IDs to disconnect. Valid range is 0 to 65536.
         Accepts pipeline input directly or by property name.
@@ -31,6 +33,10 @@ function Disconnect-RdpSession {
     .EXAMPLE
         Disconnect-RdpSession -ComputerName 'SRV01' -SessionID 3, 5 -Credential (Get-Credential) -Verbose
         Disconnects sessions 3 and 5 on SRV01 using alternate credentials with verbose output.
+    .OUTPUTS
+    PSWinOps.RdpSessionAction
+        Disconnection action result with session details and status.
+
     .NOTES
         Author:        Franck SALLET
         Version:       2.0.0
@@ -38,9 +44,12 @@ function Disconnect-RdpSession {
         Requires:      PowerShell 5.1+, tsdiscon.exe (built-in on all Windows editions)
         Permissions:   Local admin or Remote Desktop Services disconnect rights on the target
                        WinRM access required when using the -Credential parameter
+    
+    .LINK
+    https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/logoff
     #>
     [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
-    [OutputType([PSCustomObject])]
+    [OutputType('PSWinOps.RdpSessionAction')]
     param(
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]

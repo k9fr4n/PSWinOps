@@ -22,6 +22,9 @@ function Connect-RdpSession {
 .PARAMETER ComputerName
     The remote computer hosting the target RDP session. Defaults to the local
     machine. Accepts pipeline input by property name.
+    Accepts a single computer name only — mstsc.exe shadow mode opens one
+    interactive window per call. To shadow sessions on multiple machines,
+    pipe objects from Get-RdpSession individually.
 
 .PARAMETER SessionID
     The numeric session ID to shadow. Retrieve this value with Get-RdpSession.
@@ -42,15 +45,15 @@ function Connect-RdpSession {
     must be able to display a window on the current desktop.
 
 .EXAMPLE
-    Connect-RdpSession -SessionID 2 -ComputerName 'ecrmut-ad-02'
-    Shadows session 2 on ecrmut-ad-02 in interactive control mode.
+    Connect-RdpSession -SessionID 2 -ComputerName 'SERVER01'
+    Shadows session 2 on SERVER01 in interactive control mode.
     The user receives a consent prompt (default behavior).
 
 .EXAMPLE
     Get-RdpSession -ComputerName 'APP01' |
-        Where-Object { $_.UserName -eq 'adm-fsallet' } |
+        Where-Object { $_.UserName -eq 'admin-jdoe' } |
         Connect-RdpSession -ControlMode View
-    Finds the session for adm-fsallet via pipeline and connects in view-only mode.
+    Finds the session for admin-jdoe via pipeline and connects in view-only mode.
 
 .EXAMPLE
     Connect-RdpSession -SessionID 3 -ComputerName 'WEB01' -NoUserPrompt -WhatIf
@@ -59,6 +62,10 @@ function Connect-RdpSession {
 .EXAMPLE
     Connect-RdpSession -SessionID 5 -ControlMode View -Credential $adminCred
     Opens a view-only shadow of session 5, with mstsc.exe running as $adminCred.
+
+.OUTPUTS
+PSWinOps.RdpSessionAction
+    Connection action result with session details and status.
 
 .NOTES
     Author:        Franck SALLET
@@ -83,7 +90,7 @@ function Connect-RdpSession {
     https://docs.microsoft.com/en-us/windows-server/remote/remote-desktop-services/rds-remote-control
 #>
     [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
-    [OutputType([PSCustomObject])]
+    [OutputType('PSWinOps.RdpSessionAction')]
     param(
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]

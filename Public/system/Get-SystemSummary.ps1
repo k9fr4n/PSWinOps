@@ -23,19 +23,27 @@ function Get-SystemSummary {
     .EXAMPLE
         'WEB01', 'WEB02' | Get-SystemSummary -Verbose
         Queries two machines via pipeline input with verbose logging.
+    .OUTPUTS
+    PSWinOps.SystemSummary
+        System information summary including OS, CPU, RAM, and uptime.
+
     .NOTES
         Author:        Franck SALLET
         Version:       1.0.0
         Last Modified: 2026-03-15
         Requires:      PowerShell 5.1+, CIM/WMI access on target machines
         Permissions:   Local admin or equivalent WMI read permissions on remote targets
+    
+    .LINK
+    https://docs.microsoft.com/en-us/windows/win32/cimwin32prov/win32-operatingsystem
     #>
     [CmdletBinding()]
-    [OutputType([PSCustomObject])]
+    [OutputType('PSWinOps.SystemSummary')]
     param(
         [Parameter(Mandatory = $false, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
-        [string[]]$ComputerName = @($env:COMPUTERNAME),
+        [Alias('CN', 'Name', 'DNSHostName')]
+        [string[]]$ComputerName = $env:COMPUTERNAME,
 
         [Parameter(Mandatory = $false)]
         [PSCredential]$Credential

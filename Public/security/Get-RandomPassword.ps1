@@ -6,7 +6,7 @@ function Get-RandomPassword {
     Generate a cryptographically secure random password
 
 .DESCRIPTION
-    Generates a random password using RNGCryptoServiceProvider with configurable
+    Generates a random password using RandomNumberGenerator with configurable
     character class requirements. Ensures minimum counts for uppercase, lowercase,
     numeric, and special characters are met by guaranteeing placement of required
     characters followed by cryptographically secure shuffling.
@@ -44,6 +44,10 @@ function Get-RandomPassword {
     1..5 | ForEach-Object { Get-RandomPassword -Length 20 }
     Generates 5 unique passwords with 20 characters each.
 
+.OUTPUTS
+System.String
+    A randomly generated password string.
+
 .NOTES
     Author:        Franck SALLET
     Version:       1.1.0
@@ -52,10 +56,16 @@ function Get-RandomPassword {
     Permissions:   None required
     Module:        PSWinOps
 
-    Uses System.Security.Cryptography.RNGCryptoServiceProvider for
-    cryptographically secure random number generation. Guarantees constraint
+    Uses System.Security.Cryptography.RandomNumberGenerator for
+    cryptographically secure random number generation. Uses the factory
+    method RandomNumberGenerator.Create() which is compatible with both
+    .NET Framework (PS 5.1) and .NET 6+ (PS 7.2+) without deprecation
+    warnings. Guarantees constraint
     satisfaction by placing required characters first, then shuffling.
-#>
+
+    .LINK
+    https://docs.microsoft.com/en-us/dotnet/api/system.security.cryptography.rngcryptoserviceprovider
+    #>
     [CmdletBinding()]
     [OutputType([string])]
     param(
@@ -123,7 +133,7 @@ function Get-RandomPassword {
     process {
         $rng = $null
         try {
-            $rng = New-Object -TypeName 'System.Security.Cryptography.RNGCryptoServiceProvider'
+            $rng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
 
             # Build password array
             $passwordChars = [System.Collections.Generic.List[char]]::new()

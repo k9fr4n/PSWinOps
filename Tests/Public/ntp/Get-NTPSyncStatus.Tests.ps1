@@ -107,7 +107,9 @@ Describe -Name 'Get-NTPSyncStatus' -Fixture {
     Context -Name 'Happy path - local machine, synced' -Fixture {
 
         BeforeEach {
-            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
+            # Local path uses bare w32tm call (not Invoke-Command)
+            Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith {
+                $global:LASTEXITCODE = 0
                 return $script:mockOutputSynced
             }
         }

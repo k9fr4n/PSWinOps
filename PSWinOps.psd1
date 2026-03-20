@@ -12,7 +12,7 @@
 RootModule = 'PSWinOps.psm1'
 
 # Version number of this module.
-ModuleVersion = '0.0.9'
+ModuleVersion = '0.0.10'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -69,28 +69,14 @@ FormatsToProcess = 'PSWinOps.Format.ps1xml'
 # NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = @(
-               'Connect-RdpSession',
-               'ConvertFrom-MisencodedString',
-               'Disconnect-RdpSession',
-               'Get-ComputerUptime',
-               'Get-NTPConfiguration',
-               'Get-NTPPeer',
-               'Get-NTPSyncStatus',
-               'Get-PendingReboot',
-               'Get-ProxyConfiguration',
-               'Get-RandomPassword',
-               'Get-RdpSession',
-               'Get-RDPSessionHistory',
-               'Get-RdpSessionLock',
-               'Get-SystemSummary',
-               'Remove-ProxyConfiguration',
-               'Remove-RdpSession',
-               'Set-NTPClient',
-               'Set-ProxyConfiguration',
-               'Sync-NTPTime',
-               'Test-ProxyConnection'
-           )
+FunctionsToExport = 'Get-NTPConfiguration', 'Get-NTPPeer', 'Get-NTPSyncStatus', 
+               'Set-NTPClient', 'Sync-NTPTime', 'Get-RandomPassword', 
+               'Connect-RdpSession', 'Disconnect-RdpSession', 'Get-RdpSession', 
+               'Get-RdpSessionHistory', 'Get-RdpSessionLock', 'Remove-RdpSession', 
+               'Get-ProxyConfiguration', 'Remove-ProxyConfiguration', 
+               'Set-ProxyConfiguration', 'Test-ProxyConnection', 
+               'ConvertFrom-MisencodedString', 'Get-ComputerUptime', 
+               'Get-PendingReboot', 'Get-SystemSummary'
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = @()
@@ -116,10 +102,10 @@ PrivateData = @{
     PSData = @{
 
         # Tags applied to this module. These help with module discovery in online galleries.
-        Tags = 'SysAdmin','Windows','Ops','Utilities','Administration'
+        Tags = 'SysAdmin','Windows','Ops','Utilities','Administration','NTP','RDP','Proxy','Uptime','Sessions','TimeSynchronization','RemoteDesktop','Security','Password','PendingReboot','WinOps'
 
         # A URL to the license for this module.
-        LicenseUri = 'https://github.com/k9fr4n/PSWinOps/blob/main/LICENSE'
+        # LicenseUri = ''
 
         # A URL to the main website for this project.
         ProjectUri = 'https://github.com/k9fr4n/PSWinOps'
@@ -128,7 +114,7 @@ PrivateData = @{
         # IconUri = ''
 
         # ReleaseNotes of this module
-        ReleaseNotes = 'Initial release'
+        # ReleaseNotes = ''
 
         # Prerelease string of this module
         # Prerelease = ''

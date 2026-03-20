@@ -54,6 +54,10 @@ function ConvertFrom-MisencodedString {
 
     Reads misencoded lines from a file and converts each line to the correct encoding.
 
+.OUTPUTS
+System.String
+    The re-encoded string with correct character rendering.
+
 .NOTES
     Author:        Franck SALLET
     Version:       1.0.2

@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 function Get-ProxyConfiguration {
     <#
     .SYNOPSIS
@@ -23,6 +23,10 @@ function Get-ProxyConfiguration {
         Get-ProxyConfiguration | Select-Object -Property WinInet*, WinHttp*
 
         Returns only WinINET and WinHTTP proxy settings, excluding environment variables.
+    .OUTPUTS
+    PSWinOps.ProxyConfiguration
+        Current proxy settings from system and user scopes.
+
     .NOTES
         Author: Franck SALLET
         Version: 1.0.0
@@ -33,9 +37,12 @@ function Get-ProxyConfiguration {
         WinHTTP settings are read via netsh winhttp show proxy.
         Environment variables check both uppercase and lowercase variants.
         This function is local-only by design (HKCU is user-specific, env vars are session-specific).
+    
+    .LINK
+    https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/netsh-winhttp
     #>
     [CmdletBinding()]
-    [OutputType([PSCustomObject])]
+    [OutputType('PSWinOps.ProxyConfiguration')]
     param()
 
     begin {

@@ -25,6 +25,10 @@ function Get-PendingReboot {
         'SERVER01', 'SERVER02' | Get-PendingReboot -Credential (Get-Credential)
 
         Checks multiple remote machines via pipeline input with alternate credentials.
+    .OUTPUTS
+    PSWinOps.PendingReboot
+        Pending reboot status from multiple detection sources.
+
     .NOTES
         Author: Franck SALLET
         Version: 1.0.0
@@ -35,12 +39,16 @@ function Get-PendingReboot {
             SCCM checks require the ConfigMgr client to be installed.
             Local computer name detection covers $env:COMPUTERNAME, 'localhost', and '.'.
             FQDN or IP of the local machine will be treated as a remote target.
+    
+    .LINK
+    https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-movefileexw
     #>
     [CmdletBinding()]
-    [OutputType([PSCustomObject])]
+    [OutputType('PSWinOps.PendingReboot')]
     param(
         [Parameter(ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
+        [Alias('CN', 'Name', 'DNSHostName')]
         [string[]]$ComputerName = $env:COMPUTERNAME,
 
         [Parameter()]

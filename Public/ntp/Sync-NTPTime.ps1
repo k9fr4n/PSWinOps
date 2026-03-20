@@ -8,11 +8,11 @@ function Sync-NTPTime {
     .DESCRIPTION
         Forces a resynchronization of the Windows Time Service (w32tm) on one or more
         local or remote machines. Optionally restarts the Windows Time service before
-        resyncing to ensure a clean state. Parses the output of w32tm /resync to report
-        success or failure per machine, supporting both English and French OS locales.
+        resyncing to ensure a clean state. Uses the w32tm exit code (locale-agnostic)
+        to determine success or failure per machine.
 
-        Uses Invoke-Command for uniform local and remote execution, enabling consistent
-        behavior and straightforward mocking in tests. Each machine is processed
+        Uses direct w32tm calls for local execution (mockable in Pester) and
+        Invoke-Command for remote targets, matching the pattern used by all NTP functions. Each machine is processed
         independently with per-machine error isolation -- a failure on one target does
         not prevent processing of subsequent targets.
 
@@ -48,25 +48,33 @@ function Sync-NTPTime {
         with verbose logging enabled.
 
     .EXAMPLE
-        Get-Content -Path 'C:\\Admin\\servers.txt' | Sync-NTPTime -RestartService
+        Get-Content -Path 'C:\Admin\servers.txt' | Sync-NTPTime -RestartService
 
         Reads a list of server names from a file and pipelines them into Sync-NTPTime,
         restarting the w32time service on each before resyncing.
 
+    .OUTPUTS
+    PSWinOps.NtpResyncResult
+        Resynchronization result with status and any error details.
+
     .NOTES
         Author: Franck SALLET
-        Version: 1.0.0
-        Last Modified: 2026-03-12
+        Version: 1.1.0
+        Last Modified: 2026-03-20
         Requires: PowerShell 5.1+ / Windows only
         Permissions: Requires admin rights (local and remote) to restart services
                      and run w32tm /resync. Remote targets require PSRemoting enabled.
+    
+    .LINK
+    https://docs.microsoft.com/en-us/windows-server/networking/windows-time-service/windows-time-service-tools-and-settings
     #>
     [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
-    [OutputType([PSCustomObject])]
+    [OutputType('PSWinOps.NtpResyncResult')]
     param(
         [Parameter(Mandatory = $false, ValueFromPipeline = $true,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
+        [Alias('CN', 'Name', 'DNSHostName')]
         [string[]]$ComputerName = $env:COMPUTERNAME,
 
         [Parameter(Mandatory = $false)]
@@ -76,7 +84,19 @@ function Sync-NTPTime {
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand)] Starting - PowerShell $($PSVersionTable.PSVersion)"
 
-        # Scriptblock: force NTP resynchronization via w32tm
+        if (-not (Test-IsAdministrator)) {
+            $PSCmdlet.ThrowTerminatingError(
+                [System.Management.Automation.ErrorRecord]::new(
+                    [System.UnauthorizedAccessException]::new('This operation requires Administrator privileges.'),
+                    'ElevationRequired',
+                    [System.Management.Automation.ErrorCategory]::PermissionDenied,
+                    $null
+                )
+            )
+        }
+
+        # Script block used for REMOTE execution only (Invoke-Command).
+        # Uses full path because remote sessions don't inherit local mock context.
         $resyncScriptBlock = {
             $w32tmPath = Join-Path -Path $env:SystemRoot -ChildPath 'System32\w32tm.exe'
             if (-not (Test-Path -Path $w32tmPath)) {
@@ -90,14 +110,12 @@ function Sync-NTPTime {
             }
         }
 
-        # Scriptblock: restart the Windows Time service
+        # Script block used for REMOTE execution only (Invoke-Command).
         $restartScriptBlock = {
             Restart-Service -Name 'w32time' -Force -ErrorAction Stop
             Start-Sleep -Seconds 2
         }
 
-        # Locale-agnostic success pattern (EN + FR)
-        $successPattern = '(The command completed successfully|Sending resync command to local computer|La commande s.est correctement|Envoi de la commande de resynchronisation)'
     }
 
     process {
@@ -112,9 +130,10 @@ function Sync-NTPTime {
                     if ($PSCmdlet.ShouldProcess($targetComputer, 'Restart Windows Time service (w32time)')) {
                         Write-Verbose "[$($MyInvocation.MyCommand)] Restarting w32time on '$targetComputer'..."
                         if ($isLocal) {
-                            $null = Invoke-Command -ScriptBlock $restartScriptBlock
+                            Restart-Service -Name 'w32time' -Force -ErrorAction Stop
+                            Start-Sleep -Seconds 2
                         } else {
-                            $null = Invoke-Command -ComputerName $targetComputer -ScriptBlock $restartScriptBlock
+                            $null = Invoke-Command -ComputerName $targetComputer -ScriptBlock $restartScriptBlock -ErrorAction Stop
                         }
                         $serviceRestarted = $true
                         Write-Verbose "[$($MyInvocation.MyCommand)] w32time restarted on '$targetComputer'"
@@ -125,19 +144,25 @@ function Sync-NTPTime {
                 if ($PSCmdlet.ShouldProcess($targetComputer, 'Force NTP resynchronization')) {
                     Write-Verbose "[$($MyInvocation.MyCommand)] Running w32tm /resync on '$targetComputer'..."
                     if ($isLocal) {
-                        $resyncResult = Invoke-Command -ScriptBlock $resyncScriptBlock
+                        # Local execution: call by bare name so Pester can mock it
+                        $rawOutput = w32tm /resync 2>&1
+                        $resyncResult = [PSCustomObject]@{
+                            Output   = ($rawOutput | Out-String).Trim()
+                            ExitCode = $LASTEXITCODE
+                        }
                     } else {
-                        $resyncResult = Invoke-Command -ComputerName $targetComputer -ScriptBlock $resyncScriptBlock
+                        $resyncResult = Invoke-Command -ComputerName $targetComputer -ScriptBlock $resyncScriptBlock -ErrorAction Stop
                     }
 
                     $outputText = [string]$resyncResult.Output
                     $exitCode = [int]$resyncResult.ExitCode
-                    $isSuccess = ($exitCode -eq 0) -and ($outputText -match $successPattern)
+                    $isSuccess = ($exitCode -eq 0)
 
                     if ($isSuccess) {
                         Write-Verbose "[$($MyInvocation.MyCommand)] [OK] Resync succeeded on '$targetComputer'"
+                        Write-Verbose "[$($MyInvocation.MyCommand)] w32tm output: $outputText"
                     } else {
-                        Write-Warning "[$($MyInvocation.MyCommand)] Resync may have failed on '$targetComputer': $outputText"
+                        Write-Warning "[$($MyInvocation.MyCommand)] Resync failed on '$targetComputer' (exit code $exitCode): $outputText"
                     }
 
                     [PSCustomObject]@{

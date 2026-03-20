@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 function Set-ProxyConfiguration {
     <#
     .SYNOPSIS
@@ -44,6 +44,10 @@ function Set-ProxyConfiguration {
         Set-ProxyConfiguration -AutoConfigURL 'http://wpad.example.com/proxy.pac' -Scope WinINET
 
         Configures WinINET to use a PAC auto-configuration URL (no static proxy).
+    .OUTPUTS
+    None
+        This function does not produce pipeline output.
+
     .NOTES
         Author: Franck SALLET
         Version: 1.0.0
@@ -54,6 +58,9 @@ function Set-ProxyConfiguration {
         WinINET writes to HKCU (no elevation needed, applies to current user).
         Environment scope sets User-level variables (persistent across sessions).
         Process-level env vars ($env:) are also updated for immediate effect.
+    
+    .LINK
+    https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/netsh-winhttp
     #>
     [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'Medium')]
     [OutputType([void])]
@@ -133,6 +140,10 @@ function Set-ProxyConfiguration {
             } else {
                 if ($PSCmdlet.ShouldProcess('WinHTTP (netsh winhttp)', 'Set proxy configuration')) {
                     try {
+                        if (-not (Test-IsAdministrator)) {
+                            throw [System.UnauthorizedAccessException]::new('WinHTTP scope requires Administrator privileges.')
+                        }
+
                         Write-Verbose "[$($MyInvocation.MyCommand)] Configuring WinHTTP proxy settings"
 
                         $netshPath = Join-Path -Path $env:SystemRoot -ChildPath 'System32\netsh.exe'
