@@ -501,5 +501,44 @@
       </TableControl>
     </View>
 
+    <!-- ============================================================ -->
+    <!-- PSWinOps.NetworkStatistic                                    -->
+    <!-- Used by: Get-NetworkStatistic                                -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.NetworkStatistic</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.NetworkStatistic</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>ComputerName</Label><Width>15</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Proto</Label><Width>5</Width></TableColumnHeader>
+          <TableColumnHeader><Label>LocalAddress</Label><Width>18</Width></TableColumnHeader>
+          <TableColumnHeader><Label>LPort</Label><Width>6</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>RemoteAddress</Label><Width>18</Width></TableColumnHeader>
+          <TableColumnHeader><Label>RPort</Label><Width>6</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>State</Label><Width>13</Width></TableColumnHeader>
+          <TableColumnHeader><Label>PID</Label><Width>6</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>ProcessName</Label><Width>20</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Protocol</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>LocalAddress</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>LocalPort</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>RemoteAddress</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>RemotePort</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>State</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>ProcessId</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>ProcessName</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
   </ViewDefinitions>
 </Configuration>

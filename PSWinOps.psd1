@@ -71,7 +71,8 @@ FormatsToProcess = 'PSWinOps.Format.ps1xml'
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
 FunctionsToExport = 'Clear-Arp', 'ConvertFrom-MisencodedString', 
                'Connect-RdpSession', 'Disconnect-RdpSession', 
-               'Get-ComputerUptime', 'Get-NTPConfiguration', 'Get-NTPPeer', 
+               'Get-ComputerUptime', 'Get-NetworkStatistic', 
+               'Get-NTPConfiguration', 'Get-NTPPeer', 
                'Get-NTPSyncStatus', 'Get-PendingReboot', 
                'Get-ProxyConfiguration', 'Get-RandomPassword', 
                'Get-RdpSession', 'Get-RdpSessionHistory', 'Get-RdpSessionLock', 
@@ -104,7 +105,7 @@ PrivateData = @{
     PSData = @{
 
         # Tags applied to this module. These help with module discovery in online galleries.
-        Tags = 'SysAdmin','Windows','Ops','Utilities','Administration','ARP','Network','NTP','RDP','Proxy','Uptime','Sessions','TimeSynchronization','RemoteDesktop','Security','Password','PendingReboot','WinOps'
+        Tags = 'SysAdmin','Windows','Ops','Utilities','Administration','ARP','Network','NetStat','NTP','RDP','Proxy','Uptime','Sessions','TimeSynchronization','RemoteDesktop','Security','Password','PendingReboot','WinOps'
 
         # A URL to the license for this module.
         # LicenseUri = ''
