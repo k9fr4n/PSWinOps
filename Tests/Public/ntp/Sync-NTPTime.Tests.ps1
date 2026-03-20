@@ -1,4 +1,4 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 
 BeforeAll {
     $script:modulePath = Split-Path -Path (Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent) -Parent
@@ -24,6 +24,7 @@ Describe -Name 'Sync-NTPTime' -Fixture {
     Context -Name 'When resyncing the local machine (happy path)' -Fixture {
 
         BeforeAll {
+            Mock -CommandName 'Test-IsAdministrator' -ModuleName 'PSWinOps' -MockWith { return $true }
             Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
                 return $script:successOutput
             }
@@ -48,6 +49,7 @@ Describe -Name 'Sync-NTPTime' -Fixture {
     Context -Name 'When resyncing a remote machine (happy path)' -Fixture {
 
         BeforeAll {
+            Mock -CommandName 'Test-IsAdministrator' -ModuleName 'PSWinOps' -MockWith { return $true }
             Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
                 return $script:successOutput
             }
@@ -72,6 +74,7 @@ Describe -Name 'Sync-NTPTime' -Fixture {
     Context -Name 'When pipeline input provides multiple machines' -Fixture {
 
         BeforeAll {
+            Mock -CommandName 'Test-IsAdministrator' -ModuleName 'PSWinOps' -MockWith { return $true }
             Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
                 return $script:successOutput
             }
@@ -94,6 +97,7 @@ Describe -Name 'Sync-NTPTime' -Fixture {
     Context -Name 'When -RestartService is specified' -Fixture {
 
         BeforeAll {
+            Mock -CommandName 'Test-IsAdministrator' -ModuleName 'PSWinOps' -MockWith { return $true }
             Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
                 return $script:successOutput
             }
@@ -115,6 +119,7 @@ Describe -Name 'Sync-NTPTime' -Fixture {
     Context -Name 'When w32tm resync reports failure' -Fixture {
 
         BeforeAll {
+            Mock -CommandName 'Test-IsAdministrator' -ModuleName 'PSWinOps' -MockWith { return $true }
             Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
                 return $script:failureOutput
             }
@@ -131,6 +136,7 @@ Describe -Name 'Sync-NTPTime' -Fixture {
     Context -Name 'When per-machine failure occurs' -Fixture {
 
         BeforeAll {
+            Mock -CommandName 'Test-IsAdministrator' -ModuleName 'PSWinOps' -MockWith { return $true }
             Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
                 return $script:successOutput
             }
@@ -160,6 +166,7 @@ Describe -Name 'Sync-NTPTime' -Fixture {
     Context -Name 'When ShouldProcess is respected (-WhatIf)' -Fixture {
 
         BeforeAll {
+            Mock -CommandName 'Test-IsAdministrator' -ModuleName 'PSWinOps' -MockWith { return $true }
             Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
                 return $script:successOutput
             }
@@ -186,4 +193,22 @@ Describe -Name 'Sync-NTPTime' -Fixture {
             { Sync-NTPTime -ComputerName $null } | Should -Throw
         }
     }
+
+    Context -Name 'Elevation check - should throw when not administrator' -Fixture {
+
+        BeforeAll {
+            Mock -CommandName 'Test-IsAdministrator' -ModuleName 'PSWinOps' -MockWith { return $false }
+        }
+
+        It -Name 'Should throw UnauthorizedAccessException when not elevated' -Test {
+            { Sync-NTPTime -ErrorAction Stop } | Should -Throw -ExpectedMessage '*Administrator privileges*'
+        }
+
+        It -Name 'Should not call Invoke-Command when not elevated' -Test {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {}
+            try { Sync-NTPTime -ErrorAction Stop } catch {}
+            Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 0 -Exactly
+        }
+    }
+
 }

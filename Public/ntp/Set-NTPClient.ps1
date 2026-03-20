@@ -1,5 +1,4 @@
 ﻿#Requires -Version 5.1
-#Requires -RunAsAdministrator
 
 function Set-NTPClient {
     <#
@@ -75,6 +74,17 @@ None
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand)] Starting - PowerShell $($PSVersionTable.PSVersion)"
+
+        if (-not (Test-IsAdministrator)) {
+            $PSCmdlet.ThrowTerminatingError(
+                [System.Management.Automation.ErrorRecord]::new(
+                    [System.UnauthorizedAccessException]::new('This operation requires Administrator privileges.'),
+                    'ElevationRequired',
+                    [System.Management.Automation.ErrorCategory]::PermissionDenied,
+                    $null
+                )
+            )
+        }
 
         if ($MaxPollInterval -le $MinPollInterval) {
             throw "MaxPollInterval ($MaxPollInterval) must be greater than MinPollInterval ($MinPollInterval)"

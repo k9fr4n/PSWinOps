@@ -1,4 +1,4 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 #Requires -Modules @{ ModuleName = 'Pester'; ModuleVersion = '5.0.0' }
 
 BeforeAll {
@@ -52,6 +52,7 @@ BeforeAll {
 Describe -Name 'Set-NTPClient' -Fixture {
     Context -Name 'Nominal - service running, w32tm outputs valid data' -Fixture {
         BeforeEach {
+            Mock -CommandName 'Test-IsAdministrator' -ModuleName 'PSWinOps' -MockWith { return $true }
             Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith {
                 [PSCustomObject]@{ Name = 'w32time'; Status = 'Running' }
             } -ParameterFilter { $Name -eq 'w32time' }
@@ -93,6 +94,7 @@ Describe -Name 'Set-NTPClient' -Fixture {
 
     Context -Name 'WhatIf - should not perform any changes' -Fixture {
         BeforeEach {
+            Mock -CommandName 'Test-IsAdministrator' -ModuleName 'PSWinOps' -MockWith { return $true }
             Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith {
                 [PSCustomObject]@{ Name = 'w32time'; Status = 'Running' }
             } -ParameterFilter { $Name -eq 'w32time' }
@@ -112,6 +114,7 @@ Describe -Name 'Set-NTPClient' -Fixture {
 
     Context -Name 'Service stopped - should start before configuring' -Fixture {
         BeforeEach {
+            Mock -CommandName 'Test-IsAdministrator' -ModuleName 'PSWinOps' -MockWith { return $true }
             Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith {
                 [PSCustomObject]@{ Name = 'w32time'; Status = 'Stopped' }
             } -ParameterFilter { $Name -eq 'w32time' }
@@ -133,6 +136,7 @@ Describe -Name 'Set-NTPClient' -Fixture {
 
     Context -Name 'French sync output - accent-tolerant regex matching' -Fixture {
         BeforeEach {
+            Mock -CommandName 'Test-IsAdministrator' -ModuleName 'PSWinOps' -MockWith { return $true }
             Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith {
                 [PSCustomObject]@{ Name = 'w32time'; Status = 'Running' }
             } -ParameterFilter { $Name -eq 'w32time' }
@@ -161,6 +165,8 @@ Describe -Name 'Set-NTPClient' -Fixture {
 
     Context -Name 'Error handling - unexpected w32tm failure' -Fixture {
         BeforeEach {
+            Mock -CommandName 'Test-IsAdministrator' -ModuleName 'PSWinOps' -MockWith { return $true }
+            Mock -CommandName 'Test-IsAdministrator' -ModuleName 'PSWinOps' -MockWith { return $true }
             Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith {
                 [PSCustomObject]@{ Name = 'w32time'; Status = 'Running' }
             } -ParameterFilter { $Name -eq 'w32time' }
@@ -173,4 +179,21 @@ Describe -Name 'Set-NTPClient' -Fixture {
             { Set-NTPClient -NtpServers 'ntp1.example.com' -Confirm:$false -ErrorAction Stop } | Should -Throw
         }
     }
+
+    Context -Name 'Elevation check - should throw when not administrator' -Fixture {
+        BeforeEach {
+            Mock -CommandName 'Test-IsAdministrator' -ModuleName 'PSWinOps' -MockWith { return $false }
+        }
+
+        It -Name 'Should throw UnauthorizedAccessException when not elevated' -Test {
+            { Set-NTPClient -NtpServers 'ntp1.example.com' -Confirm:$false -ErrorAction Stop } | Should -Throw -ExpectedMessage '*Administrator privileges*'
+        }
+
+        It -Name 'Should not call Set-ItemProperty when not elevated' -Test {
+            Mock -CommandName 'Set-ItemProperty' -ModuleName 'PSWinOps' -MockWith {}
+            try { Set-NTPClient -NtpServers 'ntp1.example.com' -Confirm:$false -ErrorAction Stop } catch {}
+            Should -Invoke -CommandName 'Set-ItemProperty' -ModuleName 'PSWinOps' -Times 0 -Exactly
+        }
+    }
+
 }

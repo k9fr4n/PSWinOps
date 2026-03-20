@@ -137,6 +137,10 @@ function Set-ProxyConfiguration {
             } else {
                 if ($PSCmdlet.ShouldProcess('WinHTTP (netsh winhttp)', 'Set proxy configuration')) {
                     try {
+                        if (-not (Test-IsAdministrator)) {
+                            throw [System.UnauthorizedAccessException]::new('WinHTTP scope requires Administrator privileges.')
+                        }
+
                         Write-Verbose "[$($MyInvocation.MyCommand)] Configuring WinHTTP proxy settings"
 
                         $netshPath = Join-Path -Path $env:SystemRoot -ChildPath 'System32\netsh.exe'

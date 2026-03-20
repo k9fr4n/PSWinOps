@@ -262,4 +262,29 @@ Describe 'Set-ProxyConfiguration' {
             $result | Should -BeNullOrEmpty
         }
     }
+
+    Context 'WinHTTP scope - elevation check' {
+        BeforeEach {
+            Mock -ModuleName $script:ModuleName -CommandName 'Test-IsAdministrator' -MockWith { return $false }
+            Mock -ModuleName $script:ModuleName -CommandName 'Join-Path' -ParameterFilter {
+                $ChildPath -eq 'System32\netsh.exe'
+            } -MockWith { 'C:\Windows\System32\netsh.exe' }
+        }
+
+        It 'Should write error when not elevated and WinHTTP scope is targeted' {
+            Set-ProxyConfiguration -ProxyServer 'proxy.example.com:8080' -Scope WinHTTP -Confirm:$false -ErrorVariable err -ErrorAction SilentlyContinue
+            $err | Should -Not -BeNullOrEmpty
+            $errMessages = $err | ForEach-Object { $_.Exception.Message }
+            ($errMessages -like '*Administrator privileges*') | Should -Not -BeNullOrEmpty
+        }
+
+        It 'Should not affect WinINET scope when WinHTTP elevation fails' {
+            Mock -ModuleName $script:ModuleName -CommandName 'Set-ItemProperty' -MockWith {}
+            Set-ProxyConfiguration -ProxyServer 'proxy.example.com:8080' -Scope WinINET, WinHTTP -Confirm:$false -ErrorAction SilentlyContinue
+            Should -Invoke -CommandName 'Set-ItemProperty' -ModuleName $script:ModuleName -ParameterFilter {
+                $Name -eq 'ProxyEnable'
+            }
+        }
+    }
+
 }

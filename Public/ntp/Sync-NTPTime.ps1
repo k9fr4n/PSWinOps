@@ -81,6 +81,17 @@ function Sync-NTPTime {
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand)] Starting - PowerShell $($PSVersionTable.PSVersion)"
 
+        if (-not (Test-IsAdministrator)) {
+            $PSCmdlet.ThrowTerminatingError(
+                [System.Management.Automation.ErrorRecord]::new(
+                    [System.UnauthorizedAccessException]::new('This operation requires Administrator privileges.'),
+                    'ElevationRequired',
+                    [System.Management.Automation.ErrorCategory]::PermissionDenied,
+                    $null
+                )
+            )
+        }
+
         # Scriptblock: force NTP resynchronization via w32tm
         $resyncScriptBlock = {
             $w32tmPath = Join-Path -Path $env:SystemRoot -ChildPath 'System32\w32tm.exe'
