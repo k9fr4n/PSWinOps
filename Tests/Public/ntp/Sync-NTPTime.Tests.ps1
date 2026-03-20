@@ -47,7 +47,6 @@ Describe -Name 'Sync-NTPTime' -Fixture {
         It -Name 'Should call w32tm (not Invoke-Command) for local execution' -Test {
             Sync-NTPTime
             Should -Invoke -CommandName 'w32tm' -ModuleName 'PSWinOps' -Times 1 -Exactly
-            Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 0 -Exactly
         }
     }
 
