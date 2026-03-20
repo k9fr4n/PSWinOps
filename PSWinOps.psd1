@@ -69,14 +69,28 @@ FormatsToProcess = 'PSWinOps.Format.ps1xml'
 # NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = 'Get-NTPConfiguration', 'Get-NTPPeer', 'Get-NTPSyncStatus', 
-               'Set-NTPClient', 'Sync-NTPTime', 'Get-RandomPassword', 
-               'Connect-RdpSession', 'Disconnect-RdpSession', 'Get-RdpSession', 
-               'Get-RDPSessionHistory', 'Get-RdpSessionLock', 'Remove-RdpSession', 
-               'Get-ProxyConfiguration', 'Remove-ProxyConfiguration', 
-               'Set-ProxyConfiguration', 'Test-ProxyConnection', 
-               'ConvertFrom-MisencodedString', 'Get-ComputerUptime', 
-               'Get-PendingReboot', 'Get-SystemSummary'
+FunctionsToExport = @(
+               'Connect-RdpSession',
+               'ConvertFrom-MisencodedString',
+               'Disconnect-RdpSession',
+               'Get-ComputerUptime',
+               'Get-NTPConfiguration',
+               'Get-NTPPeer',
+               'Get-NTPSyncStatus',
+               'Get-PendingReboot',
+               'Get-ProxyConfiguration',
+               'Get-RandomPassword',
+               'Get-RdpSession',
+               'Get-RDPSessionHistory',
+               'Get-RdpSessionLock',
+               'Get-SystemSummary',
+               'Remove-ProxyConfiguration',
+               'Remove-RdpSession',
+               'Set-NTPClient',
+               'Set-ProxyConfiguration',
+               'Sync-NTPTime',
+               'Test-ProxyConnection'
+           )
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = @()

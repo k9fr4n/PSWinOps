@@ -356,7 +356,7 @@
               <ListItem><Label>Special poll interval (s)</Label><PropertyName>SpecialPollInterval</PropertyName></ListItem>
               <ListItem><Label>Min poll interval (s)</Label><PropertyName>MinPollIntervalSec</PropertyName></ListItem>
               <ListItem><Label>Max poll interval (s)</Label><PropertyName>MaxPollIntervalSec</PropertyName></ListItem>
-              <ListItem><Label>Queried at</Label><PropertyName>QueryTimestamp</PropertyName></ListItem>
+              <ListItem><Label>Queried at</Label><PropertyName>Timestamp</PropertyName></ListItem>
             </ListItems>
           </ListEntry>
         </ListEntries>
