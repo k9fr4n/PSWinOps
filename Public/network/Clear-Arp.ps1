@@ -70,12 +70,10 @@ function Clear-Arp {
         if ($PSCmdlet.ShouldProcess('Local ARP cache', 'Delete all entries')) {
             try {
                 Write-Verbose "[$($MyInvocation.MyCommand)] Running: netsh interface ip delete arpcache"
-                $netshOutput = & $netshPath interface ip delete arpcache 2>&1
-                $netshExitCode = $LASTEXITCODE
+                $result = Invoke-NativeCommand -FilePath $netshPath -ArgumentList @('interface', 'ip', 'delete', 'arpcache')
 
-                if ($netshExitCode -ne 0) {
-                    $outputText = ($netshOutput | Out-String).Trim()
-                    Write-Error "[$($MyInvocation.MyCommand)] netsh interface ip delete arpcache failed (exit code $netshExitCode): $outputText"
+                if ($result.ExitCode -ne 0) {
+                    Write-Error "[$($MyInvocation.MyCommand)] netsh interface ip delete arpcache failed (exit code $($result.ExitCode)): $($result.Output)"
                 } else {
                     Write-Verbose "[$($MyInvocation.MyCommand)] ARP cache cleared successfully"
                     Write-Information -MessageData '[OK] ARP cache cleared successfully' -InformationAction Continue
