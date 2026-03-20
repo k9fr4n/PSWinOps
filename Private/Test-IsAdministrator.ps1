@@ -6,6 +6,12 @@
         Returns $true if the current Windows identity has the Administrator role,
         $false otherwise. Used internally by PSWinOps functions that require elevation
         (e.g., Set-NTPClient, Sync-NTPTime, WinHTTP proxy operations).
+    .EXAMPLE
+        Test-IsAdministrator
+        Returns $true if the current session is elevated, $false otherwise.
+    .EXAMPLE
+        if (-not (Test-IsAdministrator)) { throw 'Elevation required.' }
+        Guards a code path that requires Administrator privileges.
     .OUTPUTS
     System.Boolean
         $true if the current session is elevated; $false otherwise.
