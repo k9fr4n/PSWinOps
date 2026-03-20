@@ -71,13 +71,14 @@ FormatsToProcess = 'PSWinOps.Format.ps1xml'
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
 FunctionsToExport = 'Clear-Arp', 'ConvertFrom-MisencodedString', 
                'Connect-RdpSession', 'Disconnect-RdpSession', 
-               'Get-ComputerUptime', 'Get-NetworkStatistic', 
+               'Get-ComputerUptime', 'Get-NetworkRoute', 'Get-NetworkStatistic', 
                'Get-NTPConfiguration', 'Get-NTPPeer', 
                'Get-NTPSyncStatus', 'Get-PendingReboot', 
                'Get-ProxyConfiguration', 'Get-RandomPassword', 
                'Get-RdpSession', 'Get-RdpSessionHistory', 'Get-RdpSessionLock', 
-               'Get-SystemSummary', 'Remove-ProxyConfiguration', 
-               'Remove-RdpSession', 'Set-NTPClient', 
+               'Get-SystemSummary', 'New-NetworkRoute', 
+               'Remove-NetworkRoute', 'Remove-ProxyConfiguration', 
+               'Remove-RdpSession', 'Set-NetworkRoute', 'Set-NTPClient', 
                'Set-ProxyConfiguration', 'Sync-NTPTime', 
                'Test-ProxyConnection'
 

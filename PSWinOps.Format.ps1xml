@@ -579,5 +579,44 @@
       </TableControl>
     </View>
 
+    <!-- ============================================================ -->
+    <!-- PSWinOps.NetworkRoute                                        -->
+    <!-- Used by: Get-NetworkRoute, New-NetworkRoute, Set-NetworkRoute -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.NetworkRoute</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.NetworkRoute</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>ComputerName</Label><Width>15</Width></TableColumnHeader>
+          <TableColumnHeader><Label>DestinationPrefix</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>NextHop</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>InterfaceAlias</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>IfIndex</Label><Width>7</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Metric</Label><Width>7</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>AF</Label><Width>5</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Protocol</Label><Width>10</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>DestinationPrefix</PropertyName></TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>if ($_.NextHop -eq '0.0.0.0' -or $_.NextHop -eq '::') { 'On-link' } else { $_.NextHop }</ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem><PropertyName>InterfaceAlias</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>InterfaceIndex</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>RouteMetric</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>AddressFamily</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Protocol</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
   </ViewDefinitions>
 </Configuration>
