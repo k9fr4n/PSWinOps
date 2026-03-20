@@ -103,7 +103,9 @@ Describe 'Get-PublicIPAddress' {
             $results = @('FAIL01', 'FAIL02') | Get-PublicIPAddress -ErrorAction SilentlyContinue -ErrorVariable errs
 
             $errs | Should -Not -BeNullOrEmpty
-            $errs.Count | Should -Be 2
+            $errMessages = $errs | ForEach-Object { $_.Exception.Message }
+            ($errMessages -like "*Failed on 'FAIL01'*") | Should -Not -BeNullOrEmpty
+            ($errMessages -like "*Failed on 'FAIL02'*") | Should -Not -BeNullOrEmpty
         }
     }
 
