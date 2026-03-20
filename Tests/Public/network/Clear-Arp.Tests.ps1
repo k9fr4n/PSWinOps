@@ -96,10 +96,8 @@ Describe 'Clear-Arp' {
             Mock -ModuleName $script:ModuleName -CommandName 'Test-Path' -ParameterFilter {
                 $Path -like '*netsh*'
             } -MockWith { $true }
-            # Mock the netsh.exe call via a command mock
-            Mock -ModuleName $script:ModuleName -CommandName 'C:\Windows\System32\netsh.exe' -MockWith {
-                $global:LASTEXITCODE = 0
-                return 'Ok.'
+            Mock -ModuleName $script:ModuleName -CommandName 'Invoke-NativeCommand' -MockWith {
+                return [PSCustomObject]@{ Output = 'Ok.'; ExitCode = 0 }
             }
         }
 
@@ -110,6 +108,11 @@ Describe 'Clear-Arp' {
         It 'Should return void (no output object)' {
             $result = Clear-Arp -Confirm:$false 6>&1 | Where-Object { $_ -isnot [System.Management.Automation.InformationRecord] }
             $result | Should -BeNullOrEmpty
+        }
+
+        It 'Should call Invoke-NativeCommand with netsh arguments' {
+            Clear-Arp -Confirm:$false
+            Should -Invoke -CommandName 'Invoke-NativeCommand' -ModuleName $script:ModuleName -Times 1 -Exactly
         }
     }
 
@@ -122,9 +125,8 @@ Describe 'Clear-Arp' {
             Mock -ModuleName $script:ModuleName -CommandName 'Test-Path' -ParameterFilter {
                 $Path -like '*netsh*'
             } -MockWith { $true }
-            Mock -ModuleName $script:ModuleName -CommandName 'C:\Windows\System32\netsh.exe' -MockWith {
-                $global:LASTEXITCODE = 1
-                return 'The requested operation requires elevation.'
+            Mock -ModuleName $script:ModuleName -CommandName 'Invoke-NativeCommand' -MockWith {
+                return [PSCustomObject]@{ Output = 'The requested operation requires elevation.'; ExitCode = 1 }
             }
         }
 
@@ -149,15 +151,14 @@ Describe 'Clear-Arp' {
             Mock -ModuleName $script:ModuleName -CommandName 'Test-Path' -ParameterFilter {
                 $Path -like '*netsh*'
             } -MockWith { $true }
-            Mock -ModuleName $script:ModuleName -CommandName 'C:\Windows\System32\netsh.exe' -MockWith {
-                $global:LASTEXITCODE = 0
-                return 'Ok.'
+            Mock -ModuleName $script:ModuleName -CommandName 'Invoke-NativeCommand' -MockWith {
+                return [PSCustomObject]@{ Output = 'Ok.'; ExitCode = 0 }
             }
         }
 
         It 'Should not execute netsh with -WhatIf' {
             Clear-Arp -WhatIf
-            Should -Invoke -CommandName 'C:\Windows\System32\netsh.exe' -ModuleName $script:ModuleName -Times 0 -Exactly
+            Should -Invoke -CommandName 'Invoke-NativeCommand' -ModuleName $script:ModuleName -Times 0 -Exactly
         }
 
         It 'Should not throw with -WhatIf' {
