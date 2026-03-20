@@ -15,6 +15,8 @@ function Disconnect-RdpSession {
     .PARAMETER ComputerName
         The target computer name or IP address. Defaults to the local computer name.
         Accepts pipeline input by property name for integration with Get-RdpSession.
+        Accepts a single computer name only — use the pipeline with Get-RdpSession
+        to operate across multiple machines sequentially.
     .PARAMETER SessionID
         One or more RDP session IDs to disconnect. Valid range is 0 to 65536.
         Accepts pipeline input directly or by property name.

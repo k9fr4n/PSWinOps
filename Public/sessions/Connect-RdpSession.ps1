@@ -22,6 +22,9 @@ function Connect-RdpSession {
 .PARAMETER ComputerName
     The remote computer hosting the target RDP session. Defaults to the local
     machine. Accepts pipeline input by property name.
+    Accepts a single computer name only — mstsc.exe shadow mode opens one
+    interactive window per call. To shadow sessions on multiple machines,
+    pipe objects from Get-RdpSession individually.
 
 .PARAMETER SessionID
     The numeric session ID to shadow. Retrieve this value with Get-RdpSession.
