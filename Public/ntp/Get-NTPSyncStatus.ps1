@@ -104,7 +104,7 @@ function Get-NTPSyncStatus {
 
                 if ($isLocal) {
                     Write-Verbose "[$($MyInvocation.MyCommand)] Local execution (no -ComputerName)"
-                    $rawOutput = & $w32tmScriptBlock
+                    $rawOutput = Invoke-Command -ScriptBlock $w32tmScriptBlock
                 } else {
                     Write-Verbose "[$($MyInvocation.MyCommand)] Remote execution on '$targetComputer'"
                     $rawOutput = Invoke-Command -ComputerName $targetComputer -ScriptBlock $w32tmScriptBlock

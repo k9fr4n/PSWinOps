@@ -74,7 +74,7 @@ function Get-NTPPeer {
                 ($targetComputer -eq '.')
 
                 if ($isLocal) {
-                    $rawOutput = & $w32tmScriptBlock
+                    $rawOutput = Invoke-Command -ScriptBlock $w32tmScriptBlock
                 } else {
                     $rawOutput = Invoke-Command -ComputerName $targetComputer `
                         -ScriptBlock $w32tmScriptBlock -ErrorAction Stop
