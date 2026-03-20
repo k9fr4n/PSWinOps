@@ -47,7 +47,7 @@
 
     <!-- ============================================================ -->
     <!-- PSWinOps.RdpSessionHistory                                   -->
-    <!-- Used by: Get-RDPSessionHistory                               -->
+    <!-- Used by: Get-RdpSessionHistory                               -->
     <!-- ============================================================ -->
     <View>
       <Name>PSWinOps.RdpSessionHistory</Name>

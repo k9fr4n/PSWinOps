@@ -73,7 +73,7 @@
     'Disconnect-RdpSession', 'Get-ComputerUptime', 'Get-NTPConfiguration', 
     'Get-NTPPeer', 'Get-NTPSyncStatus', 'Get-PendingReboot', 
     'Get-ProxyConfiguration', 'Get-RandomPassword', 'Get-RdpSession', 
-    'Get-RDPSessionHistory', 'Get-RdpSessionLock', 'Get-SystemSummary', 
+    'Get-RdpSessionHistory', 'Get-RdpSessionLock', 'Get-SystemSummary', 
     'Remove-ProxyConfiguration', 'Remove-RdpSession', 'Set-NTPClient', 
     'Set-ProxyConfiguration', 'Sync-NTPTime', 'Test-ProxyConnection'
 
