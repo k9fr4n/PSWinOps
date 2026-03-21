@@ -138,8 +138,8 @@ Describe 'Test-DNSResolution' {
             { Test-DNSResolution -Name 'test' -Type 'INVALID' } | Should -Throw
         }
 
-        It 'Should reject TimeoutSec of 0' {
-            { Test-DNSResolution -Name 'test' -TimeoutSec 0 } | Should -Throw
+        It 'Should reject empty DnsServer' {
+            { Test-DNSResolution -Name 'test' -DnsServer '' } | Should -Throw
         }
     }
 

@@ -116,7 +116,7 @@ function Trace-NetworkRoute {
                                 $latencies.Add($reply.RoundtripTime)
                             }
                         } catch {
-                            # Individual ping failure, continue
+                            Write-Verbose "[$($MyInvocation.MyCommand)] Ping to '$targetIPString' (TTL=$ttl, attempt $($p+1)) failed: $_"
                         }
                     }
 

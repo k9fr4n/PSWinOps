@@ -99,7 +99,9 @@ function Get-ARPTable {
                 Get-NetAdapter -ErrorAction SilentlyContinue | ForEach-Object {
                     $interfaces[$_.ifIndex] = $_.Name
                 }
-            } catch { }
+            } catch {
+                Write-Verbose "Failed to enumerate network adapters: $_"
+            }
 
             foreach ($entry in $entries) {
                 [PSCustomObject]@{

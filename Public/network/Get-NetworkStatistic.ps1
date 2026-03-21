@@ -87,6 +87,8 @@ function Get-NetworkStatistic {
     .LINK
     https://docs.microsoft.com/en-us/powershell/module/nettcpip/get-nettcpconnection
     #>
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWriteHost', '',
+        Justification = 'Write-Host is intentional in -Continuous mode for interactive console display')]
     [CmdletBinding()]
     [OutputType('PSWinOps.NetworkStatistic')]
     param(
@@ -436,7 +438,7 @@ function Get-NetworkStatistic {
                     Start-Sleep -Seconds $RefreshInterval
                 }
             } catch {
-                # Ctrl+C breaks the loop
+                Write-Verbose "[$($MyInvocation.MyCommand)] Continuous monitoring interrupted: $_"
             } finally {
                 Write-Host ''
                 Write-Host 'Network Statistics Monitor stopped.' -ForegroundColor Cyan

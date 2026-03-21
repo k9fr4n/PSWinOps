@@ -18,8 +18,6 @@ function Test-DNSResolution {
     .PARAMETER Type
         DNS record type to query. Default: A.
         Valid values: A, AAAA, CNAME, MX, NS, PTR, SOA, SRV, TXT.
-    .PARAMETER TimeoutSec
-        Query timeout in seconds. Default: 5. Valid range: 1-30.
     .EXAMPLE
         Test-DNSResolution -Name 'srv-app01.corp.local'
 
@@ -63,11 +61,7 @@ function Test-DNSResolution {
 
         [Parameter(Mandatory = $false)]
         [ValidateSet('A', 'AAAA', 'CNAME', 'MX', 'NS', 'PTR', 'SOA', 'SRV', 'TXT')]
-        [string]$Type = 'A',
-
-        [Parameter(Mandatory = $false)]
-        [ValidateRange(1, 30)]
-        [int]$TimeoutSec = 5
+        [string]$Type = 'A'
     )
 
     begin {

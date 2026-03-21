@@ -94,7 +94,7 @@ function Measure-NetworkLatency {
                             }
                         }
                     } catch {
-                        # Ping failed for this iteration, continue
+                        Write-Verbose "[$($MyInvocation.MyCommand)] Ping $($i + 1) to '$targetComputer' failed: $_"
                     }
 
                     if ($i -lt ($Count - 1) -and $DelayMs -gt 0) {
