@@ -123,7 +123,7 @@ function Get-SSLCertificate {
                         ForEach-Object { $_.Format($false) }) -join ', '
 
                     $now = Get-Date
-                    $daysRemaining = [math]::Floor(($cert2.NotAfter - $now).TotalDays)
+                    $daysRemaining = [int][math]::Floor(($cert2.NotAfter - $now).TotalDays)
 
                     [PSCustomObject]@{
                         PSTypeName     = 'PSWinOps.SSLCertificate'
