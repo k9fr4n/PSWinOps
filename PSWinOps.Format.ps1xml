@@ -501,5 +501,519 @@
       </TableControl>
     </View>
 
+    <!-- ============================================================ -->
+    <!-- PSWinOps.NetworkStatistic                                    -->
+    <!-- Used by: Get-NetworkStatistic                                -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.NetworkStatistic</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.NetworkStatistic</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>ComputerName</Label><Width>15</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Proto</Label><Width>5</Width></TableColumnHeader>
+          <TableColumnHeader><Label>LocalAddress</Label><Width>18</Width></TableColumnHeader>
+          <TableColumnHeader><Label>LPort</Label><Width>6</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>RemoteAddress</Label><Width>18</Width></TableColumnHeader>
+          <TableColumnHeader><Label>RPort</Label><Width>6</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>State</Label><Width>13</Width></TableColumnHeader>
+          <TableColumnHeader><Label>PID</Label><Width>6</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>ProcessName</Label><Width>20</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Protocol</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>LocalAddress</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>LocalPort</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>RemoteAddress</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>RemotePort</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>State</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>ProcessId</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>ProcessName</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.PublicIPAddress                                      -->
+    <!-- Used by: Get-PublicIPAddress                                  -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.PublicIPAddress</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.PublicIPAddress</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>ComputerName</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>IPv4Address</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>IPv6Address</Label><Width>40</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Provider</Label><Width>14</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Timestamp</Label><Width>26</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>if ($_.IPv4Address) { $_.IPv4Address } else { '-' }</ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>if ($_.IPv6Address) { $_.IPv6Address } else { '-' }</ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem><PropertyName>Provider</PropertyName></TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>
+                  if ($_.Timestamp -is [datetime]) { $_.Timestamp.ToString('yyyy-MM-dd HH:mm:ss') } else { $_.Timestamp }
+                </ScriptBlock>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.NetworkRoute                                        -->
+    <!-- Used by: Get-NetworkRoute, New-NetworkRoute, Set-NetworkRoute -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.NetworkRoute</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.NetworkRoute</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>ComputerName</Label><Width>15</Width></TableColumnHeader>
+          <TableColumnHeader><Label>DestinationPrefix</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>NextHop</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>InterfaceAlias</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>IfIndex</Label><Width>7</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Metric</Label><Width>7</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>AF</Label><Width>5</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Protocol</Label><Width>10</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>DestinationPrefix</PropertyName></TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>if ($_.NextHop -eq '0.0.0.0' -or $_.NextHop -eq '::') { 'On-link' } else { $_.NextHop }</ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem><PropertyName>InterfaceAlias</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>InterfaceIndex</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>RouteMetric</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>AddressFamily</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Protocol</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.PortConnectivity                                    -->
+    <!-- Used by: Test-PortConnectivity                               -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.PortConnectivity</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.PortConnectivity</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>ComputerName</Label><Width>24</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Port</Label><Width>6</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Proto</Label><Width>5</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Open</Label><Width>6</Width></TableColumnHeader>
+          <TableColumnHeader><Label>ResponseMs</Label><Width>11</Width><Alignment>Right</Alignment></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Port</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Protocol</PropertyName></TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>if ($_.Open) { 'Open' } else { 'Closed' }</ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>if ($_.ResponseTimeMs) { '{0:N1}ms' -f $_.ResponseTimeMs } else { '-' }</ScriptBlock>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.DnsResolution                                       -->
+    <!-- Used by: Test-DNSResolution                                  -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.DnsResolution</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.DnsResolution</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>Name</Label><Width>28</Width></TableColumnHeader>
+          <TableColumnHeader><Label>DnsServer</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Type</Label><Width>5</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Result</Label><Width>24</Width></TableColumnHeader>
+          <TableColumnHeader><Label>QueryMs</Label><Width>8</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>OK</Label><Width>4</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Match</Label><Width>5</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>Name</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>DnsServer</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>QueryType</PropertyName></TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>if ($_.Result) { $_.Result } else { '-' }</ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>if ($_.QueryTimeMs) { '{0:N1}' -f $_.QueryTimeMs } else { '-' }</ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>if ($_.Success) { [char]0x2713 } else { [char]0x2717 }</ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>if ($_.Consistent) { [char]0x2713 } else { [char]0x2717 }</ScriptBlock>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.NetworkLatency                                      -->
+    <!-- Used by: Measure-NetworkLatency                              -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.NetworkLatency</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.NetworkLatency</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>ComputerName</Label><Width>24</Width></TableColumnHeader>
+          <TableColumnHeader><Label>IPAddress</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Sent</Label><Width>5</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Recv</Label><Width>5</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Loss%</Label><Width>6</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Min</Label><Width>7</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Avg</Label><Width>7</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Max</Label><Width>7</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Jitter</Label><Width>7</Width><Alignment>Right</Alignment></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>IPAddress</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Sent</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Received</PropertyName></TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>'{0:N1}' -f $_.LossPercent</ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>if ($null -ne $_.MinMs) { '{0:N1}' -f $_.MinMs } else { '-' }</ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>if ($null -ne $_.AvgMs) { '{0:N1}' -f $_.AvgMs } else { '-' }</ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>if ($null -ne $_.MaxMs) { '{0:N1}' -f $_.MaxMs } else { '-' }</ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>if ($null -ne $_.JitterMs) { '{0:N1}' -f $_.JitterMs } else { '-' }</ScriptBlock>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.ArpEntry                                            -->
+    <!-- Used by: Get-ARPTable                                        -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.ArpEntry</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.ArpEntry</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>ComputerName</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>IPAddress</Label><Width>18</Width></TableColumnHeader>
+          <TableColumnHeader><Label>MACAddress</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>State</Label><Width>12</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Interface</Label><Width>16</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>IPAddress</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>MACAddress</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>State</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>InterfaceAlias</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.TraceRouteHop                                       -->
+    <!-- Used by: Trace-NetworkRoute                                  -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.TraceRouteHop</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.TraceRouteHop</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>Hop</Label><Width>4</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>IPAddress</Label><Width>18</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Hostname</Label><Width>32</Width></TableColumnHeader>
+          <TableColumnHeader><Label>AvgMs</Label><Width>7</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>MinMs</Label><Width>7</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>MaxMs</Label><Width>7</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Status</Label><Width>10</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>Hop</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>IPAddress</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Hostname</PropertyName></TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>if ($null -ne $_.AvgMs) { '{0:N1}' -f $_.AvgMs } else { '*' }</ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>if ($null -ne $_.MinMs) { '{0:N1}' -f $_.MinMs } else { '*' }</ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>if ($null -ne $_.MaxMs) { '{0:N1}' -f $_.MaxMs } else { '*' }</ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem><PropertyName>Status</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.SubnetInfo                                          -->
+    <!-- Used by: Get-SubnetInfo                                      -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.SubnetInfo</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.SubnetInfo</TypeName>
+      </ViewSelectedBy>
+      <ListControl>
+        <ListEntries>
+          <ListEntry>
+            <ListItems>
+              <ListItem><Label>CIDR</Label><PropertyName>CIDR</PropertyName></ListItem>
+              <ListItem><Label>IP Address</Label><PropertyName>IPAddress</PropertyName></ListItem>
+              <ListItem><Label>Subnet Mask</Label><PropertyName>SubnetMask</PropertyName></ListItem>
+              <ListItem><Label>Wildcard Mask</Label><PropertyName>WildcardMask</PropertyName></ListItem>
+              <ListItem><Label>Network Address</Label><PropertyName>NetworkAddress</PropertyName></ListItem>
+              <ListItem><Label>Broadcast Address</Label><PropertyName>BroadcastAddress</PropertyName></ListItem>
+              <ListItem><Label>First Usable Host</Label><PropertyName>FirstUsableHost</PropertyName></ListItem>
+              <ListItem><Label>Last Usable Host</Label><PropertyName>LastUsableHost</PropertyName></ListItem>
+              <ListItem><Label>Total Hosts</Label><PropertyName>TotalHosts</PropertyName></ListItem>
+              <ListItem><Label>Usable Hosts</Label><PropertyName>UsableHosts</PropertyName></ListItem>
+              <ListItem><Label>Prefix Length</Label><PropertyName>PrefixLength</PropertyName></ListItem>
+            </ListItems>
+          </ListEntry>
+        </ListEntries>
+      </ListControl>
+    </View>
+
+    <!-- PSWinOps.SSLCertificate - Table -->
+    <View>
+      <Name>PSWinOps.SSLCertificate</Name>
+      <ViewSelectedBy><TypeName>PSWinOps.SSLCertificate</TypeName></ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>Host</Label><Width>28</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Port</Label><Width>6</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Subject</Label><Width>30</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Issuer</Label><Width>25</Width></TableColumnHeader>
+          <TableColumnHeader><Label>NotAfter</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>DaysLeft</Label><Width>9</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Expired</Label><Width>8</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>Host</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Port</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Subject</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Issuer</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>NotAfter</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>DaysRemaining</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>IsExpired</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- PSWinOps.NetworkAdapterInfo - Table -->
+    <View>
+      <Name>PSWinOps.NetworkAdapterInfo</Name>
+      <ViewSelectedBy><TypeName>PSWinOps.NetworkAdapterInfo</TypeName></ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>ComputerName</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Name</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Status</Label><Width>8</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Speed</Label><Width>10</Width></TableColumnHeader>
+          <TableColumnHeader><Label>IPv4Address</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Gateway</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>DnsServers</Label><Width>25</Width></TableColumnHeader>
+          <TableColumnHeader><Label>MacAddress</Label><Width>18</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Name</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Status</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Speed</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>IPv4Address</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Gateway</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>DnsServers</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>MacAddress</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- PSWinOps.ListeningPort - Table -->
+    <View>
+      <Name>PSWinOps.ListeningPort</Name>
+      <ViewSelectedBy><TypeName>PSWinOps.ListeningPort</TypeName></ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>ComputerName</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Protocol</Label><Width>9</Width></TableColumnHeader>
+          <TableColumnHeader><Label>LocalAddress</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>LocalPort</Label><Width>10</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>PID</Label><Width>8</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>ProcessName</Label><Width>20</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Protocol</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>LocalAddress</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>LocalPort</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>ProcessId</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>ProcessName</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- PSWinOps.MACVendor - Table -->
+    <View>
+      <Name>PSWinOps.MACVendor</Name>
+      <ViewSelectedBy><TypeName>PSWinOps.MACVendor</TypeName></ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>MACAddress</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>OUI</Label><Width>8</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Vendor</Label><Width>30</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Source</Label><Width>10</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>MACAddress</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>OUI</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Vendor</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Source</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- PSWinOps.NetworkConfig - List -->
+    <View>
+      <Name>PSWinOps.NetworkConfig</Name>
+      <ViewSelectedBy><TypeName>PSWinOps.NetworkConfig</TypeName></ViewSelectedBy>
+      <ListControl>
+        <ListEntries>
+          <ListEntry>
+            <ListItems>
+              <ListItem><PropertyName>ComputerName</PropertyName></ListItem>
+              <ListItem><PropertyName>Hostname</PropertyName></ListItem>
+              <ListItem><Label>Adapters</Label><PropertyName>Adapters</PropertyName></ListItem>
+              <ListItem><Label>IPAddresses</Label><PropertyName>IPAddresses</PropertyName></ListItem>
+              <ListItem><Label>DnsServers</Label><PropertyName>DnsServers</PropertyName></ListItem>
+              <ListItem><PropertyName>DnsSuffix</PropertyName></ListItem>
+              <ListItem><Label>Routes</Label><PropertyName>Routes</PropertyName></ListItem>
+              <ListItem><Label>FirewallProfiles</Label><PropertyName>FirewallProfiles</PropertyName></ListItem>
+              <ListItem><Label>ListeningPorts</Label><PropertyName>ListeningPorts</PropertyName></ListItem>
+              <ListItem><PropertyName>Timestamp</PropertyName></ListItem>
+            </ListItems>
+          </ListEntry>
+        </ListEntries>
+      </ListControl>
+    </View>
+
+    <!-- PSWinOps.WinRMTestResult - Table -->
+    <View>
+      <Name>PSWinOps.WinRMTestResult</Name>
+      <ViewSelectedBy><TypeName>PSWinOps.WinRMTestResult</TypeName></ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>ComputerName</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Port</Label><Width>6</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Protocol</Label><Width>9</Width></TableColumnHeader>
+          <TableColumnHeader><Label>PortOpen</Label><Width>9</Width></TableColumnHeader>
+          <TableColumnHeader><Label>WSMan</Label><Width>8</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Exec</Label><Width>8</Width></TableColumnHeader>
+          <TableColumnHeader><Label>ErrorMessage</Label><Width>35</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Port</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Protocol</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>PortOpen</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>WSManConnected</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>ExecutionOK</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>ErrorMessage</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
   </ViewDefinitions>
 </Configuration>
