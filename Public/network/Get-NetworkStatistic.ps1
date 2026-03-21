@@ -254,7 +254,9 @@ function Get-NetworkStatistic {
     process {
         # In -Continuous mode, just collect computer names for the end {} block
         if ($Continuous) {
-            foreach ($c in $ComputerName) { $continuousComputers.Add($c) }
+            foreach ($c in $ComputerName) {
+                $continuousComputers.Add($c)
+            }
             return
         }
 
@@ -349,12 +351,36 @@ function Get-NetworkStatistic {
 
                             $queryArgs = @(
                                 , $Protocol
-                                $(if ($State) { , $State } else { , $null })
-                                $(if ($PSBoundParameters.ContainsKey('LocalAddress'))  { $LocalAddress  } else { $null })
-                                $(if ($PSBoundParameters.ContainsKey('LocalPort'))     { $LocalPort     } else { 0 })
-                                $(if ($PSBoundParameters.ContainsKey('RemoteAddress')) { $RemoteAddress } else { $null })
-                                $(if ($PSBoundParameters.ContainsKey('RemotePort'))    { $RemotePort    } else { 0 })
-                                $(if ($PSBoundParameters.ContainsKey('ProcessName'))   { $ProcessName   } else { $null })
+                                $(if ($State) {
+                                        , $State
+                                    } else {
+                                        , $null
+                                    })
+                                $(if ($PSBoundParameters.ContainsKey('LocalAddress')) {
+                                        $LocalAddress
+                                    } else {
+                                        $null
+                                    })
+                                $(if ($PSBoundParameters.ContainsKey('LocalPort')) {
+                                        $LocalPort
+                                    } else {
+                                        0
+                                    })
+                                $(if ($PSBoundParameters.ContainsKey('RemoteAddress')) {
+                                        $RemoteAddress
+                                    } else {
+                                        $null
+                                    })
+                                $(if ($PSBoundParameters.ContainsKey('RemotePort')) {
+                                        $RemotePort
+                                    } else {
+                                        0
+                                    })
+                                $(if ($PSBoundParameters.ContainsKey('ProcessName')) {
+                                        $ProcessName
+                                    } else {
+                                        $null
+                                    })
                             )
 
                             if ($isLocal) {
@@ -374,18 +400,18 @@ function Get-NetworkStatistic {
 
                             foreach ($entry in $rawResults) {
                                 $allResults.Add([PSCustomObject]@{
-                                    PSTypeName    = 'PSWinOps.NetworkStatistic'
-                                    ComputerName  = $targetComputer
-                                    Protocol      = $entry.Protocol
-                                    LocalAddress  = $entry.LocalAddress
-                                    LocalPort     = $entry.LocalPort
-                                    RemoteAddress = $entry.RemoteAddress
-                                    RemotePort    = $entry.RemotePort
-                                    State         = $entry.State
-                                    ProcessId     = $entry.ProcessId
-                                    ProcessName   = $entry.ProcessName
-                                    Timestamp     = $timestamp
-                                })
+                                        PSTypeName    = 'PSWinOps.NetworkStatistic'
+                                        ComputerName  = $targetComputer
+                                        Protocol      = $entry.Protocol
+                                        LocalAddress  = $entry.LocalAddress
+                                        LocalPort     = $entry.LocalPort
+                                        RemoteAddress = $entry.RemoteAddress
+                                        RemotePort    = $entry.RemotePort
+                                        State         = $entry.State
+                                        ProcessId     = $entry.ProcessId
+                                        ProcessName   = $entry.ProcessName
+                                        Timestamp     = $timestamp
+                                    })
                             }
                         } catch {
                             Write-Error "[$($MyInvocation.MyCommand)] Failed on '$targetComputer': $_"

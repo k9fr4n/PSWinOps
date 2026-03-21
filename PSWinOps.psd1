@@ -70,16 +70,17 @@ FormatsToProcess = 'PSWinOps.Format.ps1xml'
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
 FunctionsToExport = 'Clear-Arp', 'Connect-RdpSession', 'ConvertFrom-MisencodedString', 
-               'Disconnect-RdpSession', 'Edit-HostsFile', 'Get-ComputerUptime', 
-               'Get-NetworkRoute', 
-               'Get-NetworkStatistic', 'Get-NTPConfiguration', 'Get-NTPPeer', 
-               'Get-NTPSyncStatus', 'Get-PendingReboot', 'Get-ProxyConfiguration', 
-               'Get-PublicIPAddress', 'Get-RandomPassword', 'Get-RdpSession', 
-               'Get-RdpSessionHistory', 'Get-RdpSessionLock', 'Get-SystemSummary', 
-               'New-NetworkRoute', 'Remove-NetworkRoute', 
+               'Disconnect-RdpSession', 'Edit-HostsFile', 'Get-ARPTable', 
+               'Get-ComputerUptime', 'Get-NetworkRoute', 'Get-NetworkStatistic', 
+               'Get-NTPConfiguration', 'Get-NTPPeer', 'Get-NTPSyncStatus', 
+               'Get-PendingReboot', 'Get-ProxyConfiguration', 'Get-PublicIPAddress', 
+               'Get-RandomPassword', 'Get-RdpSession', 'Get-RdpSessionHistory', 
+               'Get-RdpSessionLock', 'Get-SubnetInfo', 'Get-SystemSummary', 
+               'Measure-NetworkLatency', 'New-NetworkRoute', 'Remove-NetworkRoute', 
                'Remove-ProxyConfiguration', 'Remove-RdpSession', 'Set-NetworkRoute', 
                'Set-NTPClient', 'Set-ProxyConfiguration', 'Sync-NTPTime', 
-               'Test-ProxyConnection'
+               'Test-DNSResolution', 'Test-PortConnectivity', 'Test-ProxyConnection', 
+               'Trace-NetworkRoute'
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = @()
