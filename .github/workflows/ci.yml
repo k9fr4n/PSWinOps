@@ -124,11 +124,24 @@ jobs:
         run: |
           if (Test-Path -Path 'coverage.xml') {
             [xml]$coverage = Get-Content -Path 'coverage.xml'
-            $coveredLines = [int]$coverage.coverage.packages.package.classes.class.lines.line.Count
-            $totalLines = [int]$coverage.coverage.'lines-covered' + [int]$coverage.coverage.'lines-valid'
-
-            if ($totalLines -gt 0) {
-              $percentage = [math]::Round(($coveredLines / $totalLines) * 100, 2)
-              Write-Output "[INFO] Code coverage: $percentage% ($coveredLines/$totalLines lines)"
+            $report = $coverage.report
+            $covered = [int]($report.counter | Where-Object { $_.type -eq 'LINE' }).covered
+            $missed  = [int]($report.counter | Where-Object { $_.type -eq 'LINE' }).missed
+            $total   = $covered + $missed
+            if ($total -gt 0) {
+              $percentage = [math]::Round(($covered / $total) * 100, 2)
+              Write-Output "[INFO] Code coverage: $percentage% ($covered/$total lines)"
             }
           }
+      # ─────────────────────────────────────────
+      # 5b. UPLOAD COVERAGE TO CODECOV
+      # ─────────────────────────────────────────
+      - name: Upload Coverage to Codecov
+        if: always()
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage.xml
+          flags: pester
+          fail_ci_if_error: false
+          verbose: true
