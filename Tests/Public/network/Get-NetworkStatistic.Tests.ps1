@@ -444,6 +444,108 @@ Describe 'Get-NetworkStatistic' {
         }
     }
 
+    Context 'Continuous parameter validation' {
+
+        It 'Should have Continuous parameter of type switch' {
+            $cmd = Get-Command -Name 'Get-NetworkStatistic'
+            $param = $cmd.Parameters['Continuous']
+            $param | Should -Not -BeNullOrEmpty
+            $param.ParameterType.Name | Should -Be 'SwitchParameter'
+        }
+
+        It 'Should have RefreshInterval parameter with default value 2' {
+            $cmd = Get-Command -Name 'Get-NetworkStatistic'
+            $param = $cmd.Parameters['RefreshInterval']
+            $param | Should -Not -BeNullOrEmpty
+            $param.ParameterType.Name | Should -Be 'Int32'
+        }
+
+        It 'Should reject RefreshInterval of 0' {
+            { Get-NetworkStatistic -RefreshInterval 0 } | Should -Throw
+        }
+
+        It 'Should reject RefreshInterval above 300' {
+            { Get-NetworkStatistic -RefreshInterval 301 } | Should -Throw
+        }
+
+        It 'Should accept RefreshInterval of 1' {
+            $cmd = Get-Command -Name 'Get-NetworkStatistic'
+            $vr = $cmd.Parameters['RefreshInterval'].Attributes |
+                Where-Object { $_ -is [System.Management.Automation.ValidateRangeAttribute] }
+            $vr | Should -Not -BeNullOrEmpty
+        }
+    }
+
+    Context 'Continuous mode - collects computers in process and loops in end' {
+
+        BeforeAll {
+            $script:mockTcpContinuous = @(
+                [PSCustomObject]@{
+                    LocalAddress = '127.0.0.1'; LocalPort = 80
+                    RemoteAddress = '10.0.0.1'; RemotePort = 54321
+                    State = 'Established'; OwningProcess = 100
+                }
+            )
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-NetTCPConnection' -MockWith {
+                return $script:mockTcpContinuous
+            }
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-NetUDPEndpoint' -MockWith {
+                return @()
+            }
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-Process' -MockWith {
+                return @([PSCustomObject]@{ Id = 100; ProcessName = 'nginx' })
+            }
+            Mock -ModuleName $script:ModuleName -CommandName 'Clear-Host' -MockWith { }
+            Mock -ModuleName $script:ModuleName -CommandName 'Write-Host' -MockWith { }
+            Mock -ModuleName $script:ModuleName -CommandName 'Start-Sleep' -MockWith {
+                # Break the loop after first iteration by throwing
+                throw 'StopLoop'
+            }
+        }
+
+        It 'Should not return pipeline objects in -Continuous mode' {
+            $results = Get-NetworkStatistic -Continuous -Protocol TCP -ErrorAction SilentlyContinue 2>$null
+            $results | Should -BeNullOrEmpty
+        }
+
+        It 'Should call Clear-Host in -Continuous mode' {
+            Get-NetworkStatistic -Continuous -Protocol TCP -ErrorAction SilentlyContinue 2>$null
+            Should -Invoke -CommandName 'Clear-Host' -ModuleName $script:ModuleName -Times 1 -Exactly
+        }
+
+        It 'Should call Start-Sleep with the RefreshInterval' {
+            Get-NetworkStatistic -Continuous -RefreshInterval 5 -Protocol TCP -ErrorAction SilentlyContinue 2>$null
+            Should -Invoke -CommandName 'Start-Sleep' -ModuleName $script:ModuleName -Times 1 -Exactly -ParameterFilter {
+                $Seconds -eq 5
+            }
+        }
+    }
+
+    Context 'Continuous mode - pipeline collects all computers' {
+
+        BeforeAll {
+            Mock -ModuleName $script:ModuleName -CommandName 'Invoke-Command' -MockWith {
+                return @(
+                    [PSCustomObject]@{
+                        Protocol = 'TCP'; LocalAddress = '10.0.0.5'; LocalPort = 80
+                        RemoteAddress = '10.0.0.100'; RemotePort = 49152; State = 'Established'
+                        ProcessId = 100; ProcessName = 'w3wp'
+                    }
+                )
+            }
+            Mock -ModuleName $script:ModuleName -CommandName 'Clear-Host' -MockWith { }
+            Mock -ModuleName $script:ModuleName -CommandName 'Write-Host' -MockWith { }
+            Mock -ModuleName $script:ModuleName -CommandName 'Start-Sleep' -MockWith {
+                throw 'StopLoop'
+            }
+        }
+
+        It 'Should query all piped computers in continuous mode' {
+            'REMOTE01', 'REMOTE02' | Get-NetworkStatistic -Continuous -Protocol TCP -ErrorAction SilentlyContinue 2>$null
+            Should -Invoke -CommandName 'Invoke-Command' -ModuleName $script:ModuleName -Times 2 -Exactly
+        }
+    }
+
     Context 'Integration' -Tag 'Integration' {
         It 'Should return real TCP connections on a Windows machine' -Skip:(-not ($IsWindows -or $PSVersionTable.PSEdition -eq 'Desktop')) {
             $results = Get-NetworkStatistic -Protocol TCP
