@@ -5,43 +5,45 @@ function Test-WinRM {
     .SYNOPSIS
         Tests WinRM connectivity and configuration on remote computers.
     .DESCRIPTION
-        Performs a comprehensive WinRM connectivity test:
-        1. Tests TCP port 5985 (HTTP) and/or 5986 (HTTPS)
+        Performs a comprehensive WinRM connectivity test on both HTTP (5985) and
+        HTTPS (5986) by default:
+        1. Tests TCP port reachability
         2. Tests WSMan connection via Test-WSMan
-        3. Optionally tests Invoke-Command execution
+        3. Tests actual command execution via Invoke-Command
 
-        Returns structured results for each step, making it easy to pinpoint
-        where the connection fails.
+        Returns two rows per computer (HTTP + HTTPS), giving a complete picture
+        in a single call. Use -Protocol to test only one protocol.
     .PARAMETER ComputerName
         One or more computer names to test. Accepts pipeline input.
     .PARAMETER Credential
         Optional credential for authentication.
-    .PARAMETER UseSSL
-        Test HTTPS port 5986 instead of HTTP port 5985.
+    .PARAMETER Protocol
+        Protocol(s) to test. Default: both HTTP and HTTPS.
+        Valid values: HTTP, HTTPS.
     .PARAMETER TimeoutMs
         TCP port test timeout in milliseconds. Default: 3000.
     .EXAMPLE
         Test-WinRM -ComputerName 'SRV01'
 
-        Tests WinRM on SRV01 (port 5985 + WSMan).
+        Tests WinRM on SRV01 over both HTTP (5985) and HTTPS (5986).
+    .EXAMPLE
+        Test-WinRM -ComputerName 'SRV01' -Protocol HTTP
+
+        Tests WinRM on SRV01 over HTTP only.
     .EXAMPLE
         Test-WinRM -ComputerName 'SRV01' -Credential (Get-Credential)
 
-        Full test with credentials (port + WSMan + execution).
+        Full test with credentials (both protocols).
     .EXAMPLE
         'SRV01', 'SRV02', 'SRV03' | Test-WinRM
 
-        Pipeline: tests WinRM on 3 servers.
-    .EXAMPLE
-        Test-WinRM -ComputerName 'SRV01' -UseSSL
-
-        Tests WinRM over HTTPS (port 5986).
+        Pipeline: tests WinRM on 3 servers (both protocols each).
     .OUTPUTS
-    PSWinOps.WinRMTestResult
+        PSWinOps.WinRMTestResult
     .NOTES
         Author:        Franck SALLET
-        Version:       1.0.0
-        Last Modified: 2026-03-21
+        Version:       1.1.0
+        Last Modified: 2026-03-22
         Requires:      PowerShell 5.1+ / Windows only
         Permissions:   No admin required for testing, target must allow WinRM
     #>
@@ -49,6 +51,7 @@ function Test-WinRM {
     [OutputType('PSWinOps.WinRMTestResult')]
     param (
         [Parameter(Mandatory = $true,
+            Position = 0,
             ValueFromPipeline = $true,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
@@ -59,7 +62,8 @@ function Test-WinRM {
         [PSCredential]$Credential,
 
         [Parameter(Mandatory = $false)]
-        [switch]$UseSSL,
+        [ValidateSet('HTTP', 'HTTPS')]
+        [string[]]$Protocol = @('HTTP', 'HTTPS'),
 
         [Parameter(Mandatory = $false)]
         [ValidateRange(500, 30000)]
@@ -67,87 +71,97 @@ function Test-WinRM {
     )
 
     begin {
-        Write-Verbose "[$($MyInvocation.MyCommand)] Starting WinRM tests"
+        Write-Verbose "[$($MyInvocation.MyCommand)] Starting WinRM tests (Protocol: $($Protocol -join ', '))"
         $hasCredential = $PSBoundParameters.ContainsKey('Credential')
+
+        $protocolMap = @{
+            'HTTP'  = @{ Port = 5985; UseSSL = $false }
+            'HTTPS' = @{ Port = 5986; UseSSL = $true }
+        }
     }
 
     process {
         foreach ($targetComputer in $ComputerName) {
-            try {
-                $winrmPort = if ($UseSSL) { 5986 } else { 5985 }
-                $portOpen = $false
-                $wsmanOK = $false
-                $execOK = $null
-                $wsmanVersion = $null
-                $errorMessage = $null
-
-                Write-Verbose "[$($MyInvocation.MyCommand)] Testing '$targetComputer' port $winrmPort"
-
-                # Step 1: TCP port test
-                $tcpClient = $null
+            foreach ($proto in $Protocol) {
                 try {
-                    $tcpClient = New-Object System.Net.Sockets.TcpClient
-                    $connectTask = $tcpClient.ConnectAsync($targetComputer, $winrmPort)
-                    $portOpen = $connectTask.Wait($TimeoutMs) -and -not $connectTask.IsFaulted
+                    $winrmPort = $protocolMap[$proto].Port
+                    $useSSL    = $protocolMap[$proto].UseSSL
+                    $portOpen  = $false
+                    $wsmanOK   = $false
+                    $execOK    = $null
+                    $wsmanVersion  = $null
+                    $errorMessage  = $null
+
+                    Write-Verbose "[$($MyInvocation.MyCommand)] Testing '$targetComputer' $proto (port $winrmPort)"
+
+                    # Step 1: TCP port test
+                    $tcpClient = $null
+                    try {
+                        $tcpClient = New-Object System.Net.Sockets.TcpClient
+                        $connectTask = $tcpClient.ConnectAsync($targetComputer, $winrmPort)
+                        $portOpen = $connectTask.Wait($TimeoutMs) -and -not $connectTask.IsFaulted
+                    } catch {
+                        Write-Verbose "[$($MyInvocation.MyCommand)] Port $winrmPort closed on '$targetComputer': $_"
+                    } finally {
+                        if ($tcpClient) { $tcpClient.Close(); $tcpClient.Dispose() }
+                    }
+
+                    # Step 2: WSMan test (only if port is open)
+                    if ($portOpen) {
+                        try {
+                            $wsmanParams = @{
+                                ComputerName = $targetComputer
+                                ErrorAction  = 'Stop'
+                            }
+                            if ($useSSL) { $wsmanParams['UseSsl'] = $true }
+                            if ($hasCredential) { $wsmanParams['Credential'] = $Credential }
+
+                            $wsmanResult = Test-WSMan @wsmanParams
+                            $wsmanOK = $true
+                            $wsmanVersion = $wsmanResult.ProductVersion
+                        } catch {
+                            $errorMessage = "WSMan failed: $($_.Exception.Message)"
+                            Write-Verbose "[$($MyInvocation.MyCommand)] WSMan test failed on '$targetComputer' ($proto): $_"
+                        }
+                    } else {
+                        $errorMessage = "Port $winrmPort is not reachable"
+                    }
+
+                    # Step 3: Execution test (always when WSMan succeeds)
+                    if ($wsmanOK) {
+                        try {
+                            $invokeParams = @{
+                                ComputerName = $targetComputer
+                                ScriptBlock  = { $env:COMPUTERNAME }
+                                ErrorAction  = 'Stop'
+                            }
+                            if ($useSSL) { $invokeParams['UseSSL'] = $true }
+                            if ($hasCredential) { $invokeParams['Credential'] = $Credential }
+
+                            $execResult = Invoke-Command @invokeParams
+                            $execOK = ($null -ne $execResult)
+                        } catch {
+                            $execOK = $false
+                            $errorMessage = "Execution failed: $($_.Exception.Message)"
+                            Write-Verbose "[$($MyInvocation.MyCommand)] Execution test failed on '$targetComputer' ($proto): $_"
+                        }
+                    }
+
+                    [PSCustomObject]@{
+                        PSTypeName     = 'PSWinOps.WinRMTestResult'
+                        ComputerName   = $targetComputer
+                        Port           = $winrmPort
+                        Protocol       = $proto
+                        PortOpen       = $portOpen
+                        WSManConnected = $wsmanOK
+                        ExecutionOK    = $execOK
+                        WSManVersion   = $wsmanVersion
+                        ErrorMessage   = $errorMessage
+                        Timestamp      = Get-Date -Format 'o'
+                    }
                 } catch {
-                    Write-Verbose "[$($MyInvocation.MyCommand)] Port $winrmPort closed on '$targetComputer': $_"
-                } finally {
-                    if ($tcpClient) { $tcpClient.Close(); $tcpClient.Dispose() }
+                    Write-Error "[$($MyInvocation.MyCommand)] Failed on '$targetComputer' ($proto): $_"
                 }
-
-                # Step 2: WSMan test (only if port is open)
-                if ($portOpen) {
-                    try {
-                        $wsmanParams = @{
-                            ComputerName = $targetComputer
-                            ErrorAction  = 'Stop'
-                        }
-                        if ($hasCredential) { $wsmanParams['Credential'] = $Credential }
-
-                        $wsmanResult = Test-WSMan @wsmanParams
-                        $wsmanOK = $true
-                        $wsmanVersion = $wsmanResult.ProductVersion
-                    } catch {
-                        $errorMessage = "WSMan failed: $($_.Exception.Message)"
-                        Write-Verbose "[$($MyInvocation.MyCommand)] WSMan test failed on '$targetComputer': $_"
-                    }
-                } else {
-                    $errorMessage = "Port $winrmPort is not reachable"
-                }
-
-                # Step 3: Execution test (always when WSMan succeeds)
-                if ($wsmanOK) {
-                    try {
-                        $invokeParams = @{
-                            ComputerName = $targetComputer
-                            ScriptBlock  = { $env:COMPUTERNAME }
-                            ErrorAction  = 'Stop'
-                        }
-                        if ($hasCredential) { $invokeParams['Credential'] = $Credential }
-
-                        $execResult = Invoke-Command @invokeParams
-                        $execOK = ($null -ne $execResult)
-                    } catch {
-                        $execOK = $false
-                        $errorMessage = "Execution failed: $($_.Exception.Message)"
-                        Write-Verbose "[$($MyInvocation.MyCommand)] Execution test failed on '$targetComputer': $_"
-                    }
-                }
-
-                [PSCustomObject]@{
-                    PSTypeName     = 'PSWinOps.WinRMTestResult'
-                    ComputerName   = $targetComputer
-                    Port           = $winrmPort
-                    PortOpen       = $portOpen
-                    WSManConnected = $wsmanOK
-                    ExecutionOK    = $execOK
-                    WSManVersion   = $wsmanVersion
-                    Protocol       = if ($UseSSL) { 'HTTPS' } else { 'HTTP' }
-                    ErrorMessage   = $errorMessage
-                    Timestamp      = Get-Date -Format 'o'
-                }
-            } catch {
-                Write-Error "[$($MyInvocation.MyCommand)] Failed on '$targetComputer': $_"
             }
         }
     }
