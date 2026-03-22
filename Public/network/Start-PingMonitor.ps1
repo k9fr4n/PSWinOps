@@ -1,6 +1,6 @@
 #Requires -Version 5.1
 
-function Watch-PingStatus {
+function Start-PingMonitor {
     <#
     .SYNOPSIS
         Displays a real-time multi-host ping monitoring dashboard.
@@ -19,15 +19,15 @@ function Watch-PingStatus {
     .PARAMETER PingTimeoutMs
         Timeout per ping in milliseconds. Default: 2000. Valid range: 500-10000.
     .EXAMPLE
-        Watch-PingStatus -ComputerName 'SRV01', 'SRV02', 'SRV03', 'gateway'
+        Start-PingMonitor -ComputerName 'SRV01', 'SRV02', 'SRV03', 'gateway'
 
         Monitors 4 hosts with a live dashboard. Press Ctrl+C to stop.
     .EXAMPLE
-        Watch-PingStatus -ComputerName (Get-Content servers.txt) -RefreshInterval 5
+        Start-PingMonitor -ComputerName (Get-Content servers.txt) -RefreshInterval 5
 
         Monitors hosts from a file with 5-second refresh.
     .EXAMPLE
-        Watch-PingStatus -ComputerName '8.8.8.8', '1.1.1.1', 'gateway.local' -PingTimeoutMs 1000
+        Start-PingMonitor -ComputerName '8.8.8.8', '1.1.1.1', 'gateway.local' -PingTimeoutMs 1000
 
         Monitors with a 1-second ping timeout.
     .NOTES
@@ -40,8 +40,6 @@ function Watch-PingStatus {
     #>
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWriteHost', '',
         Justification = 'Write-Host is intentional for interactive console dashboard display')]
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '',
-        Justification = 'Watch is the most intuitive verb for continuous monitoring dashboard')]
     [CmdletBinding()]
     param (
         [Parameter(Mandatory = $true, Position = 0)]
@@ -125,8 +123,8 @@ function Watch-PingStatus {
                     $lossPercent = if ($stats.Sent -gt 0) { [math]::Round((($stats.Sent - $stats.Received) / $stats.Sent) * 100, 1) } else { 0 }
                     $avgMs = if ($stats.Received -gt 0) { [math]::Round($stats.SumMs / $stats.Received, 1) } else { $null }
                     $minDisplay = if ($stats.MinMs -lt [double]::MaxValue) { '{0}ms' -f [math]::Round($stats.MinMs, 0) } else { '-' }
-                    $maxDisplay = if ($stats.MaxMs -gt 0) { '{0}ms' -f [math]::Round($stats.MaxMs, 0) } else { '-' }
-                    $avgDisplay = if ($avgMs) { '{0}ms' -f $avgMs } else { '-' }
+                    $maxDisplay = if ($stats.Received -gt 0) { '{0}ms' -f [math]::Round($stats.MaxMs, 0) } else { '-' }
+                    $avgDisplay = if ($null -ne $avgMs) { '{0}ms' -f $avgMs } else { '-' }
                     $lastDisplay = if ($null -ne $stats.LastMs) { '{0}ms' -f $stats.LastMs } else { '-' }
 
                     $statusColor = switch ($stats.Status) {

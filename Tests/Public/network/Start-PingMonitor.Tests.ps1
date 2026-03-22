@@ -4,50 +4,50 @@ BeforeAll {
     $script:ModuleName = 'PSWinOps'
 }
 
-Describe 'Watch-PingStatus' {
+Describe 'Start-PingMonitor' {
 
     Context 'Parameter validation' {
 
         It 'Should require ComputerName parameter' {
-            { Watch-PingStatus -ComputerName $null } | Should -Throw
+            { Start-PingMonitor -ComputerName $null } | Should -Throw
         }
 
         It 'Should reject empty ComputerName' {
-            { Watch-PingStatus -ComputerName '' } | Should -Throw
+            { Start-PingMonitor -ComputerName '' } | Should -Throw
         }
 
         It 'Should reject RefreshInterval of 0' {
-            { Watch-PingStatus -ComputerName 'host' -RefreshInterval 0 } | Should -Throw
+            { Start-PingMonitor -ComputerName 'host' -RefreshInterval 0 } | Should -Throw
         }
 
         It 'Should reject RefreshInterval above 60' {
-            { Watch-PingStatus -ComputerName 'host' -RefreshInterval 61 } | Should -Throw
+            { Start-PingMonitor -ComputerName 'host' -RefreshInterval 61 } | Should -Throw
         }
 
         It 'Should reject PingTimeoutMs below 500' {
-            { Watch-PingStatus -ComputerName 'host' -PingTimeoutMs 100 } | Should -Throw
+            { Start-PingMonitor -ComputerName 'host' -PingTimeoutMs 100 } | Should -Throw
         }
 
         It 'Should have expected parameters' {
-            $cmd = Get-Command -Name 'Watch-PingStatus'
+            $cmd = Get-Command -Name 'Start-PingMonitor'
             $cmd.Parameters.Keys | Should -Contain 'ComputerName'
             $cmd.Parameters.Keys | Should -Contain 'RefreshInterval'
             $cmd.Parameters.Keys | Should -Contain 'PingTimeoutMs'
         }
 
         It 'Should have default RefreshInterval of 2' {
-            $cmd = Get-Command -Name 'Watch-PingStatus'
+            $cmd = Get-Command -Name 'Start-PingMonitor'
             $param = $cmd.Parameters['RefreshInterval']
             $param.ParameterType | Should -Be ([int])
         }
 
         It 'Should have default PingTimeoutMs of 2000' {
-            $cmd = Get-Command -Name 'Watch-PingStatus'
+            $cmd = Get-Command -Name 'Start-PingMonitor'
             $cmd.Parameters['PingTimeoutMs'].ParameterType | Should -Be ([int])
         }
 
         It 'Should accept PingTimeoutMs of 500 (minimum)' {
-            $cmd = Get-Command -Name 'Watch-PingStatus'
+            $cmd = Get-Command -Name 'Start-PingMonitor'
             $rangeAttr = $cmd.Parameters['PingTimeoutMs'].Attributes | Where-Object {
                 $_ -is [System.Management.Automation.ValidateRangeAttribute]
             }
@@ -55,7 +55,7 @@ Describe 'Watch-PingStatus' {
         }
 
         It 'Should accept PingTimeoutMs of 10000 (maximum)' {
-            $cmd = Get-Command -Name 'Watch-PingStatus'
+            $cmd = Get-Command -Name 'Start-PingMonitor'
             $rangeAttr = $cmd.Parameters['PingTimeoutMs'].Attributes | Where-Object {
                 $_ -is [System.Management.Automation.ValidateRangeAttribute]
             }
@@ -63,32 +63,32 @@ Describe 'Watch-PingStatus' {
         }
 
         It 'Should reject PingTimeoutMs above 10000' {
-            { Watch-PingStatus -ComputerName 'host' -PingTimeoutMs 11000 } | Should -Throw
+            { Start-PingMonitor -ComputerName 'host' -PingTimeoutMs 11000 } | Should -Throw
         }
     }
 
     Context 'Function existence and metadata' {
 
         It 'Should be exported from the module' {
-            $cmd = Get-Command -Name 'Watch-PingStatus' -Module $script:ModuleName
+            $cmd = Get-Command -Name 'Start-PingMonitor' -Module $script:ModuleName
             $cmd | Should -Not -BeNullOrEmpty
         }
 
         It 'Should have CmdletBinding' {
-            $cmd = Get-Command -Name 'Watch-PingStatus'
+            $cmd = Get-Command -Name 'Start-PingMonitor'
             $cmd.CmdletBinding | Should -Be $true
         }
 
         It 'Should have SuppressMessageAttribute in the source code' {
             # SuppressMessageAttribute may not be reflected via Get-Command on all platforms
             # Verify by checking the script block text directly
-            $cmd = Get-Command -Name 'Watch-PingStatus'
+            $cmd = Get-Command -Name 'Start-PingMonitor'
             $scriptText = $cmd.ScriptBlock.ToString()
             $scriptText | Should -Match 'PSAvoidUsingWriteHost'
         }
 
         It 'Should have ComputerName as mandatory parameter' {
-            $cmd = Get-Command -Name 'Watch-PingStatus'
+            $cmd = Get-Command -Name 'Start-PingMonitor'
             $paramAttr = $cmd.Parameters['ComputerName'].Attributes | Where-Object {
                 $_ -is [System.Management.Automation.ParameterAttribute]
             }
@@ -96,7 +96,7 @@ Describe 'Watch-PingStatus' {
         }
 
         It 'Should support CN alias for ComputerName' {
-            $cmd = Get-Command -Name 'Watch-PingStatus'
+            $cmd = Get-Command -Name 'Start-PingMonitor'
             $cmd.Parameters['ComputerName'].Aliases | Should -Contain 'CN'
         }
     }
@@ -147,22 +147,22 @@ Describe 'Watch-PingStatus' {
         }
 
         It 'Should execute at least one ping cycle before stopping' {
-            Watch-PingStatus -ComputerName 'TestHost1'
+            Start-PingMonitor -ComputerName 'TestHost1'
             Should -Invoke -CommandName 'Clear-Host' -ModuleName $script:ModuleName -Times 1 -Exactly
         }
 
         It 'Should call Write-Host for dashboard rendering' {
-            Watch-PingStatus -ComputerName 'TestHost1'
+            Start-PingMonitor -ComputerName 'TestHost1'
             Should -Invoke -CommandName 'Write-Host' -ModuleName $script:ModuleName
         }
 
         It 'Should handle multiple hosts in one cycle' {
-            Watch-PingStatus -ComputerName 'Host1', 'Host2', 'Host3'
+            Start-PingMonitor -ComputerName 'Host1', 'Host2', 'Host3'
             Should -Invoke -CommandName 'Clear-Host' -ModuleName $script:ModuleName -Times 1 -Exactly
         }
 
         It 'Should call Start-Sleep with the RefreshInterval' {
-            Watch-PingStatus -ComputerName 'TestHost1' -RefreshInterval 5
+            Start-PingMonitor -ComputerName 'TestHost1' -RefreshInterval 5
             Should -Invoke -CommandName 'Start-Sleep' -ModuleName $script:ModuleName -Times 1 -Exactly -ParameterFilter {
                 $Seconds -eq 5
             }
@@ -207,11 +207,11 @@ Describe 'Watch-PingStatus' {
         }
 
         It 'Should handle timed out ping without errors' {
-            { Watch-PingStatus -ComputerName 'DownHost' } | Should -Not -Throw
+            { Start-PingMonitor -ComputerName 'DownHost' } | Should -Not -Throw
         }
 
         It 'Should display dashboard even when host is down' {
-            Watch-PingStatus -ComputerName 'DownHost'
+            Start-PingMonitor -ComputerName 'DownHost'
             Should -Invoke -CommandName 'Write-Host' -ModuleName $script:ModuleName
         }
     }
@@ -251,7 +251,7 @@ Describe 'Watch-PingStatus' {
         }
 
         It 'Should handle ping exception gracefully and mark host as Down' {
-            { Watch-PingStatus -ComputerName 'InvalidHost.nonexistent' } | Should -Not -Throw
+            { Start-PingMonitor -ComputerName 'InvalidHost.nonexistent' } | Should -Not -Throw
         }
     }
 
@@ -302,7 +302,7 @@ Describe 'Watch-PingStatus' {
         }
 
         It 'Should render dashboard with mixed Up and Down hosts' {
-            { Watch-PingStatus -ComputerName 'UpHost', 'DownHost' } | Should -Not -Throw
+            { Start-PingMonitor -ComputerName 'UpHost', 'DownHost' } | Should -Not -Throw
             Should -Invoke -CommandName 'Write-Host' -ModuleName $script:ModuleName
         }
     }
