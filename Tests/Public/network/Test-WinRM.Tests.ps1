@@ -160,7 +160,7 @@ Describe 'Test-WinRM' {
         }
     }
 
-    Context 'TestExecution - success' {
+    Context 'Execution test — success (WSMan OK)' {
 
         BeforeEach {
             $mockTcpClient = [PSCustomObject]@{}
@@ -185,24 +185,19 @@ Describe 'Test-WinRM' {
         }
 
         It 'Should set ExecutionOK to True when Invoke-Command succeeds' {
-            $result = Test-WinRM -ComputerName 'SRV01' -TestExecution
+            $result = Test-WinRM -ComputerName 'SRV01'
             $result.ExecutionOK | Should -Be $true
             $result.PortOpen | Should -Be $true
             $result.WSManConnected | Should -Be $true
         }
 
-        It 'Should call Invoke-Command when -TestExecution is specified' {
-            Test-WinRM -ComputerName 'SRV01' -TestExecution
+        It 'Should always call Invoke-Command when WSMan succeeds' {
+            Test-WinRM -ComputerName 'SRV01'
             Should -Invoke -CommandName 'Invoke-Command' -ModuleName $script:ModuleName -Times 1 -Exactly
-        }
-
-        It 'Should have null ExecutionOK when -TestExecution is not specified' {
-            $result = Test-WinRM -ComputerName 'SRV01'
-            $result.ExecutionOK | Should -BeNullOrEmpty
         }
     }
 
-    Context 'TestExecution - failure' {
+    Context 'Execution test — failure (WSMan OK but Invoke-Command fails)' {
 
         BeforeEach {
             $mockTcpClient = [PSCustomObject]@{}
@@ -227,15 +222,50 @@ Describe 'Test-WinRM' {
         }
 
         It 'Should set ExecutionOK to False when Invoke-Command fails' {
-            $result = Test-WinRM -ComputerName 'SRV01' -TestExecution
+            $result = Test-WinRM -ComputerName 'SRV01'
             $result.ExecutionOK | Should -Be $false
             $result.ErrorMessage | Should -Match 'Execution failed'
         }
 
-        It 'Should not skip execution test when WSMan succeeds' {
-            $result = Test-WinRM -ComputerName 'SRV01' -TestExecution
+        It 'Should still show WSManConnected as True' {
+            $result = Test-WinRM -ComputerName 'SRV01'
             $result.WSManConnected | Should -Be $true
             Should -Invoke -CommandName 'Invoke-Command' -ModuleName $script:ModuleName -Times 1 -Exactly
+        }
+    }
+
+    Context 'Execution test — skipped (WSMan failed)' {
+
+        BeforeEach {
+            $mockTcpClient = [PSCustomObject]@{}
+            $mockTcpClient | Add-Member -MemberType ScriptMethod -Name 'ConnectAsync' -Value {
+                param($h, $p)
+                return [System.Threading.Tasks.Task]::FromResult($true)
+            }
+            $mockTcpClient | Add-Member -MemberType ScriptMethod -Name 'Close' -Value { }
+            $mockTcpClient | Add-Member -MemberType ScriptMethod -Name 'Dispose' -Value { }
+
+            Mock -ModuleName $script:ModuleName -CommandName 'New-Object' -MockWith {
+                return $mockTcpClient
+            } -ParameterFilter { $TypeName -eq 'System.Net.Sockets.TcpClient' }
+
+            Mock -ModuleName $script:ModuleName -CommandName 'Test-WSMan' -MockWith {
+                throw 'Access denied'
+            }
+
+            Mock -ModuleName $script:ModuleName -CommandName 'Invoke-Command' -MockWith {
+                return 'SRV01'
+            }
+        }
+
+        It 'Should have null ExecutionOK when WSMan fails' {
+            $result = Test-WinRM -ComputerName 'SRV01'
+            $result.ExecutionOK | Should -BeNullOrEmpty
+        }
+
+        It 'Should not call Invoke-Command when WSMan fails' {
+            Test-WinRM -ComputerName 'SRV01'
+            Should -Invoke -CommandName 'Invoke-Command' -ModuleName $script:ModuleName -Times 0 -Exactly
         }
     }
 

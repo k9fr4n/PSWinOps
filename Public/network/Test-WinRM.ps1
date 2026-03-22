@@ -18,9 +18,6 @@ function Test-WinRM {
         Optional credential for authentication.
     .PARAMETER UseSSL
         Test HTTPS port 5986 instead of HTTP port 5985.
-    .PARAMETER TestExecution
-        Also test actual command execution via Invoke-Command.
-        Default: $false (only tests port and WSMan).
     .PARAMETER TimeoutMs
         TCP port test timeout in milliseconds. Default: 3000.
     .EXAMPLE
@@ -28,9 +25,9 @@ function Test-WinRM {
 
         Tests WinRM on SRV01 (port 5985 + WSMan).
     .EXAMPLE
-        Test-WinRM -ComputerName 'SRV01' -TestExecution -Credential (Get-Credential)
+        Test-WinRM -ComputerName 'SRV01' -Credential (Get-Credential)
 
-        Full test including command execution with credentials.
+        Full test with credentials (port + WSMan + execution).
     .EXAMPLE
         'SRV01', 'SRV02', 'SRV03' | Test-WinRM
 
@@ -63,9 +60,6 @@ function Test-WinRM {
 
         [Parameter(Mandatory = $false)]
         [switch]$UseSSL,
-
-        [Parameter(Mandatory = $false)]
-        [switch]$TestExecution,
 
         [Parameter(Mandatory = $false)]
         [ValidateRange(500, 30000)]
@@ -121,8 +115,8 @@ function Test-WinRM {
                     $errorMessage = "Port $winrmPort is not reachable"
                 }
 
-                # Step 3: Execution test (only if WSMan succeeded and requested)
-                if ($wsmanOK -and $TestExecution) {
+                # Step 3: Execution test (always when WSMan succeeds)
+                if ($wsmanOK) {
                     try {
                         $invokeParams = @{
                             ComputerName = $targetComputer
