@@ -88,7 +88,6 @@
         'Get-PendingReboot',
         'Get-ProxyConfiguration',
         'Get-PublicIPAddress',
-        'Get-RandomPassword',
         'Get-RdpSession',
         'Get-RdpSessionHistory',
         'Get-RdpSessionLock',
@@ -97,6 +96,7 @@
         'Get-SystemSummary',
         'Measure-NetworkLatency',
         'New-NetworkRoute',
+        'New-RandomPassword',
         'Remove-NetworkRoute',
         'Remove-ProxyConfiguration',
         'Remove-RdpSession',
@@ -110,7 +110,7 @@
         'Test-ProxyConnection',
         'Test-WinRM',
         'Trace-NetworkRoute',
-        'Watch-PingStatus'
+        'Start-PingMonitor'
     )
 
     # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.

@@ -1,178 +1,41 @@
-BeforeAll {
+﻿BeforeAll {
     $script:modulePath = Split-Path -Path (Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent) -Parent
     Import-Module -Name (Join-Path -Path $script:modulePath -ChildPath 'PSWinOps.psd1') -Force
     $script:ModuleName = 'PSWinOps'
 
     # Stub Windows-only commands for cross-platform test execution
     if (-not (Get-Command -Name 'Test-WSMan' -ErrorAction SilentlyContinue)) {
-        function global:Test-WSMan { param($ComputerName, $Credential, $ErrorAction) }
+        function global:Test-WSMan {
+            param($ComputerName, $Credential, $UseSsl, $ErrorAction)
+        }
+    }
+
+    # Helper: creates a mock TcpClient with configurable behavior
+    function script:New-MockTcpClient {
+        param ([switch]$Refuse)
+        $mock = [PSCustomObject]@{}
+        if ($Refuse) {
+            $mock | Add-Member -MemberType ScriptMethod -Name 'ConnectAsync' -Value {
+                param($h, $p); throw 'Connection refused'
+            }
+        } else {
+            $mock | Add-Member -MemberType ScriptMethod -Name 'ConnectAsync' -Value {
+                param($h, $p); return [System.Threading.Tasks.Task]::FromResult($true)
+            }
+        }
+        $mock | Add-Member -MemberType ScriptMethod -Name 'Close' -Value { }
+        $mock | Add-Member -MemberType ScriptMethod -Name 'Dispose' -Value { }
+        return $mock
     }
 }
 
 Describe 'Test-WinRM' {
 
-    Context 'Happy path - port open and WSMan OK' {
+    Context 'Default behavior — tests both HTTP and HTTPS' {
 
         BeforeEach {
-            $mockTcpClient = [PSCustomObject]@{}
-            $mockTcpClient | Add-Member -MemberType ScriptMethod -Name 'ConnectAsync' -Value {
-                param($h, $p)
-                return [System.Threading.Tasks.Task]::FromResult($true)
-            }
-            $mockTcpClient | Add-Member -MemberType ScriptMethod -Name 'Close' -Value { }
-            $mockTcpClient | Add-Member -MemberType ScriptMethod -Name 'Dispose' -Value { }
-
             Mock -ModuleName $script:ModuleName -CommandName 'New-Object' -MockWith {
-                return $mockTcpClient
-            } -ParameterFilter { $TypeName -eq 'System.Net.Sockets.TcpClient' }
-
-            Mock -ModuleName $script:ModuleName -CommandName 'Test-WSMan' -MockWith {
-                [PSCustomObject]@{ ProductVersion = 'OS: 10.0.20348 SP: 0.0 Stack: 3.0' }
-            }
-        }
-
-        It 'Should return all three checks passed' {
-            $result = Test-WinRM -ComputerName 'SRV01'
-            $result.PortOpen | Should -Be $true
-            $result.WSManConnected | Should -Be $true
-            $result.Port | Should -Be 5985
-        }
-
-        It 'Should include PSTypeName PSWinOps.WinRMTestResult' {
-            $result = Test-WinRM -ComputerName 'SRV01'
-            $result.PSObject.TypeNames[0] | Should -Be 'PSWinOps.WinRMTestResult'
-        }
-
-        It 'Should include WSMan version' {
-            $result = Test-WinRM -ComputerName 'SRV01'
-            $result.WSManVersion | Should -Not -BeNullOrEmpty
-        }
-
-        It 'Should default to HTTP protocol' {
-            $result = Test-WinRM -ComputerName 'SRV01'
-            $result.Protocol | Should -Be 'HTTP'
-        }
-
-        It 'Should include Timestamp' {
-            $result = Test-WinRM -ComputerName 'SRV01'
-            $result.Timestamp | Should -Not -BeNullOrEmpty
-        }
-    }
-
-    Context 'Port open but WSMan fails' {
-
-        BeforeEach {
-            $mockTcpClient = [PSCustomObject]@{}
-            $mockTcpClient | Add-Member -MemberType ScriptMethod -Name 'ConnectAsync' -Value {
-                param($h, $p)
-                return [System.Threading.Tasks.Task]::FromResult($true)
-            }
-            $mockTcpClient | Add-Member -MemberType ScriptMethod -Name 'Close' -Value { }
-            $mockTcpClient | Add-Member -MemberType ScriptMethod -Name 'Dispose' -Value { }
-
-            Mock -ModuleName $script:ModuleName -CommandName 'New-Object' -MockWith {
-                return $mockTcpClient
-            } -ParameterFilter { $TypeName -eq 'System.Net.Sockets.TcpClient' }
-
-            Mock -ModuleName $script:ModuleName -CommandName 'Test-WSMan' -MockWith {
-                throw 'Access denied'
-            }
-        }
-
-        It 'Should show port open but WSMan failed' {
-            $result = Test-WinRM -ComputerName 'SRV01'
-            $result.PortOpen | Should -Be $true
-            $result.WSManConnected | Should -Be $false
-            $result.ErrorMessage | Should -Match 'WSMan failed'
-        }
-    }
-
-    Context 'Port closed' {
-
-        BeforeEach {
-            $mockTcpClient = [PSCustomObject]@{}
-            $mockTcpClient | Add-Member -MemberType ScriptMethod -Name 'ConnectAsync' -Value {
-                param($h, $p)
-                throw 'Connection refused'
-            }
-            $mockTcpClient | Add-Member -MemberType ScriptMethod -Name 'Close' -Value { }
-            $mockTcpClient | Add-Member -MemberType ScriptMethod -Name 'Dispose' -Value { }
-
-            Mock -ModuleName $script:ModuleName -CommandName 'New-Object' -MockWith {
-                return $mockTcpClient
-            } -ParameterFilter { $TypeName -eq 'System.Net.Sockets.TcpClient' }
-        }
-
-        It 'Should report port closed and skip WSMan test' {
-            $result = Test-WinRM -ComputerName 'SRV01'
-            $result.PortOpen | Should -Be $false
-            $result.WSManConnected | Should -Be $false
-            $result.ErrorMessage | Should -Match 'not reachable'
-        }
-    }
-
-    Context 'UseSSL switch' {
-
-        BeforeEach {
-            $mockTcpClient = [PSCustomObject]@{}
-            $mockTcpClient | Add-Member -MemberType ScriptMethod -Name 'ConnectAsync' -Value {
-                param($h, $p)
-                return [System.Threading.Tasks.Task]::FromResult($true)
-            }
-            $mockTcpClient | Add-Member -MemberType ScriptMethod -Name 'Close' -Value { }
-            $mockTcpClient | Add-Member -MemberType ScriptMethod -Name 'Dispose' -Value { }
-
-            Mock -ModuleName $script:ModuleName -CommandName 'New-Object' -MockWith {
-                return $mockTcpClient
-            } -ParameterFilter { $TypeName -eq 'System.Net.Sockets.TcpClient' }
-
-            Mock -ModuleName $script:ModuleName -CommandName 'Test-WSMan' -MockWith {
-                [PSCustomObject]@{ ProductVersion = 'OS: 10.0' }
-            }
-        }
-
-        It 'Should test port 5986 with -UseSSL' {
-            $result = Test-WinRM -ComputerName 'SRV01' -UseSSL
-            $result.Port | Should -Be 5986
-            $result.Protocol | Should -Be 'HTTPS'
-        }
-    }
-
-    Context 'Pipeline input' {
-
-        BeforeEach {
-            $mockTcpClient = [PSCustomObject]@{}
-            $mockTcpClient | Add-Member -MemberType ScriptMethod -Name 'ConnectAsync' -Value {
-                param($h, $p)
-                throw 'refused'
-            }
-            $mockTcpClient | Add-Member -MemberType ScriptMethod -Name 'Close' -Value { }
-            $mockTcpClient | Add-Member -MemberType ScriptMethod -Name 'Dispose' -Value { }
-
-            Mock -ModuleName $script:ModuleName -CommandName 'New-Object' -MockWith {
-                return $mockTcpClient
-            } -ParameterFilter { $TypeName -eq 'System.Net.Sockets.TcpClient' }
-        }
-
-        It 'Should accept multiple computers via pipeline' {
-            $result = 'SRV01', 'SRV02', 'SRV03' | Test-WinRM
-            $result.Count | Should -Be 3
-        }
-    }
-
-    Context 'TestExecution - success' {
-
-        BeforeEach {
-            $mockTcpClient = [PSCustomObject]@{}
-            $mockTcpClient | Add-Member -MemberType ScriptMethod -Name 'ConnectAsync' -Value {
-                param($h, $p)
-                return [System.Threading.Tasks.Task]::FromResult($true)
-            }
-            $mockTcpClient | Add-Member -MemberType ScriptMethod -Name 'Close' -Value { }
-            $mockTcpClient | Add-Member -MemberType ScriptMethod -Name 'Dispose' -Value { }
-
-            Mock -ModuleName $script:ModuleName -CommandName 'New-Object' -MockWith {
-                return $mockTcpClient
+                New-MockTcpClient
             } -ParameterFilter { $TypeName -eq 'System.Net.Sockets.TcpClient' }
 
             Mock -ModuleName $script:ModuleName -CommandName 'Test-WSMan' -MockWith {
@@ -184,37 +47,181 @@ Describe 'Test-WinRM' {
             }
         }
 
-        It 'Should set ExecutionOK to True when Invoke-Command succeeds' {
-            $result = Test-WinRM -ComputerName 'SRV01' -TestExecution
-            $result.ExecutionOK | Should -Be $true
-            $result.PortOpen | Should -Be $true
-            $result.WSManConnected | Should -Be $true
-        }
-
-        It 'Should call Invoke-Command when -TestExecution is specified' {
-            Test-WinRM -ComputerName 'SRV01' -TestExecution
-            Should -Invoke -CommandName 'Invoke-Command' -ModuleName $script:ModuleName -Times 1 -Exactly
-        }
-
-        It 'Should have null ExecutionOK when -TestExecution is not specified' {
+        It 'Should return two rows per computer (HTTP + HTTPS)' {
             $result = Test-WinRM -ComputerName 'SRV01'
-            $result.ExecutionOK | Should -BeNullOrEmpty
+            $result.Count | Should -Be 2
+            $result[0].Protocol | Should -Be 'HTTP'
+            $result[1].Protocol | Should -Be 'HTTPS'
+        }
+
+        It 'Should test port 5985 for HTTP and 5986 for HTTPS' {
+            $result = Test-WinRM -ComputerName 'SRV01'
+            $result[0].Port | Should -Be 5985
+            $result[1].Port | Should -Be 5986
+        }
+
+        It 'Should include PSTypeName PSWinOps.WinRMTestResult' {
+            $result = Test-WinRM -ComputerName 'SRV01'
+            $result | ForEach-Object {
+                $_.PSObject.TypeNames[0] | Should -Be 'PSWinOps.WinRMTestResult'
+            }
+        }
+
+        It 'Should include Timestamp in ISO 8601 format' {
+            $result = Test-WinRM -ComputerName 'SRV01'
+            $result | ForEach-Object {
+                $_.Timestamp | Should -Match '^\d{4}-\d{2}-\d{2}T'
+            }
+        }
+
+        It 'Should include all expected properties' {
+            $result = Test-WinRM -ComputerName 'SRV01'
+            $expectedProperties = @('ComputerName', 'Port', 'Protocol', 'PortOpen',
+                'WSManConnected', 'ExecutionOK', 'WSManVersion',
+                'ErrorMessage', 'Timestamp')
+            foreach ($prop in $expectedProperties) {
+                $result[0].PSObject.Properties.Name | Should -Contain $prop
+            }
         }
     }
 
-    Context 'TestExecution - failure' {
+    Context '-Protocol HTTP — single protocol' {
 
         BeforeEach {
-            $mockTcpClient = [PSCustomObject]@{}
-            $mockTcpClient | Add-Member -MemberType ScriptMethod -Name 'ConnectAsync' -Value {
-                param($h, $p)
-                return [System.Threading.Tasks.Task]::FromResult($true)
-            }
-            $mockTcpClient | Add-Member -MemberType ScriptMethod -Name 'Close' -Value { }
-            $mockTcpClient | Add-Member -MemberType ScriptMethod -Name 'Dispose' -Value { }
-
             Mock -ModuleName $script:ModuleName -CommandName 'New-Object' -MockWith {
-                return $mockTcpClient
+                New-MockTcpClient
+            } -ParameterFilter { $TypeName -eq 'System.Net.Sockets.TcpClient' }
+
+            Mock -ModuleName $script:ModuleName -CommandName 'Test-WSMan' -MockWith {
+                [PSCustomObject]@{ ProductVersion = 'OS: 10.0.20348' }
+            }
+
+            Mock -ModuleName $script:ModuleName -CommandName 'Invoke-Command' -MockWith {
+                return 'SRV01'
+            }
+        }
+
+        It 'Should return only one row for HTTP' {
+            $result = @(Test-WinRM -ComputerName 'SRV01' -Protocol HTTP)
+            $result.Count | Should -Be 1
+            $result[0].Protocol | Should -Be 'HTTP'
+            $result[0].Port | Should -Be 5985
+        }
+    }
+
+    Context '-Protocol HTTPS — single protocol' {
+
+        BeforeEach {
+            Mock -ModuleName $script:ModuleName -CommandName 'New-Object' -MockWith {
+                New-MockTcpClient
+            } -ParameterFilter { $TypeName -eq 'System.Net.Sockets.TcpClient' }
+
+            Mock -ModuleName $script:ModuleName -CommandName 'Test-WSMan' -MockWith {
+                [PSCustomObject]@{ ProductVersion = 'OS: 10.0.20348' }
+            }
+
+            Mock -ModuleName $script:ModuleName -CommandName 'Invoke-Command' -MockWith {
+                return 'SRV01'
+            }
+        }
+
+        It 'Should return only one row for HTTPS' {
+            $result = Test-WinRM -ComputerName 'SRV01' -Protocol HTTPS
+            $result.Protocol | Should -Be 'HTTPS'
+            $result.Port | Should -Be 5986
+        }
+    }
+
+    Context 'Port open — WSMan OK — Execution OK' {
+
+        BeforeEach {
+            Mock -ModuleName $script:ModuleName -CommandName 'New-Object' -MockWith {
+                New-MockTcpClient
+            } -ParameterFilter { $TypeName -eq 'System.Net.Sockets.TcpClient' }
+
+            Mock -ModuleName $script:ModuleName -CommandName 'Test-WSMan' -MockWith {
+                [PSCustomObject]@{ ProductVersion = 'OS: 10.0.20348 SP: 0.0 Stack: 3.0' }
+            }
+
+            Mock -ModuleName $script:ModuleName -CommandName 'Invoke-Command' -MockWith {
+                return 'SRV01'
+            }
+        }
+
+        It 'Should return all three checks passed' {
+            $result = Test-WinRM -ComputerName 'SRV01' -Protocol HTTP
+            $result.PortOpen | Should -Be $true
+            $result.WSManConnected | Should -Be $true
+            $result.ExecutionOK | Should -Be $true
+        }
+
+        It 'Should include WSMan version' {
+            $result = Test-WinRM -ComputerName 'SRV01' -Protocol HTTP
+            $result.WSManVersion | Should -Not -BeNullOrEmpty
+        }
+
+        It 'Should always call Invoke-Command when WSMan succeeds' {
+            Test-WinRM -ComputerName 'SRV01' -Protocol HTTP
+            Should -Invoke -CommandName 'Invoke-Command' -ModuleName $script:ModuleName -Times 1 -Exactly
+        }
+    }
+
+    Context 'Port open — WSMan fails' {
+
+        BeforeEach {
+            Mock -ModuleName $script:ModuleName -CommandName 'New-Object' -MockWith {
+                New-MockTcpClient
+            } -ParameterFilter { $TypeName -eq 'System.Net.Sockets.TcpClient' }
+
+            Mock -ModuleName $script:ModuleName -CommandName 'Test-WSMan' -MockWith {
+                throw 'Access denied'
+            }
+
+            Mock -ModuleName $script:ModuleName -CommandName 'Invoke-Command' -MockWith {
+                return 'SRV01'
+            }
+        }
+
+        It 'Should show port open but WSMan failed' {
+            $result = Test-WinRM -ComputerName 'SRV01' -Protocol HTTP
+            $result.PortOpen | Should -Be $true
+            $result.WSManConnected | Should -Be $false
+            $result.ErrorMessage | Should -Match 'WSMan failed'
+        }
+
+        It 'Should have null ExecutionOK when WSMan fails' {
+            $result = Test-WinRM -ComputerName 'SRV01' -Protocol HTTP
+            $result.ExecutionOK | Should -BeNullOrEmpty
+        }
+
+        It 'Should not call Invoke-Command when WSMan fails' {
+            Test-WinRM -ComputerName 'SRV01' -Protocol HTTP
+            Should -Invoke -CommandName 'Invoke-Command' -ModuleName $script:ModuleName -Times 0 -Exactly
+        }
+    }
+
+    Context 'Port closed' {
+
+        BeforeEach {
+            Mock -ModuleName $script:ModuleName -CommandName 'New-Object' -MockWith {
+                New-MockTcpClient -Refuse
+            } -ParameterFilter { $TypeName -eq 'System.Net.Sockets.TcpClient' }
+        }
+
+        It 'Should report port closed and skip WSMan/Exec tests' {
+            $result = Test-WinRM -ComputerName 'SRV01' -Protocol HTTP
+            $result.PortOpen | Should -Be $false
+            $result.WSManConnected | Should -Be $false
+            $result.ExecutionOK | Should -BeNullOrEmpty
+            $result.ErrorMessage | Should -Match 'not reachable'
+        }
+    }
+
+    Context 'Execution fails (WSMan OK but Invoke-Command fails)' {
+
+        BeforeEach {
+            Mock -ModuleName $script:ModuleName -CommandName 'New-Object' -MockWith {
+                New-MockTcpClient
             } -ParameterFilter { $TypeName -eq 'System.Net.Sockets.TcpClient' }
 
             Mock -ModuleName $script:ModuleName -CommandName 'Test-WSMan' -MockWith {
@@ -227,41 +234,53 @@ Describe 'Test-WinRM' {
         }
 
         It 'Should set ExecutionOK to False when Invoke-Command fails' {
-            $result = Test-WinRM -ComputerName 'SRV01' -TestExecution
+            $result = Test-WinRM -ComputerName 'SRV01' -Protocol HTTP
+            $result.WSManConnected | Should -Be $true
             $result.ExecutionOK | Should -Be $false
             $result.ErrorMessage | Should -Match 'Execution failed'
         }
+    }
 
-        It 'Should not skip execution test when WSMan succeeds' {
-            $result = Test-WinRM -ComputerName 'SRV01' -TestExecution
-            $result.WSManConnected | Should -Be $true
-            Should -Invoke -CommandName 'Invoke-Command' -ModuleName $script:ModuleName -Times 1 -Exactly
+    Context 'Pipeline input' {
+
+        BeforeEach {
+            Mock -ModuleName $script:ModuleName -CommandName 'New-Object' -MockWith {
+                New-MockTcpClient -Refuse
+            } -ParameterFilter { $TypeName -eq 'System.Net.Sockets.TcpClient' }
+        }
+
+        It 'Should accept multiple computers via pipeline (2 rows each)' {
+            $result = 'SRV01', 'SRV02', 'SRV03' | Test-WinRM
+            $result.Count | Should -Be 6
+        }
+
+        It 'Should return N rows with -Protocol HTTP' {
+            $result = 'SRV01', 'SRV02' | Test-WinRM -Protocol HTTP
+            $result.Count | Should -Be 2
+            $result[0].ComputerName | Should -Be 'SRV01'
+            $result[1].ComputerName | Should -Be 'SRV02'
         }
     }
 
     Context 'Credential parameter' {
 
         BeforeEach {
-            $mockTcpClient = [PSCustomObject]@{}
-            $mockTcpClient | Add-Member -MemberType ScriptMethod -Name 'ConnectAsync' -Value {
-                param($h, $p)
-                return [System.Threading.Tasks.Task]::FromResult($true)
-            }
-            $mockTcpClient | Add-Member -MemberType ScriptMethod -Name 'Close' -Value { }
-            $mockTcpClient | Add-Member -MemberType ScriptMethod -Name 'Dispose' -Value { }
-
             Mock -ModuleName $script:ModuleName -CommandName 'New-Object' -MockWith {
-                return $mockTcpClient
+                New-MockTcpClient
             } -ParameterFilter { $TypeName -eq 'System.Net.Sockets.TcpClient' }
 
             Mock -ModuleName $script:ModuleName -CommandName 'Test-WSMan' -MockWith {
                 [PSCustomObject]@{ ProductVersion = 'OS: 10.0' }
             }
+
+            Mock -ModuleName $script:ModuleName -CommandName 'Invoke-Command' -MockWith {
+                return 'SRV01'
+            }
         }
 
         It 'Should pass Credential to Test-WSMan when provided' {
             $cred = [PSCredential]::new('user', (ConvertTo-SecureString 'pass' -AsPlainText -Force))
-            Test-WinRM -ComputerName 'SRV01' -Credential $cred
+            Test-WinRM -ComputerName 'SRV01' -Protocol HTTP -Credential $cred
             Should -Invoke -CommandName 'Test-WSMan' -ModuleName $script:ModuleName -Times 1 -Exactly
         }
     }
@@ -269,25 +288,21 @@ Describe 'Test-WinRM' {
     Context 'Per-machine failure isolation' {
 
         BeforeEach {
-            $mockTcpClient = [PSCustomObject]@{}
-            $mockTcpClient | Add-Member -MemberType ScriptMethod -Name 'ConnectAsync' -Value {
-                param($h, $p)
-                return [System.Threading.Tasks.Task]::FromResult($true)
-            }
-            $mockTcpClient | Add-Member -MemberType ScriptMethod -Name 'Close' -Value { }
-            $mockTcpClient | Add-Member -MemberType ScriptMethod -Name 'Dispose' -Value { }
-
             Mock -ModuleName $script:ModuleName -CommandName 'New-Object' -MockWith {
-                return $mockTcpClient
+                New-MockTcpClient
             } -ParameterFilter { $TypeName -eq 'System.Net.Sockets.TcpClient' }
 
             Mock -ModuleName $script:ModuleName -CommandName 'Test-WSMan' -MockWith {
                 [PSCustomObject]@{ ProductVersion = 'OS: 10.0' }
             }
+
+            Mock -ModuleName $script:ModuleName -CommandName 'Invoke-Command' -MockWith {
+                return 'SRV01'
+            }
         }
 
-        It 'Should return results for all machines even if none fail' {
-            $result = Test-WinRM -ComputerName 'SRV01', 'SRV02'
+        It 'Should return results for all machines' {
+            $result = Test-WinRM -ComputerName 'SRV01', 'SRV02' -Protocol HTTP
             $result.Count | Should -Be 2
             $result[0].ComputerName | Should -Be 'SRV01'
             $result[1].ComputerName | Should -Be 'SRV02'
@@ -306,6 +321,10 @@ Describe 'Test-WinRM' {
 
         It 'Should reject TimeoutMs above 30000' {
             { Test-WinRM -ComputerName 'SRV01' -TimeoutMs 31000 } | Should -Throw
+        }
+
+        It 'Should reject invalid Protocol' {
+            { Test-WinRM -ComputerName 'SRV01' -Protocol 'FTP' } | Should -Throw
         }
     }
 }

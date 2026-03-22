@@ -1,6 +1,6 @@
 ﻿#Requires -Version 5.1
 
-function Get-RandomPassword {
+function New-RandomPassword {
     <#
 .SYNOPSIS
     Generate a cryptographically secure random password
@@ -33,15 +33,15 @@ function Get-RandomPassword {
     Character set: @.+-=*!#$%&?
 
 .EXAMPLE
-    Get-RandomPassword
+    New-RandomPassword
     Generates a 16-character password with default constraints (2 upper, 2 lower, 2 numeric, 2 special).
 
 .EXAMPLE
-    Get-RandomPassword -Length 24 -UpperCount 4 -LowerCount 4 -NumericCount 4 -SpecialCount 4
+    New-RandomPassword -Length 24 -UpperCount 4 -LowerCount 4 -NumericCount 4 -SpecialCount 4
     Generates a 24-character password with higher complexity requirements.
 
 .EXAMPLE
-    1..5 | ForEach-Object { Get-RandomPassword -Length 20 }
+    1..5 | ForEach-Object { New-RandomPassword -Length 20 }
     Generates 5 unique passwords with 20 characters each.
 
 .OUTPUTS
@@ -66,6 +66,8 @@ System.String
     .LINK
     https://docs.microsoft.com/en-us/dotnet/api/system.security.cryptography.rngcryptoserviceprovider
     #>
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '',
+        Justification = 'New-RandomPassword generates a string in memory, it does not change system state')]
     [CmdletBinding()]
     [OutputType([string])]
     param(

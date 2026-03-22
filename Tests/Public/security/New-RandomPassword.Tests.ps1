@@ -18,16 +18,16 @@ BeforeAll {
     $script:specialCharSet = '@.+-=*!#$%&?'
 }
 
-Describe -Name 'Get-RandomPassword' -Fixture {
+Describe -Name 'New-RandomPassword' -Fixture {
 
     Context -Name 'Module integration' -Fixture {
 
         It -Name 'Should be available after module import' -Test {
-            Get-Command -Name 'Get-RandomPassword' -Module 'PSWinOps' -ErrorAction SilentlyContinue | Should -Not -BeNullOrEmpty
+            Get-Command -Name 'New-RandomPassword' -Module 'PSWinOps' -ErrorAction SilentlyContinue | Should -Not -BeNullOrEmpty
         }
 
         It -Name 'Should have correct OutputType attribute' -Test {
-            $command = Get-Command -Name 'Get-RandomPassword'
+            $command = Get-Command -Name 'New-RandomPassword'
             $command.OutputType.Name | Should -Contain 'System.String'
         }
     }
@@ -35,54 +35,54 @@ Describe -Name 'Get-RandomPassword' -Fixture {
     Context -Name 'Parameter validation' -Fixture {
 
         It -Name 'Should reject length less than 8' -Test {
-            { Get-RandomPassword -Length 7 } | Should -Throw
+            { New-RandomPassword -Length 7 } | Should -Throw
         }
 
         It -Name 'Should reject negative count values' -Test {
-            { Get-RandomPassword -UpperCount -1 } | Should -Throw
+            { New-RandomPassword -UpperCount -1 } | Should -Throw
         }
 
         It -Name 'Should throw when total constraints exceed length' -Test {
-            { Get-RandomPassword -Length 10 -UpperCount 5 -LowerCount 5 -NumericCount 5 -SpecialCount 5 } | Should -Throw -ExpectedMessage '*exceeds password length*'
+            { New-RandomPassword -Length 10 -UpperCount 5 -LowerCount 5 -NumericCount 5 -SpecialCount 5 } | Should -Throw -ExpectedMessage '*exceeds password length*'
         }
 
         It -Name 'Should throw when all character class counts are zero' -Test {
-            { Get-RandomPassword -UpperCount 0 -LowerCount 0 -NumericCount 0 -SpecialCount 0 } | Should -Throw -ExpectedMessage '*at least one character class*'
+            { New-RandomPassword -UpperCount 0 -LowerCount 0 -NumericCount 0 -SpecialCount 0 } | Should -Throw -ExpectedMessage '*at least one character class*'
         }
     }
 
     Context -Name 'Password generation with default parameters' -Fixture {
 
         It -Name 'Should return a string' -Test {
-            $result = Get-RandomPassword
+            $result = New-RandomPassword
             $result | Should -BeOfType ([string])
         }
 
         It -Name 'Should return password of default length 16' -Test {
-            $result = Get-RandomPassword
+            $result = New-RandomPassword
             $result.Length | Should -Be 16
         }
 
         It -Name 'Should contain at least 2 uppercase characters' -Test {
-            $result = Get-RandomPassword
+            $result = New-RandomPassword
             $upperCount = ($result.ToCharArray() | Where-Object { $_ -cin $script:upperCharSet.ToCharArray() }).Count
             $upperCount | Should -BeGreaterOrEqual 2
         }
 
         It -Name 'Should contain at least 2 lowercase characters' -Test {
-            $result = Get-RandomPassword
+            $result = New-RandomPassword
             $lowerCount = ($result.ToCharArray() | Where-Object { $_ -cin $script:lowerCharSet.ToCharArray() }).Count
             $lowerCount | Should -BeGreaterOrEqual 2
         }
 
         It -Name 'Should contain at least 2 numeric characters' -Test {
-            $result = Get-RandomPassword
+            $result = New-RandomPassword
             $numericCount = ($result.ToCharArray() | Where-Object { $_ -cin $script:numericCharSet.ToCharArray() }).Count
             $numericCount | Should -BeGreaterOrEqual 2
         }
 
         It -Name 'Should contain at least 2 special characters' -Test {
-            $result = Get-RandomPassword
+            $result = New-RandomPassword
             $specialCount = ($result.ToCharArray() | Where-Object { $_ -cin $script:specialCharSet.ToCharArray() }).Count
             $specialCount | Should -BeGreaterOrEqual 2
         }
@@ -91,24 +91,24 @@ Describe -Name 'Get-RandomPassword' -Fixture {
     Context -Name 'Password generation with custom parameters' -Fixture {
 
         It -Name 'Should return password of specified length' -Test {
-            $result = Get-RandomPassword -Length 24
+            $result = New-RandomPassword -Length 24
             $result.Length | Should -Be 24
         }
 
         It -Name 'Should meet custom uppercase requirement' -Test {
-            $result = Get-RandomPassword -Length 20 -UpperCount 5
+            $result = New-RandomPassword -Length 20 -UpperCount 5
             $upperCount = ($result.ToCharArray() | Where-Object { $_ -cin $script:upperCharSet.ToCharArray() }).Count
             $upperCount | Should -BeGreaterOrEqual 5
         }
 
         It -Name 'Should generate password with zero special characters when SpecialCount is 0' -Test {
-            $result = Get-RandomPassword -Length 16 -UpperCount 4 -LowerCount 4 -NumericCount 4 -SpecialCount 0
+            $result = New-RandomPassword -Length 16 -UpperCount 4 -LowerCount 4 -NumericCount 4 -SpecialCount 0
             $specialCount = ($result.ToCharArray() | Where-Object { $_ -cin $script:specialCharSet.ToCharArray() }).Count
             $specialCount | Should -Be 0
         }
 
         It -Name 'Should generate password with only numeric characters' -Test {
-            $result = Get-RandomPassword -Length 12 -UpperCount 0 -LowerCount 0 -NumericCount 12 -SpecialCount 0
+            $result = New-RandomPassword -Length 12 -UpperCount 0 -LowerCount 0 -NumericCount 12 -SpecialCount 0
             $result | Should -Match '^\d+$'
         }
     }
@@ -116,13 +116,13 @@ Describe -Name 'Get-RandomPassword' -Fixture {
     Context -Name 'Uniqueness and randomness' -Fixture {
 
         It -Name 'Should generate different passwords on consecutive calls' -Test {
-            $password1 = Get-RandomPassword -Length 20
-            $password2 = Get-RandomPassword -Length 20
+            $password1 = New-RandomPassword -Length 20
+            $password2 = New-RandomPassword -Length 20
             $password1 | Should -Not -Be $password2
         }
 
         It -Name 'Should generate 10 unique passwords' -Test {
-            $passwords = 1..10 | ForEach-Object { Get-RandomPassword -Length 16 }
+            $passwords = 1..10 | ForEach-Object { New-RandomPassword -Length 16 }
             $uniquePasswords = $passwords | Select-Object -Unique
             $uniquePasswords.Count | Should -Be 10
         }
@@ -131,16 +131,16 @@ Describe -Name 'Get-RandomPassword' -Fixture {
     Context -Name 'Error handling and edge cases' -Fixture {
 
         It -Name 'Should throw when constraints exceed length' -Test {
-            { Get-RandomPassword -Length 8 -UpperCount 8 -LowerCount 2 -NumericCount 2 -SpecialCount 2 } | Should -Throw -ExpectedMessage '*exceeds password length*'
+            { New-RandomPassword -Length 8 -UpperCount 8 -LowerCount 2 -NumericCount 2 -SpecialCount 2 } | Should -Throw -ExpectedMessage '*exceeds password length*'
         }
 
         It -Name 'Should throw when constraints are mathematically impossible' -Test {
             # Impossible: 8 upper + 1 lower + 1 numeric = 10 total required > 8 length
-            { Get-RandomPassword -Length 8 -UpperCount 8 -LowerCount 1 -NumericCount 1 -SpecialCount 0 } | Should -Throw -ExpectedMessage '*exceeds password length*'
+            { New-RandomPassword -Length 8 -UpperCount 8 -LowerCount 1 -NumericCount 1 -SpecialCount 0 } | Should -Throw -ExpectedMessage '*exceeds password length*'
         }
 
         It -Name 'Should generate successfully with tight but valid constraints' -Test {
-            $result = Get-RandomPassword -Length 8 -UpperCount 2 -LowerCount 2 -NumericCount 2 -SpecialCount 2
+            $result = New-RandomPassword -Length 8 -UpperCount 2 -LowerCount 2 -NumericCount 2 -SpecialCount 2
             $result.Length | Should -Be 8
 
             # Verify all constraints are met
@@ -157,7 +157,7 @@ Describe -Name 'Get-RandomPassword' -Fixture {
 
         It -Name 'Should generate successfully with exact constraint match to length' -Test {
             # Length = 12, constraints = 3+3+3+3 = 12 (no extra random characters)
-            $result = Get-RandomPassword -Length 12 -UpperCount 3 -LowerCount 3 -NumericCount 3 -SpecialCount 3
+            $result = New-RandomPassword -Length 12 -UpperCount 3 -LowerCount 3 -NumericCount 3 -SpecialCount 3
             $result.Length | Should -Be 12
 
             # Verify exact counts
@@ -173,13 +173,13 @@ Describe -Name 'Get-RandomPassword' -Fixture {
         }
 
         It -Name 'Should handle minimum length password' -Test {
-            $result = Get-RandomPassword -Length 8 -UpperCount 2 -LowerCount 2 -NumericCount 2 -SpecialCount 2
+            $result = New-RandomPassword -Length 8 -UpperCount 2 -LowerCount 2 -NumericCount 2 -SpecialCount 2
             $result.Length | Should -Be 8
             $result | Should -BeOfType ([string])
         }
 
         It -Name 'Should handle large password generation' -Test {
-            $result = Get-RandomPassword -Length 128 -UpperCount 20 -LowerCount 20 -NumericCount 20 -SpecialCount 20
+            $result = New-RandomPassword -Length 128 -UpperCount 20 -LowerCount 20 -NumericCount 20 -SpecialCount 20
             $result.Length | Should -Be 128
 
             $upperCount = ($result.ToCharArray() | Where-Object { $_ -cin $script:upperCharSet.ToCharArray() }).Count
@@ -197,9 +197,9 @@ Describe -Name 'Get-RandomPassword' -Fixture {
     Context -Name 'Verbose output' -Fixture {
 
         It -Name 'Should produce verbose output when -Verbose is specified' -Test {
-            $verboseOutput = Get-RandomPassword -Length 16 -Verbose 4>&1
+            $verboseOutput = New-RandomPassword -Length 16 -Verbose 4>&1
             $verboseOutput | Should -Not -BeNullOrEmpty
-            $verboseOutput -join ' ' | Should -Match 'Get-RandomPassword.*Starting password generation|Get-RandomPassword.*Character set size'
+            $verboseOutput -join ' ' | Should -Match 'New-RandomPassword.*Starting password generation|New-RandomPassword.*Character set size'
         }
     }
 }

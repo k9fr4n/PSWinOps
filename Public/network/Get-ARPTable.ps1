@@ -106,7 +106,16 @@ function Get-ARPTable {
             foreach ($entry in $entries) {
                 [PSCustomObject]@{
                     IPAddress      = $entry.IPAddress
-                    LinkLayerAddr  = if ($entry.LinkLayerAddress) { $entry.LinkLayerAddress -replace '(..)', '$1:' -replace ':$' } else { '' }
+                    LinkLayerAddr  = if ($entry.LinkLayerAddress) {
+                        # Get-NetNeighbor returns dash-separated MACs (e.g. '00-50-56-86-4E-A4')
+                        # Normalize: strip all non-hex chars, then insert colons every 2 chars
+                        $hex = $entry.LinkLayerAddress -replace '[^0-9A-Fa-f]', ''
+                        if ($hex.Length -ge 2) {
+                            ($hex -replace '(..)', '$1:').TrimEnd(':')
+                        } else {
+                            $hex
+                        }
+                    } else { '' }
                     State          = [string]$entry.State
                     InterfaceAlias = if ($interfaces.ContainsKey($entry.InterfaceIndex)) { $interfaces[$entry.InterfaceIndex] } else { "Index $($entry.InterfaceIndex)" }
                     InterfaceIndex = $entry.InterfaceIndex
