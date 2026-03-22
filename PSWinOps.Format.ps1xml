@@ -688,7 +688,7 @@
                 <ScriptBlock>if ($_.Success) { [char]0x2713 } else { [char]0x2717 }</ScriptBlock>
               </TableColumnItem>
               <TableColumnItem>
-                <ScriptBlock>if ($_.Consistent) { [char]0x2713 } else { [char]0x2717 }</ScriptBlock>
+                <ScriptBlock>if ($null -eq $_.Consistent) { '-' } elseif ($_.Consistent) { [char]0x2713 } else { [char]0x2717 }</ScriptBlock>
               </TableColumnItem>
             </TableColumnItems>
           </TableRowEntry>
