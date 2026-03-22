@@ -78,6 +78,66 @@ Describe 'Test-PortConnectivity' {
         }
     }
 
+    Context 'Port timeout (no exception, just not completed)' {
+
+        BeforeEach {
+            $mockTcpClient = [PSCustomObject]@{}
+            $mockTcpClient | Add-Member -MemberType ScriptMethod -Name 'ConnectAsync' -Value {
+                param($h, $p)
+                # Return a task that never completes within timeout
+                $tcs = New-Object 'System.Threading.Tasks.TaskCompletionSource[bool]'
+                return $tcs.Task
+            }
+            $mockTcpClient | Add-Member -MemberType ScriptMethod -Name 'Close' -Value { }
+            $mockTcpClient | Add-Member -MemberType ScriptMethod -Name 'Dispose' -Value { }
+
+            Mock -ModuleName $script:ModuleName -CommandName 'New-Object' -MockWith {
+                return $mockTcpClient
+            } -ParameterFilter { $TypeName -eq 'System.Net.Sockets.TcpClient' }
+        }
+
+        It 'Should return Open=False when connection times out' {
+            $result = Test-PortConnectivity -ComputerName 'SRV01' -Port 9999 -TimeoutMs 100
+            $result.Open | Should -Be $false
+        }
+
+        It 'Should have null ResponseTimeMs on timeout' {
+            $result = Test-PortConnectivity -ComputerName 'SRV01' -Port 9999 -TimeoutMs 100
+            $result.ResponseTimeMs | Should -BeNullOrEmpty
+        }
+
+        It 'Should still include ComputerName and Timestamp on timeout' {
+            $result = Test-PortConnectivity -ComputerName 'SRV01' -Port 9999 -TimeoutMs 100
+            $result.ComputerName | Should -Be 'SRV01'
+            $result.Timestamp | Should -Not -BeNullOrEmpty
+        }
+    }
+
+    Context 'Faulted task (IsFaulted = true)' {
+
+        BeforeEach {
+            $mockTcpClient = [PSCustomObject]@{}
+            $mockTcpClient | Add-Member -MemberType ScriptMethod -Name 'ConnectAsync' -Value {
+                param($h, $p)
+                # Return a faulted task (completed but faulted)
+                $tcs = New-Object 'System.Threading.Tasks.TaskCompletionSource[bool]'
+                $tcs.SetException([System.Exception]::new('Connection refused'))
+                return $tcs.Task
+            }
+            $mockTcpClient | Add-Member -MemberType ScriptMethod -Name 'Close' -Value { }
+            $mockTcpClient | Add-Member -MemberType ScriptMethod -Name 'Dispose' -Value { }
+
+            Mock -ModuleName $script:ModuleName -CommandName 'New-Object' -MockWith {
+                return $mockTcpClient
+            } -ParameterFilter { $TypeName -eq 'System.Net.Sockets.TcpClient' }
+        }
+
+        It 'Should return Open=False for a faulted connection task' {
+            $result = Test-PortConnectivity -ComputerName 'SRV01' -Port 9999
+            $result.Open | Should -Be $false
+        }
+    }
+
     Context 'Multiple hosts and ports' {
 
         BeforeEach {

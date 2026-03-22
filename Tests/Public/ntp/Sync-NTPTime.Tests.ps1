@@ -1,6 +1,14 @@
 #Requires -Version 5.1
 
 BeforeAll {
+    # Stub Windows-only commands BEFORE module import so Pester can mock them
+    if (-not (Get-Command -Name 'w32tm' -ErrorAction SilentlyContinue)) {
+        function global:w32tm { }
+    }
+    if (-not (Get-Command -Name 'Restart-Service' -ErrorAction SilentlyContinue)) {
+        function global:Restart-Service { }
+    }
+
     $script:modulePath = Split-Path -Path (Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent) -Parent
     Import-Module -Name "$($script:modulePath)/PSWinOps.psd1" -Force
 }
@@ -117,6 +125,62 @@ Describe -Name 'Sync-NTPTime' -Fixture {
         It -Name 'Should call Invoke-Command twice (restart + resync)' -Test {
             Sync-NTPTime -ComputerName 'REMOTE-SRV01' -RestartService
             Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 2 -Exactly
+        }
+    }
+
+    Context -Name 'When -RestartService is specified (remote, exercises restart + resync flow)' -Fixture {
+
+        BeforeAll {
+            Mock -CommandName 'Test-IsAdministrator' -ModuleName 'PSWinOps' -MockWith { return $true }
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
+                return $script:successOutput
+            }
+        }
+
+        It -Name 'Should restart service then resync on remote with RestartService' -Test {
+            $result = Sync-NTPTime -ComputerName 'REMOTE-SRV02' -RestartService
+            $result.ServiceRestarted | Should -BeTrue
+            $result.Success | Should -BeTrue
+            $result.ComputerName | Should -Be 'REMOTE-SRV02'
+        }
+
+        It -Name 'Should call Invoke-Command twice for remote restart + resync' -Test {
+            Sync-NTPTime -ComputerName 'REMOTE-SRV02' -RestartService
+            Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 2 -Exactly
+        }
+
+        It -Name 'Should include correct output fields after restart + resync' -Test {
+            $result = Sync-NTPTime -ComputerName 'REMOTE-SRV02' -RestartService
+            $result.PSObject.TypeNames[0] | Should -Be 'PSWinOps.NtpResyncResult'
+            $result.Timestamp | Should -Not -BeNullOrEmpty
+            $result.Message | Should -Not -BeNullOrEmpty
+        }
+    }
+
+    Context -Name 'When remote w32tm resync fails (non-zero exit code)' -Fixture {
+
+        BeforeAll {
+            Mock -CommandName 'Test-IsAdministrator' -ModuleName 'PSWinOps' -MockWith { return $true }
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
+                return $script:failureOutput
+            }
+        }
+
+        It -Name 'Should return Success = false with the failure message for remote' -Test {
+            $result = Sync-NTPTime -ComputerName 'REMOTE-SRV01'
+            $result.Success | Should -BeFalse
+            $result.Message | Should -Match 'did not resync'
+            $result.ComputerName | Should -Be 'REMOTE-SRV01'
+        }
+
+        It -Name 'Should include PSTypeName even on failure' -Test {
+            $result = Sync-NTPTime -ComputerName 'REMOTE-SRV01'
+            $result.PSObject.TypeNames[0] | Should -Be 'PSWinOps.NtpResyncResult'
+        }
+
+        It -Name 'Should set ServiceRestarted to false when RestartService not used' -Test {
+            $result = Sync-NTPTime -ComputerName 'REMOTE-SRV01'
+            $result.ServiceRestarted | Should -BeFalse
         }
     }
 
