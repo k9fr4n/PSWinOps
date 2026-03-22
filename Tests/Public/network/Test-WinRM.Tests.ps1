@@ -102,10 +102,10 @@ Describe 'Test-WinRM' {
         }
 
         It 'Should return only one row for HTTP' {
-            $result = Test-WinRM -ComputerName 'SRV01' -Protocol HTTP
-            $result.Count | Should -BeNullOrEmpty  # single object, not array
-            $result.Protocol | Should -Be 'HTTP'
-            $result.Port | Should -Be 5985
+            $result = @(Test-WinRM -ComputerName 'SRV01' -Protocol HTTP)
+            $result.Count | Should -Be 1
+            $result[0].Protocol | Should -Be 'HTTP'
+            $result[0].Port | Should -Be 5985
         }
     }
 
@@ -175,6 +175,10 @@ Describe 'Test-WinRM' {
 
             Mock -ModuleName $script:ModuleName -CommandName 'Test-WSMan' -MockWith {
                 throw 'Access denied'
+            }
+
+            Mock -ModuleName $script:ModuleName -CommandName 'Invoke-Command' -MockWith {
+                return 'SRV01'
             }
         }
 
