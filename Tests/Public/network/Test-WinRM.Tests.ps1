@@ -1,11 +1,13 @@
-BeforeAll {
+﻿BeforeAll {
     $script:modulePath = Split-Path -Path (Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent) -Parent
     Import-Module -Name (Join-Path -Path $script:modulePath -ChildPath 'PSWinOps.psd1') -Force
     $script:ModuleName = 'PSWinOps'
 
     # Stub Windows-only commands for cross-platform test execution
     if (-not (Get-Command -Name 'Test-WSMan' -ErrorAction SilentlyContinue)) {
-        function global:Test-WSMan { param($ComputerName, $Credential, $UseSsl, $ErrorAction) }
+        function global:Test-WSMan {
+            param($ComputerName, $Credential, $UseSsl, $ErrorAction)
+        }
     }
 
     # Helper: creates a mock TcpClient with configurable behavior
@@ -21,7 +23,7 @@ BeforeAll {
                 param($h, $p); return [System.Threading.Tasks.Task]::FromResult($true)
             }
         }
-        $mock | Add-Member -MemberType ScriptMethod -Name 'Close'   -Value { }
+        $mock | Add-Member -MemberType ScriptMethod -Name 'Close' -Value { }
         $mock | Add-Member -MemberType ScriptMethod -Name 'Dispose' -Value { }
         return $mock
     }
@@ -75,8 +77,8 @@ Describe 'Test-WinRM' {
         It 'Should include all expected properties' {
             $result = Test-WinRM -ComputerName 'SRV01'
             $expectedProperties = @('ComputerName', 'Port', 'Protocol', 'PortOpen',
-                                    'WSManConnected', 'ExecutionOK', 'WSManVersion',
-                                    'ErrorMessage', 'Timestamp')
+                'WSManConnected', 'ExecutionOK', 'WSManVersion',
+                'ErrorMessage', 'Timestamp')
             foreach ($prop in $expectedProperties) {
                 $result[0].PSObject.Properties.Name | Should -Contain $prop
             }
