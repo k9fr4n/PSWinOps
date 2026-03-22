@@ -141,6 +141,34 @@ Describe 'Remove-ProxyConfiguration' {
         }
     }
 
+    Context 'WinHTTP scope - admin with netsh present' {
+        BeforeEach {
+            Mock -ModuleName $script:ModuleName -CommandName 'Test-IsAdministrator' -MockWith { return $true }
+            Mock -ModuleName $script:ModuleName -CommandName 'Join-Path' -ParameterFilter {
+                $ChildPath -eq 'System32\netsh.exe'
+            } -MockWith { 'C:\Windows\System32\netsh.exe' }
+            Mock -ModuleName $script:ModuleName -CommandName 'Test-Path' -ParameterFilter {
+                $Path -like '*netsh*'
+            } -MockWith { $true }
+        }
+
+        It 'Should pass elevation check when administrator' {
+            Remove-ProxyConfiguration -Scope WinHTTP -Confirm:$false -ErrorAction SilentlyContinue
+            Should -Invoke -CommandName 'Test-IsAdministrator' -ModuleName $script:ModuleName -Times 1 -Exactly
+        }
+
+        It 'Should check netsh.exe exists after admin check passes' {
+            Remove-ProxyConfiguration -Scope WinHTTP -Confirm:$false -ErrorAction SilentlyContinue
+            Should -Invoke -CommandName 'Test-Path' -ModuleName $script:ModuleName -Times 1 -Exactly -ParameterFilter {
+                $Path -like '*netsh*'
+            }
+        }
+
+        It 'Should not throw when netsh execution fails gracefully' {
+            { Remove-ProxyConfiguration -Scope WinHTTP -Confirm:$false -ErrorAction SilentlyContinue } | Should -Not -Throw
+        }
+    }
+
     Context 'Environment scope' {
         BeforeAll {
             $script:origHttpProxy  = $env:HTTP_PROXY
@@ -180,6 +208,35 @@ Describe 'Remove-ProxyConfiguration' {
             $env:HTTP_PROXY  | Should -BeNullOrEmpty
             $env:HTTPS_PROXY | Should -BeNullOrEmpty
             $env:NO_PROXY    | Should -BeNullOrEmpty
+        }
+    }
+
+    Context 'Environment scope - User-level variable cleanup failure' {
+        BeforeAll {
+            $script:origHttpProxy2  = $env:HTTP_PROXY
+            $script:origHttpsProxy2 = $env:HTTPS_PROXY
+            $script:origNoProxy2    = $env:NO_PROXY
+        }
+
+        BeforeEach {
+            $env:HTTP_PROXY  = 'http://proxy.example.com:8080'
+            $env:HTTPS_PROXY = 'http://proxy.example.com:8080'
+            $env:NO_PROXY    = '.example.com'
+        }
+
+        AfterEach {
+            $env:HTTP_PROXY  = $script:origHttpProxy2
+            $env:HTTPS_PROXY = $script:origHttpsProxy2
+            $env:NO_PROXY    = $script:origNoProxy2
+        }
+
+        It 'Should still clear process-level env vars even if User-level fails' {
+            # On Linux/CI, SetEnvironmentVariable with User target may throw
+            # Either way, process-level vars should still be cleared
+            Remove-ProxyConfiguration -Scope Environment -Confirm:$false -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
+            $env:HTTP_PROXY | Should -BeNullOrEmpty
+            $env:HTTPS_PROXY | Should -BeNullOrEmpty
+            $env:NO_PROXY | Should -BeNullOrEmpty
         }
     }
 
