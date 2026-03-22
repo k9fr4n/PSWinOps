@@ -40,6 +40,8 @@ function Start-PingMonitor {
     #>
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWriteHost', '',
         Justification = 'Write-Host is intentional for interactive console dashboard display')]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '',
+        Justification = 'Start-PingMonitor is a read-only monitoring loop, it does not change system state')]
     [CmdletBinding()]
     param (
         [Parameter(Mandatory = $true, Position = 0)]
