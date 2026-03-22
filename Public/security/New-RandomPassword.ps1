@@ -66,6 +66,8 @@ System.String
     .LINK
     https://docs.microsoft.com/en-us/dotnet/api/system.security.cryptography.rngcryptoserviceprovider
     #>
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '',
+        Justification = 'New-RandomPassword generates a string in memory, it does not change system state')]
     [CmdletBinding()]
     [OutputType([string])]
     param(
