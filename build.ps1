@@ -425,24 +425,19 @@ function Sync-ModuleManifest {
     <#
 .SYNOPSIS
     Synchronizes the source manifest FunctionsToExport with Public/ files
-
 .DESCRIPTION
     Scans the Public/ directory recursively for .ps1 files, extracts the
     base name of each file as the function name, sorts them alphabetically
     using case-insensitive ordering, and updates the source module manifest
-    FunctionsToExport field via Update-ModuleManifest. This is a standalone
-    utility task intended for use outside the full build pipeline to keep
-    the manifest in sync during development without triggering a full build.
-
+    FunctionsToExport field by directly rewriting the file content to
+    preserve the @() array syntax that Update-ModuleManifest strips out.
 .EXAMPLE
     Sync-ModuleManifest
-
     Updates FunctionsToExport in the source manifest based on Public/ contents.
-
 .NOTES
     Author:        Franck SALLET
-    Version:       1.0.0
-    Last Modified: 2026-03-12
+    Version:       1.1.0
+    Last Modified: 2026-03-22
     Requires:      PowerShell 5.1+
     Permissions:   Write access to source module manifest
 #>
@@ -464,7 +459,7 @@ function Sync-ModuleManifest {
 
         if ($null -eq $publicFiles -or $publicFiles.Count -eq 0) {
             Write-Warning -Message "[$($MyInvocation.MyCommand)] No .ps1 files found in Public/. FunctionsToExport will be empty."
-            Update-ModuleManifest -Path $script:ManifestPath -FunctionsToExport @()
+            Export-ManifestFunction -ManifestPath $script:ManifestPath -FunctionNames @()
             Write-BuildSuccess -Message 'Source manifest updated with 0 exported function(s)'
             return
         }
@@ -479,9 +474,74 @@ function Sync-ModuleManifest {
             Write-Verbose -Message "[$($MyInvocation.MyCommand)]   --> $fn"
         }
 
-        Update-ModuleManifest -Path $script:ManifestPath -FunctionsToExport @($functionNames)
+        Export-ManifestFunction -ManifestPath $script:ManifestPath -FunctionNames $functionNames
 
         Write-BuildSuccess -Message "Source manifest updated with $($functionNames.Count) exported function(s)"
+    }
+}
+
+function Export-ManifestFunction {
+    <#
+.SYNOPSIS
+    Rewrites the FunctionsToExport field in a .psd1 manifest file
+.DESCRIPTION
+    Directly manipulates the manifest file content to update FunctionsToExport
+    while preserving the @() array syntax. This avoids the known bug in
+    Update-ModuleManifest which strips @() when writing multiple values.
+.PARAMETER ManifestPath
+    Full path to the .psd1 manifest file to update.
+.PARAMETER FunctionNames
+    Array of function names to write into FunctionsToExport.
+.EXAMPLE
+    Export-ManifestFunction -ManifestPath '.\PSWinOps.psd1' -FunctionNames @('Get-Foo', 'Set-Bar')
+.NOTES
+    Author:        Franck SALLET
+    Version:       1.1.0
+    Last Modified: 2026-03-22
+    Requires:      PowerShell 5.1+
+    Permissions:   Write access to the manifest file
+#>
+    [CmdletBinding()]
+    [OutputType([void])]
+    param(
+        [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [string]$ManifestPath,
+
+        [Parameter(Mandatory = $true)]
+        [AllowEmptyCollection()]
+        [string[]]$FunctionNames
+    )
+
+    process {
+        $content = Get-Content -Path $ManifestPath -Raw
+
+        # Detect line ending style
+        $lineEnding = if ($content -match "`r`n") {
+            "`r`n"
+        } else {
+            "`n"
+        }
+
+        # Build the replacement block
+        if ($FunctionNames.Count -eq 0) {
+            $newBlock = 'FunctionsToExport = @()'
+        } else {
+            $indent = '        '  # 8 spaces - aligns with the other fields in the manifest
+            $lines = $FunctionNames | ForEach-Object { "$indent'$_'" }
+            $newBlock = "FunctionsToExport = @($lineEnding$($lines -join ",$lineEnding")$lineEnding    )"
+            #                                                                            ^^^^  4 spaces before )
+        }
+
+        # Replace the existing FunctionsToExport block (single-line or multi-line @())
+        $pattern = 'FunctionsToExport\s*=\s*(?:@\([\s\S]*?\)|(?:''[^'']*''\s*,\s*)*''[^'']*'')'
+        $content = [regex]::Replace($content, $pattern, $newBlock)
+
+        # Write back with UTF8 BOM (required for PowerShell 5.1 .psd1 files)
+        $utf8Bom = New-Object System.Text.UTF8Encoding $true
+        [System.IO.File]::WriteAllText($ManifestPath, $content, $utf8Bom)
+
+        Write-Verbose -Message "[$($MyInvocation.MyCommand)] Manifest rewritten: $ManifestPath"
     }
 }
 
