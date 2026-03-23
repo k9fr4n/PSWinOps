@@ -95,11 +95,13 @@ function Get-ListeningPort {
         $queryScriptBlock = {
             param([string]$FilterProtocol, [int]$FilterPort, [string]$FilterProcess)
 
-            # Build process cache
+            # Build process cache (cast to [int] — OwningProcess is UInt32,
+            # Process.Id is Int32; mismatched key types cause lookup failures)
             $processCache = @{}
             Get-Process -ErrorAction SilentlyContinue | ForEach-Object {
-                if (-not $processCache.ContainsKey($_.Id)) {
-                    $processCache[$_.Id] = $_.ProcessName
+                $pidKey = [int]$_.Id
+                if (-not $processCache.ContainsKey($pidKey)) {
+                    $processCache[$pidKey] = $_.ProcessName
                 }
             }
 
@@ -111,10 +113,11 @@ function Get-ListeningPort {
                 foreach ($conn in $listeners) {
                     if ($FilterPort -gt 0 -and $conn.LocalPort -ne $FilterPort) { continue }
 
-                    $pName = if ($processCache.ContainsKey($conn.OwningProcess)) {
-                        $processCache[$conn.OwningProcess]
-                    } elseif ($conn.OwningProcess -eq 0) { 'System Idle' }
-                    elseif ($conn.OwningProcess -eq 4) { 'System' }
+                    $ownerPid = [int]$conn.OwningProcess
+                    $pName = if ($processCache.ContainsKey($ownerPid)) {
+                        $processCache[$ownerPid]
+                    } elseif ($ownerPid -eq 0) { 'System Idle' }
+                    elseif ($ownerPid -eq 4) { 'System' }
                     else { '[Unknown]' }
 
                     if ($FilterProcess -and $pName -notlike $FilterProcess) { continue }
@@ -135,10 +138,11 @@ function Get-ListeningPort {
                 foreach ($ep in $endpoints) {
                     if ($FilterPort -gt 0 -and $ep.LocalPort -ne $FilterPort) { continue }
 
-                    $pName = if ($processCache.ContainsKey($ep.OwningProcess)) {
-                        $processCache[$ep.OwningProcess]
-                    } elseif ($ep.OwningProcess -eq 0) { 'System Idle' }
-                    elseif ($ep.OwningProcess -eq 4) { 'System' }
+                    $ownerPid = [int]$ep.OwningProcess
+                    $pName = if ($processCache.ContainsKey($ownerPid)) {
+                        $processCache[$ownerPid]
+                    } elseif ($ownerPid -eq 0) { 'System Idle' }
+                    elseif ($ownerPid -eq 4) { 'System' }
                     else { '[Unknown]' }
 
                     if ($FilterProcess -and $pName -notlike $FilterProcess) { continue }
