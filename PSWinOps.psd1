@@ -110,6 +110,7 @@
         'Test-ProxyConnection',
         'Test-WinRM',
         'Trace-NetworkRoute',
+        'Start-NetworkStatisticMonitor',
         'Start-PingMonitor'
     )
 

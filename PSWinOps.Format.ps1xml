@@ -503,7 +503,7 @@
 
     <!-- ============================================================ -->
     <!-- PSWinOps.NetworkStatistic                                    -->
-    <!-- Used by: Get-NetworkStatistic                                -->
+    <!-- Used by: Get-NetworkStatistic, Start-NetworkStatisticMonitor  -->
     <!-- ============================================================ -->
     <View>
       <Name>PSWinOps.NetworkStatistic</Name>
