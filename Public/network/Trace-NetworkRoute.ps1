@@ -2,46 +2,60 @@
 
 function Trace-NetworkRoute {
     <#
-    .SYNOPSIS
-        Performs a traceroute to a target host and returns structured hop-by-hop results.
-    .DESCRIPTION
-        Sends ICMP packets with incrementing TTL values to trace the network path
-        to a destination. Each hop is returned as a structured object with hop number,
-        IP address, hostname (via reverse DNS), and round-trip latency.
+        .SYNOPSIS
+            Performs a traceroute to a target host and returns structured hop-by-hop results
 
-        Uses System.Net.NetworkInformation.Ping with controlled TTL values,
-        which is more reliable and parseable than the native tracert.exe.
-    .PARAMETER ComputerName
-        One or more target hostnames or IP addresses to trace. Accepts pipeline input.
-    .PARAMETER MaxHops
-        Maximum number of hops (TTL). Default: 30. Valid range: 1-128.
-    .PARAMETER TimeoutMs
-        Timeout per hop in milliseconds. Default: 3000. Valid range: 500-30000.
-    .PARAMETER PingsPerHop
-        Number of pings per hop for latency averaging. Default: 3. Valid range: 1-10.
-    .PARAMETER ResolveHostnames
-        Attempt reverse DNS lookup for each hop IP. Default: true.
-        Disable for faster traces when hostnames are not needed.
-    .EXAMPLE
-        Trace-NetworkRoute -ComputerName '8.8.8.8'
+        .DESCRIPTION
+            Sends ICMP packets with incrementing TTL values to trace the network path
+            to a destination. Each hop is returned as a structured object with hop number,
+            IP address, hostname (via reverse DNS), and round-trip latency.
 
-        Traces the route to Google DNS.
-    .EXAMPLE
-        Trace-NetworkRoute -ComputerName 'srv01.corp.local' -MaxHops 15
+            Uses System.Net.NetworkInformation.Ping with controlled TTL values,
+            which is more reliable and parseable than the native tracert.exe.
 
-        Traces route to an internal server with max 15 hops.
-    .EXAMPLE
-        '8.8.8.8', '1.1.1.1' | Trace-NetworkRoute -ResolveHostnames:$false
+        .PARAMETER ComputerName
+            One or more target hostnames or IP addresses to trace. Accepts pipeline input.
 
-        Traces routes to two targets without reverse DNS (faster).
-    .OUTPUTS
-    PSWinOps.TraceRouteHop
-    .NOTES
-        Author:        Franck SALLET
-        Version:       1.0.0
-        Last Modified: 2026-03-21
-        Requires:      PowerShell 5.1+ / Windows only
-        Permissions:   No admin required (ICMP may be blocked by firewall)
+        .PARAMETER MaxHops
+            Maximum number of hops (TTL). Default: 30. Valid range: 1-128.
+
+        .PARAMETER TimeoutMs
+            Timeout per hop in milliseconds. Default: 3000. Valid range: 500-30000.
+
+        .PARAMETER PingsPerHop
+            Number of pings per hop for latency averaging. Default: 3. Valid range: 1-10.
+
+        .PARAMETER ResolveHostnames
+            Attempt reverse DNS lookup for each hop IP. Default: true.
+            Disable for faster traces when hostnames are not needed.
+
+        .EXAMPLE
+            Trace-NetworkRoute -ComputerName '8.8.8.8'
+
+            Traces the route to Google DNS.
+
+        .EXAMPLE
+            Trace-NetworkRoute -ComputerName 'srv01.corp.local' -MaxHops 15
+
+            Traces route to an internal server with max 15 hops.
+
+        .EXAMPLE
+            '8.8.8.8', '1.1.1.1' | Trace-NetworkRoute -ResolveHostnames:$false
+
+            Traces routes to two targets without reverse DNS (faster).
+
+        .OUTPUTS
+            PSWinOps.TraceRouteHop
+
+        .NOTES
+            Author:        Franck SALLET
+            Version:       1.0.0
+            Last Modified: 2026-03-21
+            Requires:      PowerShell 5.1+ / Windows only
+            Permissions:   No admin required (ICMP may be blocked by firewall)
+
+        .LINK
+            https://github.com/k9fr4n/PSWinOps
     #>
     [CmdletBinding()]
     [OutputType('PSWinOps.TraceRouteHop')]

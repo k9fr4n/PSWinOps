@@ -2,49 +2,62 @@
 
 function Get-SubnetInfo {
     <#
-    .SYNOPSIS
-        Calculates subnet information from an IP address and subnet mask or CIDR notation.
-    .DESCRIPTION
-        Computes detailed subnet properties including network address, broadcast address,
-        first/last usable host, total host count, and wildcard mask.
+        .SYNOPSIS
+            Calculates subnet information from an IP address and subnet mask or CIDR notation
 
-        Accepts input in CIDR notation (e.g., 192.168.1.0/24) or as separate IP and
-        mask parameters.
+        .DESCRIPTION
+            Computes detailed subnet properties including network address, broadcast address,
+            first/last usable host, total host count, and wildcard mask.
 
-        This is a pure calculation function with no network access required.
-    .PARAMETER IPAddress
-        IP address in standard dotted notation (e.g., 192.168.1.100) or
-        CIDR notation (e.g., 192.168.1.0/24). Accepts pipeline input.
-    .PARAMETER PrefixLength
-        Subnet prefix length (CIDR notation). Valid range: 0-32.
-        Not required if IPAddress includes CIDR notation.
-    .PARAMETER SubnetMask
-        Subnet mask in dotted notation (e.g., 255.255.255.0).
-        Alternative to PrefixLength.
-    .EXAMPLE
-        Get-SubnetInfo -IPAddress '192.168.1.0/24'
+            Accepts input in CIDR notation (e.g., 192.168.1.0/24) or as separate IP and
+            mask parameters.
 
-        Calculates subnet info for a /24 network using CIDR notation.
-    .EXAMPLE
-        Get-SubnetInfo -IPAddress '10.0.0.50' -PrefixLength 16
+            This is a pure calculation function with no network access required.
 
-        Calculates subnet info for a /16 network.
-    .EXAMPLE
-        Get-SubnetInfo -IPAddress '172.16.0.0' -SubnetMask '255.255.240.0'
+        .PARAMETER IPAddress
+            IP address in standard dotted notation (e.g., 192.168.1.100) or
+            CIDR notation (e.g., 192.168.1.0/24). Accepts pipeline input.
 
-        Uses traditional subnet mask notation.
-    .EXAMPLE
-        '192.168.1.0/24', '10.0.0.0/8', '172.16.0.0/12' | Get-SubnetInfo
+        .PARAMETER PrefixLength
+            Subnet prefix length (CIDR notation). Valid range: 0-32.
+            Not required if IPAddress includes CIDR notation.
 
-        Calculates info for multiple subnets via pipeline.
-    .OUTPUTS
-    PSWinOps.SubnetInfo
-    .NOTES
-        Author:        Franck SALLET
-        Version:       1.0.0
-        Last Modified: 2026-03-21
-        Requires:      PowerShell 5.1+ / Windows only
-        Permissions:   No admin required (pure calculation, no network access)
+        .PARAMETER SubnetMask
+            Subnet mask in dotted notation (e.g., 255.255.255.0).
+            Alternative to PrefixLength.
+
+        .EXAMPLE
+            Get-SubnetInfo -IPAddress '192.168.1.0/24'
+
+            Calculates subnet info for a /24 network using CIDR notation.
+
+        .EXAMPLE
+            Get-SubnetInfo -IPAddress '10.0.0.50' -PrefixLength 16
+
+            Calculates subnet info for a /16 network.
+
+        .EXAMPLE
+            Get-SubnetInfo -IPAddress '172.16.0.0' -SubnetMask '255.255.240.0'
+
+            Uses traditional subnet mask notation.
+
+        .EXAMPLE
+            '192.168.1.0/24', '10.0.0.0/8', '172.16.0.0/12' | Get-SubnetInfo
+
+            Calculates info for multiple subnets via pipeline.
+
+        .OUTPUTS
+            PSWinOps.SubnetInfo
+
+        .NOTES
+            Author:        Franck SALLET
+            Version:       1.0.0
+            Last Modified: 2026-03-21
+            Requires:      PowerShell 5.1+ / Windows only
+            Permissions:   No admin required (pure calculation, no network access)
+
+        .LINK
+            https://github.com/k9fr4n/PSWinOps
     #>
     [CmdletBinding(DefaultParameterSetName = 'CIDR')]
     [OutputType('PSWinOps.SubnetInfo')]

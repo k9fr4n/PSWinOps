@@ -2,90 +2,114 @@
 
 function Get-NetworkStatistic {
     <#
-    .SYNOPSIS
-        Retrieves TCP and UDP connection statistics on one or more Windows computers.
-    .DESCRIPTION
-        Queries active network connections using Get-NetTCPConnection and Get-NetUDPEndpoint,
-        then enriches each entry with the owning process name. Supports filtering by protocol,
-        connection state, local/remote address, local/remote port, and process name.
+        .SYNOPSIS
+            Retrieves TCP and UDP connection statistics on one or more Windows computers
 
-        For the local machine, cmdlets are called directly. For remote machines, the query
-        is executed via Invoke-Command, which requires WinRM / WS-Man enabled on the target.
-    .PARAMETER ComputerName
-        One or more computer names to query. Accepts pipeline input by value and
-        by property name. Defaults to the local machine ($env:COMPUTERNAME).
-    .PARAMETER Credential
-        Optional PSCredential for authenticating to remote machines. Ignored for
-        local machine queries.
-    .PARAMETER Protocol
-        Filter by protocol. Valid values: TCP, UDP. By default both are returned.
-    .PARAMETER State
-        Filter TCP connections by state (e.g. Established, Listen, TimeWait, CloseWait).
-        Ignored for UDP endpoints (UDP is stateless).
-    .PARAMETER LocalAddress
-        Filter by local IP address. Supports wildcards.
-    .PARAMETER LocalPort
-        Filter by local port number.
-    .PARAMETER RemoteAddress
-        Filter by remote IP address. Supports wildcards.
-    .PARAMETER RemotePort
-        Filter by remote port number.
-    .PARAMETER ProcessName
-        Filter by owning process name. Supports wildcards.
-    .PARAMETER Continuous
-        Enable real-time auto-refresh mode. The function loops, clears the screen,
-        and re-queries all target computers at each interval. Output is written
-        directly to the host (not to the pipeline). Press Ctrl+C to stop.
-    .PARAMETER RefreshInterval
-        Refresh interval in seconds when using -Continuous. Default: 2.
-        Valid range: 1–300 seconds.
-    .EXAMPLE
-        Get-NetworkStatistic
+        .DESCRIPTION
+            Queries active network connections using Get-NetTCPConnection and Get-NetUDPEndpoint,
+            then enriches each entry with the owning process name. Supports filtering by protocol,
+            connection state, local/remote address, local/remote port, and process name.
 
-        Returns all TCP and UDP connections on the local machine.
-    .EXAMPLE
-        Get-NetworkStatistic -Protocol TCP -State Established
+            For the local machine, cmdlets are called directly. For remote machines, the query
+            is executed via Invoke-Command, which requires WinRM / WS-Man enabled on the target.
 
-        Returns only established TCP connections on the local machine.
-    .EXAMPLE
-        Get-NetworkStatistic -ComputerName 'SRV01', 'SRV02' -Protocol TCP -State Listen
+        .PARAMETER ComputerName
+            One or more computer names to query. Accepts pipeline input by value and
+            by property name. Defaults to the local machine ($env:COMPUTERNAME).
 
-        Returns listening TCP connections on two remote servers.
-    .EXAMPLE
-        Get-NetworkStatistic -ProcessName 'svchost' -LocalPort 443
+        .PARAMETER Credential
+            Optional PSCredential for authenticating to remote machines. Ignored for
+            local machine queries.
 
-        Returns connections on local port 443 owned by svchost.
-    .EXAMPLE
-        'SRV01', 'SRV02' | Get-NetworkStatistic -Credential (Get-Credential) -Protocol TCP
+        .PARAMETER Protocol
+            Filter by protocol. Valid values: TCP, UDP. By default both are returned.
 
-        Queries multiple servers via pipeline with explicit credentials.
-    .EXAMPLE
-        Get-NetworkStatistic -Continuous
+        .PARAMETER State
+            Filter TCP connections by state (e.g. Established, Listen, TimeWait, CloseWait).
+            Ignored for UDP endpoints (UDP is stateless).
 
-        Starts real-time monitoring of all network connections on the local machine,
-        refreshing every 2 seconds. Press Ctrl+C to stop.
-    .EXAMPLE
-        Get-NetworkStatistic -Continuous -RefreshInterval 5 -Protocol TCP -State Established
+        .PARAMETER LocalAddress
+            Filter by local IP address. Supports wildcards.
 
-        Monitors only established TCP connections with a 5-second refresh interval.
-    .EXAMPLE
-        Get-NetworkStatistic -ComputerName 'SRV01', 'SRV02' -Continuous -Protocol TCP
+        .PARAMETER LocalPort
+            Filter by local port number.
 
-        Monitors TCP connections on two remote servers in real time.
-    .OUTPUTS
-    PSWinOps.NetworkStatistic
-        Network connection details including protocol, addresses, ports, state, and process info.
-    .NOTES
-        Author:        Franck SALLET
-        Version:       1.1.0
-        Last Modified: 2026-03-21
-        Requires:      PowerShell 5.1+ / Windows only
-        Permissions:   No admin required for basic queries
-        Remote:        Requires WinRM / WS-Man enabled on target machines
+        .PARAMETER RemoteAddress
+            Filter by remote IP address. Supports wildcards.
 
-        Inspired by AdminToolbox.Networking Get-NetworkStatistics by TheTaylorLee.
-    .LINK
-    https://docs.microsoft.com/en-us/powershell/module/nettcpip/get-nettcpconnection
+        .PARAMETER RemotePort
+            Filter by remote port number.
+
+        .PARAMETER ProcessName
+            Filter by owning process name. Supports wildcards.
+
+        .PARAMETER Continuous
+            Enable real-time auto-refresh mode. The function loops, clears the screen,
+            and re-queries all target computers at each interval. Output is written
+            directly to the host (not to the pipeline). Press Ctrl+C to stop.
+
+        .PARAMETER RefreshInterval
+            Refresh interval in seconds when using -Continuous. Default: 2.
+            Valid range: 1–300 seconds.
+
+        .EXAMPLE
+            Get-NetworkStatistic
+
+            Returns all TCP and UDP connections on the local machine.
+
+        .EXAMPLE
+            Get-NetworkStatistic -Protocol TCP -State Established
+
+            Returns only established TCP connections on the local machine.
+
+        .EXAMPLE
+            Get-NetworkStatistic -ComputerName 'SRV01', 'SRV02' -Protocol TCP -State Listen
+
+            Returns listening TCP connections on two remote servers.
+
+        .EXAMPLE
+            Get-NetworkStatistic -ProcessName 'svchost' -LocalPort 443
+
+            Returns connections on local port 443 owned by svchost.
+
+        .EXAMPLE
+            'SRV01', 'SRV02' | Get-NetworkStatistic -Credential (Get-Credential) -Protocol TCP
+
+            Queries multiple servers via pipeline with explicit credentials.
+
+        .EXAMPLE
+            Get-NetworkStatistic -Continuous
+
+            Starts real-time monitoring of all network connections on the local machine,
+            refreshing every 2 seconds. Press Ctrl+C to stop.
+
+        .EXAMPLE
+            Get-NetworkStatistic -Continuous -RefreshInterval 5 -Protocol TCP -State Established
+
+            Monitors only established TCP connections with a 5-second refresh interval.
+
+        .EXAMPLE
+            Get-NetworkStatistic -ComputerName 'SRV01', 'SRV02' -Continuous -Protocol TCP
+
+            Monitors TCP connections on two remote servers in real time.
+
+        .OUTPUTS
+            PSWinOps.NetworkStatistic
+            Network connection details including protocol, addresses, ports, state, and process info.
+
+        .NOTES
+            Author:        Franck SALLET
+            Version:       1.1.0
+            Last Modified: 2026-03-21
+            Requires:      PowerShell 5.1+ / Windows only
+            Permissions:   No admin required for basic queries
+            Remote:        Requires WinRM / WS-Man enabled on target machines
+
+        .LINK
+            https://github.com/k9fr4n/PSWinOps
+
+        .LINK
+            https://learn.microsoft.com/en-us/powershell/module/nettcpip/get-nettcpconnection
     #>
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWriteHost', '',
         Justification = 'Write-Host is intentional in -Continuous mode for interactive console display')]

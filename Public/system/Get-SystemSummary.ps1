@@ -1,41 +1,51 @@
 ﻿#Requires -Version 5.1
 function Get-SystemSummary {
     <#
-    .SYNOPSIS
-        Gather comprehensive system information from Windows machines
-    .DESCRIPTION
-        Queries six WMI/CIM classes to build a detailed system summary for local or remote
-        Windows machines. Supports pipeline input, explicit credentials for remote hosts,
-        and returns a structured PSCustomObject per machine. CIM session management and
-        cleanup are handled automatically.
-    .PARAMETER ComputerName
-        One or more computer names or IP addresses to query. Defaults to the local machine.
-        Accepts pipeline input by value and by property name.
-    .PARAMETER Credential
-        Optional PSCredential used to authenticate against remote machines. Ignored for
-        local queries. Obtain via Get-Credential or SecretManagement.
-    .EXAMPLE
-        Get-SystemSummary
-        Returns a full system summary for the local machine.
-    .EXAMPLE
-        Get-SystemSummary -ComputerName 'SRV01', 'SRV02' -Credential (Get-Credential)
-        Returns system summaries for two remote servers using explicit credentials.
-    .EXAMPLE
-        'WEB01', 'WEB02' | Get-SystemSummary -Verbose
-        Queries two machines via pipeline input with verbose logging.
-    .OUTPUTS
-    PSWinOps.SystemSummary
-        System information summary including OS, CPU, RAM, and uptime.
+        .SYNOPSIS
+            Gather comprehensive system information from Windows machines
 
-    .NOTES
-        Author:        Franck SALLET
-        Version:       1.0.0
-        Last Modified: 2026-03-15
-        Requires:      PowerShell 5.1+, CIM/WMI access on target machines
-        Permissions:   Local admin or equivalent WMI read permissions on remote targets
-    
-    .LINK
-    https://docs.microsoft.com/en-us/windows/win32/cimwin32prov/win32-operatingsystem
+        .DESCRIPTION
+            Queries six WMI/CIM classes to build a detailed system summary for local or remote
+            Windows machines. Supports pipeline input, explicit credentials for remote hosts,
+            and returns a structured PSCustomObject per machine. CIM session management and
+            cleanup are handled automatically.
+
+        .PARAMETER ComputerName
+            One or more computer names or IP addresses to query. Defaults to the local machine.
+            Accepts pipeline input by value and by property name.
+
+        .PARAMETER Credential
+            Optional PSCredential used to authenticate against remote machines. Ignored for
+            local queries. Obtain via Get-Credential or SecretManagement.
+
+        .EXAMPLE
+            Get-SystemSummary
+            Returns a full system summary for the local machine.
+
+        .EXAMPLE
+            Get-SystemSummary -ComputerName 'SRV01', 'SRV02' -Credential (Get-Credential)
+            Returns system summaries for two remote servers using explicit credentials.
+
+        .EXAMPLE
+            'WEB01', 'WEB02' | Get-SystemSummary -Verbose
+            Queries two machines via pipeline input with verbose logging.
+
+        .OUTPUTS
+            PSWinOps.SystemSummary
+            System information summary including OS, CPU, RAM, and uptime.
+
+        .NOTES
+            Author:        Franck SALLET
+            Version:       1.0.0
+            Last Modified: 2026-03-15
+            Requires:      PowerShell 5.1+, CIM/WMI access on target machines
+            Permissions:   Local admin or equivalent WMI read permissions on remote targets
+
+        .LINK
+            https://github.com/k9fr4n/PSWinOps
+
+        .LINK
+            https://learn.microsoft.com/en-us/windows/win32/cimwin32prov/win32-operatingsystem
     #>
     [CmdletBinding()]
     [OutputType('PSWinOps.SystemSummary')]

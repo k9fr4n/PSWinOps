@@ -2,72 +2,75 @@
 
 function Get-RdpSessionHistory {
     <#
-.SYNOPSIS
-    Retrieves Remote Desktop Protocol (RDP) session history from Windows Event Log
+        .SYNOPSIS
+            Retrieves Remote Desktop Protocol (RDP) session history from Windows Event Log
 
-.DESCRIPTION
-    Queries the Microsoft-Windows-TerminalServices-LocalSessionManager/Operational
-    event log on one or more computers to retrieve RDP session logon, logoff,
-    disconnect, and reconnection events. Returns structured objects with user,
-    IP address, and action details.
+        .DESCRIPTION
+            Queries the Microsoft-Windows-TerminalServices-LocalSessionManager/Operational
+            event log on one or more computers to retrieve RDP session logon, logoff,
+            disconnect, and reconnection events. Returns structured objects with user,
+            IP address, and action details.
 
-    The function filters events by ID:
-    - 21: Logon
-    - 23: Logoff
-    - 24: Disconnected
-    - 25: Reconnection
+            The function filters events by ID:
+            - 21: Logon
+            - 23: Logoff
+            - 24: Disconnected
+            - 25: Reconnection
 
-.PARAMETER ComputerName
-    One or more computer names to query. Defaults to the local machine.
-    Supports pipeline input by value and by property name.
+        .PARAMETER ComputerName
+            One or more computer names to query. Defaults to the local machine.
+            Supports pipeline input by value and by property name.
 
-.PARAMETER StartTime
-    The earliest event timestamp to retrieve. Events older than this time
-    are excluded from results. Defaults to January 1, 1970 (Unix epoch).
+        .PARAMETER StartTime
+            The earliest event timestamp to retrieve. Events older than this time
+            are excluded from results. Defaults to January 1, 1970 (Unix epoch).
 
-.PARAMETER Credential
-    Credential to use when querying remote computers. If not specified,
-    uses the current user's credentials.
+        .PARAMETER Credential
+            Credential to use when querying remote computers. If not specified,
+            uses the current user's credentials.
 
-.EXAMPLE
-    Get-RdpSessionHistory
+        .EXAMPLE
+            Get-RdpSessionHistory
 
-    Retrieves all RDP session events from the local computer since January 1, 1970.
+            Retrieves all RDP session events from the local computer since January 1, 1970.
 
-.EXAMPLE
-    Get-RdpSessionHistory -ComputerName 'SRV01', 'SRV02' -StartTime (Get-Date).AddDays(-7)
+        .EXAMPLE
+            Get-RdpSessionHistory -ComputerName 'SRV01', 'SRV02' -StartTime (Get-Date).AddDays(-7)
 
-    Retrieves RDP session history from SRV01 and SRV02 for the last 7 days.
+            Retrieves RDP session history from SRV01 and SRV02 for the last 7 days.
 
-.EXAMPLE
-    'WEB01', 'APP01' | Get-RdpSessionHistory -Credential $cred
+        .EXAMPLE
+            'WEB01', 'APP01' | Get-RdpSessionHistory -Credential $cred
 
-    Pipeline example: queries multiple servers using specified credentials.
+            Pipeline example: queries multiple servers using specified credentials.
 
-.EXAMPLE
-    Get-ADComputer -Filter "OperatingSystem -like '*Server*'" | Get-RdpSessionHistory -StartTime (Get-Date).AddHours(-24)
+        .EXAMPLE
+            Get-ADComputer -Filter "OperatingSystem -like '*Server*'" | Get-RdpSessionHistory -StartTime (Get-Date).AddHours(-24)
 
-    Retrieves last 24 hours of RDP session events from all domain servers.
+            Retrieves last 24 hours of RDP session events from all domain servers.
 
-.EXAMPLE
-    Get-RdpSessionHistory -StartTime (Get-Date).AddDays(-30) | Where-Object { $_.Action -eq 'Logon' } | Group-Object -Property User
+        .EXAMPLE
+            Get-RdpSessionHistory -StartTime (Get-Date).AddDays(-30) | Where-Object { $_.Action -eq 'Logon' } | Group-Object -Property User
 
-    Retrieves last 30 days of RDP logon events and groups them by user.
+            Retrieves last 30 days of RDP logon events and groups them by user.
 
-.OUTPUTS
-PSWinOps.RdpSessionHistory
-    RDP logon/logoff event history from the event log.
+        .OUTPUTS
+            PSWinOps.RdpSessionHistory
+            RDP logon/logoff event history from the event log.
 
-.NOTES
-    Author:        Franck SALLET
-    Version:       1.1.0
-    Last Modified: 2026-03-19
-    Requires:      PowerShell 5.1+
-    Permissions:   Remote Event Log Readers group or local Administrator on target machines
+        .NOTES
+            Author:        Franck SALLET
+            Version:       1.1.0
+            Last Modified: 2026-03-19
+            Requires:      PowerShell 5.1+
+            Permissions:   Remote Event Log Readers group or local Administrator on target machines
 
-.LINK
-    https://docs.microsoft.com/en-us/windows/win32/termserv/terminal-services-events
-#>
+        .LINK
+            https://github.com/k9fr4n/PSWinOps
+
+        .LINK
+            https://learn.microsoft.com/en-us/windows/win32/termserv/terminal-services-events
+    #>
     [CmdletBinding()]
     [OutputType('PSWinOps.RdpSessionHistory')]
     param(

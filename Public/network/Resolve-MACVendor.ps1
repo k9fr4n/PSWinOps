@@ -2,46 +2,58 @@
 
 function Resolve-MACVendor {
     <#
-    .SYNOPSIS
-        Resolves MAC addresses to their hardware vendor/manufacturer.
-    .DESCRIPTION
-        Looks up the manufacturer of a network device from its MAC address
-        using the OUI (Organizationally Unique Identifier) prefix.
+        .SYNOPSIS
+            Resolves MAC addresses to their hardware vendor/manufacturer
 
-        Includes a built-in database of the top 200+ most common vendors for
-        fast offline lookup. Use -Online to query the macvendors.io API for
-        unknown OUIs.
-    .PARAMETER MACAddress
-        One or more MAC addresses to resolve. Accepts common formats:
-        AA:BB:CC:DD:EE:FF, AA-BB-CC-DD-EE-FF, AABBCCDDEEFF.
-        Accepts pipeline input (compatible with Get-ARPTable output).
-    .PARAMETER Online
-        Query the macvendors.io API for MAC addresses not found in the built-in database.
-        Requires internet access. Adds ~200ms per lookup.
-    .EXAMPLE
-        Resolve-MACVendor -MACAddress 'AA:BB:CC:DD:EE:FF'
+        .DESCRIPTION
+            Looks up the manufacturer of a network device from its MAC address
+            using the OUI (Organizationally Unique Identifier) prefix.
 
-        Resolves a single MAC address.
-    .EXAMPLE
-        Get-ARPTable | Resolve-MACVendor
+            Includes a built-in database of the top 200+ most common vendors for
+            fast offline lookup. Use -Online to query the macvendors.io API for
+            unknown OUIs.
 
-        Resolves all MAC addresses from the ARP table.
-    .EXAMPLE
-        Resolve-MACVendor -MACAddress '00:50:56:C0:00:08', 'DC:A6:32:12:34:56' -Online
+        .PARAMETER MACAddress
+            One or more MAC addresses to resolve. Accepts common formats:
+            AA:BB:CC:DD:EE:FF, AA-BB-CC-DD-EE-FF, AABBCCDDEEFF.
+            Accepts pipeline input (compatible with Get-ARPTable output).
 
-        Resolves two MACs, querying the API for any not in the local database.
-    .OUTPUTS
-    PSWinOps.MACVendor
-    .NOTES
-        Author:        Franck SALLET
-        Version:       1.0.0
-        Last Modified: 2026-03-21
-        Requires:      PowerShell 5.1+ / Windows only
-        Permissions:   No admin required
-        The built-in OUI database covers major vendors (VMware, Intel, Cisco,
-        Microsoft, HP, Dell, Apple, etc.). Use -Online for full coverage.
-    .LINK
-    https://macvendors.io/
+        .PARAMETER Online
+            Query the macvendors.io API for MAC addresses not found in the built-in database.
+            Requires internet access. Adds ~200ms per lookup.
+
+        .EXAMPLE
+            Resolve-MACVendor -MACAddress 'AA:BB:CC:DD:EE:FF'
+
+            Resolves a single MAC address.
+
+        .EXAMPLE
+            Get-ARPTable | Resolve-MACVendor
+
+            Resolves all MAC addresses from the ARP table.
+
+        .EXAMPLE
+            Resolve-MACVendor -MACAddress '00:50:56:C0:00:08', 'DC:A6:32:12:34:56' -Online
+
+            Resolves two MACs, querying the API for any not in the local database.
+
+        .OUTPUTS
+            PSWinOps.MACVendor
+
+        .NOTES
+            Author:        Franck SALLET
+            Version:       1.0.0
+            Last Modified: 2026-03-21
+            Requires:      PowerShell 5.1+ / Windows only
+            Permissions:   No admin required
+            The built-in OUI database covers major vendors (VMware, Intel, Cisco,
+            Microsoft, HP, Dell, Apple, etc.). Use -Online for full coverage.
+
+        .LINK
+            https://github.com/k9fr4n/PSWinOps
+
+        .LINK
+            https://macvendors.io/
     #>
     [CmdletBinding()]
     [OutputType('PSWinOps.MACVendor')]

@@ -2,40 +2,49 @@
 
 function Get-NTPPeer {
     <#
-    .SYNOPSIS
-        Retrieves NTP peer information from the Windows Time service
-    .DESCRIPTION
-        Parses the output of 'w32tm /query /peers' to return structured NTP peer objects.
-        Supports both modern and legacy w32tm output formats, including French-locale output.
-        Uses block-based parsing: raw output is split on blank lines, the header block is
-        skipped, and each subsequent block is parsed as one peer entry.
+        .SYNOPSIS
+            Retrieves NTP peer information from the Windows Time service
 
-        Note: LastSyncTime is not available from /query /peers. Use Get-NTPConfiguration
-        (which queries /query /status) for last synchronization information.
-    .PARAMETER ComputerName
-        One or more computer names to query. Defaults to the local machine.
-    .EXAMPLE
-        Get-NTPPeer
-        Returns NTP peer information for the local computer.
-    .EXAMPLE
-        Get-NTPPeer -ComputerName 'SRV01', 'SRV02'
-        Returns NTP peer information for two remote servers.
-    .EXAMPLE
-        'SRV01', 'SRV02' | Get-NTPPeer
-        Pipeline usage: queries NTP peers on both servers.
-    .OUTPUTS
-    PSWinOps.NtpPeer
-        NTP peer status including stratum, delay, and offset.
+        .DESCRIPTION
+            Parses the output of 'w32tm /query /peers' to return structured NTP peer objects.
+            Supports both modern and legacy w32tm output formats, including French-locale output.
+            Uses block-based parsing: raw output is split on blank lines, the header block is
+            skipped, and each subsequent block is parsed as one peer entry.
 
-    .NOTES
-        Author: Franck SALLET
-        Version: 1.2.0
-        Last Modified: 2026-03-20
-        Requires: PowerShell 5.1+, Windows Time service (w32time)
-        Permissions: Local user for local queries; remote admin for Invoke-Command remoting
-    
-    .LINK
-    https://docs.microsoft.com/en-us/windows-server/networking/windows-time-service/windows-time-service-tools-and-settings
+            Note: LastSyncTime is not available from /query /peers. Use Get-NTPConfiguration
+            (which queries /query /status) for last synchronization information.
+
+        .PARAMETER ComputerName
+            One or more computer names to query. Defaults to the local machine.
+
+        .EXAMPLE
+            Get-NTPPeer
+            Returns NTP peer information for the local computer.
+
+        .EXAMPLE
+            Get-NTPPeer -ComputerName 'SRV01', 'SRV02'
+            Returns NTP peer information for two remote servers.
+
+        .EXAMPLE
+            'SRV01', 'SRV02' | Get-NTPPeer
+            Pipeline usage: queries NTP peers on both servers.
+
+        .OUTPUTS
+            PSWinOps.NtpPeer
+            NTP peer status including stratum, delay, and offset.
+
+        .NOTES
+            Author: Franck SALLET
+            Version: 1.2.0
+            Last Modified: 2026-03-20
+            Requires: PowerShell 5.1+, Windows Time service (w32time)
+            Permissions: Local user for local queries; remote admin for Invoke-Command remoting
+
+        .LINK
+            https://github.com/k9fr4n/PSWinOps
+
+        .LINK
+            https://learn.microsoft.com/en-us/windows-server/networking/windows-time-service/windows-time-service-tools-and-settings
     #>
     [CmdletBinding()]
     [OutputType('PSWinOps.NtpPeer')]

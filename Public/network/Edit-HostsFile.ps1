@@ -2,38 +2,48 @@
 
 function Edit-HostsFile {
     <#
-    .SYNOPSIS
-        Opens the Windows hosts file in an elevated editor.
-    .DESCRIPTION
-        Launches the specified text editor (default: notepad.exe) as Administrator
-        to edit the hosts file located at C:\Windows\System32\drivers\etc\hosts.
+        .SYNOPSIS
+            Opens the Windows hosts file in an elevated editor
 
-        The editor process is started with the -Verb RunAs flag, which triggers
-        a UAC elevation prompt if the current session is not already elevated.
-    .PARAMETER Editor
-        Path or name of the text editor to use. Defaults to 'notepad.exe'.
-        Examples: 'notepad.exe', 'code', 'notepad++.exe'
-    .EXAMPLE
-        Edit-HostsFile
+        .DESCRIPTION
+            Launches the specified text editor (default: notepad.exe) as Administrator
+            to edit the hosts file located at C:\Windows\System32\drivers\etc\hosts.
 
-        Opens the hosts file in Notepad as Administrator.
-    .EXAMPLE
-        Edit-HostsFile -Editor 'notepad++.exe'
+            The editor process is started with the -Verb RunAs flag, which triggers
+            a UAC elevation prompt if the current session is not already elevated.
 
-        Opens the hosts file in Notepad++ as Administrator.
-    .EXAMPLE
-        Edit-HostsFile -Editor 'code'
+        .PARAMETER Editor
+            Path or name of the text editor to use. Defaults to 'notepad.exe'.
+            Examples: 'notepad.exe', 'code', 'notepad++.exe'
 
-        Opens the hosts file in VS Code as Administrator.
-    .OUTPUTS
-    None
-        This function does not produce pipeline output.
-    .NOTES
-        Author:        Franck SALLET
-        Version:       1.0.0
-        Last Modified: 2026-03-20
-        Requires:      PowerShell 5.1+ / Windows only
-        Permissions:   Triggers UAC elevation prompt
+        .EXAMPLE
+            Edit-HostsFile
+
+            Opens the hosts file in Notepad as Administrator.
+
+        .EXAMPLE
+            Edit-HostsFile -Editor 'notepad++.exe'
+
+            Opens the hosts file in Notepad++ as Administrator.
+
+        .EXAMPLE
+            Edit-HostsFile -Editor 'code'
+
+            Opens the hosts file in VS Code as Administrator.
+
+        .OUTPUTS
+            None
+            This function does not produce pipeline output.
+
+        .NOTES
+            Author:        Franck SALLET
+            Version:       1.0.0
+            Last Modified: 2026-03-20
+            Requires:      PowerShell 5.1+ / Windows only
+            Permissions:   Triggers UAC elevation prompt
+
+        .LINK
+            https://github.com/k9fr4n/PSWinOps
     #>
     [CmdletBinding(SupportsShouldProcess)]
     [OutputType([void])]

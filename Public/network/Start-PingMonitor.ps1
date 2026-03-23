@@ -2,41 +2,52 @@
 
 function Start-PingMonitor {
     <#
-    .SYNOPSIS
-        Displays a real-time multi-host ping monitoring dashboard.
-    .DESCRIPTION
-        Continuously pings multiple hosts and displays a live-updating table
-        showing status (Up/Down), response time, and packet loss statistics.
+        .SYNOPSIS
+            Displays a real-time multi-host ping monitoring dashboard
 
-        Similar to a NOC dashboard. Press Ctrl+C to stop and display final statistics.
+        .DESCRIPTION
+            Continuously pings multiple hosts and displays a live-updating table
+            showing status (Up/Down), response time, and packet loss statistics.
 
-        This is an interactive display function that writes directly to the console.
-        It does not output objects to the pipeline.
-    .PARAMETER ComputerName
-        One or more hostnames or IP addresses to monitor.
-    .PARAMETER RefreshInterval
-        Refresh interval in seconds. Default: 2. Valid range: 1-60.
-    .PARAMETER PingTimeoutMs
-        Timeout per ping in milliseconds. Default: 2000. Valid range: 500-10000.
-    .EXAMPLE
-        Start-PingMonitor -ComputerName 'SRV01', 'SRV02', 'SRV03', 'gateway'
+            Similar to a NOC dashboard. Press Ctrl+C to stop and display final statistics.
 
-        Monitors 4 hosts with a live dashboard. Press Ctrl+C to stop.
-    .EXAMPLE
-        Start-PingMonitor -ComputerName (Get-Content servers.txt) -RefreshInterval 5
+            This is an interactive display function that writes directly to the console.
+            It does not output objects to the pipeline.
 
-        Monitors hosts from a file with 5-second refresh.
-    .EXAMPLE
-        Start-PingMonitor -ComputerName '8.8.8.8', '1.1.1.1', 'gateway.local' -PingTimeoutMs 1000
+        .PARAMETER ComputerName
+            One or more hostnames or IP addresses to monitor.
 
-        Monitors with a 1-second ping timeout.
-    .NOTES
-        Author:        Franck SALLET
-        Version:       1.0.0
-        Last Modified: 2026-03-21
-        Requires:      PowerShell 5.1+ / Windows only
-        Permissions:   No admin required (ICMP may be blocked by firewall)
-        Output:        Writes to console only, no pipeline output.
+        .PARAMETER RefreshInterval
+            Refresh interval in seconds. Default: 2. Valid range: 1-60.
+
+        .PARAMETER PingTimeoutMs
+            Timeout per ping in milliseconds. Default: 2000. Valid range: 500-10000.
+
+        .EXAMPLE
+            Start-PingMonitor -ComputerName 'SRV01', 'SRV02', 'SRV03', 'gateway'
+
+            Monitors 4 hosts with a live dashboard. Press Ctrl+C to stop.
+
+        .EXAMPLE
+            Start-PingMonitor -ComputerName (Get-Content servers.txt) -RefreshInterval 5
+
+            Monitors hosts from a file with 5-second refresh.
+
+        .EXAMPLE
+            Start-PingMonitor -ComputerName '8.8.8.8', '1.1.1.1', 'gateway.local' -PingTimeoutMs 1000
+
+            Monitors with a 1-second ping timeout.
+
+        .NOTES
+            Author:        Franck SALLET
+            Version:       1.0.0
+            Last Modified: 2026-03-21
+            Requires:      PowerShell 5.1+ / Windows only
+            Permissions:   No admin required (ICMP may be blocked by firewall)
+            Output:        Writes to console only, no pipeline output.
+
+        .LINK
+            https://github.com/k9fr4n/PSWinOps
     #>
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWriteHost', '',
         Justification = 'Write-Host is intentional for interactive console dashboard display')]

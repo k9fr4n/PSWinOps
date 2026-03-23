@@ -1,45 +1,53 @@
 ﻿#Requires -Version 5.1
 function Get-ProxyConfiguration {
     <#
-    .SYNOPSIS
-        Retrieves proxy configuration from all three Windows proxy layers.
-    .DESCRIPTION
-        Queries proxy settings from three distinct sources:
-        - WinINET (Internet Settings registry): used by browsers and .NET apps
-        - WinHTTP (netsh winhttp): used by system services and PowerShell
-        - Environment variables (HTTP_PROXY, HTTPS_PROXY, NO_PROXY)
+        .SYNOPSIS
+            Retrieves proxy configuration from all three Windows proxy layers
 
-        Returns a single object consolidating all three layers for quick diagnosis
-        of proxy misconfigurations.
-    .EXAMPLE
-        Get-ProxyConfiguration
+        .DESCRIPTION
+            Queries proxy settings from three distinct sources:
+            - WinINET (Internet Settings registry): used by browsers and .NET apps
+            - WinHTTP (netsh winhttp): used by system services and PowerShell
+            - Environment variables (HTTP_PROXY, HTTPS_PROXY, NO_PROXY)
 
-        Returns the current proxy configuration from all three layers on the local machine.
-    .EXAMPLE
-        Get-ProxyConfiguration -Verbose
+            Returns a single object consolidating all three layers for quick diagnosis
+            of proxy misconfigurations.
 
-        Returns proxy configuration with verbose output showing each layer being queried.
-    .EXAMPLE
-        Get-ProxyConfiguration | Select-Object -Property WinInet*, WinHttp*
+        .EXAMPLE
+            Get-ProxyConfiguration
 
-        Returns only WinINET and WinHTTP proxy settings, excluding environment variables.
-    .OUTPUTS
-    PSWinOps.ProxyConfiguration
-        Current proxy settings from system and user scopes.
+            Returns the current proxy configuration from all three layers on the local machine.
 
-    .NOTES
-        Author: Franck SALLET
-        Version: 1.0.0
-        Last Modified: 2026-03-20
-        Requires: PowerShell 5.1+ / Windows only
+        .EXAMPLE
+            Get-ProxyConfiguration -Verbose
 
-        WinINET settings are read from HKCU and reflect the current user's proxy.
-        WinHTTP settings are read via netsh winhttp show proxy.
-        Environment variables check both uppercase and lowercase variants.
-        This function is local-only by design (HKCU is user-specific, env vars are session-specific).
-    
-    .LINK
-    https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/netsh-winhttp
+            Returns proxy configuration with verbose output showing each layer being queried.
+
+        .EXAMPLE
+            Get-ProxyConfiguration | Select-Object -Property WinInet*, WinHttp*
+
+            Returns only WinINET and WinHTTP proxy settings, excluding environment variables.
+
+        .OUTPUTS
+            PSWinOps.ProxyConfiguration
+            Current proxy settings from system and user scopes.
+
+        .NOTES
+            Author: Franck SALLET
+            Version: 1.0.0
+            Last Modified: 2026-03-20
+            Requires: PowerShell 5.1+ / Windows only
+
+            WinINET settings are read from HKCU and reflect the current user's proxy.
+            WinHTTP settings are read via netsh winhttp show proxy.
+            Environment variables check both uppercase and lowercase variants.
+            This function is local-only by design (HKCU is user-specific, env vars are session-specific).
+
+        .LINK
+            https://github.com/k9fr4n/PSWinOps
+
+        .LINK
+            https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/netsh-winhttp
     #>
     [CmdletBinding()]
     [OutputType('PSWinOps.ProxyConfiguration')]

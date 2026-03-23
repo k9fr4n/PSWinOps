@@ -2,57 +2,74 @@
 
 function Get-NetworkRoute {
     <#
-    .SYNOPSIS
-        Retrieves IP routing table entries on one or more Windows computers.
-    .DESCRIPTION
-        Queries the routing table using the Get-NetRoute cmdlet from the NetTCPIP module.
-        Supports filtering by destination prefix, next hop gateway, interface alias,
-        and address family (IPv4/IPv6).
+        .SYNOPSIS
+            Retrieves IP routing table entries on one or more Windows computers
 
-        For remote computers, the query is executed via Invoke-Command, which requires
-        WinRM / WS-Man enabled on the target.
-    .PARAMETER ComputerName
-        One or more computer names to query. Accepts pipeline input by value and
-        by property name. Defaults to the local machine ($env:COMPUTERNAME).
-    .PARAMETER Credential
-        Optional PSCredential for authenticating to remote machines. Ignored for
-        local machine queries.
-    .PARAMETER DestinationPrefix
-        Filter routes by destination prefix. Supports wildcards (e.g. '10.0.*', '0.0.0.0/0').
-    .PARAMETER NextHop
-        Filter routes by next hop gateway address. Supports wildcards.
-    .PARAMETER InterfaceAlias
-        Filter routes by network interface alias (e.g. 'Ethernet', 'Wi-Fi'). Supports wildcards.
-    .PARAMETER AddressFamily
-        Filter routes by address family. Valid values: IPv4, IPv6. By default both are returned.
-    .EXAMPLE
-        Get-NetworkRoute
+        .DESCRIPTION
+            Queries the routing table using the Get-NetRoute cmdlet from the NetTCPIP module.
+            Supports filtering by destination prefix, next hop gateway, interface alias,
+            and address family (IPv4/IPv6).
 
-        Returns all routing table entries on the local machine.
-    .EXAMPLE
-        Get-NetworkRoute -AddressFamily IPv4 -DestinationPrefix '0.0.0.0/0'
+            For remote computers, the query is executed via Invoke-Command, which requires
+            WinRM / WS-Man enabled on the target.
 
-        Returns the default IPv4 gateway route on the local machine.
-    .EXAMPLE
-        Get-NetworkRoute -ComputerName 'SRV01' -Credential (Get-Credential)
+        .PARAMETER ComputerName
+            One or more computer names to query. Accepts pipeline input by value and
+            by property name. Defaults to the local machine ($env:COMPUTERNAME).
 
-        Returns all routes on remote server SRV01.
-    .EXAMPLE
-        'SRV01', 'SRV02' | Get-NetworkRoute -AddressFamily IPv4
+        .PARAMETER Credential
+            Optional PSCredential for authenticating to remote machines. Ignored for
+            local machine queries.
 
-        Returns IPv4 routes for two servers via pipeline.
-    .OUTPUTS
-    PSWinOps.NetworkRoute
-        Route details including destination, next hop, interface, metric and address family.
-    .NOTES
-        Author:        Franck SALLET
-        Version:       1.0.0
-        Last Modified: 2026-03-20
-        Requires:      PowerShell 5.1+ / Windows only
-        Permissions:   No admin required for reading routes
-        Remote:        Requires WinRM / WS-Man enabled on target machines
-    .LINK
-    https://docs.microsoft.com/en-us/powershell/module/nettcpip/get-netroute
+        .PARAMETER DestinationPrefix
+            Filter routes by destination prefix. Supports wildcards (e.g. '10.0.*', '0.0.0.0/0').
+
+        .PARAMETER NextHop
+            Filter routes by next hop gateway address. Supports wildcards.
+
+        .PARAMETER InterfaceAlias
+            Filter routes by network interface alias (e.g. 'Ethernet', 'Wi-Fi'). Supports wildcards.
+
+        .PARAMETER AddressFamily
+            Filter routes by address family. Valid values: IPv4, IPv6. By default both are returned.
+
+        .EXAMPLE
+            Get-NetworkRoute
+
+            Returns all routing table entries on the local machine.
+
+        .EXAMPLE
+            Get-NetworkRoute -AddressFamily IPv4 -DestinationPrefix '0.0.0.0/0'
+
+            Returns the default IPv4 gateway route on the local machine.
+
+        .EXAMPLE
+            Get-NetworkRoute -ComputerName 'SRV01' -Credential (Get-Credential)
+
+            Returns all routes on remote server SRV01.
+
+        .EXAMPLE
+            'SRV01', 'SRV02' | Get-NetworkRoute -AddressFamily IPv4
+
+            Returns IPv4 routes for two servers via pipeline.
+
+        .OUTPUTS
+            PSWinOps.NetworkRoute
+            Route details including destination, next hop, interface, metric and address family.
+
+        .NOTES
+            Author:        Franck SALLET
+            Version:       1.0.0
+            Last Modified: 2026-03-20
+            Requires:      PowerShell 5.1+ / Windows only
+            Permissions:   No admin required for reading routes
+            Remote:        Requires WinRM / WS-Man enabled on target machines
+
+        .LINK
+            https://github.com/k9fr4n/PSWinOps
+
+        .LINK
+            https://learn.microsoft.com/en-us/powershell/module/nettcpip/get-netroute
     #>
     [CmdletBinding()]
     [OutputType('PSWinOps.NetworkRoute')]

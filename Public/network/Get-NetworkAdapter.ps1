@@ -2,48 +2,62 @@
 
 function Get-NetworkAdapter {
     <#
-    .SYNOPSIS
-        Retrieves consolidated network adapter information including IP, DNS, gateway, and speed.
-    .DESCRIPTION
-        Combines data from Get-NetAdapter, Get-NetIPAddress, Get-NetIPConfiguration, and
-        Get-DnsClientServerAddress into a single structured view per adapter.
+        .SYNOPSIS
+            Retrieves consolidated network adapter information including IP, DNS, gateway, and speed
 
-        Replaces the need to run 4 separate cmdlets and manually correlate results.
-    .PARAMETER ComputerName
-        One or more computer names to query. Defaults to the local machine.
-        Accepts pipeline input.
-    .PARAMETER Credential
-        Optional credential for remote computer connections.
-    .PARAMETER IncludeDisabled
-        Include network adapters that are in a disabled or disconnected state.
-        By default, only 'Up' adapters are returned.
-    .PARAMETER InterfaceName
-        Filter by adapter name. Supports wildcards. Example: 'Ethernet*', 'Wi-Fi'.
-    .EXAMPLE
-        Get-NetworkAdapter
+        .DESCRIPTION
+            Combines data from Get-NetAdapter, Get-NetIPAddress, Get-NetIPConfiguration, and
+            Get-DnsClientServerAddress into a single structured view per adapter.
 
-        Returns all active network adapters on the local machine.
-    .EXAMPLE
-        Get-NetworkAdapter -IncludeDisabled
+            Replaces the need to run 4 separate cmdlets and manually correlate results.
 
-        Returns all adapters including disabled ones.
-    .EXAMPLE
-        Get-NetworkAdapter -ComputerName 'SRV01', 'SRV02' -Credential (Get-Credential)
+        .PARAMETER ComputerName
+            One or more computer names to query. Defaults to the local machine.
+            Accepts pipeline input.
 
-        Returns adapter info from two remote servers.
-    .EXAMPLE
-        'SRV01', 'SRV02' | Get-NetworkAdapter -InterfaceName 'Ethernet*'
+        .PARAMETER Credential
+            Optional credential for remote computer connections.
 
-        Pipeline: returns only Ethernet adapters from 2 servers.
-    .OUTPUTS
-    PSWinOps.NetworkAdapterInfo
-    .NOTES
-        Author:        Franck SALLET
-        Version:       1.0.0
-        Last Modified: 2026-03-21
-        Requires:      PowerShell 5.1+ / Windows only
-        Requires:      NetAdapter, NetTCPIP modules (built-in)
-        Permissions:   No admin required for local, admin for remote
+        .PARAMETER IncludeDisabled
+            Include network adapters that are in a disabled or disconnected state.
+            By default, only 'Up' adapters are returned.
+
+        .PARAMETER InterfaceName
+            Filter by adapter name. Supports wildcards. Example: 'Ethernet*', 'Wi-Fi'.
+
+        .EXAMPLE
+            Get-NetworkAdapter
+
+            Returns all active network adapters on the local machine.
+
+        .EXAMPLE
+            Get-NetworkAdapter -IncludeDisabled
+
+            Returns all adapters including disabled ones.
+
+        .EXAMPLE
+            Get-NetworkAdapter -ComputerName 'SRV01', 'SRV02' -Credential (Get-Credential)
+
+            Returns adapter info from two remote servers.
+
+        .EXAMPLE
+            'SRV01', 'SRV02' | Get-NetworkAdapter -InterfaceName 'Ethernet*'
+
+            Pipeline: returns only Ethernet adapters from 2 servers.
+
+        .OUTPUTS
+            PSWinOps.NetworkAdapterInfo
+
+        .NOTES
+            Author:        Franck SALLET
+            Version:       1.0.0
+            Last Modified: 2026-03-21
+            Requires:      PowerShell 5.1+ / Windows only
+            Requires:      NetAdapter, NetTCPIP modules (built-in)
+            Permissions:   No admin required for local, admin for remote
+
+        .LINK
+            https://github.com/k9fr4n/PSWinOps
     #>
     [CmdletBinding()]
     [OutputType('PSWinOps.NetworkAdapterInfo')]

@@ -2,45 +2,58 @@
 
 function Measure-NetworkLatency {
     <#
-    .SYNOPSIS
-        Measures network latency to one or more hosts with statistical summary.
-    .DESCRIPTION
-        Sends ICMP echo requests (ping) to target hosts and computes statistics:
-        minimum, maximum, average, jitter (standard deviation), and packet loss
-        percentage.
+        .SYNOPSIS
+            Measures network latency to one or more hosts with statistical summary
 
-        Unlike Test-Connection, this function provides a statistical summary
-        rather than individual ping results, making it ideal for network
-        quality assessment.
-    .PARAMETER ComputerName
-        One or more target hostnames or IP addresses. Accepts pipeline input.
-    .PARAMETER Count
-        Number of ICMP echo requests to send per host. Default: 10.
-        Valid range: 1-1000.
-    .PARAMETER BufferSize
-        Size of the ICMP payload in bytes. Default: 32. Valid range: 1-65500.
-    .PARAMETER DelayMs
-        Delay between pings in milliseconds. Default: 500. Valid range: 0-10000.
-    .EXAMPLE
-        Measure-NetworkLatency -ComputerName 'gateway.corp.local'
+        .DESCRIPTION
+            Sends ICMP echo requests (ping) to target hosts and computes statistics:
+            minimum, maximum, average, jitter (standard deviation), and packet loss
+            percentage.
 
-        Sends 10 pings and returns latency statistics.
-    .EXAMPLE
-        Measure-NetworkLatency -ComputerName '8.8.8.8', '1.1.1.1' -Count 50
+            Unlike Test-Connection, this function provides a statistical summary
+            rather than individual ping results, making it ideal for network
+            quality assessment.
 
-        Compares latency to Google DNS and Cloudflare with 50 pings each.
-    .EXAMPLE
-        'SRV01', 'SRV02', 'SRV03' | Measure-NetworkLatency -Count 20
+        .PARAMETER ComputerName
+            One or more target hostnames or IP addresses. Accepts pipeline input.
 
-        Pipeline: measures latency to 3 servers with 20 pings each.
-    .OUTPUTS
-    PSWinOps.NetworkLatency
-    .NOTES
-        Author:        Franck SALLET
-        Version:       1.0.0
-        Last Modified: 2026-03-21
-        Requires:      PowerShell 5.1+ / Windows only
-        Permissions:   No admin required (ICMP may be blocked by firewall)
+        .PARAMETER Count
+            Number of ICMP echo requests to send per host. Default: 10.
+            Valid range: 1-1000.
+
+        .PARAMETER BufferSize
+            Size of the ICMP payload in bytes. Default: 32. Valid range: 1-65500.
+
+        .PARAMETER DelayMs
+            Delay between pings in milliseconds. Default: 500. Valid range: 0-10000.
+
+        .EXAMPLE
+            Measure-NetworkLatency -ComputerName 'gateway.corp.local'
+
+            Sends 10 pings and returns latency statistics.
+
+        .EXAMPLE
+            Measure-NetworkLatency -ComputerName '8.8.8.8', '1.1.1.1' -Count 50
+
+            Compares latency to Google DNS and Cloudflare with 50 pings each.
+
+        .EXAMPLE
+            'SRV01', 'SRV02', 'SRV03' | Measure-NetworkLatency -Count 20
+
+            Pipeline: measures latency to 3 servers with 20 pings each.
+
+        .OUTPUTS
+            PSWinOps.NetworkLatency
+
+        .NOTES
+            Author:        Franck SALLET
+            Version:       1.0.0
+            Last Modified: 2026-03-21
+            Requires:      PowerShell 5.1+ / Windows only
+            Permissions:   No admin required (ICMP may be blocked by firewall)
+
+        .LINK
+            https://github.com/k9fr4n/PSWinOps
     #>
     [CmdletBinding()]
     [OutputType('PSWinOps.NetworkLatency')]

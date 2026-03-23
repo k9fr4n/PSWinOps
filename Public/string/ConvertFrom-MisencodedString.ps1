@@ -1,74 +1,77 @@
 ﻿#Requires -Version 5.1
 
 function ConvertFrom-MisencodedString {
-<#
-.SYNOPSIS
-    Converts a misencoded string by reinterpreting bytes from a source encoding
+    <#
+        .SYNOPSIS
+            Converts a misencoded string by reinterpreting bytes from a source encoding
 
-.DESCRIPTION
-    Fixes encoding issues where text was incorrectly interpreted using the wrong
-    character encoding. The function takes the string, converts it to bytes using
-    the source encoding (default: Cyrillic), then reinterprets those bytes as
-    ASCII or another target encoding.
+        .DESCRIPTION
+            Fixes encoding issues where text was incorrectly interpreted using the wrong
+            character encoding. The function takes the string, converts it to bytes using
+            the source encoding (default: Cyrillic), then reinterprets those bytes as
+            ASCII or another target encoding.
 
-    This is commonly needed when text was stored or transmitted using one encoding
-    but displayed or processed as another, resulting in garbled characters.
+            This is commonly needed when text was stored or transmitted using one encoding
+            but displayed or processed as another, resulting in garbled characters.
 
-    Note: PowerShell converts null input to an empty string before parameter
-    validation runs, so passing -String $null is equivalent to -String ''.
+            Note: PowerShell converts null input to an empty string before parameter
+            validation runs, so passing -String $null is equivalent to -String ''.
 
-.PARAMETER String
-    The misencoded string to convert. Accepts input from the pipeline.
-    Empty strings are allowed and will be returned unchanged.
-    Note: null values are automatically converted to empty strings by PowerShell.
+        .PARAMETER String
+            The misencoded string to convert. Accepts input from the pipeline.
+            Empty strings are allowed and will be returned unchanged.
+            Note: null values are automatically converted to empty strings by PowerShell.
 
-.PARAMETER SourceEncoding
-    The encoding that was incorrectly applied to the original text.
-    Default is 'Cyrillic' (windows-1251). Common values include 'Cyrillic',
-    'windows-1252', 'iso-8859-1', 'utf-8'.
+        .PARAMETER SourceEncoding
+            The encoding that was incorrectly applied to the original text.
+            Default is 'Cyrillic' (windows-1251). Common values include 'Cyrillic',
+            'windows-1252', 'iso-8859-1', 'utf-8'.
 
-.PARAMETER TargetEncoding
-    The encoding to use when reinterpreting the bytes.
-    Default is 'ASCII'. Use 'utf-8' for broader character support.
+        .PARAMETER TargetEncoding
+            The encoding to use when reinterpreting the bytes.
+            Default is 'ASCII'. Use 'utf-8' for broader character support.
 
-.EXAMPLE
-    ConvertFrom-MisencodedString -String 'portal'
+        .EXAMPLE
+            ConvertFrom-MisencodedString -String 'portal'
 
-    Converts a Cyrillic-misencoded string back to readable ASCII text.
-    Returns the corrected string.
+            Converts a Cyrillic-misencoded string back to readable ASCII text.
+            Returns the corrected string.
 
-.EXAMPLE
-    'portal', 'server' | ConvertFrom-MisencodedString
+        .EXAMPLE
+            'portal', 'server' | ConvertFrom-MisencodedString
 
-    Pipeline example: processes multiple misencoded strings and returns
-    the corrected versions.
+            Pipeline example: processes multiple misencoded strings and returns
+            the corrected versions.
 
-.EXAMPLE
-    ConvertFrom-MisencodedString -String 'cafe' -SourceEncoding 'windows-1252' -TargetEncoding 'utf-8'
+        .EXAMPLE
+            ConvertFrom-MisencodedString -String 'cafe' -SourceEncoding 'windows-1252' -TargetEncoding 'utf-8'
 
-    Fixes a string where UTF-8 characters were misinterpreted as Windows-1252.
-    Returns 'cafe' in proper UTF-8 encoding.
+            Fixes a string where UTF-8 characters were misinterpreted as Windows-1252.
+            Returns 'cafe' in proper UTF-8 encoding.
 
-.EXAMPLE
-    Get-Content -Path 'C:\Logs\misencoded.txt' | ConvertFrom-MisencodedString
+        .EXAMPLE
+            Get-Content -Path 'C:\Logs\misencoded.txt' | ConvertFrom-MisencodedString
 
-    Reads misencoded lines from a file and converts each line to the correct encoding.
+            Reads misencoded lines from a file and converts each line to the correct encoding.
 
-.OUTPUTS
-System.String
-    The re-encoded string with correct character rendering.
+        .OUTPUTS
+            System.String
+            The re-encoded string with correct character rendering.
 
-.NOTES
-    Author:        Franck SALLET
-    Version:       1.0.2
-    Last Modified: 2026-03-11
-    Requires:      PowerShell 5.1+
-    Permissions:   None required
-    Module:        PSWinOps
+        .NOTES
+            Author:        Franck SALLET
+            Version:       1.0.2
+            Last Modified: 2026-03-11
+            Requires:      PowerShell 5.1+
+            Permissions:   None required
+            Module:        PSWinOps
 
-.LINK
-    https://docs.microsoft.com/en-us/dotnet/api/system.text.encoding
-#>
+        .LINK
+            https://github.com/k9fr4n/PSWinOps
+
+        .LINK
+            https://learn.microsoft.com/en-us/dotnet/api/system.text.encoding
+    #>
     [CmdletBinding()]
     [OutputType([string])]
     param(

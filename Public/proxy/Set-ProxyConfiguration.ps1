@@ -1,66 +1,79 @@
 ﻿#Requires -Version 5.1
 function Set-ProxyConfiguration {
     <#
-    .SYNOPSIS
-        Configures proxy settings on one or more Windows proxy layers.
-    .DESCRIPTION
-        Applies proxy configuration to one or more of the three Windows proxy layers:
-        - WinINET (HKCU registry): used by browsers, .NET apps, Internet Explorer/Edge
-        - WinHTTP (netsh winhttp): used by system services and PowerShell default proxy
-        - Environment variables (HTTP_PROXY, HTTPS_PROXY, NO_PROXY)
+        .SYNOPSIS
+            Configures proxy settings on one or more Windows proxy layers
 
-        Each layer can be targeted independently via the -Scope parameter.
-        WinHTTP scope requires administrator privileges (netsh winhttp set proxy).
-        Environment variables are set at the User level (persistent across sessions).
-    .PARAMETER ProxyServer
-        Proxy server address in the format 'host:port' (e.g., 'proxy.example.com:8080')
-        or protocol-specific format (e.g., 'http=proxy:80;https=proxy:443').
-    .PARAMETER BypassList
-        Semicolon-separated list of addresses that bypass the proxy.
-        Example: '*.local;*.example.com;<local>'
-        For Environment scope, semicolons are converted to commas (NO_PROXY convention).
-    .PARAMETER AutoConfigURL
-        URL of a PAC (Proxy Auto-Configuration) file.
-        Only applies to WinINET scope. Ignored for WinHTTP and Environment scopes.
-    .PARAMETER Scope
-        One or more proxy layers to configure. Valid values:
-        - WinINET      : Internet Settings registry (HKCU)
-        - WinHTTP      : System-level proxy (requires admin)
-        - Environment  : HTTP_PROXY / HTTPS_PROXY / NO_PROXY user variables
-        - All          : All three layers (default)
-    .EXAMPLE
-        Set-ProxyConfiguration -ProxyServer 'proxy.example.com:8080'
+        .DESCRIPTION
+            Applies proxy configuration to one or more of the three Windows proxy layers:
+            - WinINET (HKCU registry): used by browsers, .NET apps, Internet Explorer/Edge
+            - WinHTTP (netsh winhttp): used by system services and PowerShell default proxy
+            - Environment variables (HTTP_PROXY, HTTPS_PROXY, NO_PROXY)
 
-        Configures all three proxy layers with the specified proxy server.
-    .EXAMPLE
-        Set-ProxyConfiguration -ProxyServer 'proxy.example.com:8080' -BypassList '*.local;*.example.com;<local>' -Scope WinINET
+            Each layer can be targeted independently via the -Scope parameter.
+            WinHTTP scope requires administrator privileges (netsh winhttp set proxy).
+            Environment variables are set at the User level (persistent across sessions).
 
-        Configures only WinINET (browser/IE) proxy with a bypass list.
-    .EXAMPLE
-        Set-ProxyConfiguration -ProxyServer 'proxy.example.com:8080' -Scope WinINET, Environment -WhatIf
+        .PARAMETER ProxyServer
+            Proxy server address in the format 'host:port' (e.g., 'proxy.example.com:8080')
+            or protocol-specific format (e.g., 'http=proxy:80;https=proxy:443').
 
-        Shows what changes would be made to WinINET and environment variables without applying them.
-    .EXAMPLE
-        Set-ProxyConfiguration -AutoConfigURL 'http://wpad.example.com/proxy.pac' -Scope WinINET
+        .PARAMETER BypassList
+            Semicolon-separated list of addresses that bypass the proxy.
+            Example: '*.local;*.example.com;<local>'
+            For Environment scope, semicolons are converted to commas (NO_PROXY convention).
 
-        Configures WinINET to use a PAC auto-configuration URL (no static proxy).
-    .OUTPUTS
-    None
-        This function does not produce pipeline output.
+        .PARAMETER AutoConfigURL
+            URL of a PAC (Proxy Auto-Configuration) file.
+            Only applies to WinINET scope. Ignored for WinHTTP and Environment scopes.
 
-    .NOTES
-        Author: Franck SALLET
-        Version: 1.0.0
-        Last Modified: 2026-03-20
-        Requires: PowerShell 5.1+ / Windows only
+        .PARAMETER Scope
+            One or more proxy layers to configure. Valid values:
+            - WinINET      : Internet Settings registry (HKCU)
+            - WinHTTP      : System-level proxy (requires admin)
+            - Environment  : HTTP_PROXY / HTTPS_PROXY / NO_PROXY user variables
+            - All          : All three layers (default)
 
-        WinHTTP scope requires local administrator privileges (netsh winhttp set proxy).
-        WinINET writes to HKCU (no elevation needed, applies to current user).
-        Environment scope sets User-level variables (persistent across sessions).
-        Process-level env vars ($env:) are also updated for immediate effect.
-    
-    .LINK
-    https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/netsh-winhttp
+        .EXAMPLE
+            Set-ProxyConfiguration -ProxyServer 'proxy.example.com:8080'
+
+            Configures all three proxy layers with the specified proxy server.
+
+        .EXAMPLE
+            Set-ProxyConfiguration -ProxyServer 'proxy.example.com:8080' -BypassList '*.local;*.example.com;<local>' -Scope WinINET
+
+            Configures only WinINET (browser/IE) proxy with a bypass list.
+
+        .EXAMPLE
+            Set-ProxyConfiguration -ProxyServer 'proxy.example.com:8080' -Scope WinINET, Environment -WhatIf
+
+            Shows what changes would be made to WinINET and environment variables without applying them.
+
+        .EXAMPLE
+            Set-ProxyConfiguration -AutoConfigURL 'http://wpad.example.com/proxy.pac' -Scope WinINET
+
+            Configures WinINET to use a PAC auto-configuration URL (no static proxy).
+
+        .OUTPUTS
+            None
+            This function does not produce pipeline output.
+
+        .NOTES
+            Author: Franck SALLET
+            Version: 1.0.0
+            Last Modified: 2026-03-20
+            Requires: PowerShell 5.1+ / Windows only
+
+            WinHTTP scope requires local administrator privileges (netsh winhttp set proxy).
+            WinINET writes to HKCU (no elevation needed, applies to current user).
+            Environment scope sets User-level variables (persistent across sessions).
+            Process-level env vars ($env:) are also updated for immediate effect.
+
+        .LINK
+            https://github.com/k9fr4n/PSWinOps
+
+        .LINK
+            https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/netsh-winhttp
     #>
     [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'Medium')]
     [OutputType([void])]
