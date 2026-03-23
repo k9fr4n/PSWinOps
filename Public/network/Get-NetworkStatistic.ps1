@@ -3,15 +3,16 @@
 function Get-NetworkStatistic {
     <#
         .SYNOPSIS
-            Retrieves TCP and UDP connection statistics on one or more Windows computers
+            Retrieves network connection statistics grouped by process
 
         .DESCRIPTION
-            Queries active network connections using Get-NetTCPConnection and Get-NetUDPEndpoint,
-            then enriches each entry with the owning process name. Supports filtering by protocol,
-            connection state, local/remote address, local/remote port, and process name.
+            Aggregates TCP and UDP connection data by process, providing a summary view
+            of how many connections each process holds in each state. Internally calls
+            Get-NetworkConnection to collect raw connection data, then groups and counts
+            by process name and connection state.
 
-            For the local machine, cmdlets are called directly. For remote machines, the query
-            is executed via Invoke-Command, which requires WinRM / WS-Man enabled on the target.
+            This function is ideal for identifying which processes consume the most
+            network connections or hold stale connections.
 
         .PARAMETER ComputerName
             One or more computer names to query. Accepts pipeline input by value and
@@ -22,59 +23,43 @@ function Get-NetworkStatistic {
             local machine queries.
 
         .PARAMETER Protocol
-            Filter by protocol. Valid values: TCP, UDP. By default both are returned.
+            Filter by protocol before aggregation. Valid values: TCP, UDP.
+            By default both are included.
 
         .PARAMETER State
-            Filter TCP connections by state (e.g. Established, Listen, TimeWait, CloseWait).
-            Ignored for UDP endpoints (UDP is stateless).
-
-        .PARAMETER LocalAddress
-            Filter by local IP address. Supports wildcards.
-
-        .PARAMETER LocalPort
-            Filter by local port number.
-
-        .PARAMETER RemoteAddress
-            Filter by remote IP address. Supports wildcards.
-
-        .PARAMETER RemotePort
-            Filter by remote port number.
+            Filter TCP connections by state before aggregation (e.g. Established, Listen).
+            Ignored for UDP endpoints.
 
         .PARAMETER ProcessName
-            Filter by owning process name. Supports wildcards.
+            Filter by owning process name before aggregation. Supports wildcards.
 
         .EXAMPLE
             Get-NetworkStatistic
 
-            Returns all TCP and UDP connections on the local machine.
+            Returns connection count summary grouped by process on the local machine.
 
         .EXAMPLE
-            Get-NetworkStatistic -Protocol TCP -State Established
+            Get-NetworkStatistic -ComputerName 'SRV01' -Protocol TCP
 
-            Returns only established TCP connections on the local machine.
-
-        .EXAMPLE
-            Get-NetworkStatistic -ComputerName 'SRV01', 'SRV02' -Protocol TCP -State Listen
-
-            Returns listening TCP connections on two remote servers.
+            Returns TCP connection statistics grouped by process on SRV01.
 
         .EXAMPLE
-            Get-NetworkStatistic -ProcessName 'svchost' -LocalPort 443
+            'SRV01', 'SRV02' | Get-NetworkStatistic
 
-            Returns connections on local port 443 owned by svchost.
+            Aggregates connection statistics by process across two remote servers.
 
         .EXAMPLE
-            'SRV01', 'SRV02' | Get-NetworkStatistic -Credential (Get-Credential) -Protocol TCP
+            Get-NetworkStatistic -ProcessName 'w3wp'
 
-            Queries multiple servers via pipeline with explicit credentials.
+            Shows connection breakdown for the IIS worker process only.
 
         .OUTPUTS
             PSWinOps.NetworkStatistic
-            Network connection details including protocol, addresses, ports, state, and process info.
+            Summary of network connections per process including counts by state.
 
         .NOTES
             Author:        Franck SALLET
-            Version:       2.0.0
+            Version:       3.0.0
             Last Modified: 2026-03-23
             Requires:      PowerShell 5.1+ / Windows only
             Permissions:   No admin required for basic queries
@@ -86,7 +71,6 @@ function Get-NetworkStatistic {
         .LINK
             https://learn.microsoft.com/en-us/powershell/module/nettcpip/get-nettcpconnection
     #>
-
     [CmdletBinding()]
     [OutputType('PSWinOps.NetworkStatistic')]
     param(
@@ -112,204 +96,57 @@ function Get-NetworkStatistic {
 
         [Parameter(Mandatory = $false)]
         [SupportsWildcards()]
-        [string]$LocalAddress,
-
-        [Parameter(Mandatory = $false)]
-        [ValidateRange(1, 65535)]
-        [int]$LocalPort,
-
-        [Parameter(Mandatory = $false)]
-        [SupportsWildcards()]
-        [string]$RemoteAddress,
-
-        [Parameter(Mandatory = $false)]
-        [ValidateRange(1, 65535)]
-        [int]$RemotePort,
-
-        [Parameter(Mandatory = $false)]
-        [SupportsWildcards()]
         [string]$ProcessName
     )
 
     begin {
-        Write-Verbose "[$($MyInvocation.MyCommand)] Starting network statistics query"
-        $localNames = @($env:COMPUTERNAME, 'localhost', '.')
-        $hasCredential = $PSBoundParameters.ContainsKey('Credential')
-
-        # Build the scriptblock that collects connections (runs locally or via Invoke-Command)
-        $queryScriptBlock = {
-            param(
-                [string[]]$QueryProtocol,
-                [string[]]$QueryState,
-                [string]$QueryLocalAddress,
-                [int]$QueryLocalPort,
-                [string]$QueryRemoteAddress,
-                [int]$QueryRemotePort,
-                [string]$QueryProcessName
-            )
-
-            $results = [System.Collections.Generic.List[PSObject]]::new()
-
-            # Build process lookup table once (cast to [int] — OwningProcess is UInt32,
-            # Process.Id is Int32; mismatched key types cause lookup failures)
-            $processLookup = @{}
-            foreach ($proc in (Get-Process -ErrorAction SilentlyContinue)) {
-                $pidKey = [int]$proc.Id
-                if (-not $processLookup.ContainsKey($pidKey)) {
-                    $processLookup[$pidKey] = $proc.ProcessName
-                }
-            }
-
-            # TCP connections
-            if ($QueryProtocol -contains 'TCP') {
-                $tcpParams = @{ ErrorAction = 'SilentlyContinue' }
-                if ($QueryState) {
-                    $tcpParams['State'] = $QueryState
-                }
-                $tcpConnections = Get-NetTCPConnection @tcpParams
-
-                foreach ($conn in $tcpConnections) {
-                    $ownerPid = [int]$conn.OwningProcess
-                    $procName = if ($processLookup.ContainsKey($ownerPid)) {
-                        $processLookup[$ownerPid]
-                    } else {
-                        'Unknown'
-                    }
-
-                    $obj = [PSCustomObject]@{
-                        Protocol      = 'TCP'
-                        LocalAddress  = $conn.LocalAddress
-                        LocalPort     = $conn.LocalPort
-                        RemoteAddress = $conn.RemoteAddress
-                        RemotePort    = $conn.RemotePort
-                        State         = [string]$conn.State
-                        ProcessId     = $conn.OwningProcess
-                        ProcessName   = $procName
-                    }
-                    $results.Add($obj)
-                }
-            }
-
-            # UDP endpoints
-            if ($QueryProtocol -contains 'UDP') {
-                $udpEndpoints = Get-NetUDPEndpoint -ErrorAction SilentlyContinue
-
-                foreach ($ep in $udpEndpoints) {
-                    $ownerPid = [int]$ep.OwningProcess
-                    $procName = if ($processLookup.ContainsKey($ownerPid)) {
-                        $processLookup[$ownerPid]
-                    } else {
-                        'Unknown'
-                    }
-
-                    $obj = [PSCustomObject]@{
-                        Protocol      = 'UDP'
-                        LocalAddress  = $ep.LocalAddress
-                        LocalPort     = $ep.LocalPort
-                        RemoteAddress = '*'
-                        RemotePort    = 0
-                        State         = 'Stateless'
-                        ProcessId     = $ep.OwningProcess
-                        ProcessName   = $procName
-                    }
-                    $results.Add($obj)
-                }
-            }
-
-            # Apply client-side filters
-            $filtered = $results
-
-            if ($QueryLocalAddress) {
-                $filtered = @($filtered | Where-Object { $_.LocalAddress -like $QueryLocalAddress })
-            }
-            if ($QueryLocalPort -gt 0) {
-                $filtered = @($filtered | Where-Object { $_.LocalPort -eq $QueryLocalPort })
-            }
-            if ($QueryRemoteAddress) {
-                $filtered = @($filtered | Where-Object { $_.RemoteAddress -like $QueryRemoteAddress })
-            }
-            if ($QueryRemotePort -gt 0) {
-                $filtered = @($filtered | Where-Object { $_.RemotePort -eq $QueryRemotePort })
-            }
-            if ($QueryProcessName) {
-                $filtered = @($filtered | Where-Object { $_.ProcessName -like $QueryProcessName })
-            }
-
-            $filtered
-        }
+        Write-Verbose "[$($MyInvocation.MyCommand)] Starting network statistics aggregation"
     }
 
     process {
-
         foreach ($targetComputer in $ComputerName) {
             try {
-                $isLocal = $localNames -contains $targetComputer
                 $timestamp = Get-Date -Format 'o'
 
-                Write-Verbose "[$($MyInvocation.MyCommand)] Querying '$targetComputer' (local: $isLocal)"
+                Write-Verbose "[$($MyInvocation.MyCommand)] Aggregating connections on '$targetComputer'"
 
-                $queryArgs = @(
-                    , $Protocol
-                    $(if ($State) {
-                            , $State
-                        } else {
-                            , $null
-                        })
-                    $(if ($PSBoundParameters.ContainsKey('LocalAddress')) {
-                            $LocalAddress
-                        } else {
-                            $null
-                        })
-                    $(if ($PSBoundParameters.ContainsKey('LocalPort')) {
-                            $LocalPort
-                        } else {
-                            0
-                        })
-                    $(if ($PSBoundParameters.ContainsKey('RemoteAddress')) {
-                            $RemoteAddress
-                        } else {
-                            $null
-                        })
-                    $(if ($PSBoundParameters.ContainsKey('RemotePort')) {
-                            $RemotePort
-                        } else {
-                            0
-                        })
-                    $(if ($PSBoundParameters.ContainsKey('ProcessName')) {
-                            $ProcessName
-                        } else {
-                            $null
-                        })
-                )
+                # Build splat for Get-NetworkConnection
+                $connParams = @{
+                    ComputerName = $targetComputer
+                    ErrorAction  = 'Stop'
+                }
+                if ($PSBoundParameters.ContainsKey('Credential'))  { $connParams['Credential']  = $Credential }
+                if ($PSBoundParameters.ContainsKey('Protocol'))    { $connParams['Protocol']    = $Protocol }
+                if ($PSBoundParameters.ContainsKey('State'))       { $connParams['State']       = $State }
+                if ($PSBoundParameters.ContainsKey('ProcessName')) { $connParams['ProcessName'] = $ProcessName }
 
-                if ($isLocal) {
-                    $rawResults = & $queryScriptBlock @queryArgs
-                } else {
-                    $invokeParams = @{
-                        ComputerName = $targetComputer
-                        ScriptBlock  = $queryScriptBlock
-                        ArgumentList = $queryArgs
-                        ErrorAction  = 'Stop'
-                    }
-                    if ($hasCredential) {
-                        $invokeParams['Credential'] = $Credential
-                    }
-                    $rawResults = Invoke-Command @invokeParams
+                $connections = @(Get-NetworkConnection @connParams)
+
+                if ($connections.Count -eq 0) {
+                    Write-Verbose "[$($MyInvocation.MyCommand)] No connections found on '$targetComputer'"
+                    continue
                 }
 
-                foreach ($entry in $rawResults) {
+                # Group by ProcessName + ProcessId
+                $grouped = $connections | Group-Object -Property ProcessName, ProcessId
+
+                foreach ($group in $grouped) {
+                    $items = $group.Group
+                    $firstItem = $items[0]
+
                     [PSCustomObject]@{
-                        PSTypeName    = 'PSWinOps.NetworkStatistic'
-                        ComputerName  = $targetComputer
-                        Protocol      = $entry.Protocol
-                        LocalAddress  = $entry.LocalAddress
-                        LocalPort     = $entry.LocalPort
-                        RemoteAddress = $entry.RemoteAddress
-                        RemotePort    = $entry.RemotePort
-                        State         = $entry.State
-                        ProcessId     = $entry.ProcessId
-                        ProcessName   = $entry.ProcessName
-                        Timestamp     = $timestamp
+                        PSTypeName       = 'PSWinOps.NetworkStatistic'
+                        ComputerName     = $targetComputer
+                        ProcessName      = $firstItem.ProcessName
+                        ProcessId        = $firstItem.ProcessId
+                        TcpEstablished   = @($items | Where-Object { $_.Protocol -eq 'TCP' -and $_.State -eq 'Established' }).Count
+                        TcpListening     = @($items | Where-Object { $_.Protocol -eq 'TCP' -and $_.State -eq 'Listen' }).Count
+                        TcpTimeWait      = @($items | Where-Object { $_.Protocol -eq 'TCP' -and $_.State -eq 'TimeWait' }).Count
+                        TcpCloseWait     = @($items | Where-Object { $_.Protocol -eq 'TCP' -and $_.State -eq 'CloseWait' }).Count
+                        TcpOther         = @($items | Where-Object { $_.Protocol -eq 'TCP' -and $_.State -notin @('Established', 'Listen', 'TimeWait', 'CloseWait') }).Count
+                        UdpEndpoints     = @($items | Where-Object { $_.Protocol -eq 'UDP' }).Count
+                        TotalConnections = $items.Count
+                        Timestamp        = $timestamp
                     }
                 }
             } catch {
@@ -319,6 +156,6 @@ function Get-NetworkStatistic {
     }
 
     end {
-        Write-Verbose "[$($MyInvocation.MyCommand)] Completed network statistics query"
+        Write-Verbose "[$($MyInvocation.MyCommand)] Completed network statistics aggregation"
     }
 }

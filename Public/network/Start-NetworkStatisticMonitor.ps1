@@ -7,12 +7,12 @@ function Start-NetworkStatisticMonitor {
 
         .DESCRIPTION
             Provides a live, auto-refreshing console view of TCP and UDP network connections.
-            Internally calls Get-NetworkStatistic at each refresh interval and displays the
+            Internally calls Get-NetworkConnection at each refresh interval and displays the
             results in a formatted table using Write-Host. Output goes to the console only,
             not the pipeline, to support the interactive monitoring experience.
 
             Press Ctrl+C to stop the monitor. All filtering parameters from
-            Get-NetworkStatistic are available (Protocol, State, LocalPort, etc.).
+            Get-NetworkConnection are available (Protocol, State, LocalPort, etc.).
 
         .PARAMETER ComputerName
             One or more computer names to monitor. Accepts pipeline input by value and
@@ -70,7 +70,7 @@ function Start-NetworkStatisticMonitor {
 
         .NOTES
             Author:        Franck SALLET
-            Version:       1.0.0
+            Version:       1.1.0
             Last Modified: 2026-03-23
             Requires:      PowerShell 5.1+ / Windows only
             Permissions:   No admin required for basic queries
@@ -140,7 +140,7 @@ function Start-NetworkStatisticMonitor {
         # Collect all computer names from pipeline before starting the loop
         $allComputers = [System.Collections.Generic.List[string]]::new()
 
-        # Build the splat for Get-NetworkStatistic (all filter params except ComputerName)
+        # Build the splat for Get-NetworkConnection (all filter params except ComputerName)
         $getStatParams = @{}
         if ($PSBoundParameters.ContainsKey('Credential'))    { $getStatParams['Credential']    = $Credential }
         if ($PSBoundParameters.ContainsKey('Protocol'))      { $getStatParams['Protocol']      = $Protocol }
@@ -164,7 +164,7 @@ function Start-NetworkStatisticMonitor {
 
         try {
             while ($true) {
-                $allResults = @(Get-NetworkStatistic -ComputerName $allComputers.ToArray() @getStatParams -ErrorAction SilentlyContinue)
+                $allResults = @(Get-NetworkConnection -ComputerName $allComputers.ToArray() @getStatParams -ErrorAction SilentlyContinue)
 
                 Clear-Host
                 $now = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'

@@ -80,6 +80,7 @@
         'Get-ComputerUptime',
         'Get-ListeningPort',
         'Get-NetworkAdapter',
+        'Get-NetworkConnection',
         'Get-NetworkRoute',
         'Get-NetworkStatistic',
         'Get-NTPConfiguration',

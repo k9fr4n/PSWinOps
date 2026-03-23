@@ -89,12 +89,12 @@ Describe 'Start-NetworkStatisticMonitor' {
         }
     }
 
-    Context 'Monitor loop - calls Get-NetworkStatistic and displays results' {
+    Context 'Monitor loop - calls Get-NetworkConnection and displays results' {
         BeforeAll {
-            Mock -ModuleName $script:ModuleName -CommandName 'Get-NetworkStatistic' -MockWith {
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-NetworkConnection' -MockWith {
                 return @(
                     [PSCustomObject]@{
-                        PSTypeName    = 'PSWinOps.NetworkStatistic'
+                        PSTypeName    = 'PSWinOps.NetworkConnection'
                         ComputerName  = $env:COMPUTERNAME
                         Protocol      = 'TCP'
                         LocalAddress  = '127.0.0.1'
@@ -121,9 +121,9 @@ Describe 'Start-NetworkStatisticMonitor' {
             $results | Should -BeNullOrEmpty
         }
 
-        It 'Should call Get-NetworkStatistic' {
+        It 'Should call Get-NetworkConnection' {
             Start-NetworkStatisticMonitor -Protocol TCP -ErrorAction SilentlyContinue 2>$null
-            Should -Invoke -CommandName 'Get-NetworkStatistic' -ModuleName $script:ModuleName -Times 1 -Exactly
+            Should -Invoke -CommandName 'Get-NetworkConnection' -ModuleName $script:ModuleName -Times 1 -Exactly
         }
 
         It 'Should call Clear-Host' {
@@ -141,10 +141,10 @@ Describe 'Start-NetworkStatisticMonitor' {
 
     Context 'Pipeline - collects all computers before starting loop' {
         BeforeAll {
-            Mock -ModuleName $script:ModuleName -CommandName 'Get-NetworkStatistic' -MockWith {
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-NetworkConnection' -MockWith {
                 return @(
                     [PSCustomObject]@{
-                        PSTypeName    = 'PSWinOps.NetworkStatistic'
+                        PSTypeName    = 'PSWinOps.NetworkConnection'
                         ComputerName  = 'REMOTE01'
                         Protocol      = 'TCP'
                         LocalAddress  = '10.0.0.5'
@@ -165,17 +165,17 @@ Describe 'Start-NetworkStatisticMonitor' {
             }
         }
 
-        It 'Should pass all piped computers to Get-NetworkStatistic' {
+        It 'Should pass all piped computers to Get-NetworkConnection' {
             'REMOTE01', 'REMOTE02' | Start-NetworkStatisticMonitor -Protocol TCP -ErrorAction SilentlyContinue 2>$null
-            Should -Invoke -CommandName 'Get-NetworkStatistic' -ModuleName $script:ModuleName -Times 1 -Exactly -ParameterFilter {
+            Should -Invoke -CommandName 'Get-NetworkConnection' -ModuleName $script:ModuleName -Times 1 -Exactly -ParameterFilter {
                 $ComputerName.Count -eq 2
             }
         }
     }
 
-    Context 'Filter parameters are forwarded to Get-NetworkStatistic' {
+    Context 'Filter parameters are forwarded to Get-NetworkConnection' {
         BeforeAll {
-            Mock -ModuleName $script:ModuleName -CommandName 'Get-NetworkStatistic' -MockWith {
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-NetworkConnection' -MockWith {
                 return @()
             }
             Mock -ModuleName $script:ModuleName -CommandName 'Clear-Host' -MockWith { }
@@ -185,23 +185,23 @@ Describe 'Start-NetworkStatisticMonitor' {
             }
         }
 
-        It 'Should forward Protocol filter to Get-NetworkStatistic' {
+        It 'Should forward Protocol filter to Get-NetworkConnection' {
             Start-NetworkStatisticMonitor -Protocol TCP -ErrorAction SilentlyContinue 2>$null
-            Should -Invoke -CommandName 'Get-NetworkStatistic' -ModuleName $script:ModuleName -ParameterFilter {
+            Should -Invoke -CommandName 'Get-NetworkConnection' -ModuleName $script:ModuleName -ParameterFilter {
                 $Protocol -contains 'TCP'
             }
         }
 
-        It 'Should forward State filter to Get-NetworkStatistic' {
+        It 'Should forward State filter to Get-NetworkConnection' {
             Start-NetworkStatisticMonitor -Protocol TCP -State Established -ErrorAction SilentlyContinue 2>$null
-            Should -Invoke -CommandName 'Get-NetworkStatistic' -ModuleName $script:ModuleName -ParameterFilter {
+            Should -Invoke -CommandName 'Get-NetworkConnection' -ModuleName $script:ModuleName -ParameterFilter {
                 $State -contains 'Established'
             }
         }
 
-        It 'Should forward ProcessName filter to Get-NetworkStatistic' {
+        It 'Should forward ProcessName filter to Get-NetworkConnection' {
             Start-NetworkStatisticMonitor -ProcessName 'svchost' -ErrorAction SilentlyContinue 2>$null
-            Should -Invoke -CommandName 'Get-NetworkStatistic' -ModuleName $script:ModuleName -ParameterFilter {
+            Should -Invoke -CommandName 'Get-NetworkConnection' -ModuleName $script:ModuleName -ParameterFilter {
                 $ProcessName -eq 'svchost'
             }
         }
@@ -209,7 +209,7 @@ Describe 'Start-NetworkStatisticMonitor' {
 
     Context 'Empty results - shows no-match message' {
         BeforeAll {
-            Mock -ModuleName $script:ModuleName -CommandName 'Get-NetworkStatistic' -MockWith {
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-NetworkConnection' -MockWith {
                 return @()
             }
             Mock -ModuleName $script:ModuleName -CommandName 'Clear-Host' -MockWith { }
