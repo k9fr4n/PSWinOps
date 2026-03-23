@@ -2,50 +2,64 @@
 
 function Test-WinRM {
     <#
-    .SYNOPSIS
-        Tests WinRM connectivity and configuration on remote computers.
-    .DESCRIPTION
-        Performs a comprehensive WinRM connectivity test on both HTTP (5985) and
-        HTTPS (5986) by default:
-        1. Tests TCP port reachability
-        2. Tests WSMan connection via Test-WSMan
-        3. Tests actual command execution via Invoke-Command
+        .SYNOPSIS
+            Tests WinRM connectivity and configuration on remote computers
 
-        Returns two rows per computer (HTTP + HTTPS), giving a complete picture
-        in a single call. Use -Protocol to test only one protocol.
-    .PARAMETER ComputerName
-        One or more computer names to test. Accepts pipeline input.
-    .PARAMETER Credential
-        Optional credential for authentication.
-    .PARAMETER Protocol
-        Protocol(s) to test. Default: both HTTP and HTTPS.
-        Valid values: HTTP, HTTPS.
-    .PARAMETER TimeoutMs
-        TCP port test timeout in milliseconds. Default: 3000.
-    .EXAMPLE
-        Test-WinRM -ComputerName 'SRV01'
+        .DESCRIPTION
+            Performs a comprehensive WinRM connectivity test on both HTTP (5985) and
+            HTTPS (5986) by default:
+            1. Tests TCP port reachability
+            2. Tests WSMan connection via Test-WSMan
+            3. Tests actual command execution via Invoke-Command
 
-        Tests WinRM on SRV01 over both HTTP (5985) and HTTPS (5986).
-    .EXAMPLE
-        Test-WinRM -ComputerName 'SRV01' -Protocol HTTP
+            Returns two rows per computer (HTTP + HTTPS), giving a complete picture
+            in a single call. Use -Protocol to test only one protocol.
 
-        Tests WinRM on SRV01 over HTTP only.
-    .EXAMPLE
-        Test-WinRM -ComputerName 'SRV01' -Credential (Get-Credential)
+        .PARAMETER ComputerName
+            One or more computer names to test. Accepts pipeline input.
 
-        Full test with credentials (both protocols).
-    .EXAMPLE
-        'SRV01', 'SRV02', 'SRV03' | Test-WinRM
+        .PARAMETER Credential
+            Optional credential for authentication.
 
-        Pipeline: tests WinRM on 3 servers (both protocols each).
-    .OUTPUTS
-        PSWinOps.WinRMTestResult
-    .NOTES
-        Author:        Franck SALLET
-        Version:       1.1.0
-        Last Modified: 2026-03-22
-        Requires:      PowerShell 5.1+ / Windows only
-        Permissions:   No admin required for testing, target must allow WinRM
+        .PARAMETER Protocol
+            Protocol(s) to test. Default: both HTTP and HTTPS.
+            Valid values: HTTP, HTTPS.
+
+        .PARAMETER TimeoutMs
+            TCP port test timeout in milliseconds. Default: 3000.
+
+        .EXAMPLE
+            Test-WinRM -ComputerName 'SRV01'
+
+            Tests WinRM on SRV01 over both HTTP (5985) and HTTPS (5986).
+
+        .EXAMPLE
+            Test-WinRM -ComputerName 'SRV01' -Protocol HTTP
+
+            Tests WinRM on SRV01 over HTTP only.
+
+        .EXAMPLE
+            Test-WinRM -ComputerName 'SRV01' -Credential (Get-Credential)
+
+            Full test with credentials (both protocols).
+
+        .EXAMPLE
+            'SRV01', 'SRV02', 'SRV03' | Test-WinRM
+
+            Pipeline: tests WinRM on 3 servers (both protocols each).
+
+        .OUTPUTS
+            PSWinOps.WinRMTestResult
+
+        .NOTES
+            Author:        Franck SALLET
+            Version:       1.1.0
+            Last Modified: 2026-03-22
+            Requires:      PowerShell 5.1+ / Windows only
+            Permissions:   No admin required for testing, target must allow WinRM
+
+        .LINK
+            https://github.com/k9fr4n/PSWinOps
     #>
     [CmdletBinding()]
     [OutputType('PSWinOps.WinRMTestResult')]

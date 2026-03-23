@@ -2,69 +2,72 @@
 
 function New-RandomPassword {
     <#
-.SYNOPSIS
-    Generate a cryptographically secure random password
+        .SYNOPSIS
+            Generate a cryptographically secure random password
 
-.DESCRIPTION
-    Generates a random password using RandomNumberGenerator with configurable
-    character class requirements. Ensures minimum counts for uppercase, lowercase,
-    numeric, and special characters are met by guaranteeing placement of required
-    characters followed by cryptographically secure shuffling.
+        .DESCRIPTION
+            Generates a random password using RandomNumberGenerator with configurable
+            character class requirements. Ensures minimum counts for uppercase, lowercase,
+            numeric, and special characters are met by guaranteeing placement of required
+            characters followed by cryptographically secure shuffling.
 
-.PARAMETER Length
-    Total length of the password. Must be at least 8 characters.
-    Default: 16
+        .PARAMETER Length
+            Total length of the password. Must be at least 8 characters.
+            Default: 16
 
-.PARAMETER UpperCount
-    Minimum number of uppercase letters (A-Z) required.
-    Default: 2
+        .PARAMETER UpperCount
+            Minimum number of uppercase letters (A-Z) required.
+            Default: 2
 
-.PARAMETER LowerCount
-    Minimum number of lowercase letters (a-z) required.
-    Default: 2
+        .PARAMETER LowerCount
+            Minimum number of lowercase letters (a-z) required.
+            Default: 2
 
-.PARAMETER NumericCount
-    Minimum number of digits (0-9) required.
-    Default: 2
+        .PARAMETER NumericCount
+            Minimum number of digits (0-9) required.
+            Default: 2
 
-.PARAMETER SpecialCount
-    Minimum number of special characters required.
-    Default: 2
-    Character set: @.+-=*!#$%&?
+        .PARAMETER SpecialCount
+            Minimum number of special characters required.
+            Default: 2
+            Character set: @.+-=*!#$%&?
 
-.EXAMPLE
-    New-RandomPassword
-    Generates a 16-character password with default constraints (2 upper, 2 lower, 2 numeric, 2 special).
+        .EXAMPLE
+            New-RandomPassword
+            Generates a 16-character password with default constraints (2 upper, 2 lower, 2 numeric, 2 special).
 
-.EXAMPLE
-    New-RandomPassword -Length 24 -UpperCount 4 -LowerCount 4 -NumericCount 4 -SpecialCount 4
-    Generates a 24-character password with higher complexity requirements.
+        .EXAMPLE
+            New-RandomPassword -Length 24 -UpperCount 4 -LowerCount 4 -NumericCount 4 -SpecialCount 4
+            Generates a 24-character password with higher complexity requirements.
 
-.EXAMPLE
-    1..5 | ForEach-Object { New-RandomPassword -Length 20 }
-    Generates 5 unique passwords with 20 characters each.
+        .EXAMPLE
+            1..5 | ForEach-Object { New-RandomPassword -Length 20 }
+            Generates 5 unique passwords with 20 characters each.
 
-.OUTPUTS
-System.String
-    A randomly generated password string.
+        .OUTPUTS
+            System.String
+            A randomly generated password string.
 
-.NOTES
-    Author:        Franck SALLET
-    Version:       1.1.0
-    Last Modified: 2026-03-11
-    Requires:      PowerShell 5.1+
-    Permissions:   None required
-    Module:        PSWinOps
+        .NOTES
+            Author:        Franck SALLET
+            Version:       1.1.0
+            Last Modified: 2026-03-11
+            Requires:      PowerShell 5.1+
+            Permissions:   None required
+            Module:        PSWinOps
 
-    Uses System.Security.Cryptography.RandomNumberGenerator for
-    cryptographically secure random number generation. Uses the factory
-    method RandomNumberGenerator.Create() which is compatible with both
-    .NET Framework (PS 5.1) and .NET 6+ (PS 7.2+) without deprecation
-    warnings. Guarantees constraint
-    satisfaction by placing required characters first, then shuffling.
+            Uses System.Security.Cryptography.RandomNumberGenerator for
+            cryptographically secure random number generation. Uses the factory
+            method RandomNumberGenerator.Create() which is compatible with both
+            .NET Framework (PS 5.1) and .NET 6+ (PS 7.2+) without deprecation
+            warnings. Guarantees constraint
+            satisfaction by placing required characters first, then shuffling.
 
-    .LINK
-    https://docs.microsoft.com/en-us/dotnet/api/system.security.cryptography.rngcryptoserviceprovider
+        .LINK
+            https://github.com/k9fr4n/PSWinOps
+
+        .LINK
+            https://learn.microsoft.com/en-us/dotnet/api/system.security.cryptography.rngcryptoserviceprovider
     #>
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '',
         Justification = 'New-RandomPassword generates a string in memory, it does not change system state')]

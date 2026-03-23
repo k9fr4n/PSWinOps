@@ -2,56 +2,72 @@
 
 function Remove-NetworkRoute {
     <#
-    .SYNOPSIS
-        Removes an IP route from the routing table on one or more Windows computers.
-    .DESCRIPTION
-        Deletes a route from the routing table using the Remove-NetRoute cmdlet.
-        The route is identified by its destination prefix and optionally by interface
-        and next hop.
+        .SYNOPSIS
+            Removes an IP route from the routing table on one or more Windows computers
 
-        Requires Administrator privileges.
+        .DESCRIPTION
+            Deletes a route from the routing table using the Remove-NetRoute cmdlet.
+            The route is identified by its destination prefix and optionally by interface
+            and next hop.
 
-        For remote computers, the operation is executed via Invoke-Command, which
-        requires WinRM / WS-Man enabled on the target.
-    .PARAMETER ComputerName
-        One or more computer names to configure. Accepts pipeline input by value and
-        by property name. Defaults to the local machine ($env:COMPUTERNAME).
-    .PARAMETER Credential
-        Optional PSCredential for authenticating to remote machines. Ignored for
-        local machine operations.
-    .PARAMETER DestinationPrefix
-        The destination prefix of the route to remove (e.g. '10.0.0.0/8').
-    .PARAMETER InterfaceIndex
-        The interface index to narrow which route to remove.
-    .PARAMETER InterfaceAlias
-        The interface alias to narrow which route to remove. Alternative to InterfaceIndex.
-    .PARAMETER NextHop
-        Optional next hop address to narrow route selection when multiple routes
-        share the same destination prefix.
-    .EXAMPLE
-        Remove-NetworkRoute -DestinationPrefix '10.10.0.0/16' -InterfaceAlias 'Ethernet'
+            Requires Administrator privileges.
 
-        Removes the route to 10.10.0.0/16 on the Ethernet interface.
-    .EXAMPLE
-        Remove-NetworkRoute -DestinationPrefix '10.10.0.0/16' -InterfaceAlias 'Ethernet' -NextHop '192.168.1.1'
+            For remote computers, the operation is executed via Invoke-Command, which
+            requires WinRM / WS-Man enabled on the target.
 
-        Removes a specific route identified by destination, interface and next hop.
-    .EXAMPLE
-        'SRV01', 'SRV02' | Remove-NetworkRoute -DestinationPrefix '10.10.0.0/16' -InterfaceAlias 'Ethernet'
+        .PARAMETER ComputerName
+            One or more computer names to configure. Accepts pipeline input by value and
+            by property name. Defaults to the local machine ($env:COMPUTERNAME).
 
-        Removes the route on two remote servers via pipeline.
-    .OUTPUTS
-    None
-        This function does not produce pipeline output.
-    .NOTES
-        Author:        Franck SALLET
-        Version:       1.0.0
-        Last Modified: 2026-03-20
-        Requires:      PowerShell 5.1+ / Windows only
-        Permissions:   Administrator privileges required
-        Remote:        Requires WinRM / WS-Man enabled on target machines
-    .LINK
-    https://docs.microsoft.com/en-us/powershell/module/nettcpip/remove-netroute
+        .PARAMETER Credential
+            Optional PSCredential for authenticating to remote machines. Ignored for
+            local machine operations.
+
+        .PARAMETER DestinationPrefix
+            The destination prefix of the route to remove (e.g. '10.0.0.0/8').
+
+        .PARAMETER InterfaceIndex
+            The interface index to narrow which route to remove.
+
+        .PARAMETER InterfaceAlias
+            The interface alias to narrow which route to remove. Alternative to InterfaceIndex.
+
+        .PARAMETER NextHop
+            Optional next hop address to narrow route selection when multiple routes
+            share the same destination prefix.
+
+        .EXAMPLE
+            Remove-NetworkRoute -DestinationPrefix '10.10.0.0/16' -InterfaceAlias 'Ethernet'
+
+            Removes the route to 10.10.0.0/16 on the Ethernet interface.
+
+        .EXAMPLE
+            Remove-NetworkRoute -DestinationPrefix '10.10.0.0/16' -InterfaceAlias 'Ethernet' -NextHop '192.168.1.1'
+
+            Removes a specific route identified by destination, interface and next hop.
+
+        .EXAMPLE
+            'SRV01', 'SRV02' | Remove-NetworkRoute -DestinationPrefix '10.10.0.0/16' -InterfaceAlias 'Ethernet'
+
+            Removes the route on two remote servers via pipeline.
+
+        .OUTPUTS
+            None
+            This function does not produce pipeline output.
+
+        .NOTES
+            Author:        Franck SALLET
+            Version:       1.0.0
+            Last Modified: 2026-03-20
+            Requires:      PowerShell 5.1+ / Windows only
+            Permissions:   Administrator privileges required
+            Remote:        Requires WinRM / WS-Man enabled on target machines
+
+        .LINK
+            https://github.com/k9fr4n/PSWinOps
+
+        .LINK
+            https://learn.microsoft.com/en-us/powershell/module/nettcpip/remove-netroute
     #>
     [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
     [OutputType([void])]

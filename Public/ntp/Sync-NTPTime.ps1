@@ -2,71 +2,74 @@
 
 function Sync-NTPTime {
     <#
-    .SYNOPSIS
-        Forces NTP time resynchronization on Windows machines
+        .SYNOPSIS
+            Forces NTP time resynchronization on Windows machines
 
-    .DESCRIPTION
-        Forces a resynchronization of the Windows Time Service (w32tm) on one or more
-        local or remote machines. Optionally restarts the Windows Time service before
-        resyncing to ensure a clean state. Uses the w32tm exit code (locale-agnostic)
-        to determine success or failure per machine.
+        .DESCRIPTION
+            Forces a resynchronization of the Windows Time Service (w32tm) on one or more
+            local or remote machines. Optionally restarts the Windows Time service before
+            resyncing to ensure a clean state. Uses the w32tm exit code (locale-agnostic)
+            to determine success or failure per machine.
 
-        Uses direct w32tm calls for local execution (mockable in Pester) and
-        Invoke-Command for remote targets, matching the pattern used by all NTP functions. Each machine is processed
-        independently with per-machine error isolation -- a failure on one target does
-        not prevent processing of subsequent targets.
+            Uses direct w32tm calls for local execution (mockable in Pester) and
+            Invoke-Command for remote targets, matching the pattern used by all NTP functions. Each machine is processed
+            independently with per-machine error isolation -- a failure on one target does
+            not prevent processing of subsequent targets.
 
-        Supports -WhatIf and -Confirm via SupportsShouldProcess. Since ConfirmImpact is
-        Medium and the default ConfirmPreference is High, the function does not prompt by
-        default. Pass -Confirm to force a prompt, or -Confirm:$false to suppress it
-        explicitly in automation contexts.
+            Supports -WhatIf and -Confirm via SupportsShouldProcess. Since ConfirmImpact is
+            Medium and the default ConfirmPreference is High, the function does not prompt by
+            default. Pass -Confirm to force a prompt, or -Confirm:$false to suppress it
+            explicitly in automation contexts.
 
-    .PARAMETER ComputerName
-        One or more computer names to resynchronize. Accepts pipeline input.
-        Defaults to the local machine ($env:COMPUTERNAME). Each value must be
-        a non-empty string.
+        .PARAMETER ComputerName
+            One or more computer names to resynchronize. Accepts pipeline input.
+            Defaults to the local machine ($env:COMPUTERNAME). Each value must be
+            a non-empty string.
 
-    .PARAMETER RestartService
-        When specified, restarts the Windows Time service (w32time) on each target
-        machine before running w32tm /resync. This can help recover from a stale
-        service state. The restart action also goes through ShouldProcess confirmation.
+        .PARAMETER RestartService
+            When specified, restarts the Windows Time service (w32time) on each target
+            machine before running w32tm /resync. This can help recover from a stale
+            service state. The restart action also goes through ShouldProcess confirmation.
 
-    .EXAMPLE
-        Sync-NTPTime
+        .EXAMPLE
+            Sync-NTPTime
 
-        Forces an NTP resync on the local machine using default parameters.
+            Forces an NTP resync on the local machine using default parameters.
 
-    .EXAMPLE
-        Sync-NTPTime -ComputerName 'SRV-DC01'
+        .EXAMPLE
+            Sync-NTPTime -ComputerName 'SRV-DC01'
 
-        Forces an NTP resync on a single remote machine.
+            Forces an NTP resync on a single remote machine.
 
-    .EXAMPLE
-        Sync-NTPTime -ComputerName 'SRV-DC01', 'SRV-DC02' -RestartService -Verbose
+        .EXAMPLE
+            Sync-NTPTime -ComputerName 'SRV-DC01', 'SRV-DC02' -RestartService -Verbose
 
-        Restarts the w32time service then forces an NTP resync on two remote machines,
-        with verbose logging enabled.
+            Restarts the w32time service then forces an NTP resync on two remote machines,
+            with verbose logging enabled.
 
-    .EXAMPLE
-        Get-Content -Path 'C:\Admin\servers.txt' | Sync-NTPTime -RestartService
+        .EXAMPLE
+            Get-Content -Path 'C:\Admin\servers.txt' | Sync-NTPTime -RestartService
 
-        Reads a list of server names from a file and pipelines them into Sync-NTPTime,
-        restarting the w32time service on each before resyncing.
+            Reads a list of server names from a file and pipelines them into Sync-NTPTime,
+            restarting the w32time service on each before resyncing.
 
-    .OUTPUTS
-    PSWinOps.NtpResyncResult
-        Resynchronization result with status and any error details.
+        .OUTPUTS
+            PSWinOps.NtpResyncResult
+            Resynchronization result with status and any error details.
 
-    .NOTES
-        Author: Franck SALLET
-        Version: 1.1.0
-        Last Modified: 2026-03-20
-        Requires: PowerShell 5.1+ / Windows only
-        Permissions: Requires admin rights (local and remote) to restart services
-                     and run w32tm /resync. Remote targets require PSRemoting enabled.
-    
-    .LINK
-    https://docs.microsoft.com/en-us/windows-server/networking/windows-time-service/windows-time-service-tools-and-settings
+        .NOTES
+            Author: Franck SALLET
+            Version: 1.1.0
+            Last Modified: 2026-03-20
+            Requires: PowerShell 5.1+ / Windows only
+            Permissions: Requires admin rights (local and remote) to restart services
+            and run w32tm /resync. Remote targets require PSRemoting enabled.
+
+        .LINK
+            https://github.com/k9fr4n/PSWinOps
+
+        .LINK
+            https://learn.microsoft.com/en-us/windows-server/networking/windows-time-service/windows-time-service-tools-and-settings
     #>
     [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
     [OutputType('PSWinOps.NtpResyncResult')]

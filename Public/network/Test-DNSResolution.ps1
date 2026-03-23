@@ -2,49 +2,63 @@
 
 function Test-DNSResolution {
     <#
-    .SYNOPSIS
-        Tests DNS name resolution across one or more DNS servers.
-    .DESCRIPTION
-        Resolves a hostname against multiple DNS servers and compares the results.
-        Useful for diagnosing DNS propagation issues, split-horizon DNS, or
-        identifying inconsistent resolution between internal and external DNS.
+        .SYNOPSIS
+            Tests DNS name resolution across one or more DNS servers
 
-        Uses Resolve-DnsName cmdlet under the hood.
-    .PARAMETER Name
-        One or more DNS names to resolve. Accepts pipeline input.
-    .PARAMETER DnsServer
-        One or more DNS server IP addresses or hostnames to query.
-        If not specified, uses the system default DNS resolver.
-    .PARAMETER Type
-        DNS record type to query. Default: A.
-        Valid values: A, AAAA, CNAME, MX, NS, PTR, SOA, SRV, TXT.
-    .EXAMPLE
-        Test-DNSResolution 'srv-app01.corp.local'
+        .DESCRIPTION
+            Resolves a hostname against multiple DNS servers and compares the results.
+            Useful for diagnosing DNS propagation issues, split-horizon DNS, or
+            identifying inconsistent resolution between internal and external DNS.
 
-        Resolves the name using the system default DNS server (positional).
-    .EXAMPLE
-        Test-DNSResolution -Name 'google.com' -DnsServer '8.8.8.8', '1.1.1.1'
+            Uses Resolve-DnsName cmdlet under the hood.
 
-        Compares resolution of google.com across Google DNS and Cloudflare.
-    .EXAMPLE
-        Test-DNSResolution -Name 'srv01.corp.local' -DnsServer '10.0.0.1', '10.0.0.2', '8.8.8.8'
+        .PARAMETER Name
+            One or more DNS names to resolve. Accepts pipeline input.
 
-        Checks if internal name resolves consistently across internal and external DNS.
-    .EXAMPLE
-        'srv01', 'srv02', 'srv03' | Test-DNSResolution -DnsServer '10.0.0.1'
+        .PARAMETER DnsServer
+            One or more DNS server IP addresses or hostnames to query.
+            If not specified, uses the system default DNS resolver.
 
-        Resolves multiple names via pipeline against a specific DNS server.
-    .OUTPUTS
-        PSWinOps.DnsResolution
-    .NOTES
-        Author:        Franck SALLET
-        Version:       1.1.0
-        Last Modified: 2026-03-22
-        Requires:      PowerShell 5.1+ / Windows only
-        Requires:      DnsClient module (built-in on Windows 8+/Server 2012+)
-        Permissions:   No admin required
-    .LINK
-        https://docs.microsoft.com/en-us/powershell/module/dnsclient/resolve-dnsname
+        .PARAMETER Type
+            DNS record type to query. Default: A.
+            Valid values: A, AAAA, CNAME, MX, NS, PTR, SOA, SRV, TXT.
+
+        .EXAMPLE
+            Test-DNSResolution 'srv-app01.corp.local'
+
+            Resolves the name using the system default DNS server (positional).
+
+        .EXAMPLE
+            Test-DNSResolution -Name 'google.com' -DnsServer '8.8.8.8', '1.1.1.1'
+
+            Compares resolution of google.com across Google DNS and Cloudflare.
+
+        .EXAMPLE
+            Test-DNSResolution -Name 'srv01.corp.local' -DnsServer '10.0.0.1', '10.0.0.2', '8.8.8.8'
+
+            Checks if internal name resolves consistently across internal and external DNS.
+
+        .EXAMPLE
+            'srv01', 'srv02', 'srv03' | Test-DNSResolution -DnsServer '10.0.0.1'
+
+            Resolves multiple names via pipeline against a specific DNS server.
+
+        .OUTPUTS
+            PSWinOps.DnsResolution
+
+        .NOTES
+            Author:        Franck SALLET
+            Version:       1.1.0
+            Last Modified: 2026-03-22
+            Requires:      PowerShell 5.1+ / Windows only
+            Requires:      DnsClient module (built-in on Windows 8+/Server 2012+)
+            Permissions:   No admin required
+
+        .LINK
+            https://github.com/k9fr4n/PSWinOps
+
+        .LINK
+            https://learn.microsoft.com/en-us/powershell/module/dnsclient/resolve-dnsname
     #>
     [CmdletBinding()]
     [OutputType('PSWinOps.DnsResolution')]

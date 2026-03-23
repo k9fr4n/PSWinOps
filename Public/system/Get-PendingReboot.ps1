@@ -1,47 +1,57 @@
 ﻿#Requires -Version 5.1
 function Get-PendingReboot {
     <#
-    .SYNOPSIS
-        Checks pending reboot status from multiple Windows sources
-    .DESCRIPTION
-        Queries multiple system sources to determine if a Windows machine has a pending
-        reboot. Sources include Component Based Servicing, Windows Update, pending file
-        rename operations, pending computer rename, and SCCM client SDK.
-    .PARAMETER ComputerName
-        One or more computer names to check. Defaults to the local machine name.
-        Accepts pipeline input by value and by property name.
-    .PARAMETER Credential
-        Optional PSCredential object for authenticating to remote machines.
-        Not used for local machine checks.
-    .EXAMPLE
-        Get-PendingReboot
+        .SYNOPSIS
+            Checks pending reboot status from multiple Windows sources
 
-        Checks the local machine for any pending reboot indicators.
-    .EXAMPLE
-        Get-PendingReboot -ComputerName 'SERVER01'
+        .DESCRIPTION
+            Queries multiple system sources to determine if a Windows machine has a pending
+            reboot. Sources include Component Based Servicing, Windows Update, pending file
+            rename operations, pending computer rename, and SCCM client SDK.
 
-        Checks a single remote machine for pending reboot status.
-    .EXAMPLE
-        'SERVER01', 'SERVER02' | Get-PendingReboot -Credential (Get-Credential)
+        .PARAMETER ComputerName
+            One or more computer names to check. Defaults to the local machine name.
+            Accepts pipeline input by value and by property name.
 
-        Checks multiple remote machines via pipeline input with alternate credentials.
-    .OUTPUTS
-    PSWinOps.PendingReboot
-        Pending reboot status from multiple detection sources.
+        .PARAMETER Credential
+            Optional PSCredential object for authenticating to remote machines.
+            Not used for local machine checks.
 
-    .NOTES
-        Author: Franck SALLET
-        Version: 1.0.0
-        Last Modified: 2026-03-18
-        Requires: PowerShell 5.1+ / Windows only
-        Permissions: Some checks may require administrative privileges.
+        .EXAMPLE
+            Get-PendingReboot
+
+            Checks the local machine for any pending reboot indicators.
+
+        .EXAMPLE
+            Get-PendingReboot -ComputerName 'SERVER01'
+
+            Checks a single remote machine for pending reboot status.
+
+        .EXAMPLE
+            'SERVER01', 'SERVER02' | Get-PendingReboot -Credential (Get-Credential)
+
+            Checks multiple remote machines via pipeline input with alternate credentials.
+
+        .OUTPUTS
+            PSWinOps.PendingReboot
+            Pending reboot status from multiple detection sources.
+
+        .NOTES
+            Author: Franck SALLET
+            Version: 1.0.0
+            Last Modified: 2026-03-18
+            Requires: PowerShell 5.1+ / Windows only
+            Permissions: Some checks may require administrative privileges.
             Remote checks require WinRM to be enabled on target machines.
             SCCM checks require the ConfigMgr client to be installed.
             Local computer name detection covers $env:COMPUTERNAME, 'localhost', and '.'.
             FQDN or IP of the local machine will be treated as a remote target.
-    
-    .LINK
-    https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-movefileexw
+
+        .LINK
+            https://github.com/k9fr4n/PSWinOps
+
+        .LINK
+            https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-movefileexw
     #>
     [CmdletBinding()]
     [OutputType('PSWinOps.PendingReboot')]

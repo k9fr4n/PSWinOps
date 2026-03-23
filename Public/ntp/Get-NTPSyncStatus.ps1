@@ -2,49 +2,59 @@
 
 function Get-NTPSyncStatus {
     <#
-    .SYNOPSIS
-        Retrieves NTP synchronization status on Windows machines
-    .DESCRIPTION
-        Queries the Windows Time Service (w32tm) to retrieve NTP
-        synchronization details on one or more machines. Parses the output
-        of 'w32tm /query /status' to extract source, stratum, phase offset,
-        last sync time, leap indicator, and poll interval.
+        .SYNOPSIS
+            Retrieves NTP synchronization status on Windows machines
 
-        Supports both English and French locale w32tm output via locale-agnostic
-        regex patterns. Uses direct w32tm calls for local queries and Invoke-Command for remote
-        execution, avoiding unnecessary serialization overhead on the local machine.
-    .PARAMETER ComputerName
-        One or more computer names to query. Accepts pipeline input by value and
-        by property name. Defaults to the local machine ($env:COMPUTERNAME).
-    .PARAMETER MaxOffsetMs
-        Maximum acceptable time offset in milliseconds. If the absolute parsed
-        offset exceeds this value, IsSynced is set to $false. Must be at least 1.
-        Defaults to 1000.
-    .EXAMPLE
-        Get-NTPSyncStatus
+        .DESCRIPTION
+            Queries the Windows Time Service (w32tm) to retrieve NTP
+            synchronization details on one or more machines. Parses the output
+            of 'w32tm /query /status' to extract source, stratum, phase offset,
+            last sync time, leap indicator, and poll interval.
 
-        Retrieves NTP sync status on the local machine with the default 1000ms threshold.
-    .EXAMPLE
-        Get-NTPSyncStatus -ComputerName 'DC01' -MaxOffsetMs 500
+            Supports both English and French locale w32tm output via locale-agnostic
+            regex patterns. Uses direct w32tm calls for local queries and Invoke-Command for remote
+            execution, avoiding unnecessary serialization overhead on the local machine.
 
-        Retrieves NTP sync status on remote server DC01 with a 500ms offset threshold.
-    .EXAMPLE
-        'DC01', 'DC02', 'WEB01' | Get-NTPSyncStatus -MaxOffsetMs 2000
+        .PARAMETER ComputerName
+            One or more computer names to query. Accepts pipeline input by value and
+            by property name. Defaults to the local machine ($env:COMPUTERNAME).
 
-        Pipeline example: retrieves NTP sync status on multiple machines with a 2-second threshold.
-    .OUTPUTS
-    PSWinOps.NtpSyncResult
-        NTP synchronization status with offset and compliance flag.
+        .PARAMETER MaxOffsetMs
+            Maximum acceptable time offset in milliseconds. If the absolute parsed
+            offset exceeds this value, IsSynced is set to $false. Must be at least 1.
+            Defaults to 1000.
 
-    .NOTES
-        Author:        Franck SALLET
-        Version:       2.1.0
-        Last Modified: 2026-03-20
-        Requires:      PowerShell 5.1+ / Windows only
-        Permissions:   Admin rights required for remote queries (WinRM access)
-    
-    .LINK
-    https://docs.microsoft.com/en-us/windows-server/networking/windows-time-service/windows-time-service-tools-and-settings
+        .EXAMPLE
+            Get-NTPSyncStatus
+
+            Retrieves NTP sync status on the local machine with the default 1000ms threshold.
+
+        .EXAMPLE
+            Get-NTPSyncStatus -ComputerName 'DC01' -MaxOffsetMs 500
+
+            Retrieves NTP sync status on remote server DC01 with a 500ms offset threshold.
+
+        .EXAMPLE
+            'DC01', 'DC02', 'WEB01' | Get-NTPSyncStatus -MaxOffsetMs 2000
+
+            Pipeline example: retrieves NTP sync status on multiple machines with a 2-second threshold.
+
+        .OUTPUTS
+            PSWinOps.NtpSyncResult
+            NTP synchronization status with offset and compliance flag.
+
+        .NOTES
+            Author:        Franck SALLET
+            Version:       2.1.0
+            Last Modified: 2026-03-20
+            Requires:      PowerShell 5.1+ / Windows only
+            Permissions:   Admin rights required for remote queries (WinRM access)
+
+        .LINK
+            https://github.com/k9fr4n/PSWinOps
+
+        .LINK
+            https://learn.microsoft.com/en-us/windows-server/networking/windows-time-service/windows-time-service-tools-and-settings
     #>
     [CmdletBinding()]
     [OutputType('PSWinOps.NtpSyncResult')]

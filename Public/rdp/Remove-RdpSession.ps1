@@ -2,71 +2,74 @@
 
 function Remove-RdpSession {
     <#
-.SYNOPSIS
-    Logs off (removes) an RDP session on local or remote computers
+        .SYNOPSIS
+            Logs off (removes) an RDP session on local or remote computers
 
-.DESCRIPTION
-    Forces a logoff of specified RDP sessions by session ID on one or more computers
-    using logoff.exe. This terminates the session completely and closes all
-    applications. Unsaved work will be lost. Use Disconnect-RdpSession for a
-    graceful disconnect without logoff.
+        .DESCRIPTION
+            Forces a logoff of specified RDP sessions by session ID on one or more computers
+            using logoff.exe. This terminates the session completely and closes all
+            applications. Unsaved work will be lost. Use Disconnect-RdpSession for a
+            graceful disconnect without logoff.
 
-    Local machines are targeted directly via logoff.exe with no WinRM dependency.
-    Remote machines are targeted via Invoke-Command (WinRM), which executes
-    logoff.exe in the remote session. When -Credential is provided, it is
-    forwarded to Invoke-Command for authentication.
+            Local machines are targeted directly via logoff.exe with no WinRM dependency.
+            Remote machines are targeted via Invoke-Command (WinRM), which executes
+            logoff.exe in the remote session. When -Credential is provided, it is
+            forwarded to Invoke-Command for authentication.
 
-    Supports ShouldProcess for -WhatIf and -Confirm operations.
+            Supports ShouldProcess for -WhatIf and -Confirm operations.
 
-.PARAMETER ComputerName
-    One or more computer names where sessions should be removed.
-    Defaults to the local machine. Supports pipeline input by property name.
+        .PARAMETER ComputerName
+            One or more computer names where sessions should be removed.
+            Defaults to the local machine. Supports pipeline input by property name.
 
-.PARAMETER SessionID
-    The session ID(s) to remove. Can be retrieved using Get-RdpSession.
-    Supports pipeline input by value and by property name.
+        .PARAMETER SessionID
+            The session ID(s) to remove. Can be retrieved using Get-RdpSession.
+            Supports pipeline input by value and by property name.
 
-.PARAMETER Credential
-    Credential to use when connecting to remote computers via WinRM.
-    If not specified, uses the current user's credentials. Not used for
-    local session logoff.
+        .PARAMETER Credential
+            Credential to use when connecting to remote computers via WinRM.
+            If not specified, uses the current user's credentials. Not used for
+            local session logoff.
 
-.PARAMETER Force
-    Bypass confirmation prompts. Use with caution as this will forcefully
-    terminate sessions and may result in data loss.
+        .PARAMETER Force
+            Bypass confirmation prompts. Use with caution as this will forcefully
+            terminate sessions and may result in data loss.
 
-.EXAMPLE
-    Remove-RdpSession -SessionID 2
-    Logs off session ID 2 on the local computer after confirmation.
+        .EXAMPLE
+            Remove-RdpSession -SessionID 2
+            Logs off session ID 2 on the local computer after confirmation.
 
-.EXAMPLE
-    Get-RdpSession -ComputerName 'SRV01' | Where-Object { $_.IdleTime -gt (New-TimeSpan -Days 1) } | Remove-RdpSession -Force
-    Forcefully removes all sessions idle for more than 1 day on SRV01 without confirmation.
+        .EXAMPLE
+            Get-RdpSession -ComputerName 'SRV01' | Where-Object { $_.IdleTime -gt (New-TimeSpan -Days 1) } | Remove-RdpSession -Force
+            Forcefully removes all sessions idle for more than 1 day on SRV01 without confirmation.
 
-.EXAMPLE
-    Remove-RdpSession -ComputerName 'WEB01' -SessionID 3 -WhatIf
-    Shows what would happen if session 3 were removed from WEB01.
+        .EXAMPLE
+            Remove-RdpSession -ComputerName 'WEB01' -SessionID 3 -WhatIf
+            Shows what would happen if session 3 were removed from WEB01.
 
-.EXAMPLE
-    'APP01' | Get-RdpSession | Where-Object { $_.UserName -eq 'DOMAIN\olduser' } | Remove-RdpSession -Credential $cred
-    Removes all sessions for a specific user on APP01 using provided credentials.
+        .EXAMPLE
+            'APP01' | Get-RdpSession | Where-Object { $_.UserName -eq 'DOMAIN\olduser' } | Remove-RdpSession -Credential $cred
+            Removes all sessions for a specific user on APP01 using provided credentials.
 
-.OUTPUTS
-PSWinOps.RdpSessionAction
-    Logoff action result with session details and status.
+        .OUTPUTS
+            PSWinOps.RdpSessionAction
+            Logoff action result with session details and status.
 
-.NOTES
-    Author:        Franck SALLET
-    Version:       2.0.0
-    Last Modified: 2026-03-20
-    Requires:      PowerShell 5.1+, logoff.exe (built-in on all Windows editions)
-    Permissions:   Local Administrator on target machines
-                   WinRM access required when using the -Credential parameter
-    WARNING:       This operation terminates sessions forcefully and may cause data loss
+        .NOTES
+            Author:        Franck SALLET
+            Version:       2.0.0
+            Last Modified: 2026-03-20
+            Requires:      PowerShell 5.1+, logoff.exe (built-in on all Windows editions)
+            Permissions:   Local Administrator on target machines
+            WinRM access required when using the -Credential parameter
+            WARNING:       This operation terminates sessions forcefully and may cause data loss
 
-.LINK
-    https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/logoff
-#>
+        .LINK
+            https://github.com/k9fr4n/PSWinOps
+
+        .LINK
+            https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/logoff
+    #>
     [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
     [OutputType('PSWinOps.RdpSessionAction')]
     param(

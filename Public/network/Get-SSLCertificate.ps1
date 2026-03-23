@@ -2,50 +2,64 @@
 
 function Get-SSLCertificate {
     <#
-    .SYNOPSIS
-        Retrieves SSL/TLS certificate information from remote endpoints.
-    .DESCRIPTION
-        Connects to one or more remote hosts using System.Net.Security.SslStream
-        and retrieves the server certificate. Returns structured objects with
-        subject, issuer, validity dates, days remaining, SAN entries, and
-        thumbprint.
+        .SYNOPSIS
+            Retrieves SSL/TLS certificate information from remote endpoints
 
-        Ideal for proactive certificate expiry monitoring.
-    .PARAMETER Uri
-        One or more hostnames, IP addresses, or URIs to check.
-        Accepts pipeline input. If a full URI is provided (https://host),
-        the hostname and port are extracted automatically.
-    .PARAMETER Port
-        TCP port to connect to. Default: 443.
-    .PARAMETER TimeoutMs
-        Connection timeout in milliseconds. Default: 5000. Valid range: 1000-30000.
-    .PARAMETER AcceptInvalidCertificates
-        Accept self-signed or untrusted certificates for inspection.
-        Default: $true (inspect all certs regardless of trust).
-    .EXAMPLE
-        Get-SSLCertificate -Uri 'google.com'
+        .DESCRIPTION
+            Connects to one or more remote hosts using System.Net.Security.SslStream
+            and retrieves the server certificate. Returns structured objects with
+            subject, issuer, validity dates, days remaining, SAN entries, and
+            thumbprint.
 
-        Retrieves the SSL certificate from google.com:443.
-    .EXAMPLE
-        Get-SSLCertificate -Uri 'mail.corp.local', 'intranet.corp.local' -Port 443
+            Ideal for proactive certificate expiry monitoring.
 
-        Checks certificates on two internal hosts.
-    .EXAMPLE
-        Get-SSLCertificate -Uri 'myserver' -Port 8443
+        .PARAMETER Uri
+            One or more hostnames, IP addresses, or URIs to check.
+            Accepts pipeline input. If a full URI is provided (https://host),
+            the hostname and port are extracted automatically.
 
-        Checks a certificate on a non-standard HTTPS port.
-    .EXAMPLE
-        Get-Content servers.txt | Get-SSLCertificate | Where-Object { $_.DaysRemaining -lt 30 }
+        .PARAMETER Port
+            TCP port to connect to. Default: 443.
 
-        Pipeline: find certificates expiring within 30 days.
-    .OUTPUTS
-    PSWinOps.SSLCertificate
-    .NOTES
-        Author:        Franck SALLET
-        Version:       1.0.0
-        Last Modified: 2026-03-21
-        Requires:      PowerShell 5.1+ / Windows only
-        Permissions:   No admin required
+        .PARAMETER TimeoutMs
+            Connection timeout in milliseconds. Default: 5000. Valid range: 1000-30000.
+
+        .PARAMETER AcceptInvalidCertificates
+            Accept self-signed or untrusted certificates for inspection.
+            Default: $true (inspect all certs regardless of trust).
+
+        .EXAMPLE
+            Get-SSLCertificate -Uri 'google.com'
+
+            Retrieves the SSL certificate from google.com:443.
+
+        .EXAMPLE
+            Get-SSLCertificate -Uri 'mail.corp.local', 'intranet.corp.local' -Port 443
+
+            Checks certificates on two internal hosts.
+
+        .EXAMPLE
+            Get-SSLCertificate -Uri 'myserver' -Port 8443
+
+            Checks a certificate on a non-standard HTTPS port.
+
+        .EXAMPLE
+            Get-Content servers.txt | Get-SSLCertificate | Where-Object { $_.DaysRemaining -lt 30 }
+
+            Pipeline: find certificates expiring within 30 days.
+
+        .OUTPUTS
+            PSWinOps.SSLCertificate
+
+        .NOTES
+            Author:        Franck SALLET
+            Version:       1.0.0
+            Last Modified: 2026-03-21
+            Requires:      PowerShell 5.1+ / Windows only
+            Permissions:   No admin required
+
+        .LINK
+            https://github.com/k9fr4n/PSWinOps
     #>
     [CmdletBinding()]
     [OutputType('PSWinOps.SSLCertificate')]

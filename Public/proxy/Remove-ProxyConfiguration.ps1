@@ -1,54 +1,64 @@
 ﻿#Requires -Version 5.1
 function Remove-ProxyConfiguration {
     <#
-    .SYNOPSIS
-        Removes proxy configuration from one or more Windows proxy layers.
-    .DESCRIPTION
-        Disables and clears proxy settings from one or more of the three Windows proxy layers:
-        - WinINET (HKCU registry): disables proxy, removes server, bypass list, and PAC URL
-        - WinHTTP (netsh winhttp): resets to direct access
-        - Environment variables: clears HTTP_PROXY, HTTPS_PROXY, NO_PROXY
+        .SYNOPSIS
+            Removes proxy configuration from one or more Windows proxy layers
 
-        Each layer can be targeted independently via the -Scope parameter.
-        WinHTTP scope requires administrator privileges (netsh winhttp reset proxy).
-    .PARAMETER Scope
-        One or more proxy layers to clear. Valid values:
-        - WinINET      : Internet Settings registry (HKCU)
-        - WinHTTP      : System-level proxy (requires admin)
-        - Environment  : HTTP_PROXY / HTTPS_PROXY / NO_PROXY user variables
-        - All          : All three layers (default)
-    .EXAMPLE
-        Remove-ProxyConfiguration
+        .DESCRIPTION
+            Disables and clears proxy settings from one or more of the three Windows proxy layers:
+            - WinINET (HKCU registry): disables proxy, removes server, bypass list, and PAC URL
+            - WinHTTP (netsh winhttp): resets to direct access
+            - Environment variables: clears HTTP_PROXY, HTTPS_PROXY, NO_PROXY
 
-        Removes proxy configuration from all three layers.
-    .EXAMPLE
-        Remove-ProxyConfiguration -Scope WinINET
+            Each layer can be targeted independently via the -Scope parameter.
+            WinHTTP scope requires administrator privileges (netsh winhttp reset proxy).
 
-        Removes only WinINET (browser) proxy settings.
-    .EXAMPLE
-        Remove-ProxyConfiguration -Scope WinINET, Environment -WhatIf
+        .PARAMETER Scope
+            One or more proxy layers to clear. Valid values:
+            - WinINET      : Internet Settings registry (HKCU)
+            - WinHTTP      : System-level proxy (requires admin)
+            - Environment  : HTTP_PROXY / HTTPS_PROXY / NO_PROXY user variables
+            - All          : All three layers (default)
 
-        Shows what changes would be made without applying them.
-    .EXAMPLE
-        Remove-ProxyConfiguration -Scope Environment -Confirm:$false
+        .EXAMPLE
+            Remove-ProxyConfiguration
 
-        Clears proxy environment variables without confirmation prompt.
-    .OUTPUTS
-    None
-        This function does not produce pipeline output.
+            Removes proxy configuration from all three layers.
 
-    .NOTES
-        Author: Franck SALLET
-        Version: 1.0.0
-        Last Modified: 2026-03-20
-        Requires: PowerShell 5.1+ / Windows only
+        .EXAMPLE
+            Remove-ProxyConfiguration -Scope WinINET
 
-        WinHTTP scope requires local administrator privileges (netsh winhttp reset proxy).
-        WinINET writes to HKCU (no elevation needed, applies to current user).
-        Environment scope clears both User-level (persistent) and Process-level variables.
-    
-    .LINK
-    https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/netsh-winhttp
+            Removes only WinINET (browser) proxy settings.
+
+        .EXAMPLE
+            Remove-ProxyConfiguration -Scope WinINET, Environment -WhatIf
+
+            Shows what changes would be made without applying them.
+
+        .EXAMPLE
+            Remove-ProxyConfiguration -Scope Environment -Confirm:$false
+
+            Clears proxy environment variables without confirmation prompt.
+
+        .OUTPUTS
+            None
+            This function does not produce pipeline output.
+
+        .NOTES
+            Author: Franck SALLET
+            Version: 1.0.0
+            Last Modified: 2026-03-20
+            Requires: PowerShell 5.1+ / Windows only
+
+            WinHTTP scope requires local administrator privileges (netsh winhttp reset proxy).
+            WinINET writes to HKCU (no elevation needed, applies to current user).
+            Environment scope clears both User-level (persistent) and Process-level variables.
+
+        .LINK
+            https://github.com/k9fr4n/PSWinOps
+
+        .LINK
+            https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/netsh-winhttp
     #>
     [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'Medium')]
     [OutputType([void])]

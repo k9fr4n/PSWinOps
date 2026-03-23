@@ -2,52 +2,68 @@
 
 function Export-NetworkConfig {
     <#
-    .SYNOPSIS
-        Exports a complete network configuration snapshot to JSON or displays it as a summary.
-    .DESCRIPTION
-        Collects all network configuration data from one or more computers into a single
-        structured object: adapters, IP addresses, routes, DNS, ARP cache, listening ports,
-        and firewall profile status.
+        .SYNOPSIS
+            Exports a complete network configuration snapshot to JSON or displays it as a summary
 
-        The output can be piped to ConvertTo-Json for documentation, compared between
-        machines, or used for audit/compliance purposes.
-    .PARAMETER ComputerName
-        One or more computer names to collect config from. Defaults to the local machine.
-        Accepts pipeline input.
-    .PARAMETER Credential
-        Optional credential for remote computer connections.
-    .PARAMETER Path
-        Optional file path to export JSON directly. If not specified, returns objects.
-    .PARAMETER IncludeFirewall
-        Include Windows Firewall profile status. Default: $true.
-    .PARAMETER IncludeListeners
-        Include listening ports. Default: $true.
-    .PARAMETER IncludeARP
-        Include ARP cache. Default: $false (can be large).
-    .EXAMPLE
-        Export-NetworkConfig
+        .DESCRIPTION
+            Collects all network configuration data from one or more computers into a single
+            structured object: adapters, IP addresses, routes, DNS, ARP cache, listening ports,
+            and firewall profile status.
 
-        Returns a complete network config object for the local machine.
-    .EXAMPLE
-        Export-NetworkConfig -Path 'C:\docs\netconfig.json'
+            The output can be piped to ConvertTo-Json for documentation, compared between
+            machines, or used for audit/compliance purposes.
 
-        Exports local network config to a JSON file.
-    .EXAMPLE
-        Export-NetworkConfig -ComputerName 'SRV01' -Credential (Get-Credential) | ConvertTo-Json -Depth 5
+        .PARAMETER ComputerName
+            One or more computer names to collect config from. Defaults to the local machine.
+            Accepts pipeline input.
 
-        Exports remote server config as JSON.
-    .EXAMPLE
-        'SRV01', 'SRV02' | Export-NetworkConfig -IncludeARP
+        .PARAMETER Credential
+            Optional credential for remote computer connections.
 
-        Exports config including ARP cache from two servers.
-    .OUTPUTS
-    PSWinOps.NetworkConfig
-    .NOTES
-        Author:        Franck SALLET
-        Version:       1.0.0
-        Last Modified: 2026-03-21
-        Requires:      PowerShell 5.1+ / Windows only
-        Permissions:   Admin recommended for full details, required for remote
+        .PARAMETER Path
+            Optional file path to export JSON directly. If not specified, returns objects.
+
+        .PARAMETER IncludeFirewall
+            Include Windows Firewall profile status. Default: $true.
+
+        .PARAMETER IncludeListeners
+            Include listening ports. Default: $true.
+
+        .PARAMETER IncludeARP
+            Include ARP cache. Default: $false (can be large).
+
+        .EXAMPLE
+            Export-NetworkConfig
+
+            Returns a complete network config object for the local machine.
+
+        .EXAMPLE
+            Export-NetworkConfig -Path 'C:\docs\netconfig.json'
+
+            Exports local network config to a JSON file.
+
+        .EXAMPLE
+            Export-NetworkConfig -ComputerName 'SRV01' -Credential (Get-Credential) | ConvertTo-Json -Depth 5
+
+            Exports remote server config as JSON.
+
+        .EXAMPLE
+            'SRV01', 'SRV02' | Export-NetworkConfig -IncludeARP
+
+            Exports config including ARP cache from two servers.
+
+        .OUTPUTS
+            PSWinOps.NetworkConfig
+
+        .NOTES
+            Author:        Franck SALLET
+            Version:       1.0.0
+            Last Modified: 2026-03-21
+            Requires:      PowerShell 5.1+ / Windows only
+            Permissions:   Admin recommended for full details, required for remote
+
+        .LINK
+            https://github.com/k9fr4n/PSWinOps
     #>
     [CmdletBinding()]
     [OutputType('PSWinOps.NetworkConfig')]

@@ -2,58 +2,75 @@
 
 function Set-NetworkRoute {
     <#
-    .SYNOPSIS
-        Modifies an existing IP route on one or more Windows computers.
-    .DESCRIPTION
-        Updates properties of an existing route in the routing table using the
-        Set-NetRoute cmdlet. Can modify the route metric of a route identified by
-        its destination prefix and interface.
+        .SYNOPSIS
+            Modifies an existing IP route on one or more Windows computers
 
-        Requires Administrator privileges.
+        .DESCRIPTION
+            Updates properties of an existing route in the routing table using the
+            Set-NetRoute cmdlet. Can modify the route metric of a route identified by
+            its destination prefix and interface.
 
-        For remote computers, the operation is executed via Invoke-Command, which
-        requires WinRM / WS-Man enabled on the target.
-    .PARAMETER ComputerName
-        One or more computer names to configure. Accepts pipeline input by value and
-        by property name. Defaults to the local machine ($env:COMPUTERNAME).
-    .PARAMETER Credential
-        Optional PSCredential for authenticating to remote machines. Ignored for
-        local machine operations.
-    .PARAMETER DestinationPrefix
-        The destination prefix of the route to modify (e.g. '10.0.0.0/8').
-    .PARAMETER InterfaceIndex
-        The interface index that identifies the route to modify.
-    .PARAMETER InterfaceAlias
-        The interface alias that identifies the route to modify. Alternative to InterfaceIndex.
-    .PARAMETER NextHop
-        Optional: the next hop address to narrow route selection when multiple routes
-        share the same destination prefix and interface.
-    .PARAMETER RouteMetric
-        The new route metric value to set.
-    .EXAMPLE
-        Set-NetworkRoute -DestinationPrefix '10.10.0.0/16' -InterfaceAlias 'Ethernet' -RouteMetric 50
+            Requires Administrator privileges.
 
-        Changes the metric of the route to 10.10.0.0/16 on the Ethernet interface to 50.
-    .EXAMPLE
-        Set-NetworkRoute -DestinationPrefix '10.10.0.0/16' -InterfaceIndex 4 -RouteMetric 200
+            For remote computers, the operation is executed via Invoke-Command, which
+            requires WinRM / WS-Man enabled on the target.
 
-        Changes the metric using interface index instead of alias.
-    .EXAMPLE
-        'SRV01', 'SRV02' | Set-NetworkRoute -DestinationPrefix '10.10.0.0/16' -InterfaceAlias 'Ethernet' -RouteMetric 50
+        .PARAMETER ComputerName
+            One or more computer names to configure. Accepts pipeline input by value and
+            by property name. Defaults to the local machine ($env:COMPUTERNAME).
 
-        Modifies the route metric on two remote servers via pipeline.
-    .OUTPUTS
-    PSWinOps.NetworkRoute
-        The modified route details.
-    .NOTES
-        Author:        Franck SALLET
-        Version:       1.0.0
-        Last Modified: 2026-03-20
-        Requires:      PowerShell 5.1+ / Windows only
-        Permissions:   Administrator privileges required
-        Remote:        Requires WinRM / WS-Man enabled on target machines
-    .LINK
-    https://docs.microsoft.com/en-us/powershell/module/nettcpip/set-netroute
+        .PARAMETER Credential
+            Optional PSCredential for authenticating to remote machines. Ignored for
+            local machine operations.
+
+        .PARAMETER DestinationPrefix
+            The destination prefix of the route to modify (e.g. '10.0.0.0/8').
+
+        .PARAMETER InterfaceIndex
+            The interface index that identifies the route to modify.
+
+        .PARAMETER InterfaceAlias
+            The interface alias that identifies the route to modify. Alternative to InterfaceIndex.
+
+        .PARAMETER NextHop
+            Optional: the next hop address to narrow route selection when multiple routes
+            share the same destination prefix and interface.
+
+        .PARAMETER RouteMetric
+            The new route metric value to set.
+
+        .EXAMPLE
+            Set-NetworkRoute -DestinationPrefix '10.10.0.0/16' -InterfaceAlias 'Ethernet' -RouteMetric 50
+
+            Changes the metric of the route to 10.10.0.0/16 on the Ethernet interface to 50.
+
+        .EXAMPLE
+            Set-NetworkRoute -DestinationPrefix '10.10.0.0/16' -InterfaceIndex 4 -RouteMetric 200
+
+            Changes the metric using interface index instead of alias.
+
+        .EXAMPLE
+            'SRV01', 'SRV02' | Set-NetworkRoute -DestinationPrefix '10.10.0.0/16' -InterfaceAlias 'Ethernet' -RouteMetric 50
+
+            Modifies the route metric on two remote servers via pipeline.
+
+        .OUTPUTS
+            PSWinOps.NetworkRoute
+            The modified route details.
+
+        .NOTES
+            Author:        Franck SALLET
+            Version:       1.0.0
+            Last Modified: 2026-03-20
+            Requires:      PowerShell 5.1+ / Windows only
+            Permissions:   Administrator privileges required
+            Remote:        Requires WinRM / WS-Man enabled on target machines
+
+        .LINK
+            https://github.com/k9fr4n/PSWinOps
+
+        .LINK
+            https://learn.microsoft.com/en-us/powershell/module/nettcpip/set-netroute
     #>
     [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'Medium')]
     [OutputType('PSWinOps.NetworkRoute')]

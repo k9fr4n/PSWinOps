@@ -1,48 +1,53 @@
 ﻿function Get-PublicIPAddress {
     <#
-    .SYNOPSIS
-        Retrieves the public IP address of the local or remote computer.
+        .SYNOPSIS
+            Retrieves the public IP address of the local or remote computer
 
-    .DESCRIPTION
-        Queries external HTTP APIs to determine the public-facing IPv4 and IPv6
-        addresses. Uses ipify.org as primary provider with ifconfig.me as fallback.
+        .DESCRIPTION
+            Queries external HTTP APIs to determine the public-facing IPv4 and IPv6
+            addresses. Uses ipify.org as primary provider with ifconfig.me as fallback.
 
-        For remote computers, the query is executed via Invoke-Command so the
-        result reflects each machine's own public IP.
+            For remote computers, the query is executed via Invoke-Command so the
+            result reflects each machine's own public IP.
 
-    .PARAMETER ComputerName
-        One or more computer names to query. Defaults to the local machine.
-        Accepts pipeline input.
+        .PARAMETER ComputerName
+            One or more computer names to query. Defaults to the local machine.
+            Accepts pipeline input.
 
-    .PARAMETER Credential
-        Optional credential for remote computer connections.
+        .PARAMETER Credential
+            Optional credential for remote computer connections.
 
-    .PARAMETER TimeoutSec
-        HTTP request timeout in seconds. Defaults to 10. Valid range: 1–60.
+        .PARAMETER TimeoutSec
+            HTTP request timeout in seconds. Defaults to 10. Valid range: 1–60.
 
-    .PARAMETER IPv6
-        Also attempt to resolve the public IPv6 address. Disabled by default
-        because many networks do not have IPv6 connectivity.
+        .PARAMETER IPv6
+            Also attempt to resolve the public IPv6 address. Disabled by default
+            because many networks do not have IPv6 connectivity.
 
-    .EXAMPLE
-        Get-PublicIPAddress
+        .EXAMPLE
+            Get-PublicIPAddress
 
-        Returns the public IP of the local machine.
+            Returns the public IP of the local machine.
 
-    .EXAMPLE
-        Get-PublicIPAddress -ComputerName 'SRV01' -Credential (Get-Credential)
+        .EXAMPLE
+            Get-PublicIPAddress -ComputerName 'SRV01' -Credential (Get-Credential)
 
-        Returns the public IP of remote server SRV01.
+            Returns the public IP of remote server SRV01.
 
-    .EXAMPLE
-        'SRV01', 'SRV02', 'SRV03' | Get-PublicIPAddress -IPv6
+        .EXAMPLE
+            'SRV01', 'SRV02', 'SRV03' | Get-PublicIPAddress -IPv6
 
-        Returns IPv4 and IPv6 public addresses for three servers via pipeline.
+            Returns IPv4 and IPv6 public addresses for three servers via pipeline.
 
-    .NOTES
-        Author   : Franck SALLET
-        Requires : PowerShell 5.1+ / Windows only
-        API      : https://api.ipify.org (primary), https://ifconfig.me (fallback)
+        .NOTES
+            Author: Franck SALLET
+            Version: 1.0.0
+            Last Modified: 2026-03-21
+            Requires: PowerShell 5.1+ / Windows only
+            API: https://api.ipify.org (primary), https://ifconfig.me (fallback)
+
+        .LINK
+            https://github.com/k9fr4n/PSWinOps
     #>
     [CmdletBinding()]
     param (

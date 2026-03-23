@@ -2,62 +2,65 @@
 
 function Get-RdpSessionLock {
     <#
-.SYNOPSIS
-    Retrieves RDP session lock and unlock event history from Windows Event Log
+        .SYNOPSIS
+            Retrieves RDP session lock and unlock event history from Windows Event Log
 
-.DESCRIPTION
-    Queries the Microsoft-Windows-TerminalServices-LocalSessionManager/Operational
-    and Security event logs on one or more computers to retrieve session lock
-    (workstation lock) and unlock events for RDP sessions. Returns structured
-    objects with user, timestamp, and lock/unlock action details.
+        .DESCRIPTION
+            Queries the Microsoft-Windows-TerminalServices-LocalSessionManager/Operational
+            and Security event logs on one or more computers to retrieve session lock
+            (workstation lock) and unlock events for RDP sessions. Returns structured
+            objects with user, timestamp, and lock/unlock action details.
 
-    The function filters events by ID:
-    - Event 4800 (Security): Workstation was locked
-    - Event 4801 (Security): Workstation was unlocked
+            The function filters events by ID:
+            - Event 4800 (Security): Workstation was locked
+            - Event 4801 (Security): Workstation was unlocked
 
-.PARAMETER ComputerName
-    One or more computer names to query. Defaults to the local machine.
-    Supports pipeline input by value and by property name.
+        .PARAMETER ComputerName
+            One or more computer names to query. Defaults to the local machine.
+            Supports pipeline input by value and by property name.
 
-.PARAMETER StartTime
-    The earliest event timestamp to retrieve. Events older than this time
-    are excluded from results. Defaults to 7 days ago.
+        .PARAMETER StartTime
+            The earliest event timestamp to retrieve. Events older than this time
+            are excluded from results. Defaults to 7 days ago.
 
-.PARAMETER Credential
-    Credential to use when querying remote computers. If not specified,
-    uses the current user's credentials.
+        .PARAMETER Credential
+            Credential to use when querying remote computers. If not specified,
+            uses the current user's credentials.
 
-.EXAMPLE
-    Get-RdpSessionLock
-    Retrieves all RDP session lock/unlock events from the local computer for the last 7 days.
+        .EXAMPLE
+            Get-RdpSessionLock
+            Retrieves all RDP session lock/unlock events from the local computer for the last 7 days.
 
-.EXAMPLE
-    Get-RdpSessionLock -ComputerName 'SRV01' -StartTime (Get-Date).AddDays(-30)
-    Retrieves 30 days of lock/unlock history from SRV01.
+        .EXAMPLE
+            Get-RdpSessionLock -ComputerName 'SRV01' -StartTime (Get-Date).AddDays(-30)
+            Retrieves 30 days of lock/unlock history from SRV01.
 
-.EXAMPLE
-    'WEB01', 'APP01' | Get-RdpSessionLock -Credential $cred | Where-Object { $_.Action -eq 'Locked' }
-    Pipeline example: retrieves only lock events (not unlocks) from multiple servers.
+        .EXAMPLE
+            'WEB01', 'APP01' | Get-RdpSessionLock -Credential $cred | Where-Object { $_.Action -eq 'Locked' }
+            Pipeline example: retrieves only lock events (not unlocks) from multiple servers.
 
-.EXAMPLE
-    Get-ADComputer -Filter "OperatingSystem -like '*Server*'" | Get-RdpSessionLock -StartTime (Get-Date).AddHours(-24) | Group-Object -Property UserName
-    Retrieves last 24 hours of lock events from all domain servers and groups by user.
+        .EXAMPLE
+            Get-ADComputer -Filter "OperatingSystem -like '*Server*'" | Get-RdpSessionLock -StartTime (Get-Date).AddHours(-24) | Group-Object -Property UserName
+            Retrieves last 24 hours of lock events from all domain servers and groups by user.
 
-.OUTPUTS
-PSWinOps.RdpSessionLock
-    Session lock and unlock events with timestamps.
+        .OUTPUTS
+            PSWinOps.RdpSessionLock
+            Session lock and unlock events with timestamps.
 
-.NOTES
-    Author:        Franck SALLET
-    Version:       1.1.0
-    Last Modified: 2026-03-19
-    Requires:      PowerShell 5.1+
-    Permissions:   Event Log Readers group or local Administrator on target machines
-    Note:          Security log access requires elevated permissions
+        .NOTES
+            Author:        Franck SALLET
+            Version:       1.1.0
+            Last Modified: 2026-03-19
+            Requires:      PowerShell 5.1+
+            Permissions:   Event Log Readers group or local Administrator on target machines
+            Note:          Security log access requires elevated permissions
 
-.LINK
-    https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4800
-#>
+        .LINK
+            https://github.com/k9fr4n/PSWinOps
+
+        .LINK
+            https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4800
+    #>
     [CmdletBinding()]
     [OutputType('PSWinOps.RdpSessionLock')]
     param(

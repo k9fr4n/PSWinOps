@@ -1,39 +1,47 @@
 ﻿#Requires -Version 5.1
 function Clear-Arp {
     <#
-    .SYNOPSIS
-        Clears the ARP (Address Resolution Protocol) cache on the local machine.
-    .DESCRIPTION
-        Removes all entries from the ARP cache by executing 'netsh interface ip delete arpcache'.
-        This forces the system to re-resolve MAC addresses for all IP destinations, which can
-        help resolve network connectivity issues caused by stale or incorrect ARP entries.
+        .SYNOPSIS
+            Clears the ARP (Address Resolution Protocol) cache on the local machine
 
-        Requires administrator privileges to execute.
-    .EXAMPLE
-        Clear-Arp
+        .DESCRIPTION
+            Removes all entries from the ARP cache by executing 'netsh interface ip delete arpcache'.
+            This forces the system to re-resolve MAC addresses for all IP destinations, which can
+            help resolve network connectivity issues caused by stale or incorrect ARP entries.
 
-        Clears the entire ARP cache on the local machine.
-    .EXAMPLE
-        Clear-Arp -WhatIf
+            Requires administrator privileges to execute.
 
-        Shows what would happen without actually clearing the ARP cache.
-    .EXAMPLE
-        Clear-Arp -Verbose
+        .EXAMPLE
+            Clear-Arp
 
-        Clears the ARP cache with verbose output showing execution details.
-    .OUTPUTS
-    None
-        This function does not produce pipeline output.
-    .NOTES
-        Author: Franck SALLET
-        Version: 1.0.0
-        Last Modified: 2026-03-20
-        Requires: PowerShell 5.1+ / Windows only
-        Requires: Administrator privileges (netsh interface ip delete arpcache)
+            Clears the entire ARP cache on the local machine.
 
-        Inspired by AdminToolbox.Networking Clear-Arp by TheTaylorLee.
-    .LINK
-    https://docs.microsoft.com/en-us/windows-server/networking/technologies/netsh/netsh-interface-ip
+        .EXAMPLE
+            Clear-Arp -WhatIf
+
+            Shows what would happen without actually clearing the ARP cache.
+
+        .EXAMPLE
+            Clear-Arp -Verbose
+
+            Clears the ARP cache with verbose output showing execution details.
+
+        .OUTPUTS
+            None
+            This function does not produce pipeline output.
+
+        .NOTES
+            Author: Franck SALLET
+            Version: 1.0.0
+            Last Modified: 2026-03-20
+            Requires: PowerShell 5.1+ / Windows only
+            Requires: Administrator privileges (netsh interface ip delete arpcache)
+
+        .LINK
+            https://github.com/k9fr4n/PSWinOps
+
+        .LINK
+            https://learn.microsoft.com/en-us/windows-server/networking/technologies/netsh/netsh-interface-ip
     #>
     [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'Medium')]
     [OutputType([void])]

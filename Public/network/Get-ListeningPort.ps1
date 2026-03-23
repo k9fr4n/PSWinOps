@@ -2,49 +2,64 @@
 
 function Get-ListeningPort {
     <#
-    .SYNOPSIS
-        Shows which processes are listening on which ports.
-    .DESCRIPTION
-        Retrieves TCP listening sockets and UDP bound endpoints, resolves the owning
-        process name, and returns a consolidated view. Similar to 'netstat -tlnp'
-        on Linux or the listening ports view in System Informer.
+        .SYNOPSIS
+            Shows which processes are listening on which ports
 
-        For remote computers, the query is executed via Invoke-Command.
-    .PARAMETER ComputerName
-        One or more computer names to query. Defaults to the local machine.
-        Accepts pipeline input.
-    .PARAMETER Credential
-        Optional credential for remote computer connections.
-    .PARAMETER Protocol
-        Filter by protocol: TCP, UDP, or Both. Default: Both.
-    .PARAMETER Port
-        Filter by specific port number.
-    .PARAMETER ProcessName
-        Filter by process name. Supports wildcards.
-    .EXAMPLE
-        Get-ListeningPort
+        .DESCRIPTION
+            Retrieves TCP listening sockets and UDP bound endpoints, resolves the owning
+            process name, and returns a consolidated view. Similar to 'netstat -tlnp'
+            on Linux or the listening ports view in System Informer.
 
-        Returns all listening TCP and bound UDP ports with process info.
-    .EXAMPLE
-        Get-ListeningPort -Protocol TCP -Port 443
+            For remote computers, the query is executed via Invoke-Command.
 
-        Shows which process is listening on TCP port 443.
-    .EXAMPLE
-        Get-ListeningPort -ProcessName 'httpd*'
+        .PARAMETER ComputerName
+            One or more computer names to query. Defaults to the local machine.
+            Accepts pipeline input.
 
-        Shows all ports where Apache is listening.
-    .EXAMPLE
-        'SRV01', 'SRV02' | Get-ListeningPort -Protocol TCP
+        .PARAMETER Credential
+            Optional credential for remote computer connections.
 
-        Shows listening TCP ports on two remote servers.
-    .OUTPUTS
-    PSWinOps.ListeningPort
-    .NOTES
-        Author:        Franck SALLET
-        Version:       1.0.0
-        Last Modified: 2026-03-21
-        Requires:      PowerShell 5.1+ / Windows only
-        Permissions:   Admin recommended for full process name resolution
+        .PARAMETER Protocol
+            Filter by protocol: TCP, UDP, or Both. Default: Both.
+
+        .PARAMETER Port
+            Filter by specific port number.
+
+        .PARAMETER ProcessName
+            Filter by process name. Supports wildcards.
+
+        .EXAMPLE
+            Get-ListeningPort
+
+            Returns all listening TCP and bound UDP ports with process info.
+
+        .EXAMPLE
+            Get-ListeningPort -Protocol TCP -Port 443
+
+            Shows which process is listening on TCP port 443.
+
+        .EXAMPLE
+            Get-ListeningPort -ProcessName 'httpd*'
+
+            Shows all ports where Apache is listening.
+
+        .EXAMPLE
+            'SRV01', 'SRV02' | Get-ListeningPort -Protocol TCP
+
+            Shows listening TCP ports on two remote servers.
+
+        .OUTPUTS
+            PSWinOps.ListeningPort
+
+        .NOTES
+            Author:        Franck SALLET
+            Version:       1.0.0
+            Last Modified: 2026-03-21
+            Requires:      PowerShell 5.1+ / Windows only
+            Permissions:   Admin recommended for full process name resolution
+
+        .LINK
+            https://github.com/k9fr4n/PSWinOps
     #>
     [CmdletBinding()]
     [OutputType('PSWinOps.ListeningPort')]

@@ -2,54 +2,67 @@
 
 function Set-NTPClient {
     <#
-.SYNOPSIS
-    Configures Windows Time Service (W32Time) to synchronize with specified NTP servers
-.DESCRIPTION
-    This function configures the Windows Time Service (W32Time) to use external NTP servers
-    for time synchronization. It sets the NTP server list, phase offset tolerance, and polling
-    intervals via registry and w32tm commands. The function ensures the service is running,
-    applies the configuration, restarts the service, forces synchronization, and verifies
-    the final state.
+        .SYNOPSIS
+            Configures Windows Time Service (W32Time) to synchronize with specified NTP servers
 
-    Requires local administrator privileges to modify registry and manage the W32Time service.
-.PARAMETER NtpServers
-    Array of NTP server FQDNs or IP addresses to use for time synchronization.
-    At least one server must be specified.
-.PARAMETER MaxPhaseOffset
-    Maximum allowed phase offset in seconds before the clock is corrected.
-    Valid range: 1 to 3600 seconds. Default: 1 second.
-.PARAMETER SpecialPollInterval
-    Interval in seconds for special polling operations.
-    Valid range: 1 to 86400 seconds. Default: 300 seconds (5 minutes).
-.PARAMETER MinPollInterval
-    Minimum poll interval as a power of 2 (2^n seconds).
-    Valid range: 0 to 17. Default: 6 (2^6 = 64 seconds).
-.PARAMETER MaxPollInterval
-    Maximum poll interval as a power of 2 (2^n seconds).
-    Must be greater than MinPollInterval. Valid range: 0 to 17. Default: 10 (2^10 = 1024 seconds).
-.EXAMPLE
-    Set-NTPClient -NtpServers 'time.windows.com', 'pool.ntp.org'
-    Configures W32Time with two public NTP servers using default poll settings.
-.EXAMPLE
-    Set-NTPClient -NtpServers 'time.windows.com', 'pool.ntp.org' -MaxPhaseOffset 5 -Verbose
-    Configures W32Time with custom NTP servers and a 5-second phase offset tolerance,
-    with verbose logging enabled.
-.EXAMPLE
-    Set-NTPClient -NtpServers 'ntp.example.com' -SpecialPollInterval 600 -MinPollInterval 7 -MaxPollInterval 12 -WhatIf
-    Shows what would happen if the configuration were applied with custom poll intervals.
-.OUTPUTS
-None
-    This function does not produce pipeline output.
+        .DESCRIPTION
+            This function configures the Windows Time Service (W32Time) to use external NTP servers
+            for time synchronization. It sets the NTP server list, phase offset tolerance, and polling
+            intervals via registry and w32tm commands. The function ensures the service is running,
+            applies the configuration, restarts the service, forces synchronization, and verifies
+            the final state.
 
-.NOTES
-    Author: Franck SALLET
-    Version: 2.1.0
-    Last Modified: 2026-03-20
-    Requires: PowerShell 5.1+, Local Administrator rights
-    Permissions: Administrator required to modify registry and manage W32Time service
+            Requires local administrator privileges to modify registry and manage the W32Time service.
 
-    .LINK
-    https://docs.microsoft.com/en-us/windows-server/networking/windows-time-service/windows-time-service-tools-and-settings
+        .PARAMETER NtpServers
+            Array of NTP server FQDNs or IP addresses to use for time synchronization.
+            At least one server must be specified.
+
+        .PARAMETER MaxPhaseOffset
+            Maximum allowed phase offset in seconds before the clock is corrected.
+            Valid range: 1 to 3600 seconds. Default: 1 second.
+
+        .PARAMETER SpecialPollInterval
+            Interval in seconds for special polling operations.
+            Valid range: 1 to 86400 seconds. Default: 300 seconds (5 minutes).
+
+        .PARAMETER MinPollInterval
+            Minimum poll interval as a power of 2 (2^n seconds).
+            Valid range: 0 to 17. Default: 6 (2^6 = 64 seconds).
+
+        .PARAMETER MaxPollInterval
+            Maximum poll interval as a power of 2 (2^n seconds).
+            Must be greater than MinPollInterval. Valid range: 0 to 17. Default: 10 (2^10 = 1024 seconds).
+
+        .EXAMPLE
+            Set-NTPClient -NtpServers 'time.windows.com', 'pool.ntp.org'
+            Configures W32Time with two public NTP servers using default poll settings.
+
+        .EXAMPLE
+            Set-NTPClient -NtpServers 'time.windows.com', 'pool.ntp.org' -MaxPhaseOffset 5 -Verbose
+            Configures W32Time with custom NTP servers and a 5-second phase offset tolerance,
+            with verbose logging enabled.
+
+        .EXAMPLE
+            Set-NTPClient -NtpServers 'ntp.example.com' -SpecialPollInterval 600 -MinPollInterval 7 -MaxPollInterval 12 -WhatIf
+            Shows what would happen if the configuration were applied with custom poll intervals.
+
+        .OUTPUTS
+            None
+            This function does not produce pipeline output.
+
+        .NOTES
+            Author: Franck SALLET
+            Version: 2.1.0
+            Last Modified: 2026-03-20
+            Requires: PowerShell 5.1+, Local Administrator rights
+            Permissions: Administrator required to modify registry and manage W32Time service
+
+        .LINK
+            https://github.com/k9fr4n/PSWinOps
+
+        .LINK
+            https://learn.microsoft.com/en-us/windows-server/networking/windows-time-service/windows-time-service-tools-and-settings
     #>
     [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
     [OutputType([void])]

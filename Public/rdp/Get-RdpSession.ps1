@@ -2,64 +2,67 @@
 
 function Get-RdpSession {
     <#
-.SYNOPSIS
-    Retrieves live RDP and console user sessions from local or remote computers
+        .SYNOPSIS
+            Retrieves live RDP and console user sessions from local or remote computers
 
-.DESCRIPTION
-    Queries the Terminal Services session manager on one or more computers using
-    quser.exe (Query User). This executable reads directly from the Windows
-    session table maintained by the Session Manager and returns exactly one row
-    per live session -- no stale LSA records from past connections, no duplicate
-    entries caused by multi-package authentication (Negotiate + Kerberos).
+        .DESCRIPTION
+            Queries the Terminal Services session manager on one or more computers using
+            quser.exe (Query User). This executable reads directly from the Windows
+            session table maintained by the Session Manager and returns exactly one row
+            per live session -- no stale LSA records from past connections, no duplicate
+            entries caused by multi-package authentication (Negotiate + Kerberos).
 
-    Local machines are queried directly. Remote machines are queried via
-    Invoke-Command (WinRM), which executes quser.exe in the remote session and
-    returns its output. Each session is emitted as a structured PSCustomObject
-    containing user name, session name, state, idle time, and logon time.
+            Local machines are queried directly. Remote machines are queried via
+            Invoke-Command (WinRM), which executes quser.exe in the remote session and
+            returns its output. Each session is emitted as a structured PSCustomObject
+            containing user name, session name, state, idle time, and logon time.
 
-    State values returned by quser: Active, Disc (disconnected).
-    Idle time of zero ([TimeSpan]::Zero) means the session is currently in use.
+            State values returned by quser: Active, Disc (disconnected).
+            Idle time of zero ([TimeSpan]::Zero) means the session is currently in use.
 
-.PARAMETER ComputerName
-    One or more computer names or IP addresses to query.
-    Defaults to the local machine ($env:COMPUTERNAME).
-    Accepts pipeline input by value and by property name.
-    Aliases: CN, Name, DNSHostName.
+        .PARAMETER ComputerName
+            One or more computer names or IP addresses to query.
+            Defaults to the local machine ($env:COMPUTERNAME).
+            Accepts pipeline input by value and by property name.
+            Aliases: CN, Name, DNSHostName.
 
-.PARAMETER Credential
-    Optional PSCredential used when connecting to remote computers via
-    Invoke-Command (WinRM). When omitted, the current user context is used.
-    Has no effect for local machine queries.
+        .PARAMETER Credential
+            Optional PSCredential used when connecting to remote computers via
+            Invoke-Command (WinRM). When omitted, the current user context is used.
+            Has no effect for local machine queries.
 
-.EXAMPLE
-    Get-RdpSession
-    Lists all live user sessions on the local computer.
+        .EXAMPLE
+            Get-RdpSession
+            Lists all live user sessions on the local computer.
 
-.EXAMPLE
-    Get-RdpSession -ComputerName 'SRV01', 'SRV02' -Credential (Get-Credential)
-    Queries two remote servers, prompting once for credentials.
+        .EXAMPLE
+            Get-RdpSession -ComputerName 'SRV01', 'SRV02' -Credential (Get-Credential)
+            Queries two remote servers, prompting once for credentials.
 
-.EXAMPLE
-    'WEB01', 'APP01' | Get-RdpSession | Where-Object { $_.State -eq 'Disc' }
-    Finds all disconnected sessions across multiple servers via pipeline input.
+        .EXAMPLE
+            'WEB01', 'APP01' | Get-RdpSession | Where-Object { $_.State -eq 'Disc' }
+            Finds all disconnected sessions across multiple servers via pipeline input.
 
-.EXAMPLE
-    Get-RdpSession | Where-Object { $_.IdleTime -gt [TimeSpan]::FromHours(4) }
-    Returns all sessions idle for more than 4 hours on the local machine.
+        .EXAMPLE
+            Get-RdpSession | Where-Object { $_.IdleTime -gt [TimeSpan]::FromHours(4) }
+            Returns all sessions idle for more than 4 hours on the local machine.
 
-.OUTPUTS
-PSWinOps.ActiveRdpSession
-    Active RDP session details including user, state, and logon time.
+        .OUTPUTS
+            PSWinOps.ActiveRdpSession
+            Active RDP session details including user, state, and logon time.
 
-.NOTES
-    Author:        Franck SALLET
-    Version:       2.2.0
-    Last Modified: 2026-03-19
-    Requires:      PowerShell 5.1+; WinRM enabled on remote targets
-    Permissions:   Local Administrator or Remote Desktop Users on each target
+        .NOTES
+            Author:        Franck SALLET
+            Version:       2.2.0
+            Last Modified: 2026-03-19
+            Requires:      PowerShell 5.1+; WinRM enabled on remote targets
+            Permissions:   Local Administrator or Remote Desktop Users on each target
 
-    .LINK
-    https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/query-user
+        .LINK
+            https://github.com/k9fr4n/PSWinOps
+
+        .LINK
+            https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/query-user
     #>
     [CmdletBinding()]
     [OutputType('PSWinOps.ActiveRdpSession')]

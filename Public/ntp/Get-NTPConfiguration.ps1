@@ -2,60 +2,72 @@
 
 function Get-NTPConfiguration {
     <#
-    .SYNOPSIS
-        Retrieves the current Windows Time Service (W32Time) NTP configuration and status
-    .DESCRIPTION
-        This function queries the Windows Time Service using w32tm commands to retrieve
-        the complete NTP configuration, including configured servers, poll intervals,
-        synchronization status, peer details, and last successful sync time.
+        .SYNOPSIS
+            Retrieves the current Windows Time Service (W32Time) NTP configuration and status
 
-        Supports both local and remote computers. Remote queries use WinRM (Invoke-Command).
-        For bulk queries, errors per computer are non-terminating to allow the pipeline
-        to continue processing remaining computers.
+        .DESCRIPTION
+            This function queries the Windows Time Service using w32tm commands to retrieve
+            the complete NTP configuration, including configured servers, poll intervals,
+            synchronization status, peer details, and last successful sync time.
 
-        Returns a structured PSCustomObject with all relevant NTP configuration data
-        for easy consumption by other scripts or for display purposes.
-    .PARAMETER ComputerName
-        One or more computer names to query. Accepts pipeline input.
-        Defaults to the local computer ($env:COMPUTERNAME).
-    .PARAMETER IncludePeerDetails
-        When specified, includes detailed peer information in the output object.
-        This adds verbose information about each configured NTP peer.
-    .EXAMPLE
-        Get-NTPConfiguration
+            Supports both local and remote computers. Remote queries use WinRM (Invoke-Command).
+            For bulk queries, errors per computer are non-terminating to allow the pipeline
+            to continue processing remaining computers.
 
-        Retrieves the current NTP configuration for the local computer.
-    .EXAMPLE
-        Get-NTPConfiguration -ComputerName 'SRV01', 'SRV02'
+            Returns a structured PSCustomObject with all relevant NTP configuration data
+            for easy consumption by other scripts or for display purposes.
 
-        Retrieves NTP configuration for two remote servers.
-    .EXAMPLE
-        'SRV01', 'SRV02' | Get-NTPConfiguration
+        .PARAMETER ComputerName
+            One or more computer names to query. Accepts pipeline input.
+            Defaults to the local computer ($env:COMPUTERNAME).
 
-        Pipeline usage: queries NTP configuration on both servers.
-    .EXAMPLE
-        Get-NTPConfiguration -Verbose | Format-List
+        .PARAMETER IncludePeerDetails
+            When specified, includes detailed peer information in the output object.
+            This adds verbose information about each configured NTP peer.
 
-        Retrieves NTP configuration with verbose logging and displays all properties as a list.
-    .EXAMPLE
-        $ntpConfig = Get-NTPConfiguration -IncludePeerDetails
-        $ntpConfig.ConfiguredServers
-        $ntpConfig.PeerDetails
+        .EXAMPLE
+            Get-NTPConfiguration
 
-        Retrieves configuration with peer details and accesses specific properties.
-    .OUTPUTS
-    PSWinOps.NtpConfiguration
-        NTP client configuration including source, type, and poll intervals.
+            Retrieves the current NTP configuration for the local computer.
 
-    .NOTES
-        Author:        Franck SALLET
-        Version:       2.0.0
-        Last Modified: 2026-03-19
-        Requires:      PowerShell 5.1+, Windows Time Service (w32time)
-        Permissions:   Standard user for local queries; WinRM + admin rights for remote
-    
-    .LINK
-    https://docs.microsoft.com/en-us/windows-server/networking/windows-time-service/windows-time-service-tools-and-settings
+        .EXAMPLE
+            Get-NTPConfiguration -ComputerName 'SRV01', 'SRV02'
+
+            Retrieves NTP configuration for two remote servers.
+
+        .EXAMPLE
+            'SRV01', 'SRV02' | Get-NTPConfiguration
+
+            Pipeline usage: queries NTP configuration on both servers.
+
+        .EXAMPLE
+            Get-NTPConfiguration -Verbose | Format-List
+
+            Retrieves NTP configuration with verbose logging and displays all properties as a list.
+
+        .EXAMPLE
+            $ntpConfig = Get-NTPConfiguration -IncludePeerDetails
+            $ntpConfig.ConfiguredServers
+            $ntpConfig.PeerDetails
+
+            Retrieves configuration with peer details and accesses specific properties.
+
+        .OUTPUTS
+            PSWinOps.NtpConfiguration
+            NTP client configuration including source, type, and poll intervals.
+
+        .NOTES
+            Author:        Franck SALLET
+            Version:       2.0.0
+            Last Modified: 2026-03-19
+            Requires:      PowerShell 5.1+, Windows Time Service (w32time)
+            Permissions:   Standard user for local queries; WinRM + admin rights for remote
+
+        .LINK
+            https://github.com/k9fr4n/PSWinOps
+
+        .LINK
+            https://learn.microsoft.com/en-us/windows-server/networking/windows-time-service/windows-time-service-tools-and-settings
     #>
     [CmdletBinding()]
     [OutputType('PSWinOps.NtpConfiguration')]

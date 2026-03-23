@@ -502,13 +502,13 @@
     </View>
 
     <!-- ============================================================ -->
-    <!-- PSWinOps.NetworkStatistic                                    -->
-    <!-- Used by: Get-NetworkStatistic                                -->
+    <!-- PSWinOps.NetworkConnection                                   -->
+    <!-- Used by: Get-NetworkConnection, Start-NetworkStatisticMonitor -->
     <!-- ============================================================ -->
     <View>
-      <Name>PSWinOps.NetworkStatistic</Name>
+      <Name>PSWinOps.NetworkConnection</Name>
       <ViewSelectedBy>
-        <TypeName>PSWinOps.NetworkStatistic</TypeName>
+        <TypeName>PSWinOps.NetworkConnection</TypeName>
       </ViewSelectedBy>
       <TableControl>
         <TableHeaders>
@@ -534,6 +534,47 @@
               <TableColumnItem><PropertyName>State</PropertyName></TableColumnItem>
               <TableColumnItem><PropertyName>ProcessId</PropertyName></TableColumnItem>
               <TableColumnItem><PropertyName>ProcessName</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.NetworkStatistic                                    -->
+    <!-- Used by: Get-NetworkStatistic                                -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.NetworkStatistic</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.NetworkStatistic</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>ComputerName</Label><Width>15</Width></TableColumnHeader>
+          <TableColumnHeader><Label>ProcessName</Label><Width>18</Width></TableColumnHeader>
+          <TableColumnHeader><Label>PID</Label><Width>6</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Estab</Label><Width>6</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Listen</Label><Width>6</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>TmWait</Label><Width>6</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>ClsWait</Label><Width>7</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Other</Label><Width>6</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>UDP</Label><Width>5</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Total</Label><Width>6</Width><Alignment>Right</Alignment></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>ProcessName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>ProcessId</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>TcpEstablished</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>TcpListening</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>TcpTimeWait</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>TcpCloseWait</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>TcpOther</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>UdpEndpoints</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>TotalConnections</PropertyName></TableColumnItem>
             </TableColumnItems>
           </TableRowEntry>
         </TableRowEntries>
