@@ -380,6 +380,111 @@ Describe 'Get-NetworkConnection' {
         }
     }
 
+    Context 'Filtering - LocalAddress parameter' {
+        BeforeAll {
+            $script:mockTcpConn = @(
+                [PSCustomObject]@{
+                    LocalAddress = '127.0.0.1'; LocalPort = 80
+                    RemoteAddress = '10.0.0.1'; RemotePort = 54321
+                    State = 'Established'; OwningProcess = 100
+                },
+                [PSCustomObject]@{
+                    LocalAddress = '10.0.0.5'; LocalPort = 443
+                    RemoteAddress = '10.0.0.2'; RemotePort = 8080
+                    State = 'Established'; OwningProcess = 200
+                }
+            )
+
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-NetTCPConnection' -MockWith {
+                return $script:mockTcpConn
+            }
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-Process' -MockWith {
+                return @(
+                    [PSCustomObject]@{ Id = 100; ProcessName = 'nginx' },
+                    [PSCustomObject]@{ Id = 200; ProcessName = 'svchost' }
+                )
+            }
+        }
+
+        It 'Should filter by exact local address' {
+            $results = Get-NetworkConnection -Protocol TCP -LocalAddress '127.0.0.1'
+            $results | Should -HaveCount 1
+            $results[0].LocalAddress | Should -Be '127.0.0.1'
+        }
+
+        It 'Should filter by wildcard local address' {
+            $results = Get-NetworkConnection -Protocol TCP -LocalAddress '10.*'
+            $results | Should -HaveCount 1
+            $results[0].LocalAddress | Should -Be '10.0.0.5'
+        }
+    }
+
+    Context 'Filtering - RemoteAddress parameter' {
+        BeforeAll {
+            $script:mockTcpConn = @(
+                [PSCustomObject]@{
+                    LocalAddress = '127.0.0.1'; LocalPort = 80
+                    RemoteAddress = '10.0.0.1'; RemotePort = 54321
+                    State = 'Established'; OwningProcess = 100
+                },
+                [PSCustomObject]@{
+                    LocalAddress = '10.0.0.5'; LocalPort = 443
+                    RemoteAddress = '192.168.1.1'; RemotePort = 8080
+                    State = 'Established'; OwningProcess = 200
+                }
+            )
+
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-NetTCPConnection' -MockWith {
+                return $script:mockTcpConn
+            }
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-Process' -MockWith {
+                return @(
+                    [PSCustomObject]@{ Id = 100; ProcessName = 'nginx' },
+                    [PSCustomObject]@{ Id = 200; ProcessName = 'svchost' }
+                )
+            }
+        }
+
+        It 'Should filter by remote address' {
+            $results = Get-NetworkConnection -Protocol TCP -RemoteAddress '192.168.*'
+            $results | Should -HaveCount 1
+            $results[0].RemoteAddress | Should -Be '192.168.1.1'
+        }
+    }
+
+    Context 'Filtering - RemotePort parameter' {
+        BeforeAll {
+            $script:mockTcpConn = @(
+                [PSCustomObject]@{
+                    LocalAddress = '127.0.0.1'; LocalPort = 80
+                    RemoteAddress = '10.0.0.1'; RemotePort = 54321
+                    State = 'Established'; OwningProcess = 100
+                },
+                [PSCustomObject]@{
+                    LocalAddress = '10.0.0.5'; LocalPort = 443
+                    RemoteAddress = '10.0.0.2'; RemotePort = 8080
+                    State = 'Established'; OwningProcess = 200
+                }
+            )
+
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-NetTCPConnection' -MockWith {
+                return $script:mockTcpConn
+            }
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-Process' -MockWith {
+                return @(
+                    [PSCustomObject]@{ Id = 100; ProcessName = 'nginx' },
+                    [PSCustomObject]@{ Id = 200; ProcessName = 'svchost' }
+                )
+            }
+        }
+
+        It 'Should filter by remote port' {
+            $results = Get-NetworkConnection -Protocol TCP -RemotePort 8080
+            $results | Should -HaveCount 1
+            $results[0].RemotePort | Should -Be 8080
+        }
+    }
+
     Context 'Filtering - LocalPort parameter' {
         BeforeAll {
             $script:mockTcpConn = @(
@@ -441,6 +546,62 @@ Describe 'Get-NetworkConnection' {
             $result.PSObject.Properties.Name | Should -Contain 'ProcessId'
             $result.PSObject.Properties.Name | Should -Contain 'ProcessName'
             $result.PSObject.Properties.Name | Should -Contain 'Timestamp'
+        }
+    }
+
+    Context 'Remote machine with Credential' {
+        BeforeAll {
+            Mock -ModuleName $script:ModuleName -CommandName 'Invoke-Command' -MockWith {
+                return @(
+                    [PSCustomObject]@{
+                        Protocol      = 'TCP'
+                        LocalAddress  = '10.0.0.5'
+                        LocalPort     = 3389
+                        RemoteAddress = '10.0.0.100'
+                        RemotePort    = 49152
+                        State         = 'Established'
+                        ProcessId     = 1000
+                        ProcessName   = 'svchost'
+                    }
+                )
+            }
+        }
+
+        It 'Should pass Credential to Invoke-Command' {
+            $cred = [PSCredential]::new('user', (ConvertTo-SecureString 'pass' -AsPlainText -Force))
+            $null = Get-NetworkConnection -ComputerName 'REMOTESRV' -Credential $cred -Protocol TCP
+            Should -Invoke -CommandName 'Invoke-Command' -ModuleName $script:ModuleName -Times 1 -Exactly -ParameterFilter {
+                $null -ne $Credential
+            }
+        }
+    }
+
+    Context 'Unknown process - PID not in lookup' {
+        BeforeAll {
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-NetTCPConnection' -MockWith {
+                return @(
+                    [PSCustomObject]@{
+                        LocalAddress  = '127.0.0.1'
+                        LocalPort     = 80
+                        RemoteAddress = '10.0.0.1'
+                        RemotePort    = 54321
+                        State         = 'Established'
+                        OwningProcess = 99999
+                    }
+                )
+            }
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-Process' -MockWith {
+                # Return processes that do NOT include PID 99999
+                return @(
+                    [PSCustomObject]@{ Id = 4; ProcessName = 'System' }
+                )
+            }
+        }
+
+        It 'Should set ProcessName to Unknown when PID is not found' {
+            $results = Get-NetworkConnection -Protocol TCP
+            $results | Should -HaveCount 1
+            $results[0].ProcessName | Should -Be 'Unknown'
         }
     }
 
