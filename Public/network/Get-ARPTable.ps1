@@ -191,6 +191,3 @@ function Get-ArpTable {
         Write-Verbose "[$($MyInvocation.MyCommand)] Completed ARP table query"
     }
 }
-
-# Backward-compatibility alias: Get-ARPTable -> Get-ArpTable
-Set-Alias -Name 'Get-ARPTable' -Value 'Get-ArpTable' -Scope Global
