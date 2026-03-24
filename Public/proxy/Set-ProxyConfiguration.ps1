@@ -101,7 +101,14 @@ function Set-ProxyConfiguration {
 
         # Validate that at least one actionable parameter is provided
         if (-not $ProxyServer -and -not $AutoConfigURL) {
-            throw 'You must specify at least -ProxyServer or -AutoConfigURL.'
+            $PSCmdlet.ThrowTerminatingError(
+                [System.Management.Automation.ErrorRecord]::new(
+                    [System.ArgumentException]::new('You must specify at least -ProxyServer or -AutoConfigURL.'),
+                    'MissingProxyParameter',
+                    [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                    $null
+                )
+            )
         }
 
         # Resolve 'All' to individual scopes
@@ -139,7 +146,7 @@ function Set-ProxyConfiguration {
                         Write-Verbose "[$($MyInvocation.MyCommand)] WinINET auto-config URL: $AutoConfigURL"
                     }
 
-                    Write-Information -MessageData '[OK] WinINET proxy configured successfully' -InformationAction Continue
+                    Write-Information -MessageData '[OK] WinINET proxy configured successfully'
                 } catch {
                     Write-Error "[$($MyInvocation.MyCommand)] Failed to configure WinINET proxy: $_"
                 }
@@ -177,7 +184,7 @@ function Set-ProxyConfiguration {
                             $outputText = ($netshOutput | Out-String).Trim()
                             Write-Error "[$($MyInvocation.MyCommand)] netsh winhttp set proxy failed (exit code $netshExitCode): $outputText"
                         } else {
-                            Write-Information -MessageData '[OK] WinHTTP proxy configured successfully' -InformationAction Continue
+                            Write-Information -MessageData '[OK] WinHTTP proxy configured successfully'
                         }
                     } catch {
                         Write-Error "[$($MyInvocation.MyCommand)] Failed to configure WinHTTP proxy: $_"
@@ -222,7 +229,7 @@ function Set-ProxyConfiguration {
                             Write-Warning "[$($MyInvocation.MyCommand)] Failed to persist User-level environment variables: $_. Process-level variables were set successfully."
                         }
 
-                        Write-Information -MessageData '[OK] Proxy environment variables configured successfully' -InformationAction Continue
+                        Write-Information -MessageData '[OK] Proxy environment variables configured successfully'
                     } catch {
                         Write-Error "[$($MyInvocation.MyCommand)] Failed to configure proxy environment variables: $_"
                     }

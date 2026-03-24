@@ -25,12 +25,12 @@ Describe 'Get-SSLCertificate' {
             $cmd.Parameters.Keys | Should -Contain 'Uri'
             $cmd.Parameters.Keys | Should -Contain 'Port'
             $cmd.Parameters.Keys | Should -Contain 'TimeoutMs'
-            $cmd.Parameters.Keys | Should -Contain 'RejectUntrusted'
+            $cmd.Parameters.Keys | Should -Contain 'AcceptUntrusted'
         }
 
-        It 'Should have RejectUntrusted as switch parameter' {
+        It 'Should have AcceptUntrusted as switch parameter' {
             $cmd = Get-Command -Name 'Get-SSLCertificate'
-            $cmd.Parameters['RejectUntrusted'].ParameterType | Should -Be ([switch])
+            $cmd.Parameters['AcceptUntrusted'].ParameterType | Should -Be ([switch])
         }
 
         It 'Should accept pipeline input for Uri' {

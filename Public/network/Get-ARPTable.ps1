@@ -1,6 +1,6 @@
 #Requires -Version 5.1
 
-function Get-ARPTable {
+function Get-ArpTable {
     <#
         .SYNOPSIS
             Retrieves the ARP (Address Resolution Protocol) cache as structured objects
@@ -191,3 +191,6 @@ function Get-ARPTable {
         Write-Verbose "[$($MyInvocation.MyCommand)] Completed ARP table query"
     }
 }
+
+# Backward-compatibility alias: Get-ARPTable -> Get-ArpTable
+Set-Alias -Name 'Get-ARPTable' -Value 'Get-ArpTable' -Scope Global

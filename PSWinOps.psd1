@@ -15,7 +15,7 @@ RootModule = 'PSWinOps.psm1'
 ModuleVersion = '0.0.12'
 
 # Supported PSEditions
-# CompatiblePSEditions = @()
+CompatiblePSEditions = @('Desktop', 'Core')
 
 # ID used to uniquely identify this module
 GUID = 'b8f23fbd-069e-4d11-8e94-e4fc69d71aa5'
@@ -75,7 +75,7 @@ FunctionsToExport = 'Clear-Arp',
                'Disconnect-RdpSession',
                'Edit-HostsFile',
                'Export-NetworkConfig',
-               'Get-ARPTable',
+               'Get-ArpTable',
                'Get-ComputerUptime',
                'Get-ListeningPort',
                'Get-NetworkAdapter',
@@ -120,7 +120,7 @@ CmdletsToExport = @()
 # VariablesToExport = @()
 
 # Aliases to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no aliases to export.
-AliasesToExport = @()
+AliasesToExport = @('Get-ARPTable')
 
 # DSC resources to export from this module
 # DscResourcesToExport = @()
@@ -149,7 +149,13 @@ PrivateData = @{
         # IconUri = ''
 
         # ReleaseNotes of this module
-        # ReleaseNotes = ''
+        ReleaseNotes = @'
+## 0.0.12
+- Initial public release
+- Network, NTP, RDP, Proxy, System, Security utilities
+- Secure-by-default SSL certificate inspection (AcceptUntrusted switch)
+- $IsWindows guard for PS7+ cross-platform safety
+'@
 
         # Prerelease string of this module
         # Prerelease = ''
