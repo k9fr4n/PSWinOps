@@ -113,6 +113,23 @@ Describe 'Get-SubnetInfo' {
             $result = '192.168.1.0/24', '10.0.0.0/8' | Get-SubnetInfo
             $result.Count | Should -Be 2
         }
+
+        It 'Should accept pipeline input by property name' {
+            $cmd = Get-Command -Name 'Get-SubnetInfo'
+            $paramAttr = $cmd.Parameters['IPAddress'].Attributes | Where-Object {
+                $_ -is [System.Management.Automation.ParameterAttribute]
+            }
+            $paramAttr.ValueFromPipelineByPropertyName | Should -BeTrue
+        }
+
+        It 'Should accept objects with IPAddress property via pipeline' {
+            $objects = @(
+                [PSCustomObject]@{ IPAddress = '192.168.1.0/24' }
+                [PSCustomObject]@{ IPAddress = '10.0.0.0/8' }
+            )
+            $result = $objects | Get-SubnetInfo
+            $result.Count | Should -Be 2
+        }
     }
 
     Context 'Error handling' {

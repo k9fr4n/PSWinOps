@@ -25,9 +25,10 @@ function Trace-NetworkRoute {
         .PARAMETER PingsPerHop
             Number of pings per hop for latency averaging. Default: 3. Valid range: 1-10.
 
-        .PARAMETER ResolveHostnames
-            Attempt reverse DNS lookup for each hop IP. Default: true.
-            Disable for faster traces when hostnames are not needed.
+        .PARAMETER SkipNameResolution
+            Skip reverse DNS lookup for each hop IP.
+            Use this switch for faster traces when hostnames are not needed.
+            By default, hostnames are resolved via reverse DNS.
 
         .EXAMPLE
             Trace-NetworkRoute -ComputerName '8.8.8.8'
@@ -40,7 +41,7 @@ function Trace-NetworkRoute {
             Traces route to an internal server with max 15 hops.
 
         .EXAMPLE
-            '8.8.8.8', '1.1.1.1' | Trace-NetworkRoute -ResolveHostnames:$false
+            '8.8.8.8', '1.1.1.1' | Trace-NetworkRoute -SkipNameResolution
 
             Traces routes to two targets without reverse DNS (faster).
 
@@ -80,7 +81,7 @@ function Trace-NetworkRoute {
         [int]$PingsPerHop = 3,
 
         [Parameter(Mandatory = $false)]
-        [bool]$ResolveHostnames = $true
+        [switch]$SkipNameResolution
     )
 
     begin {
@@ -136,7 +137,7 @@ function Trace-NetworkRoute {
 
                     # Resolve hostname if requested
                     $hostname = $null
-                    if ($hopIP -and $ResolveHostnames) {
+                    if ($hopIP -and -not $SkipNameResolution) {
                         try {
                             $hostEntry = [System.Net.Dns]::GetHostEntry($hopIP)
                             $hostname = $hostEntry.HostName

@@ -24,9 +24,9 @@ function Get-SSLCertificate {
         .PARAMETER TimeoutMs
             Connection timeout in milliseconds. Default: 5000. Valid range: 1000-30000.
 
-        .PARAMETER AcceptInvalidCertificates
-            Accept self-signed or untrusted certificates for inspection.
-            Default: $true (inspect all certs regardless of trust).
+        .PARAMETER RejectUntrusted
+            Reject self-signed or untrusted certificates instead of inspecting them.
+            By default, all certificates are accepted for inspection regardless of trust.
 
         .EXAMPLE
             Get-SSLCertificate -Uri 'google.com'
@@ -80,7 +80,7 @@ function Get-SSLCertificate {
         [int]$TimeoutMs = 5000,
 
         [Parameter(Mandatory = $false)]
-        [bool]$AcceptInvalidCertificates = $true
+        [switch]$RejectUntrusted
     )
 
     begin {
@@ -117,7 +117,7 @@ function Get-SSLCertificate {
 
                 $sslStream = $null
                 try {
-                    $callback = if ($AcceptInvalidCertificates) {
+                    $callback = if (-not $RejectUntrusted) {
                         [System.Net.Security.RemoteCertificateValidationCallback]{ $true }
                     } else {
                         $null

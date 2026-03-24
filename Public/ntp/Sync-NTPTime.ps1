@@ -71,7 +71,7 @@ function Sync-NTPTime {
         .LINK
             https://learn.microsoft.com/en-us/windows-server/networking/windows-time-service/windows-time-service-tools-and-settings
     #>
-    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
+    [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'Medium')]
     [OutputType('PSWinOps.NtpResyncResult')]
     param(
         [Parameter(Mandatory = $false, ValueFromPipeline = $true,

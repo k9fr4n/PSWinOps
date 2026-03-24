@@ -64,6 +64,7 @@ function Get-SubnetInfo {
     param (
         [Parameter(Mandatory = $true,
             ValueFromPipeline = $true,
+            ValueFromPipelineByPropertyName = $true,
             Position = 0)]
         [ValidateNotNullOrEmpty()]
         [string[]]$IPAddress,

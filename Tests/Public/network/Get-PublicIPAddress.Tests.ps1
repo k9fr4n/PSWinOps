@@ -185,6 +185,18 @@ Describe 'Get-PublicIPAddress' {
             { Get-PublicIPAddress -TimeoutSec 0 } | Should -Throw
             { Get-PublicIPAddress -TimeoutSec 61 } | Should -Throw
         }
+
+        It 'Should support CN, Name, and DNSHostName aliases for ComputerName' {
+            $cmd = Get-Command -Name 'Get-PublicIPAddress'
+            $cmd.Parameters['ComputerName'].Aliases | Should -Contain 'CN'
+            $cmd.Parameters['ComputerName'].Aliases | Should -Contain 'Name'
+            $cmd.Parameters['ComputerName'].Aliases | Should -Contain 'DNSHostName'
+        }
+
+        It 'Should declare OutputType PSWinOps.PublicIPAddress' {
+            $cmd = Get-Command -Name 'Get-PublicIPAddress'
+            $cmd.OutputType.Name | Should -Contain 'PSWinOps.PublicIPAddress'
+        }
     }
 
     Context 'Output object shape' {
