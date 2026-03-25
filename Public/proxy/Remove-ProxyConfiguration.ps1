@@ -97,7 +97,7 @@ function Remove-ProxyConfiguration {
                         Remove-ItemProperty -Path $winInetPath -Name $propertyName -ErrorAction SilentlyContinue
                     }
 
-                    Write-Information -MessageData '[OK] WinINET proxy configuration removed' -InformationAction Continue
+                    Write-Information -MessageData '[OK] WinINET proxy configuration removed'
                 } catch {
                     Write-Error "[$($MyInvocation.MyCommand)] Failed to remove WinINET proxy configuration: $_"
                 }
@@ -127,7 +127,7 @@ function Remove-ProxyConfiguration {
                         $outputText = ($netshOutput | Out-String).Trim()
                         Write-Error "[$($MyInvocation.MyCommand)] netsh winhttp reset proxy failed (exit code $netshExitCode): $outputText"
                     } else {
-                        Write-Information -MessageData '[OK] WinHTTP proxy configuration reset to direct access' -InformationAction Continue
+                        Write-Information -MessageData '[OK] WinHTTP proxy configuration reset to direct access'
                     }
                 } catch {
                     Write-Error "[$($MyInvocation.MyCommand)] Failed to reset WinHTTP proxy: $_"
@@ -156,7 +156,7 @@ function Remove-ProxyConfiguration {
                         Write-Warning "[$($MyInvocation.MyCommand)] Failed to clear User-level environment variables: $_. Process-level variables were cleared successfully."
                     }
 
-                    Write-Information -MessageData '[OK] Proxy environment variables cleared' -InformationAction Continue
+                    Write-Information -MessageData '[OK] Proxy environment variables cleared'
                 } catch {
                     Write-Error "[$($MyInvocation.MyCommand)] Failed to clear proxy environment variables: $_"
                 }

@@ -99,6 +99,21 @@ Describe 'Start-PingMonitor' {
             $cmd = Get-Command -Name 'Start-PingMonitor'
             $cmd.Parameters['ComputerName'].Aliases | Should -Contain 'CN'
         }
+
+        It 'Should accept pipeline input for ComputerName' {
+            $cmd = Get-Command -Name 'Start-PingMonitor'
+            $paramAttr = $cmd.Parameters['ComputerName'].Attributes | Where-Object {
+                $_ -is [System.Management.Automation.ParameterAttribute]
+            }
+            $paramAttr.ValueFromPipeline | Should -BeTrue
+            $paramAttr.ValueFromPipelineByPropertyName | Should -BeTrue
+        }
+
+        It 'Should declare OutputType void' {
+            $cmd = Get-Command -Name 'Start-PingMonitor'
+            $outputType = $cmd.OutputType
+            $outputType.Type | Should -Contain ([void])
+        }
     }
 
     Context 'Dashboard loop execution with mocked Ping' {

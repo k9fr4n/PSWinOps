@@ -103,7 +103,16 @@ function Set-NTPClient {
         }
 
         if ($MaxPollInterval -le $MinPollInterval) {
-            throw "MaxPollInterval ($MaxPollInterval) must be greater than MinPollInterval ($MinPollInterval)"
+            $PSCmdlet.ThrowTerminatingError(
+                [System.Management.Automation.ErrorRecord]::new(
+                    [System.ArgumentException]::new(
+                        "MaxPollInterval ($MaxPollInterval) must be greater than MinPollInterval ($MinPollInterval)"
+                    ),
+                    'InvalidPollIntervalRange',
+                    [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                    $null
+                )
+            )
         }
 
         $registryPaths = @{
@@ -133,7 +142,7 @@ function Set-NTPClient {
             if ($service.Status -ne 'Running') {
                 Write-Warning "[$($MyInvocation.MyCommand)] Service is stopped - starting..."
                 Start-Service -Name 'w32time' -ErrorAction Stop
-                Write-Information -MessageData '[OK] Windows Time Service started successfully' -InformationAction Continue
+                Write-Information -MessageData '[OK] Windows Time Service started successfully'
             } else {
                 Write-Verbose "[$($MyInvocation.MyCommand)] Service is already running"
             }
@@ -175,7 +184,7 @@ function Set-NTPClient {
 
             $null = w32tm /config /update
 
-            Write-Information -MessageData "[OK] NTP servers configured: $serverList" -InformationAction Continue
+            Write-Information -MessageData "[OK] NTP servers configured: $serverList"
 
             # Step 5: Set poll intervals in registry
             Write-Verbose "[$($MyInvocation.MyCommand)] Setting poll intervals in registry..."
@@ -185,13 +194,13 @@ function Set-NTPClient {
 
             $minSeconds = [math]::Pow(2, $MinPollInterval)
             $maxSeconds = [math]::Pow(2, $MaxPollInterval)
-            Write-Information -MessageData "[OK] Poll intervals set: Special=$SpecialPollInterval s, Min=$minSeconds s, Max=$maxSeconds s" -InformationAction Continue
+            Write-Information -MessageData "[OK] Poll intervals set: Special=$SpecialPollInterval s, Min=$minSeconds s, Max=$maxSeconds s"
 
             # Step 6: Restart W32Time service
             Write-Verbose "[$($MyInvocation.MyCommand)] Restarting Windows Time Service..."
             Restart-Service -Name 'w32time' -Force -ErrorAction Stop
             Start-Sleep -Seconds 2
-            Write-Information -MessageData '[OK] Windows Time Service restarted successfully' -InformationAction Continue
+            Write-Information -MessageData '[OK] Windows Time Service restarted successfully'
 
             # Step 7: Force synchronization
             Write-Verbose "[$($MyInvocation.MyCommand)] Forcing immediate NTP synchronization..."
@@ -203,7 +212,7 @@ function Set-NTPClient {
             $isSyncSuccessful = ($syncExitCode -eq 0)
 
             if ($isSyncSuccessful) {
-                Write-Information -MessageData '[OK] Time synchronization completed successfully' -InformationAction Continue
+                Write-Information -MessageData '[OK] Time synchronization completed successfully'
                 Write-Verbose "[$($MyInvocation.MyCommand)] w32tm /resync output: $($syncOutput -join ' ')"
             } else {
                 Write-Warning "[$($MyInvocation.MyCommand)] Time synchronization failed (exit code $syncExitCode):"
@@ -221,7 +230,7 @@ function Set-NTPClient {
             } else {
                 'N/A (could not parse w32tm output)'
             }
-            Write-Information -MessageData "[OK] Configured servers: $configServers" -InformationAction Continue
+            Write-Information -MessageData "[OK] Configured servers: $configServers"
 
             $status = w32tm /query /status /verbose
             $lastSyncMatch = $status | Select-String -Pattern 'Last Successful Sync Time:'
@@ -237,9 +246,9 @@ function Set-NTPClient {
                 'Source: N/A'
             }
 
-            Write-Information -MessageData "[OK] $lastSync" -InformationAction Continue
-            Write-Information -MessageData "[OK] $source" -InformationAction Continue
-            Write-Information -MessageData '[OK] Windows Time Service configuration completed successfully' -InformationAction Continue
+            Write-Information -MessageData "[OK] $lastSync"
+            Write-Information -MessageData "[OK] $source"
+            Write-Information -MessageData '[OK] Windows Time Service configuration completed successfully'
         } catch [System.UnauthorizedAccessException] {
             Write-Error "[$($MyInvocation.MyCommand)] Access denied - Administrator privileges required: $_"
             throw

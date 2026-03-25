@@ -15,7 +15,7 @@ RootModule = 'PSWinOps.psm1'
 ModuleVersion = '0.0.12'
 
 # Supported PSEditions
-# CompatiblePSEditions = @()
+CompatiblePSEditions = @('Desktop', 'Core')
 
 # ID used to uniquely identify this module
 GUID = 'b8f23fbd-069e-4d11-8e94-e4fc69d71aa5'
@@ -69,21 +69,48 @@ FormatsToProcess = 'PSWinOps.Format.ps1xml'
 # NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = 'Get-NTPConfiguration', 'Get-NTPPeer', 'Get-NTPSyncStatus', 
-               'Set-NTPClient', 'Sync-NTPTime', 'New-RandomPassword', 
-               'Connect-RdpSession', 'Disconnect-RdpSession', 'Get-RdpSession', 
-               'Get-RdpSessionHistory', 'Get-RdpSessionLock', 'Remove-RdpSession', 
-               'Get-ProxyConfiguration', 'Remove-ProxyConfiguration', 
-               'Set-ProxyConfiguration', 'Test-ProxyConnection', 
-               'ConvertFrom-MisencodedString', 'Get-ComputerUptime', 
-               'Get-PendingReboot', 'Get-SystemSummary', 'Clear-Arp', 'Edit-HostsFile', 
-               'Export-NetworkConfig', 'Get-ARPTable', 'Get-ListeningPort', 
-               'Get-NetworkAdapter', 'Get-NetworkConnection', 'Get-NetworkRoute', 
-               'Get-NetworkStatistic', 'Get-PublicIPAddress', 'Get-SSLCertificate', 
-               'Get-SubnetInfo', 'Measure-NetworkLatency', 'New-NetworkRoute', 
-               'Remove-NetworkRoute', 'Resolve-MACVendor', 'Set-NetworkRoute', 
-               'Start-NetworkStatisticMonitor', 'Start-PingMonitor', 
-               'Test-DNSResolution', 'Test-PortConnectivity', 'Test-WinRM', 
+FunctionsToExport = 'Clear-Arp',
+               'Connect-RdpSession',
+               'ConvertFrom-MisencodedString',
+               'Disconnect-RdpSession',
+               'Edit-HostsFile',
+               'Export-NetworkConfig',
+               'Get-ArpTable',
+               'Get-ComputerUptime',
+               'Get-ListeningPort',
+               'Get-NetworkAdapter',
+               'Get-NetworkConnection',
+               'Get-NetworkRoute',
+               'Get-NetworkStatistic',
+               'Get-NTPConfiguration',
+               'Get-NTPPeer',
+               'Get-NTPSyncStatus',
+               'Get-PendingReboot',
+               'Get-ProxyConfiguration',
+               'Get-PublicIPAddress',
+               'Get-RdpSession',
+               'Get-RdpSessionHistory',
+               'Get-RdpSessionLock',
+               'Get-SSLCertificate',
+               'Get-SubnetInfo',
+               'Get-SystemSummary',
+               'Measure-NetworkLatency',
+               'New-NetworkRoute',
+               'New-RandomPassword',
+               'Remove-NetworkRoute',
+               'Remove-ProxyConfiguration',
+               'Remove-RdpSession',
+               'Resolve-MACVendor',
+               'Set-NetworkRoute',
+               'Set-NTPClient',
+               'Set-ProxyConfiguration',
+               'Start-NetworkStatisticMonitor',
+               'Start-PingMonitor',
+               'Sync-NTPTime',
+               'Test-DNSResolution',
+               'Test-PortConnectivity',
+               'Test-ProxyConnection',
+               'Test-WinRM',
                'Trace-NetworkRoute'
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
@@ -122,7 +149,13 @@ PrivateData = @{
         # IconUri = ''
 
         # ReleaseNotes of this module
-        # ReleaseNotes = ''
+        ReleaseNotes = @'
+## 0.0.12
+- Initial public release
+- Network, NTP, RDP, Proxy, System, Security utilities
+- Secure-by-default SSL certificate inspection (AcceptUntrusted switch)
+- $IsWindows guard for PS7+ cross-platform safety
+'@
 
         # Prerelease string of this module
         # Prerelease = ''

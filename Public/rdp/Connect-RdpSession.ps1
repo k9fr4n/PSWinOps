@@ -236,8 +236,8 @@ function Connect-RdpSession {
                 }
 
                 if ($exitSuccess) {
-                    Write-Information -MessageData "[OK] Shadow session ended for session $SessionID on $ComputerName" -InformationAction Continue
-                    Write-Information -MessageData '[INFO] Use Ctrl+* (numpad asterisk) next time to exit shadow mode early' -InformationAction Continue
+                    Write-Information -MessageData "[OK] Shadow session ended for session $SessionID on $ComputerName"
+                    Write-Information -MessageData '[INFO] Use Ctrl+* (numpad asterisk) next time to exit shadow mode early'
                 } else {
                     Write-Warning "[$($MyInvocation.MyCommand)] $resultMessage"
                 }
