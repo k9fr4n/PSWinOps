@@ -167,11 +167,11 @@ function Set-PageFile {
                             $ramBytes = $compSystem.TotalPhysicalMemory
                             $ramGB = [math]::Round($ramBytes / 1GB, 2)
 
-                            $compSystem | Set-CimInstance -Property @{ AutomaticManagedPagefile = $true } -ErrorAction Stop
+                            Set-CimInstance -InputObject $compSystem -Property @{ AutomaticManagedPagefile = $true } -ErrorAction Stop
 
                             $existingPageFiles = Get-CimInstance -ClassName 'Win32_PageFileSetting' -ErrorAction SilentlyContinue
                             if ($existingPageFiles) {
-                                $existingPageFiles | Remove-CimInstance -ErrorAction Stop
+                                Remove-CimInstance -InputObject $existingPageFiles -ErrorAction Stop
                             }
 
                             Set-ItemProperty -Path $registryPath -Name 'PagingFiles' -Value '?:\pagefile.sys' -ErrorAction Stop
@@ -276,12 +276,12 @@ function Set-PageFile {
                 if ($PSCmdlet.ShouldProcess($targetComputer, $shouldMsg)) {
                     if ($isLocal) {
                         # Disable auto-managed
-                        $compSystem | Set-CimInstance -Property @{ AutomaticManagedPagefile = $false } -ErrorAction Stop
+                        Set-CimInstance -InputObject $compSystem -Property @{ AutomaticManagedPagefile = $false } -ErrorAction Stop
 
                         # Remove existing custom pagefiles
                         $existingPageFiles = Get-CimInstance -ClassName 'Win32_PageFileSetting' -ErrorAction SilentlyContinue
                         if ($existingPageFiles) {
-                            $existingPageFiles | Remove-CimInstance -ErrorAction Stop
+                            Remove-CimInstance -InputObject $existingPageFiles -ErrorAction Stop
                         }
 
                         # Create new pagefile setting via CIM
@@ -299,7 +299,7 @@ function Set-PageFile {
                         # Update registry
                         Set-ItemProperty -Path $registryPath -Name 'PagingFiles' -Value $pagingFileValue -ErrorAction Stop
                     } else {
-                        Invoke-Command -ComputerName $targetComputer -ScriptBlock {
+                        $null = Invoke-Command -ComputerName $targetComputer -ScriptBlock {
                             $pfPath = $using:pageFilePath; $pfInitial = $using:initial; $pfMaximum = $using:maximum
                             $pfPagingValue = $using:pagingFileValue; $regPath = $using:registryPath
 

@@ -19,7 +19,7 @@ Describe 'Invoke-QwinstaQuery' {
                     )
                     ExitCode = 0
                 }
-            } -ModuleName 'PSWinOps'
+            }
 
             $result = & (Get-Module -Name 'PSWinOps') { Invoke-QwinstaQuery -ServerName 'localhost' }
             $result | Should -BeOfType [PSCustomObject]
@@ -31,7 +31,7 @@ Describe 'Invoke-QwinstaQuery' {
                     Output   = @('header line', 'session line')
                     ExitCode = 0
                 }
-            } -ModuleName 'PSWinOps'
+            }
 
             $result = & (Get-Module -Name 'PSWinOps') { Invoke-QwinstaQuery -ServerName 'SRV01' }
             $result.PSObject.Properties.Name | Should -Contain 'Output'
@@ -41,7 +41,7 @@ Describe 'Invoke-QwinstaQuery' {
         It 'Returns ExitCode 0 on success' {
             Mock -CommandName 'Invoke-QwinstaQuery' -ModuleName 'PSWinOps' -MockWith {
                 [PSCustomObject]@{ Output = @('header'); ExitCode = 0 }
-            } -ModuleName 'PSWinOps'
+            }
 
             $result = & (Get-Module -Name 'PSWinOps') { Invoke-QwinstaQuery -ServerName 'SRV01' }
             $result.ExitCode | Should -Be 0
@@ -53,7 +53,7 @@ Describe 'Invoke-QwinstaQuery' {
         It 'Returns a non-zero ExitCode' {
             Mock -CommandName 'Invoke-QwinstaQuery' -ModuleName 'PSWinOps' -MockWith {
                 [PSCustomObject]@{ Output = @('Error: Access denied'); ExitCode = 5 }
-            } -ModuleName 'PSWinOps'
+            }
 
             $result = & (Get-Module -Name 'PSWinOps') { Invoke-QwinstaQuery -ServerName 'UNREACHABLE' }
             $result.ExitCode | Should -Not -Be 0
@@ -62,7 +62,7 @@ Describe 'Invoke-QwinstaQuery' {
         It 'Still returns a PSCustomObject on failure' {
             Mock -CommandName 'Invoke-QwinstaQuery' -ModuleName 'PSWinOps' -MockWith {
                 [PSCustomObject]@{ Output = @('Error'); ExitCode = 1 }
-            } -ModuleName 'PSWinOps'
+            }
 
             $result = & (Get-Module -Name 'PSWinOps') { Invoke-QwinstaQuery -ServerName 'UNREACHABLE' }
             $result | Should -BeOfType [PSCustomObject]
@@ -82,7 +82,7 @@ Describe 'Invoke-QwinstaQuery' {
         It 'Accepts a valid server name without throwing' {
             Mock -CommandName 'Invoke-QwinstaQuery' -ModuleName 'PSWinOps' -MockWith {
                 [PSCustomObject]@{ Output = @(); ExitCode = 0 }
-            } -ModuleName 'PSWinOps'
+            }
 
             { & (Get-Module -Name 'PSWinOps') { Invoke-QwinstaQuery -ServerName 'SRV01' } } | Should -Not -Throw
         }

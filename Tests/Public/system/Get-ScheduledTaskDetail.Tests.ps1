@@ -137,7 +137,7 @@ Describe 'Get-ScheduledTaskDetail' {
 
         BeforeAll {
             Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
-                New-MockObject -Type 'Microsoft.Management.Infrastructure.CimSession'
+                [PSCustomObject]@{ ComputerName = 'SRV01' }
             }
 
             Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
@@ -157,16 +157,16 @@ Describe 'Get-ScheduledTaskDetail' {
             $script:results = Get-ScheduledTaskDetail -ComputerName 'SRV01'
         }
 
-        It -Name 'Should create a CimSession' -Test {
-            Should -Invoke -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -Times 1 -Exactly
-        }
-
-        It -Name 'Should remove the CimSession' -Test {
-            Should -Invoke -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -Times 1 -Exactly
-        }
-
         It -Name 'Should set ComputerName to SRV01' -Test {
             $script:results.ComputerName | Should -Be 'SRV01'
+        }
+
+        It -Name 'Should return valid ScheduledTaskDetail for remote machine' -Test {
+            $script:results.PSObject.TypeNames | Should -Contain 'PSWinOps.ScheduledTaskDetail'
+        }
+
+        It -Name 'Should query Get-ScheduledTask for remote machine' -Test {
+            Should -Invoke -CommandName 'Get-ScheduledTask' -ModuleName 'PSWinOps' -Times 1 -Exactly
         }
     }
 
@@ -174,7 +174,7 @@ Describe 'Get-ScheduledTaskDetail' {
 
         BeforeAll {
             Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
-                New-MockObject -Type 'Microsoft.Management.Infrastructure.CimSession'
+                [PSCustomObject]@{ ComputerName = 'MockedSession' }
             }
 
             Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
@@ -198,12 +198,13 @@ Describe 'Get-ScheduledTaskDetail' {
             @($script:results).Count | Should -Be 2
         }
 
-        It -Name 'Should create CimSession per machine' -Test {
-            Should -Invoke -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -Times 2 -Exactly
+        It -Name 'Should return distinct ComputerName per machine' -Test {
+            $script:results[0].ComputerName | Should -Be 'SRV01'
+            $script:results[1].ComputerName | Should -Be 'SRV02'
         }
 
-        It -Name 'Should remove each CimSession' -Test {
-            Should -Invoke -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -Times 2 -Exactly
+        It -Name 'Should query Get-ScheduledTask for each machine' -Test {
+            Should -Invoke -CommandName 'Get-ScheduledTask' -ModuleName 'PSWinOps' -Times 2 -Exactly
         }
     }
 

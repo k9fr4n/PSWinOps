@@ -19,7 +19,7 @@ Describe 'Get-PublicIPAddress' {
         BeforeAll {
             Mock -CommandName 'Invoke-RestMethod' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockIPv4Result
-            } -ModuleName 'PSWinOps'
+            }
         }
 
         It 'Should return a PSWinOps.PublicIPAddress object for the local machine' {
@@ -48,7 +48,7 @@ Describe 'Get-PublicIPAddress' {
                     IPv6Address = $null
                     Provider    = 'ipify.org'
                 }
-            } -ModuleName 'PSWinOps'
+            }
         }
 
         It 'Should return the public IP for a remote computer' {
@@ -78,7 +78,7 @@ Describe 'Get-PublicIPAddress' {
                     IPv6Address = $null
                     Provider    = 'ipify.org'
                 }
-            } -ModuleName 'PSWinOps'
+            }
         }
 
         It 'Should return one result per piped computer name' {
@@ -96,7 +96,7 @@ Describe 'Get-PublicIPAddress' {
         BeforeAll {
             Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
                 throw 'Connection refused'
-            } -ModuleName 'PSWinOps'
+            }
         }
 
         It 'Should write an error but not throw for a failing machine' {
@@ -118,7 +118,7 @@ Describe 'Get-PublicIPAddress' {
                     return $script:mockIPv6Result
                 }
                 return $script:mockIPv4Result
-            } -ModuleName 'PSWinOps'
+            }
         }
 
         It 'Should populate IPv6Address when -IPv6 is specified' {
@@ -134,13 +134,13 @@ Describe 'Get-PublicIPAddress' {
         BeforeAll {
             Mock -CommandName 'Invoke-RestMethod' -ModuleName 'PSWinOps' -MockWith {
                 throw 'ipify down'
-            } -ModuleName 'PSWinOps'
+            }
 
             Mock -CommandName 'Invoke-WebRequest' -ModuleName 'PSWinOps' -MockWith {
                 return [PSCustomObject]@{
                     Content = '192.0.2.99'
                 }
-            } -ModuleName 'PSWinOps'
+            }
         }
 
         It 'Should fall back to ifconfig.me when ipify fails' {
@@ -156,11 +156,11 @@ Describe 'Get-PublicIPAddress' {
         BeforeAll {
             Mock -CommandName 'Invoke-RestMethod' -ModuleName 'PSWinOps' -MockWith {
                 throw 'ipify down'
-            } -ModuleName 'PSWinOps'
+            }
 
             Mock -CommandName 'Invoke-WebRequest' -ModuleName 'PSWinOps' -MockWith {
                 throw 'ifconfig.me down'
-            } -ModuleName 'PSWinOps'
+            }
         }
 
         It 'Should return null IPv4Address and Provider = Unavailable' {
@@ -204,7 +204,7 @@ Describe 'Get-PublicIPAddress' {
         BeforeAll {
             Mock -CommandName 'Invoke-RestMethod' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockIPv4Result
-            } -ModuleName 'PSWinOps'
+            }
         }
 
         It 'Should have all expected properties' {

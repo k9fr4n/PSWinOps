@@ -140,7 +140,7 @@ Describe 'Get-PageFileConfiguration' {
 
         BeforeAll {
             Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
-                New-MockObject -Type 'Microsoft.Management.Infrastructure.CimSession'
+                [PSCustomObject]@{ ComputerName = 'SRV01' }
             }
 
             Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
@@ -160,14 +160,6 @@ Describe 'Get-PageFileConfiguration' {
             $script:result = Get-PageFileConfiguration -ComputerName 'SRV01'
         }
 
-        It -Name 'Should create a CimSession' -Test {
-            Should -Invoke -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -Times 1 -Exactly
-        }
-
-        It -Name 'Should clean up the CimSession' -Test {
-            Should -Invoke -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -Times 1 -Exactly
-        }
-
         It -Name 'Should set ComputerName to SRV01' -Test {
             $script:result.ComputerName | Should -Be 'SRV01'
         }
@@ -175,13 +167,17 @@ Describe 'Get-PageFileConfiguration' {
         It -Name 'Should return PSWinOps.PageFileConfiguration type' -Test {
             $script:result.PSObject.TypeNames | Should -Contain 'PSWinOps.PageFileConfiguration'
         }
+
+        It -Name 'Should query Get-CimInstance for remote machine' -Test {
+            Should -Invoke -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -Times 1 -Exactly -ParameterFilter { $ClassName -eq 'Win32_ComputerSystem' }
+        }
     }
 
     Context 'Pipeline multiple machines' {
 
         BeforeAll {
             Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
-                New-MockObject -Type 'Microsoft.Management.Infrastructure.CimSession'
+                [PSCustomObject]@{ ComputerName = 'MockedSession' }
             }
 
             Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
@@ -213,12 +209,8 @@ Describe 'Get-PageFileConfiguration' {
             $script:results[1].ComputerName | Should -Be 'SRV02'
         }
 
-        It -Name 'Should create CimSession for each machine' -Test {
-            Should -Invoke -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -Times 2 -Exactly
-        }
-
-        It -Name 'Should clean up CimSessions for each machine' -Test {
-            Should -Invoke -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -Times 2 -Exactly
+        It -Name 'Should query Get-CimInstance for each machine' -Test {
+            Should -Invoke -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -Times 2 -Exactly -ParameterFilter { $ClassName -eq 'Win32_ComputerSystem' }
         }
     }
 

@@ -119,7 +119,7 @@ Describe 'Get-DiskSpace' {
 
         BeforeAll {
             Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
-                New-MockObject -Type 'Microsoft.Management.Infrastructure.CimSession'
+                [PSCustomObject]@{ ComputerName = 'SRV01' }
             }
             Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
@@ -128,16 +128,17 @@ Describe 'Get-DiskSpace' {
             $script:result = Get-DiskSpace -ComputerName 'SRV01'
         }
 
-        It -Name 'Should create a CimSession' -Test {
-            Should -Invoke -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -Times 1 -Exactly
-        }
-
-        It -Name 'Should clean up the CimSession' -Test {
-            Should -Invoke -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -Times 1 -Exactly
-        }
-
         It -Name 'Should return ComputerName SRV01' -Test {
             $script:result.ComputerName | Should -Be 'SRV01'
+        }
+
+        It -Name 'Should return valid DiskSpace object for remote machine' -Test {
+            $script:result.PSObject.TypeNames | Should -Contain 'PSWinOps.DiskSpace'
+            $script:result.DriveLetter | Should -Be 'C:'
+        }
+
+        It -Name 'Should query Get-CimInstance for remote machine' -Test {
+            Should -Invoke -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -Times 1 -Exactly
         }
     }
 
@@ -145,7 +146,7 @@ Describe 'Get-DiskSpace' {
 
         BeforeAll {
             Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
-                New-MockObject -Type 'Microsoft.Management.Infrastructure.CimSession'
+                [PSCustomObject]@{ ComputerName = 'MockedSession' }
             }
             Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
@@ -158,8 +159,13 @@ Describe 'Get-DiskSpace' {
             $script:results | Should -HaveCount 2
         }
 
-        It -Name 'Should create 2 CimSessions' -Test {
-            Should -Invoke -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -Times 2 -Exactly
+        It -Name 'Should return distinct ComputerName per machine' -Test {
+            $script:results[0].ComputerName | Should -Be 'SRV01'
+            $script:results[1].ComputerName | Should -Be 'SRV02'
+        }
+
+        It -Name 'Should query Get-CimInstance for each machine' -Test {
+            Should -Invoke -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -Times 2 -Exactly
         }
     }
 

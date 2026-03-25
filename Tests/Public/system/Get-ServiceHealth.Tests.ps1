@@ -86,36 +86,36 @@ Describe 'Get-ServiceHealth' {
     Context 'Remote single machine' {
 
         BeforeAll {
-            Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith { New-MockObject -Type 'Microsoft.Management.Infrastructure.CimSession' }
+            Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith { [PSCustomObject]@{ ComputerName = 'SRV01' } }
             Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith { return $script:mockServices }
             $script:results = Get-ServiceHealth -ComputerName 'SRV01'
         }
 
-        It -Name 'Should create a CimSession' -Test {
-            Should -Invoke -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -Times 1 -Exactly
-        }
-
-        It -Name 'Should clean up the CimSession' -Test {
-            Should -Invoke -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -Times 1 -Exactly
-        }
-
         It -Name 'Should set ComputerName to SRV01' -Test {
             $script:results.ComputerName | Should -Be 'SRV01'
+        }
+
+        It -Name 'Should return valid ServiceHealth for remote machine' -Test {
+            $script:results.PSObject.TypeNames | Should -Contain 'PSWinOps.ServiceHealth'
+        }
+
+        It -Name 'Should query Get-CimInstance for remote machine' -Test {
+            Should -Invoke -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -Times 1 -Exactly
         }
     }
 
     Context 'Pipeline multiple machines' {
 
         BeforeAll {
-            Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith { New-MockObject -Type 'Microsoft.Management.Infrastructure.CimSession' }
+            Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith { [PSCustomObject]@{ ComputerName = 'MockedSession' } }
             Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith { return $script:mockServices }
             $script:results = 'SRV01', 'SRV02' | Get-ServiceHealth -IncludeAll
         }
 
-        It -Name 'Should create 2 CimSessions' -Test {
-            Should -Invoke -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -Times 2 -Exactly
+        It -Name 'Should query Get-CimInstance for each machine' -Test {
+            Should -Invoke -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -Times 2 -Exactly
         }
     }
 

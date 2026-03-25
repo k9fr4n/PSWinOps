@@ -217,7 +217,7 @@ Describe 'Get-NetworkCIDR' {
         It 'Should write error and continue on failure' {
             Get-NetworkCIDR -ComputerName 'BADHOST' -ErrorVariable err -ErrorAction SilentlyContinue
             $err | Should -Not -BeNullOrEmpty
-            "$($err[0])" | Should -Match 'BADHOST'
+            ($err | ForEach-Object { "$_" }) -join "`n" | Should -Match 'BADHOST'
         }
 
         It 'Should not throw terminating error on per-machine failure' {

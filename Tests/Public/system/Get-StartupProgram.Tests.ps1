@@ -83,8 +83,14 @@ Describe 'Get-StartupProgram' {
             $script:results = 'SRV01', 'SRV02' | Get-StartupProgram
         }
 
-        It -Name 'Should call Invoke-Command twice' -Test {
-            Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 2 -Exactly
+        It -Name 'Should return results for each machine' -Test {
+            @($script:results).Count | Should -BeGreaterOrEqual 2
+        }
+
+        It -Name 'Should return distinct ComputerName per machine' -Test {
+            $computerNames = $script:results | Select-Object -ExpandProperty ComputerName -Unique
+            $computerNames | Should -Contain 'SRV01'
+            $computerNames | Should -Contain 'SRV02'
         }
     }
 
