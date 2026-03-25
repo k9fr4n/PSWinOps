@@ -64,11 +64,29 @@ Describe 'Get-NetworkCIDR' {
         }
 
         It 'Should return null SubnetMask for IPv6 addresses' {
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-NetIPAddress' -MockWith {
+                @(
+                    [PSCustomObject]@{
+                        InterfaceIndex = 5; InterfaceAlias = 'Ethernet'
+                        IPAddress = 'fe80::abc:def:1234:5678'; PrefixLength = 64
+                        AddressFamily = 23; PrefixOrigin = 'WellKnown'; SuffixOrigin = 'Link'
+                    }
+                )
+            }
             $result = @(Get-NetworkCIDR -AddressFamily IPv6)
             $result[0].SubnetMask | Should -BeNullOrEmpty
         }
 
         It 'Should return null NetworkCIDR for IPv6 addresses' {
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-NetIPAddress' -MockWith {
+                @(
+                    [PSCustomObject]@{
+                        InterfaceIndex = 5; InterfaceAlias = 'Ethernet'
+                        IPAddress = 'fe80::abc:def:1234:5678'; PrefixLength = 64
+                        AddressFamily = 23; PrefixOrigin = 'WellKnown'; SuffixOrigin = 'Link'
+                    }
+                )
+            }
             $result = @(Get-NetworkCIDR -AddressFamily IPv6)
             $result[0].NetworkCIDR | Should -BeNullOrEmpty
         }
@@ -199,7 +217,7 @@ Describe 'Get-NetworkCIDR' {
         It 'Should write error and continue on failure' {
             Get-NetworkCIDR -ComputerName 'BADHOST' -ErrorVariable err -ErrorAction SilentlyContinue
             $err | Should -Not -BeNullOrEmpty
-            $err[0].Exception.Message | Should -Match 'BADHOST'
+            "$($err[0])" | Should -Match 'BADHOST'
         }
 
         It 'Should not throw terminating error on per-machine failure' {
