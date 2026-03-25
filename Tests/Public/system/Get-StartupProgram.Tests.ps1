@@ -19,7 +19,7 @@ Describe 'Get-StartupProgram' {
     Context 'Remote - happy path' {
 
         BeforeAll {
-            Mock -CommandName 'Invoke-Command' -MockWith { return $script:mockStartupEntries }
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $script:mockStartupEntries }
             $script:results = Get-StartupProgram -ComputerName 'SRV01'
         }
 
@@ -41,7 +41,7 @@ Describe 'Get-StartupProgram' {
     Context 'Remote - verify properties' {
 
         BeforeAll {
-            Mock -CommandName 'Invoke-Command' -MockWith { return $script:mockStartupEntries }
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $script:mockStartupEntries }
             $script:results = Get-StartupProgram -ComputerName 'SRV01'
         }
 
@@ -79,19 +79,19 @@ Describe 'Get-StartupProgram' {
     Context 'Pipeline multiple machines' {
 
         BeforeAll {
-            Mock -CommandName 'Invoke-Command' -MockWith { return $script:mockStartupEntries }
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $script:mockStartupEntries }
             $script:results = 'SRV01', 'SRV02' | Get-StartupProgram
         }
 
         It -Name 'Should call Invoke-Command twice' -Test {
-            Should -Invoke -CommandName 'Invoke-Command' -Times 2 -Exactly
+            Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 2 -Exactly
         }
     }
 
     Context 'Per-machine failure' {
 
         BeforeAll {
-            Mock -CommandName 'Invoke-Command' -MockWith { throw 'Connection failed' }
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { throw 'Connection failed' }
         }
 
         It -Name 'Should write error with ErrorAction Stop' -Test {

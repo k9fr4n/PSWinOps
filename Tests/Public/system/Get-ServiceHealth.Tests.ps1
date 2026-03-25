@@ -21,7 +21,7 @@ Describe 'Get-ServiceHealth' {
     Context 'Default - only degraded services' {
 
         BeforeAll {
-            Mock -CommandName 'Get-CimInstance' -MockWith { return $script:mockServices }
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith { return $script:mockServices }
             $script:results = Get-ServiceHealth
         }
 
@@ -45,7 +45,7 @@ Describe 'Get-ServiceHealth' {
     Context 'IncludeAll switch' {
 
         BeforeAll {
-            Mock -CommandName 'Get-CimInstance' -MockWith { return $script:mockServices }
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith { return $script:mockServices }
             $script:results = Get-ServiceHealth -IncludeAll
         }
 
@@ -73,7 +73,7 @@ Describe 'Get-ServiceHealth' {
     Context 'ServiceName filter' {
 
         BeforeAll {
-            Mock -CommandName 'Get-CimInstance' -MockWith { return $script:mockServices }
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith { return $script:mockServices }
             $script:results = Get-ServiceHealth -ServiceName 'W32*' -IncludeAll
         }
 
@@ -86,18 +86,18 @@ Describe 'Get-ServiceHealth' {
     Context 'Remote single machine' {
 
         BeforeAll {
-            Mock -CommandName 'New-CimSession' -MockWith { return $script:mockCimSession }
-            Mock -CommandName 'Remove-CimSession' -MockWith {}
-            Mock -CommandName 'Get-CimInstance' -MockWith { return $script:mockServices }
+            Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith { return $script:mockCimSession }
+            Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith { return $script:mockServices }
             $script:results = Get-ServiceHealth -ComputerName 'SRV01'
         }
 
         It -Name 'Should create a CimSession' -Test {
-            Should -Invoke -CommandName 'New-CimSession' -Times 1 -Exactly
+            Should -Invoke -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -Times 1 -Exactly
         }
 
         It -Name 'Should clean up the CimSession' -Test {
-            Should -Invoke -CommandName 'Remove-CimSession' -Times 1 -Exactly
+            Should -Invoke -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -Times 1 -Exactly
         }
 
         It -Name 'Should set ComputerName to SRV01' -Test {
@@ -108,21 +108,21 @@ Describe 'Get-ServiceHealth' {
     Context 'Pipeline multiple machines' {
 
         BeforeAll {
-            Mock -CommandName 'New-CimSession' -MockWith { return $script:mockCimSession }
-            Mock -CommandName 'Remove-CimSession' -MockWith {}
-            Mock -CommandName 'Get-CimInstance' -MockWith { return $script:mockServices }
+            Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith { return $script:mockCimSession }
+            Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith { return $script:mockServices }
             $script:results = 'SRV01', 'SRV02' | Get-ServiceHealth -IncludeAll
         }
 
         It -Name 'Should create 2 CimSessions' -Test {
-            Should -Invoke -CommandName 'New-CimSession' -Times 2 -Exactly
+            Should -Invoke -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -Times 2 -Exactly
         }
     }
 
     Context 'Per-machine failure' {
 
         BeforeAll {
-            Mock -CommandName 'New-CimSession' -MockWith { throw 'Connection failed' }
+            Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith { throw 'Connection failed' }
         }
 
         It -Name 'Should write error with ErrorAction Stop' -Test {
