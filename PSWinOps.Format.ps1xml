@@ -1162,5 +1162,87 @@
       </ListControl>
     </View>
 
+    <!-- ============================================================ -->
+    <!-- PSWinOps.InstalledSoftware                                   -->
+    <!-- Used by: Get-InstalledSoftware                               -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.InstalledSoftware</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.InstalledSoftware</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>ComputerName</Label><Width>18</Width></TableColumnHeader>
+          <TableColumnHeader><Label>DisplayName</Label><Width>36</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Version</Label><Width>14</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Publisher</Label><Width>22</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Arch</Label><Width>7</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Size(MB)</Label><Width>9</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>InstallDate</Label><Width>12</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>DisplayName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>DisplayVersion</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Publisher</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Architecture</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>EstimatedSizeMB</PropertyName></TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>
+                  if ($_.InstallDate) { $_.InstallDate.ToString('yyyy-MM-dd') } else { '' }
+                </ScriptBlock>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.ScheduledTaskDetail                                 -->
+    <!-- Used by: Get-ScheduledTaskDetail                             -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.ScheduledTaskDetail</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.ScheduledTaskDetail</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>ComputerName</Label><Width>18</Width></TableColumnHeader>
+          <TableColumnHeader><Label>TaskName</Label><Width>28</Width></TableColumnHeader>
+          <TableColumnHeader><Label>TaskPath</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>State</Label><Width>10</Width></TableColumnHeader>
+          <TableColumnHeader><Label>LastRun</Label><Width>18</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Result</Label><Width>30</Width></TableColumnHeader>
+          <TableColumnHeader><Label>NextRun</Label><Width>18</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>TaskName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>TaskPath</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>State</PropertyName></TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>
+                  if ($_.LastRunTime -and $_.LastRunTime -ne [datetime]::MinValue) { $_.LastRunTime.ToString('yyyy-MM-dd HH:mm') } else { 'Never' }
+                </ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem><PropertyName>LastResultMessage</PropertyName></TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>
+                  if ($_.NextRunTime -and $_.NextRunTime -ne [datetime]::MinValue) { $_.NextRunTime.ToString('yyyy-MM-dd HH:mm') } else { 'N/A' }
+                </ScriptBlock>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
   </ViewDefinitions>
 </Configuration>
