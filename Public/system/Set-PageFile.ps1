@@ -109,6 +109,9 @@ function Set-PageFile {
 
     begin {
         Write-Verbose -Message "[$($MyInvocation.MyCommand)] Starting"
+        # Satisfy PSScriptAnalyzer - these switches drive parameter-set selection
+        $null = $AutoCalculate, $RestoreAutoManaged
+
 
         # --- Admin check -------------------------------------------------------
         $isAdmin = Test-IsAdministrator
@@ -174,7 +177,7 @@ function Set-PageFile {
                             Set-ItemProperty -Path $registryPath -Name 'PagingFiles' -Value '?:\pagefile.sys' -ErrorAction Stop
                         } else {
                             $restoreResult = Invoke-Command -ComputerName $targetComputer -ScriptBlock {
-                                param([string]$RegPath)
+                                $regPath = $using:registryPath
                                 $cs = Get-CimInstance -ClassName 'Win32_ComputerSystem' -ErrorAction Stop
                                 $ramGB = [math]::Round($cs.TotalPhysicalMemory / 1GB, 2)
                                 $cs | Set-CimInstance -Property @{ AutomaticManagedPagefile = $true } -ErrorAction Stop
@@ -182,9 +185,9 @@ function Set-PageFile {
                                 if ($existing) {
                                     $existing | Remove-CimInstance -ErrorAction Stop
                                 }
-                                Set-ItemProperty -Path $RegPath -Name 'PagingFiles' -Value '?:\pagefile.sys' -ErrorAction Stop
+                                Set-ItemProperty -Path $regPath -Name 'PagingFiles' -Value '?:\pagefile.sys' -ErrorAction Stop
                                 [PSCustomObject]@{ RamGB = $ramGB }
-                            } -ArgumentList $registryPath -ErrorAction Stop
+                            } -ErrorAction Stop
 
                             $ramGB = $restoreResult.RamGB
                         }
@@ -297,13 +300,8 @@ function Set-PageFile {
                         Set-ItemProperty -Path $registryPath -Name 'PagingFiles' -Value $pagingFileValue -ErrorAction Stop
                     } else {
                         Invoke-Command -ComputerName $targetComputer -ScriptBlock {
-                            param(
-                                [string]$PfPath,
-                                [int]$PfInitial,
-                                [int]$PfMaximum,
-                                [string]$PfPagingValue,
-                                [string]$RegPath
-                            )
+                            $pfPath = $using:pageFilePath; $pfInitial = $using:initial; $pfMaximum = $using:maximum
+                            $pfPagingValue = $using:pagingFileValue; $regPath = $using:registryPath
 
                             $cs = Get-CimInstance -ClassName 'Win32_ComputerSystem' -ErrorAction Stop
                             $cs | Set-CimInstance -Property @{ AutomaticManagedPagefile = $false } -ErrorAction Stop
@@ -314,13 +312,13 @@ function Set-PageFile {
                             }
 
                             $null = New-CimInstance -ClassName 'Win32_PageFileSetting' -Property @{
-                                Name        = $PfPath
-                                InitialSize = [uint32]$PfInitial
-                                MaximumSize = [uint32]$PfMaximum
+                                Name        = $pfPath
+                                InitialSize = [uint32]$pfInitial
+                                MaximumSize = [uint32]$pfMaximum
                             } -ErrorAction Stop
 
-                            Set-ItemProperty -Path $RegPath -Name 'PagingFiles' -Value $PfPagingValue -ErrorAction Stop
-                        } -ArgumentList $pageFilePath, $initial, $maximum, $pagingFileValue, $registryPath -ErrorAction Stop
+                            Set-ItemProperty -Path $regPath -Name 'PagingFiles' -Value $pfPagingValue -ErrorAction Stop
+                        } -ErrorAction Stop
                     }
 
                     [PSCustomObject]@{
