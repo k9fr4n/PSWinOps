@@ -27,11 +27,7 @@ BeforeAll {
         NextRunTime    = [datetime]'2026-03-26 02:00:00'
     }
 
-    $script:mockCimSession = [PSCustomObject]@{
-        ComputerName = 'SRV01'
-        Id           = 1
-        Protocol     = 'WSMAN'
-    }
+    # CimSession mock created inline via New-MockObject
 }
 
 Describe 'Get-ScheduledTaskDetail' {
@@ -141,7 +137,7 @@ Describe 'Get-ScheduledTaskDetail' {
 
         BeforeAll {
             Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
-                return $script:mockCimSession
+                New-MockObject -Type 'Microsoft.Management.Infrastructure.CimSession'
             }
 
             Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
@@ -178,7 +174,7 @@ Describe 'Get-ScheduledTaskDetail' {
 
         BeforeAll {
             Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
-                return $script:mockCimSession
+                New-MockObject -Type 'Microsoft.Management.Infrastructure.CimSession'
             }
 
             Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}

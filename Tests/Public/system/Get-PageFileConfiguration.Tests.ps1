@@ -28,11 +28,7 @@ BeforeAll {
         PeakUsage         = 1024
     }
 
-    $script:mockCimSession = [PSCustomObject]@{
-        ComputerName = 'SRV01'
-        Id           = 1
-        Protocol     = 'WSMAN'
-    }
+    # CimSession mock created inline via New-MockObject
 }
 
 Describe 'Get-PageFileConfiguration' {
@@ -105,7 +101,7 @@ Describe 'Get-PageFileConfiguration' {
             } -ParameterFilter { $ClassName -eq 'Win32_ComputerSystem' }
 
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
-                return $null
+                # Return nothing - empty pipeline output, so @() wrapper yields Count=0
             } -ParameterFilter { $ClassName -eq 'Win32_PageFileSetting' }
 
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
@@ -144,7 +140,7 @@ Describe 'Get-PageFileConfiguration' {
 
         BeforeAll {
             Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
-                return $script:mockCimSession
+                New-MockObject -Type 'Microsoft.Management.Infrastructure.CimSession'
             }
 
             Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
@@ -185,7 +181,7 @@ Describe 'Get-PageFileConfiguration' {
 
         BeforeAll {
             Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
-                return $script:mockCimSession
+                New-MockObject -Type 'Microsoft.Management.Infrastructure.CimSession'
             }
 
             Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}

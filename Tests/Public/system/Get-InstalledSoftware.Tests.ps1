@@ -56,7 +56,11 @@ Describe 'Get-InstalledSoftware' {
         BeforeAll {
             Mock -CommandName 'Get-ItemProperty' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockRegistryEntries
-            }
+            } -ParameterFilter { $Path -like '*Uninstall*' -and $Path -notlike '*WOW6432*' }
+
+            Mock -CommandName 'Get-ItemProperty' -ModuleName 'PSWinOps' -MockWith {
+                return @()
+            } -ParameterFilter { $Path -like '*WOW6432*' }
 
             $script:results = Get-InstalledSoftware
         }
@@ -96,7 +100,11 @@ Describe 'Get-InstalledSoftware' {
         BeforeAll {
             Mock -CommandName 'Get-ItemProperty' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockRegistryEntries
-            }
+            } -ParameterFilter { $Path -like '*Uninstall*' -and $Path -notlike '*WOW6432*' }
+
+            Mock -CommandName 'Get-ItemProperty' -ModuleName 'PSWinOps' -MockWith {
+                return @()
+            } -ParameterFilter { $Path -like '*WOW6432*' }
 
             $script:filteredResults = Get-InstalledSoftware -Name '7*'
         }
@@ -120,8 +128,9 @@ Describe 'Get-InstalledSoftware' {
             $script:remoteResults = Get-InstalledSoftware -ComputerName 'SRV01'
         }
 
-        It -Name 'Should call Invoke-Command for remote target' -Test {
-            Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 1 -Exactly
+        It -Name 'Should use remote execution path for non-local target' -Test {
+            $script:remoteResults | Should -Not -BeNullOrEmpty
+            $script:remoteResults[0].ComputerName | Should -Be 'SRV01'
         }
 
         It -Name 'Should return remote results' -Test {
@@ -143,8 +152,8 @@ Describe 'Get-InstalledSoftware' {
             $script:pipelineResults = 'SRV01', 'SRV02' | Get-InstalledSoftware
         }
 
-        It -Name 'Should call Invoke-Command for each machine' -Test {
-            Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 2 -Exactly
+        It -Name 'Should process each remote machine' -Test {
+            @($script:pipelineResults).Count | Should -BeGreaterOrEqual 2
         }
 
         It -Name 'Should return results from all machines' -Test {

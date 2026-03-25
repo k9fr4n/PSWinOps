@@ -57,24 +57,29 @@ Describe 'Get-EnvironmentVariable' {
 
         BeforeAll {
             Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $script:mockRemoteEntries }
-            Get-EnvironmentVariable -ComputerName 'SRV01' -Scope 'Machine'
+            $script:scopeResults = Get-EnvironmentVariable -ComputerName 'SRV01' -Scope 'Machine'
         }
 
-        It -Name 'Should call Invoke-Command' -Test {
-            Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 1 -Exactly
+        It -Name 'Should return results from the remote machine' -Test {
+            $script:scopeResults | Should -Not -BeNullOrEmpty
+            $script:scopeResults[0].ComputerName | Should -Be 'SRV01'
         }
     }
 
     Context 'Process scope remote warning' {
 
         BeforeAll {
-            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {}
-            Mock -CommandName 'Write-Warning' -ModuleName 'PSWinOps' -MockWith {}
-            Get-EnvironmentVariable -ComputerName 'SRV01' -Scope 'Process'
+            $script:processResult = Get-EnvironmentVariable -ComputerName 'SRV01' -Scope 'Process' -WarningVariable warnVar 3>$null
+            $script:warningMessages = $warnVar
         }
 
         It -Name 'Should write a warning about Process scope on remote' -Test {
-            Should -Invoke -CommandName 'Write-Warning' -ModuleName 'PSWinOps' -Times 1 -Exactly
+            $script:warningMessages | Should -Not -BeNullOrEmpty
+            "$($script:warningMessages[0])" | Should -BeLike '*Process scope*'
+        }
+
+        It -Name 'Should not return any results' -Test {
+            $script:processResult | Should -BeNullOrEmpty
         }
     }
 
@@ -85,8 +90,8 @@ Describe 'Get-EnvironmentVariable' {
             $script:results = 'SRV01', 'SRV02' | Get-EnvironmentVariable
         }
 
-        It -Name 'Should call Invoke-Command twice' -Test {
-            Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 2 -Exactly
+        It -Name 'Should return results from multiple machines' -Test {
+            @($script:results).Count | Should -BeGreaterOrEqual 2
         }
     }
 

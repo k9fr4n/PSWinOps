@@ -15,7 +15,7 @@ Describe 'Get-ServiceHealth' {
             [PSCustomObject]@{ Name = 'BITS'; DisplayName = 'Background Intelligent Transfer'; State = 'Stopped'; StartMode = 'Manual'; StartName = 'LocalSystem'; ProcessId = 0 },
             [PSCustomObject]@{ Name = 'RemoteRegistry'; DisplayName = 'Remote Registry'; State = 'Stopped'; StartMode = 'Disabled'; StartName = 'LocalService'; ProcessId = 0 }
         )
-        $script:mockCimSession = [PSCustomObject]@{ ComputerName = 'SRV01'; Id = 1; Protocol = 'WSMAN' }
+        # CimSession mock created inline via New-MockObject
     }
 
     Context 'Default - only degraded services' {
@@ -86,7 +86,7 @@ Describe 'Get-ServiceHealth' {
     Context 'Remote single machine' {
 
         BeforeAll {
-            Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith { return $script:mockCimSession }
+            Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith { New-MockObject -Type 'Microsoft.Management.Infrastructure.CimSession' }
             Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith { return $script:mockServices }
             $script:results = Get-ServiceHealth -ComputerName 'SRV01'
@@ -108,7 +108,7 @@ Describe 'Get-ServiceHealth' {
     Context 'Pipeline multiple machines' {
 
         BeforeAll {
-            Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith { return $script:mockCimSession }
+            Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith { New-MockObject -Type 'Microsoft.Management.Infrastructure.CimSession' }
             Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith { return $script:mockServices }
             $script:results = 'SRV01', 'SRV02' | Get-ServiceHealth -IncludeAll
