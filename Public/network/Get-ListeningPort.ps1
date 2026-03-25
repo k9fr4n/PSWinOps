@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 
 function Get-ListeningPort {
     <#
@@ -112,24 +112,32 @@ function Get-ListeningPort {
             if ($FilterProtocols -contains 'TCP') {
                 $listeners = Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue
                 foreach ($conn in $listeners) {
-                    if ($FilterPort -gt 0 -and $conn.LocalPort -ne $FilterPort) { continue }
+                    if ($FilterPort -gt 0 -and $conn.LocalPort -ne $FilterPort) {
+                        continue
+                    }
 
                     $ownerPid = [int]$conn.OwningProcess
                     $pName = if ($processCache.ContainsKey($ownerPid)) {
                         $processCache[$ownerPid]
-                    } elseif ($ownerPid -eq 0) { 'System Idle' }
-                    elseif ($ownerPid -eq 4) { 'System' }
-                    else { '[Unknown]' }
+                    } elseif ($ownerPid -eq 0) {
+                        'System Idle'
+                    } elseif ($ownerPid -eq 4) {
+                        'System'
+                    } else {
+                        '[Unknown]'
+                    }
 
-                    if ($FilterProcess -and $pName -notlike $FilterProcess) { continue }
+                    if ($FilterProcess -and $pName -notlike $FilterProcess) {
+                        continue
+                    }
 
                     $results.Add([PSCustomObject]@{
-                        Protocol     = 'TCP'
-                        LocalAddress = $conn.LocalAddress
-                        LocalPort    = $conn.LocalPort
-                        ProcessId    = $conn.OwningProcess
-                        ProcessName  = $pName
-                    })
+                            Protocol     = 'TCP'
+                            LocalAddress = $conn.LocalAddress
+                            LocalPort    = $conn.LocalPort
+                            ProcessId    = $conn.OwningProcess
+                            ProcessName  = $pName
+                        })
                 }
             }
 
@@ -137,24 +145,32 @@ function Get-ListeningPort {
             if ($FilterProtocols -contains 'UDP') {
                 $endpoints = Get-NetUDPEndpoint -ErrorAction SilentlyContinue
                 foreach ($ep in $endpoints) {
-                    if ($FilterPort -gt 0 -and $ep.LocalPort -ne $FilterPort) { continue }
+                    if ($FilterPort -gt 0 -and $ep.LocalPort -ne $FilterPort) {
+                        continue
+                    }
 
                     $ownerPid = [int]$ep.OwningProcess
                     $pName = if ($processCache.ContainsKey($ownerPid)) {
                         $processCache[$ownerPid]
-                    } elseif ($ownerPid -eq 0) { 'System Idle' }
-                    elseif ($ownerPid -eq 4) { 'System' }
-                    else { '[Unknown]' }
+                    } elseif ($ownerPid -eq 0) {
+                        'System Idle'
+                    } elseif ($ownerPid -eq 4) {
+                        'System'
+                    } else {
+                        '[Unknown]'
+                    }
 
-                    if ($FilterProcess -and $pName -notlike $FilterProcess) { continue }
+                    if ($FilterProcess -and $pName -notlike $FilterProcess) {
+                        continue
+                    }
 
                     $results.Add([PSCustomObject]@{
-                        Protocol     = 'UDP'
-                        LocalAddress = $ep.LocalAddress
-                        LocalPort    = $ep.LocalPort
-                        ProcessId    = $ep.OwningProcess
-                        ProcessName  = $pName
-                    })
+                            Protocol     = 'UDP'
+                            LocalAddress = $ep.LocalAddress
+                            LocalPort    = $ep.LocalPort
+                            ProcessId    = $ep.OwningProcess
+                            ProcessName  = $pName
+                        })
                 }
             }
 
@@ -172,8 +188,16 @@ function Get-ListeningPort {
 
                 $queryArgs = @(
                     $Protocol
-                    $(if ($PSBoundParameters.ContainsKey('Port')) { $Port } else { 0 })
-                    $(if ($ProcessName) { $ProcessName } else { $null })
+                    $(if ($PSBoundParameters.ContainsKey('Port')) {
+                            $Port
+                        } else {
+                            0
+                        })
+                    $(if ($ProcessName) {
+                            $ProcessName
+                        } else {
+                            $null
+                        })
                 )
 
                 if ($isLocal) {

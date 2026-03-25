@@ -115,10 +115,18 @@ function Get-NetworkStatistic {
                     ComputerName = $targetComputer
                     ErrorAction  = 'Stop'
                 }
-                if ($PSBoundParameters.ContainsKey('Credential'))  { $connParams['Credential']  = $Credential }
-                if ($PSBoundParameters.ContainsKey('Protocol'))    { $connParams['Protocol']    = $Protocol }
-                if ($PSBoundParameters.ContainsKey('State'))       { $connParams['State']       = $State }
-                if ($PSBoundParameters.ContainsKey('ProcessName')) { $connParams['ProcessName'] = $ProcessName }
+                if ($PSBoundParameters.ContainsKey('Credential')) {
+                    $connParams['Credential'] = $Credential
+                }
+                if ($PSBoundParameters.ContainsKey('Protocol')) {
+                    $connParams['Protocol'] = $Protocol
+                }
+                if ($PSBoundParameters.ContainsKey('State')) {
+                    $connParams['State'] = $State
+                }
+                if ($PSBoundParameters.ContainsKey('ProcessName')) {
+                    $connParams['ProcessName'] = $ProcessName
+                }
 
                 $connections = @(Get-NetworkConnection @connParams)
 
