@@ -1099,5 +1099,68 @@
       </TableControl>
     </View>
 
+    <!-- ============================================================ -->
+    <!-- PSWinOps.PageFileConfiguration                               -->
+    <!-- Used by: Get-PageFileConfiguration                           -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.PageFileConfiguration</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.PageFileConfiguration</TypeName>
+      </ViewSelectedBy>
+      <ListControl>
+        <ListEntries>
+          <ListEntry>
+            <ListItems>
+              <ListItem>
+                <Label>Computer Name</Label>
+                <PropertyName>ComputerName</PropertyName>
+              </ListItem>
+              <ListItem>
+                <Label>Drive Letter</Label>
+                <PropertyName>DriveLetter</PropertyName>
+              </ListItem>
+              <ListItem>
+                <Label>PageFile Path</Label>
+                <PropertyName>PageFilePath</PropertyName>
+              </ListItem>
+              <ListItem>
+                <Label>Initial Size (MB)</Label>
+                <PropertyName>InitialSizeMB</PropertyName>
+              </ListItem>
+              <ListItem>
+                <Label>Maximum Size (MB)</Label>
+                <PropertyName>MaximumSizeMB</PropertyName>
+              </ListItem>
+              <ListItem>
+                <Label>Auto-Managed</Label>
+                <PropertyName>AutoManagedPagefile</PropertyName>
+              </ListItem>
+              <ListItem>
+                <Label>RAM Total (GB)</Label>
+                <PropertyName>RamTotalGB</PropertyName>
+              </ListItem>
+              <ListItem>
+                <Label>Complete Dump Ensured</Label>
+                <PropertyName>EnsureCompleteDump</PropertyName>
+              </ListItem>
+              <ListItem>
+                <Label>Restart Required</Label>
+                <PropertyName>RestartRequired</PropertyName>
+              </ListItem>
+              <ListItem>
+                <Label>Status</Label>
+                <PropertyName>Status</PropertyName>
+              </ListItem>
+              <ListItem>
+                <Label>Timestamp</Label>
+                <PropertyName>Timestamp</PropertyName>
+              </ListItem>
+            </ListItems>
+          </ListEntry>
+        </ListEntries>
+      </ListControl>
+    </View>
+
   </ViewDefinitions>
 </Configuration>
