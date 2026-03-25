@@ -10,7 +10,7 @@ Describe 'Invoke-QwinstaQuery' {
     Context 'When qwinsta.exe succeeds' {
 
         It 'Returns a PSCustomObject' {
-            Mock -CommandName 'Invoke-QwinstaQuery' -MockWith {
+            Mock -CommandName 'Invoke-QwinstaQuery' -ModuleName 'PSWinOps' -MockWith {
                 [PSCustomObject]@{
                     Output   = @(
                         ' SESSIONNAME       USERNAME          ID  STATE   TYPE        DEVICE',
@@ -26,7 +26,7 @@ Describe 'Invoke-QwinstaQuery' {
         }
 
         It 'Returns Output and ExitCode properties' {
-            Mock -CommandName 'Invoke-QwinstaQuery' -MockWith {
+            Mock -CommandName 'Invoke-QwinstaQuery' -ModuleName 'PSWinOps' -MockWith {
                 [PSCustomObject]@{
                     Output   = @('header line', 'session line')
                     ExitCode = 0
@@ -39,7 +39,7 @@ Describe 'Invoke-QwinstaQuery' {
         }
 
         It 'Returns ExitCode 0 on success' {
-            Mock -CommandName 'Invoke-QwinstaQuery' -MockWith {
+            Mock -CommandName 'Invoke-QwinstaQuery' -ModuleName 'PSWinOps' -MockWith {
                 [PSCustomObject]@{ Output = @('header'); ExitCode = 0 }
             } -ModuleName 'PSWinOps'
 
@@ -51,7 +51,7 @@ Describe 'Invoke-QwinstaQuery' {
     Context 'When qwinsta.exe fails' {
 
         It 'Returns a non-zero ExitCode' {
-            Mock -CommandName 'Invoke-QwinstaQuery' -MockWith {
+            Mock -CommandName 'Invoke-QwinstaQuery' -ModuleName 'PSWinOps' -MockWith {
                 [PSCustomObject]@{ Output = @('Error: Access denied'); ExitCode = 5 }
             } -ModuleName 'PSWinOps'
 
@@ -60,7 +60,7 @@ Describe 'Invoke-QwinstaQuery' {
         }
 
         It 'Still returns a PSCustomObject on failure' {
-            Mock -CommandName 'Invoke-QwinstaQuery' -MockWith {
+            Mock -CommandName 'Invoke-QwinstaQuery' -ModuleName 'PSWinOps' -MockWith {
                 [PSCustomObject]@{ Output = @('Error'); ExitCode = 1 }
             } -ModuleName 'PSWinOps'
 
@@ -80,7 +80,7 @@ Describe 'Invoke-QwinstaQuery' {
         }
 
         It 'Accepts a valid server name without throwing' {
-            Mock -CommandName 'Invoke-QwinstaQuery' -MockWith {
+            Mock -CommandName 'Invoke-QwinstaQuery' -ModuleName 'PSWinOps' -MockWith {
                 [PSCustomObject]@{ Output = @(); ExitCode = 0 }
             } -ModuleName 'PSWinOps'
 

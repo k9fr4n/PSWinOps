@@ -19,7 +19,7 @@ Describe 'Get-EnvironmentVariable' {
     Context 'Remote - all scopes' {
 
         BeforeAll {
-            Mock -CommandName 'Invoke-Command' -MockWith { return $script:mockRemoteEntries }
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $script:mockRemoteEntries }
             $script:results = Get-EnvironmentVariable -ComputerName 'SRV01'
         }
 
@@ -43,7 +43,7 @@ Describe 'Get-EnvironmentVariable' {
     Context 'Remote - VariableName filter' {
 
         BeforeAll {
-            Mock -CommandName 'Invoke-Command' -MockWith { return $script:mockRemoteEntries }
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $script:mockRemoteEntries }
             $script:results = Get-EnvironmentVariable -ComputerName 'SRV01' -VariableName 'PATH'
         }
 
@@ -56,44 +56,44 @@ Describe 'Get-EnvironmentVariable' {
     Context 'Remote - Scope Machine only' {
 
         BeforeAll {
-            Mock -CommandName 'Invoke-Command' -MockWith { return $script:mockRemoteEntries }
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $script:mockRemoteEntries }
             Get-EnvironmentVariable -ComputerName 'SRV01' -Scope 'Machine'
         }
 
         It -Name 'Should call Invoke-Command' -Test {
-            Should -Invoke -CommandName 'Invoke-Command' -Times 1 -Exactly
+            Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 1 -Exactly
         }
     }
 
     Context 'Process scope remote warning' {
 
         BeforeAll {
-            Mock -CommandName 'Invoke-Command' -MockWith {}
-            Mock -CommandName 'Write-Warning' -MockWith {}
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {}
+            Mock -CommandName 'Write-Warning' -ModuleName 'PSWinOps' -MockWith {}
             Get-EnvironmentVariable -ComputerName 'SRV01' -Scope 'Process'
         }
 
         It -Name 'Should write a warning about Process scope on remote' -Test {
-            Should -Invoke -CommandName 'Write-Warning' -Times 1 -Exactly
+            Should -Invoke -CommandName 'Write-Warning' -ModuleName 'PSWinOps' -Times 1 -Exactly
         }
     }
 
     Context 'Pipeline multiple machines' {
 
         BeforeAll {
-            Mock -CommandName 'Invoke-Command' -MockWith { return $script:mockRemoteEntries }
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $script:mockRemoteEntries }
             $script:results = 'SRV01', 'SRV02' | Get-EnvironmentVariable
         }
 
         It -Name 'Should call Invoke-Command twice' -Test {
-            Should -Invoke -CommandName 'Invoke-Command' -Times 2 -Exactly
+            Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 2 -Exactly
         }
     }
 
     Context 'Per-machine failure' {
 
         BeforeAll {
-            Mock -CommandName 'Invoke-Command' -MockWith { throw 'Connection failed' }
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { throw 'Connection failed' }
         }
 
         It -Name 'Should write error with ErrorAction Stop' -Test {

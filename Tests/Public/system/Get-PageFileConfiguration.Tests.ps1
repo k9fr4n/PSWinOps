@@ -40,15 +40,15 @@ Describe 'Get-PageFileConfiguration' {
     Context 'Happy path - local with custom pagefile' {
 
         BeforeAll {
-            Mock -CommandName 'Get-CimInstance' -MockWith {
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockCompSystem
             } -ParameterFilter { $ClassName -eq 'Win32_ComputerSystem' }
 
-            Mock -CommandName 'Get-CimInstance' -MockWith {
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockPageFileSetting
             } -ParameterFilter { $ClassName -eq 'Win32_PageFileSetting' }
 
-            Mock -CommandName 'Get-CimInstance' -MockWith {
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockPageFileUsage
             } -ParameterFilter { $ClassName -eq 'Win32_PageFileUsage' }
 
@@ -100,15 +100,15 @@ Describe 'Get-PageFileConfiguration' {
     Context 'Happy path - local auto-managed pagefile' {
 
         BeforeAll {
-            Mock -CommandName 'Get-CimInstance' -MockWith {
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockCompSystemAutoManaged
             } -ParameterFilter { $ClassName -eq 'Win32_ComputerSystem' }
 
-            Mock -CommandName 'Get-CimInstance' -MockWith {
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
                 return $null
             } -ParameterFilter { $ClassName -eq 'Win32_PageFileSetting' }
 
-            Mock -CommandName 'Get-CimInstance' -MockWith {
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockPageFileUsage
             } -ParameterFilter { $ClassName -eq 'Win32_PageFileUsage' }
 
@@ -143,21 +143,21 @@ Describe 'Get-PageFileConfiguration' {
     Context 'Remote single machine' {
 
         BeforeAll {
-            Mock -CommandName 'New-CimSession' -MockWith {
+            Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockCimSession
             }
 
-            Mock -CommandName 'Remove-CimSession' -MockWith {}
+            Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
 
-            Mock -CommandName 'Get-CimInstance' -MockWith {
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockCompSystem
             } -ParameterFilter { $null -ne $CimSession -and $ClassName -eq 'Win32_ComputerSystem' }
 
-            Mock -CommandName 'Get-CimInstance' -MockWith {
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockPageFileSetting
             } -ParameterFilter { $null -ne $CimSession -and $ClassName -eq 'Win32_PageFileSetting' }
 
-            Mock -CommandName 'Get-CimInstance' -MockWith {
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockPageFileUsage
             } -ParameterFilter { $null -ne $CimSession -and $ClassName -eq 'Win32_PageFileUsage' }
 
@@ -165,11 +165,11 @@ Describe 'Get-PageFileConfiguration' {
         }
 
         It -Name 'Should create a CimSession' -Test {
-            Should -Invoke -CommandName 'New-CimSession' -Times 1 -Exactly
+            Should -Invoke -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -Times 1 -Exactly
         }
 
         It -Name 'Should clean up the CimSession' -Test {
-            Should -Invoke -CommandName 'Remove-CimSession' -Times 1 -Exactly
+            Should -Invoke -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -Times 1 -Exactly
         }
 
         It -Name 'Should set ComputerName to SRV01' -Test {
@@ -184,21 +184,21 @@ Describe 'Get-PageFileConfiguration' {
     Context 'Pipeline multiple machines' {
 
         BeforeAll {
-            Mock -CommandName 'New-CimSession' -MockWith {
+            Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockCimSession
             }
 
-            Mock -CommandName 'Remove-CimSession' -MockWith {}
+            Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
 
-            Mock -CommandName 'Get-CimInstance' -MockWith {
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockCompSystem
             } -ParameterFilter { $null -ne $CimSession -and $ClassName -eq 'Win32_ComputerSystem' }
 
-            Mock -CommandName 'Get-CimInstance' -MockWith {
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockPageFileSetting
             } -ParameterFilter { $null -ne $CimSession -and $ClassName -eq 'Win32_PageFileSetting' }
 
-            Mock -CommandName 'Get-CimInstance' -MockWith {
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockPageFileUsage
             } -ParameterFilter { $null -ne $CimSession -and $ClassName -eq 'Win32_PageFileUsage' }
 
@@ -218,18 +218,18 @@ Describe 'Get-PageFileConfiguration' {
         }
 
         It -Name 'Should create CimSession for each machine' -Test {
-            Should -Invoke -CommandName 'New-CimSession' -Times 2 -Exactly
+            Should -Invoke -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -Times 2 -Exactly
         }
 
         It -Name 'Should clean up CimSessions for each machine' -Test {
-            Should -Invoke -CommandName 'Remove-CimSession' -Times 2 -Exactly
+            Should -Invoke -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -Times 2 -Exactly
         }
     }
 
     Context 'Per-machine failure continues' {
 
         BeforeAll {
-            Mock -CommandName 'New-CimSession' -MockWith {
+            Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
                 throw 'RPC server is unavailable'
             }
         }

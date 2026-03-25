@@ -35,7 +35,7 @@ Describe 'Get-DiskSpace' {
     Context 'Happy path - local' {
 
         BeforeAll {
-            Mock -CommandName 'Get-CimInstance' -MockWith {
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockDisk
             }
             $script:result = Get-DiskSpace
@@ -72,7 +72,7 @@ Describe 'Get-DiskSpace' {
     Context 'Threshold - Critical status' {
 
         BeforeAll {
-            Mock -CommandName 'Get-CimInstance' -MockWith {
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockDiskCritical
             }
             $script:result = Get-DiskSpace
@@ -94,7 +94,7 @@ Describe 'Get-DiskSpace' {
                 FreeSpace  = 16106127360
                 DriveType  = 3
             }
-            Mock -CommandName 'Get-CimInstance' -MockWith {
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockDiskWarning
             }
             $script:result = Get-DiskSpace
@@ -108,7 +108,7 @@ Describe 'Get-DiskSpace' {
     Context 'Custom thresholds' {
 
         BeforeAll {
-            Mock -CommandName 'Get-CimInstance' -MockWith {
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockDisk
             }
             $script:result = Get-DiskSpace -WarningThreshold 40 -CriticalThreshold 20
@@ -122,22 +122,22 @@ Describe 'Get-DiskSpace' {
     Context 'Remote single machine' {
 
         BeforeAll {
-            Mock -CommandName 'New-CimSession' -MockWith {
+            Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockCimSession
             }
-            Mock -CommandName 'Remove-CimSession' -MockWith {}
-            Mock -CommandName 'Get-CimInstance' -MockWith {
+            Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockDisk
             }
             $script:result = Get-DiskSpace -ComputerName 'SRV01'
         }
 
         It -Name 'Should create a CimSession' -Test {
-            Should -Invoke -CommandName 'New-CimSession' -Times 1 -Exactly
+            Should -Invoke -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -Times 1 -Exactly
         }
 
         It -Name 'Should clean up the CimSession' -Test {
-            Should -Invoke -CommandName 'Remove-CimSession' -Times 1 -Exactly
+            Should -Invoke -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -Times 1 -Exactly
         }
 
         It -Name 'Should return ComputerName SRV01' -Test {
@@ -148,11 +148,11 @@ Describe 'Get-DiskSpace' {
     Context 'Pipeline multiple machines' {
 
         BeforeAll {
-            Mock -CommandName 'New-CimSession' -MockWith {
+            Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockCimSession
             }
-            Mock -CommandName 'Remove-CimSession' -MockWith {}
-            Mock -CommandName 'Get-CimInstance' -MockWith {
+            Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockDisk
             }
             $script:results = 'SRV01', 'SRV02' | Get-DiskSpace
@@ -163,14 +163,14 @@ Describe 'Get-DiskSpace' {
         }
 
         It -Name 'Should create 2 CimSessions' -Test {
-            Should -Invoke -CommandName 'New-CimSession' -Times 2 -Exactly
+            Should -Invoke -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -Times 2 -Exactly
         }
     }
 
     Context 'Per-machine failure' {
 
         BeforeAll {
-            Mock -CommandName 'New-CimSession' -MockWith {
+            Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
                 throw 'Connection failed'
             }
         }

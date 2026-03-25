@@ -36,28 +36,28 @@ Describe 'Set-PageFile' {
         }
 
         # ---- Common mocks ----
-        Mock -CommandName 'Test-IsAdministrator' -MockWith { $true }
+        Mock -CommandName 'Test-IsAdministrator' -ModuleName 'PSWinOps' -MockWith { $true }
 
-        Mock -CommandName 'Get-CimInstance' -ParameterFilter {
+        Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -ParameterFilter {
             $ClassName -eq 'Win32_ComputerSystem'
         } -MockWith { $script:mockCompSystem }
 
-        Mock -CommandName 'Get-CimInstance' -ParameterFilter {
+        Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -ParameterFilter {
             $ClassName -eq 'Win32_PageFileSetting'
         } -MockWith { $script:mockPageFileSetting }
 
-        Mock -CommandName 'Set-CimInstance' -MockWith { }
-        Mock -CommandName 'Remove-CimInstance' -MockWith { }
-        Mock -CommandName 'New-CimInstance' -MockWith { [PSCustomObject]@{} }
-        Mock -CommandName 'Set-ItemProperty' -MockWith { }
-        Mock -CommandName 'Invoke-Command' -MockWith {
+        Mock -CommandName 'Set-CimInstance' -ModuleName 'PSWinOps' -MockWith { }
+        Mock -CommandName 'Remove-CimInstance' -ModuleName 'PSWinOps' -MockWith { }
+        Mock -CommandName 'New-CimInstance' -ModuleName 'PSWinOps' -MockWith { [PSCustomObject]@{} }
+        Mock -CommandName 'Set-ItemProperty' -ModuleName 'PSWinOps' -MockWith { }
+        Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
             [PSCustomObject]@{ RamGB = 16 }
         }
     }
 
     Context 'AutoCalculate - local - 16 GB RAM' {
         BeforeAll {
-            Mock -CommandName 'Get-CimInstance' -ParameterFilter {
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -ParameterFilter {
                 $ClassName -eq 'Win32_ComputerSystem'
             } -MockWith { $script:mockCompSystem }
 
@@ -89,21 +89,21 @@ Describe 'Set-PageFile' {
         }
 
         It -Name 'Should call Set-CimInstance to disable auto-managed' -Test {
-            Should -Invoke -CommandName 'Set-CimInstance' -Times 1 -Exactly
+            Should -Invoke -CommandName 'Set-CimInstance' -ModuleName 'PSWinOps' -Times 1 -Exactly
         }
 
         It -Name 'Should call New-CimInstance to create pagefile setting' -Test {
-            Should -Invoke -CommandName 'New-CimInstance' -Times 1 -Exactly
+            Should -Invoke -CommandName 'New-CimInstance' -ModuleName 'PSWinOps' -Times 1 -Exactly
         }
 
         It -Name 'Should call Set-ItemProperty for registry' -Test {
-            Should -Invoke -CommandName 'Set-ItemProperty' -Times 1 -Exactly
+            Should -Invoke -CommandName 'Set-ItemProperty' -ModuleName 'PSWinOps' -Times 1 -Exactly
         }
     }
 
     Context 'AutoCalculate - 4 GB RAM tier' {
         BeforeAll {
-            Mock -CommandName 'Get-CimInstance' -ParameterFilter {
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -ParameterFilter {
                 $ClassName -eq 'Win32_ComputerSystem'
             } -MockWith { $script:mockCompSystem4GB }
 
@@ -121,7 +121,7 @@ Describe 'Set-PageFile' {
 
     Context 'AutoCalculate - 8 GB RAM tier' {
         BeforeAll {
-            Mock -CommandName 'Get-CimInstance' -ParameterFilter {
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -ParameterFilter {
                 $ClassName -eq 'Win32_ComputerSystem'
             } -MockWith { $script:mockCompSystem8GB }
 
@@ -139,7 +139,7 @@ Describe 'Set-PageFile' {
 
     Context 'AutoCalculate - 64 GB RAM tier (> 16 GB)' {
         BeforeAll {
-            Mock -CommandName 'Get-CimInstance' -ParameterFilter {
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -ParameterFilter {
                 $ClassName -eq 'Win32_ComputerSystem'
             } -MockWith { $script:mockCompSystem64GB }
 
@@ -208,7 +208,7 @@ Describe 'Set-PageFile' {
 
     Context 'EnsureCompleteDump with AutoCalculate - 16 GB RAM' {
         BeforeAll {
-            Mock -CommandName 'Get-CimInstance' -ParameterFilter {
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -ParameterFilter {
                 $ClassName -eq 'Win32_ComputerSystem'
             } -MockWith { $script:mockCompSystem }
 
@@ -230,7 +230,7 @@ Describe 'Set-PageFile' {
 
     Context 'EnsureCompleteDump with Manual - sizes already sufficient' {
         BeforeAll {
-            Mock -CommandName 'Get-CimInstance' -ParameterFilter {
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -ParameterFilter {
                 $ClassName -eq 'Win32_ComputerSystem'
             } -MockWith { $script:mockCompSystem }
 
@@ -248,20 +248,20 @@ Describe 'Set-PageFile' {
 
     Context 'Remote computer via ComputerName parameter' {
         BeforeAll {
-            Mock -CommandName 'Invoke-Command' -MockWith {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
                 [PSCustomObject]@{ RamGB = 16 }
             }
         }
 
         It -Name 'Should use Invoke-Command for remote target' -Test {
             Set-PageFile -ComputerName 'REMOTE01' -AutoCalculate -Confirm:$false
-            Should -Invoke -CommandName 'Invoke-Command' -Times 1 -Exactly
+            Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 1 -Exactly
         }
     }
 
     Context 'Pipeline with multiple computers' {
         BeforeAll {
-            Mock -CommandName 'Invoke-Command' -MockWith {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
                 [PSCustomObject]@{ RamGB = 16 }
             }
 
@@ -284,7 +284,7 @@ Describe 'Set-PageFile' {
     Context 'Per-machine failure continues to next machine' {
         BeforeAll {
             $script:callCount = 0
-            Mock -CommandName 'Invoke-Command' -MockWith {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
                 $script:callCount++
                 if ($script:callCount -eq 1) {
                     throw 'Connection failed'
@@ -302,7 +302,7 @@ Describe 'Set-PageFile' {
 
     Context 'Admin check fails' {
         BeforeAll {
-            Mock -CommandName 'Test-IsAdministrator' -MockWith { $false }
+            Mock -CommandName 'Test-IsAdministrator' -ModuleName 'PSWinOps' -MockWith { $false }
         }
 
         It -Name 'Should throw a terminating error when not administrator' -Test {
@@ -311,14 +311,14 @@ Describe 'Set-PageFile' {
         }
 
         AfterAll {
-            Mock -CommandName 'Test-IsAdministrator' -MockWith { $true }
+            Mock -CommandName 'Test-IsAdministrator' -ModuleName 'PSWinOps' -MockWith { $true }
         }
     }
 
     Context 'Custom DriveLetter parameter' {
         BeforeAll {
-            Mock -CommandName 'Test-IsAdministrator' -MockWith { $true }
-            Mock -CommandName 'Get-CimInstance' -ParameterFilter {
+            Mock -CommandName 'Test-IsAdministrator' -ModuleName 'PSWinOps' -MockWith { $true }
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -ParameterFilter {
                 $ClassName -eq 'Win32_ComputerSystem'
             } -MockWith { $script:mockCompSystem }
 
@@ -336,24 +336,24 @@ Describe 'Set-PageFile' {
 
     Context 'WhatIf support' {
         BeforeAll {
-            Mock -CommandName 'Test-IsAdministrator' -MockWith { $true }
+            Mock -CommandName 'Test-IsAdministrator' -ModuleName 'PSWinOps' -MockWith { $true }
         }
 
         It -Name 'Should not make changes with -WhatIf' -Test {
             Set-PageFile -AutoCalculate -WhatIf
-            Should -Invoke -CommandName 'New-CimInstance' -Times 0 -Exactly
+            Should -Invoke -CommandName 'New-CimInstance' -ModuleName 'PSWinOps' -Times 0 -Exactly
         }
 
         It -Name 'Should not call Set-ItemProperty with -WhatIf' -Test {
             Set-PageFile -AutoCalculate -WhatIf
-            Should -Invoke -CommandName 'Set-ItemProperty' -Times 0 -Exactly
+            Should -Invoke -CommandName 'Set-ItemProperty' -ModuleName 'PSWinOps' -Times 0 -Exactly
         }
     }
 
     Context 'Output object properties' {
         BeforeAll {
-            Mock -CommandName 'Test-IsAdministrator' -MockWith { $true }
-            Mock -CommandName 'Get-CimInstance' -ParameterFilter {
+            Mock -CommandName 'Test-IsAdministrator' -ModuleName 'PSWinOps' -MockWith { $true }
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -ParameterFilter {
                 $ClassName -eq 'Win32_ComputerSystem'
             } -MockWith { $script:mockCompSystem }
 
