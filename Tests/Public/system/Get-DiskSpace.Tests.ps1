@@ -119,7 +119,7 @@ Describe 'Get-DiskSpace' {
 
         BeforeAll {
             Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
-                [PSCustomObject]@{ ComputerName = 'SRV01' }
+                New-MockObject -Type 'Microsoft.Management.Infrastructure.CimSession'
             }
             Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
@@ -146,7 +146,7 @@ Describe 'Get-DiskSpace' {
 
         BeforeAll {
             Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
-                [PSCustomObject]@{ ComputerName = 'MockedSession' }
+                New-MockObject -Type 'Microsoft.Management.Infrastructure.CimSession'
             }
             Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {

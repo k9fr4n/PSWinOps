@@ -86,7 +86,7 @@ Describe 'Get-ServiceHealth' {
     Context 'Remote single machine' {
 
         BeforeAll {
-            Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith { [PSCustomObject]@{ ComputerName = 'SRV01' } }
+            Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith { New-MockObject -Type 'Microsoft.Management.Infrastructure.CimSession' }
             Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith { return $script:mockServices }
             $script:results = Get-ServiceHealth -ComputerName 'SRV01'
@@ -108,7 +108,7 @@ Describe 'Get-ServiceHealth' {
     Context 'Pipeline multiple machines' {
 
         BeforeAll {
-            Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith { [PSCustomObject]@{ ComputerName = 'MockedSession' } }
+            Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith { New-MockObject -Type 'Microsoft.Management.Infrastructure.CimSession' }
             Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith { return $script:mockServices }
             $script:results = 'SRV01', 'SRV02' | Get-ServiceHealth -IncludeAll
