@@ -1056,5 +1056,48 @@
       </TableControl>
     </View>
 
+    <!-- ============================================================ -->
+    <!-- PSWinOps.NetworkCIDR                                         -->
+    <!-- Used by: Get-NetworkCIDR                                     -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.NetworkCIDR</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.NetworkCIDR</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>ComputerName</Label><Width>18</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Interface</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Family</Label><Width>6</Width></TableColumnHeader>
+          <TableColumnHeader><Label>CIDR</Label><Width>44</Width></TableColumnHeader>
+          <TableColumnHeader><Label>SubnetMask</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>NetworkAddress</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>NetworkCIDR</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Status</Label><Width>8</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>InterfaceName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>AddressFamily</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>CIDR</PropertyName></TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>if ($_.SubnetMask) { $_.SubnetMask } else { '-' }</ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>if ($_.NetworkAddress) { $_.NetworkAddress } else { '-' }</ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>if ($_.NetworkCIDR) { $_.NetworkCIDR } else { '-' }</ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem><PropertyName>AdapterStatus</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
   </ViewDefinitions>
 </Configuration>
