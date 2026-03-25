@@ -1163,6 +1163,142 @@
     </View>
 
     <!-- ============================================================ -->
+    <!-- PSWinOps.DiskSpace                                           -->
+    <!-- Used by: Get-DiskSpace                                       -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.DiskSpace</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.DiskSpace</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>ComputerName</Label><Width>18</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Drive</Label><Width>6</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Volume</Label><Width>14</Width></TableColumnHeader>
+          <TableColumnHeader><Label>FS</Label><Width>5</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Size(GB)</Label><Width>10</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Free(GB)</Label><Width>10</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Used(GB)</Label><Width>10</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Free%</Label><Width>6</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Status</Label><Width>9</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>DriveLetter</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>VolumeName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>FileSystem</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>SizeGB</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>FreeSpaceGB</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>UsedSpaceGB</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>PercentFree</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Status</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.ServiceHealth                                       -->
+    <!-- Used by: Get-ServiceHealth                                   -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.ServiceHealth</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.ServiceHealth</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>ComputerName</Label><Width>18</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Service</Label><Width>22</Width></TableColumnHeader>
+          <TableColumnHeader><Label>DisplayName</Label><Width>32</Width></TableColumnHeader>
+          <TableColumnHeader><Label>State</Label><Width>12</Width></TableColumnHeader>
+          <TableColumnHeader><Label>StartMode</Label><Width>10</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Account</Label><Width>22</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Status</Label><Width>10</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>ServiceName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>DisplayName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>State</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>StartMode</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Account</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Status</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.EnvironmentVariable                                 -->
+    <!-- Used by: Get-EnvironmentVariable                             -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.EnvironmentVariable</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.EnvironmentVariable</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>ComputerName</Label><Width>18</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Scope</Label><Width>9</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Name</Label><Width>24</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Value</Label></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Scope</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Name</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Value</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.StartupProgram                                      -->
+    <!-- Used by: Get-StartupProgram                                  -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.StartupProgram</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.StartupProgram</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>ComputerName</Label><Width>18</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Program</Label><Width>24</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Command</Label><Width>50</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Location</Label><Width>28</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Scope</Label><Width>8</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Source</Label><Width>14</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>ProgramName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Command</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Location</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Scope</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Source</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
     <!-- PSWinOps.InstalledSoftware                                   -->
     <!-- Used by: Get-InstalledSoftware                               -->
     <!-- ============================================================ -->
