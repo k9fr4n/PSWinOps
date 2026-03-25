@@ -36,40 +36,40 @@ Describe 'Trace-NetworkRoute' {
         }
 
         It 'Should return hop-by-hop results' {
-            $result = Trace-NetworkRoute -ComputerName '8.8.8.8' -ResolveHostnames $false
+            $result = Trace-NetworkRoute -ComputerName '8.8.8.8' -SkipNameResolution
             $result | Should -Not -BeNullOrEmpty
             $result.Count | Should -Be 3  # 2 intermediate + 1 destination
         }
 
         It 'Should include PSTypeName PSWinOps.TraceRouteHop' {
-            $result = Trace-NetworkRoute -ComputerName '8.8.8.8' -ResolveHostnames $false
+            $result = Trace-NetworkRoute -ComputerName '8.8.8.8' -SkipNameResolution
             $result[0].PSObject.TypeNames[0] | Should -Be 'PSWinOps.TraceRouteHop'
         }
 
         It 'Should have incrementing hop numbers' {
-            $result = Trace-NetworkRoute -ComputerName '8.8.8.8' -ResolveHostnames $false
+            $result = Trace-NetworkRoute -ComputerName '8.8.8.8' -SkipNameResolution
             $result[0].Hop | Should -Be 1
             $result[1].Hop | Should -Be 2
             $result[2].Hop | Should -Be 3
         }
 
         It 'Should mark final hop as Reached' {
-            $result = Trace-NetworkRoute -ComputerName '8.8.8.8' -ResolveHostnames $false
+            $result = Trace-NetworkRoute -ComputerName '8.8.8.8' -SkipNameResolution
             $result[-1].Status | Should -Be 'Reached'
         }
 
         It 'Should mark intermediate hops as Hop' {
-            $result = Trace-NetworkRoute -ComputerName '8.8.8.8' -ResolveHostnames $false
+            $result = Trace-NetworkRoute -ComputerName '8.8.8.8' -SkipNameResolution
             $result[0].Status | Should -Be 'Hop'
         }
 
         It 'Should include latency stats per hop' {
-            $result = Trace-NetworkRoute -ComputerName '8.8.8.8' -ResolveHostnames $false
+            $result = Trace-NetworkRoute -ComputerName '8.8.8.8' -SkipNameResolution
             $result[0].AvgMs | Should -Not -BeNullOrEmpty
         }
 
         It 'Should include Destination and Timestamp' {
-            $result = Trace-NetworkRoute -ComputerName '8.8.8.8' -ResolveHostnames $false
+            $result = Trace-NetworkRoute -ComputerName '8.8.8.8' -SkipNameResolution
             $result[0].Destination | Should -Be '8.8.8.8'
             $result[0].Timestamp | Should -Not -BeNullOrEmpty
         }
@@ -94,13 +94,13 @@ Describe 'Trace-NetworkRoute' {
         }
 
         It 'Should show * for timed out hops' {
-            $result = Trace-NetworkRoute -ComputerName '8.8.8.8' -MaxHops 3 -ResolveHostnames $false 3>$null
+            $result = Trace-NetworkRoute -ComputerName '8.8.8.8' -MaxHops 3 -SkipNameResolution 3>$null
             $result | ForEach-Object { $_.IPAddress | Should -Be '*' }
             $result | ForEach-Object { $_.Status | Should -Be 'TimedOut' }
         }
 
         It 'Should emit a warning when destination not reached' {
-            $result = Trace-NetworkRoute -ComputerName '8.8.8.8' -MaxHops 2 -ResolveHostnames $false 3>&1
+            $result = Trace-NetworkRoute -ComputerName '8.8.8.8' -MaxHops 2 -SkipNameResolution 3>&1
             $warnings = @($result | Where-Object { $_ -is [System.Management.Automation.WarningRecord] })
             $warnings.Count | Should -BeGreaterThan 0
         }
@@ -125,7 +125,7 @@ Describe 'Trace-NetworkRoute' {
         }
 
         It 'Should accept pipeline input' {
-            $result = '8.8.8.8', '1.1.1.1' | Trace-NetworkRoute -MaxHops 1 -ResolveHostnames $false
+            $result = '8.8.8.8', '1.1.1.1' | Trace-NetworkRoute -MaxHops 1 -SkipNameResolution
             $destinations = $result | Select-Object -ExpandProperty Destination -Unique
             $destinations.Count | Should -Be 2
         }

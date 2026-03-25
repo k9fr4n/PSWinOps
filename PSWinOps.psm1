@@ -9,6 +9,11 @@
     Public functions are automatically exported.
 #>
 
+# Guard: this module is Windows-only (Win32/CIM/registry/netsh/w32tm/mstsc/logoff)
+if ($PSEdition -eq 'Core' -and -not $IsWindows) {
+    throw 'PSWinOps requires Windows. Linux and macOS are not supported.'
+}
+
 # Get module root path
 $script:ModuleRoot = $PSScriptRoot
 

@@ -54,8 +54,12 @@ function Start-PingMonitor {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '',
         Justification = 'Start-PingMonitor is a read-only monitoring loop, it does not change system state')]
     [CmdletBinding()]
+    [OutputType([void])]
     param (
-        [Parameter(Mandatory = $true, Position = 0)]
+        [Parameter(Mandatory = $true,
+            ValueFromPipeline = $true,
+            ValueFromPipelineByPropertyName = $true,
+            Position = 0)]
         [ValidateNotNullOrEmpty()]
         [Alias('CN', 'Name', 'DNSHostName')]
         [string[]]$ComputerName,

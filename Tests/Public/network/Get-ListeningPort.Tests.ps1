@@ -116,16 +116,27 @@ Describe 'Get-ListeningPort' {
             $result[0].Protocol | Should -Be 'UDP'
         }
 
-        It 'Should return both TCP and UDP when Protocol is Both' {
+        It 'Should return both TCP and UDP with default Protocol' {
             Mock -ModuleName $script:ModuleName -CommandName 'Invoke-Command' -MockWith {
                 @(
                     [PSCustomObject]@{ Protocol = 'TCP'; LocalAddress = '0.0.0.0'; LocalPort = 80; ProcessId = 100; ProcessName = 'httpd' },
                     [PSCustomObject]@{ Protocol = 'UDP'; LocalAddress = '0.0.0.0'; LocalPort = 53; ProcessId = 200; ProcessName = 'dns' }
                 )
             }
-            $result = Get-ListeningPort -ComputerName 'REMOTE01' -Protocol Both
+            $result = Get-ListeningPort -ComputerName 'REMOTE01'
             ($result | Where-Object Protocol -eq 'TCP').Count | Should -BeGreaterThan 0
             ($result | Where-Object Protocol -eq 'UDP').Count | Should -BeGreaterThan 0
+        }
+
+        It 'Should accept multiple protocol values' {
+            Mock -ModuleName $script:ModuleName -CommandName 'Invoke-Command' -MockWith {
+                @(
+                    [PSCustomObject]@{ Protocol = 'TCP'; LocalAddress = '0.0.0.0'; LocalPort = 80; ProcessId = 100; ProcessName = 'httpd' },
+                    [PSCustomObject]@{ Protocol = 'UDP'; LocalAddress = '0.0.0.0'; LocalPort = 53; ProcessId = 200; ProcessName = 'dns' }
+                )
+            }
+            $result = Get-ListeningPort -ComputerName 'REMOTE01' -Protocol 'TCP', 'UDP'
+            $result | Should -Not -BeNullOrEmpty
         }
     }
 
@@ -217,6 +228,16 @@ Describe 'Get-ListeningPort' {
 
         It 'Should reject invalid Protocol' {
             { Get-ListeningPort -Protocol 'SCTP' } | Should -Throw
+        }
+
+        It 'Should support Name alias for ComputerName' {
+            $cmd = Get-Command -Name 'Get-ListeningPort'
+            $cmd.Parameters['ComputerName'].Aliases | Should -Contain 'Name'
+        }
+
+        It 'Should have Protocol as string array' {
+            $cmd = Get-Command -Name 'Get-ListeningPort'
+            $cmd.Parameters['Protocol'].ParameterType | Should -Be ([string[]])
         }
 
         It 'Should reject Port 0' {

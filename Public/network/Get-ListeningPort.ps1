@@ -20,7 +20,8 @@ function Get-ListeningPort {
             Optional credential for remote computer connections.
 
         .PARAMETER Protocol
-            Filter by protocol: TCP, UDP, or Both. Default: Both.
+            Filter by protocol: TCP, UDP, or both. Default: @('TCP', 'UDP').
+            Accepts multiple values.
 
         .PARAMETER Port
             Filter by specific port number.
@@ -68,15 +69,15 @@ function Get-ListeningPort {
             ValueFromPipeline = $true,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
-        [Alias('CN', 'DNSHostName')]
+        [Alias('CN', 'Name', 'DNSHostName')]
         [string[]]$ComputerName = $env:COMPUTERNAME,
 
         [Parameter(Mandatory = $false)]
         [PSCredential]$Credential,
 
         [Parameter(Mandatory = $false)]
-        [ValidateSet('TCP', 'UDP', 'Both')]
-        [string]$Protocol = 'Both',
+        [ValidateSet('TCP', 'UDP')]
+        [string[]]$Protocol = @('TCP', 'UDP'),
 
         [Parameter(Mandatory = $false)]
         [ValidateRange(1, 65535)]
@@ -93,7 +94,7 @@ function Get-ListeningPort {
         $hasCredential = $PSBoundParameters.ContainsKey('Credential')
 
         $queryScriptBlock = {
-            param([string]$FilterProtocol, [int]$FilterPort, [string]$FilterProcess)
+            param([string[]]$FilterProtocols, [int]$FilterPort, [string]$FilterProcess)
 
             # Build process cache (cast to [int] — OwningProcess is UInt32,
             # Process.Id is Int32; mismatched key types cause lookup failures)
@@ -108,7 +109,7 @@ function Get-ListeningPort {
             $results = [System.Collections.Generic.List[PSObject]]::new()
 
             # TCP listeners
-            if ($FilterProtocol -eq 'TCP' -or $FilterProtocol -eq 'Both') {
+            if ($FilterProtocols -contains 'TCP') {
                 $listeners = Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue
                 foreach ($conn in $listeners) {
                     if ($FilterPort -gt 0 -and $conn.LocalPort -ne $FilterPort) { continue }
@@ -133,7 +134,7 @@ function Get-ListeningPort {
             }
 
             # UDP endpoints
-            if ($FilterProtocol -eq 'UDP' -or $FilterProtocol -eq 'Both') {
+            if ($FilterProtocols -contains 'UDP') {
                 $endpoints = Get-NetUDPEndpoint -ErrorAction SilentlyContinue
                 foreach ($ep in $endpoints) {
                     if ($FilterPort -gt 0 -and $ep.LocalPort -ne $FilterPort) { continue }

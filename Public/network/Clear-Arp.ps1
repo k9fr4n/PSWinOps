@@ -84,7 +84,7 @@ function Clear-Arp {
                     Write-Error "[$($MyInvocation.MyCommand)] netsh interface ip delete arpcache failed (exit code $($result.ExitCode)): $($result.Output)"
                 } else {
                     Write-Verbose "[$($MyInvocation.MyCommand)] ARP cache cleared successfully"
-                    Write-Information -MessageData '[OK] ARP cache cleared successfully' -InformationAction Continue
+                    Write-Information -MessageData '[OK] ARP cache cleared successfully'
                 }
             } catch {
                 Write-Error "[$($MyInvocation.MyCommand)] Failed to clear ARP cache: $_"

@@ -23,14 +23,16 @@ function Export-NetworkConfig {
         .PARAMETER Path
             Optional file path to export JSON directly. If not specified, returns objects.
 
-        .PARAMETER IncludeFirewall
-            Include Windows Firewall profile status. Default: $true.
+        .PARAMETER ExcludeFirewall
+            Exclude Windows Firewall profile status from the export.
+            By default, firewall profiles are included.
 
-        .PARAMETER IncludeListeners
-            Include listening ports. Default: $true.
+        .PARAMETER ExcludeListeners
+            Exclude listening ports from the export.
+            By default, listening ports are included.
 
         .PARAMETER IncludeARP
-            Include ARP cache. Default: $false (can be large).
+            Include ARP cache in the export. Disabled by default because output can be large.
 
         .EXAMPLE
             Export-NetworkConfig
@@ -48,9 +50,9 @@ function Export-NetworkConfig {
             Exports remote server config as JSON.
 
         .EXAMPLE
-            'SRV01', 'SRV02' | Export-NetworkConfig -IncludeARP
+            'SRV01', 'SRV02' | Export-NetworkConfig -IncludeARP -ExcludeFirewall
 
-            Exports config including ARP cache from two servers.
+            Exports config including ARP cache but without firewall profiles from two servers.
 
         .OUTPUTS
             PSWinOps.NetworkConfig
@@ -72,7 +74,7 @@ function Export-NetworkConfig {
             ValueFromPipeline = $true,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
-        [Alias('CN', 'DNSHostName')]
+        [Alias('CN', 'Name', 'DNSHostName')]
         [string[]]$ComputerName = $env:COMPUTERNAME,
 
         [Parameter(Mandatory = $false)]
@@ -82,10 +84,10 @@ function Export-NetworkConfig {
         [string]$Path,
 
         [Parameter(Mandatory = $false)]
-        [bool]$IncludeFirewall = $true,
+        [switch]$ExcludeFirewall,
 
         [Parameter(Mandatory = $false)]
-        [bool]$IncludeListeners = $true,
+        [switch]$ExcludeListeners,
 
         [Parameter(Mandatory = $false)]
         [switch]$IncludeARP
@@ -211,7 +213,7 @@ function Export-NetworkConfig {
 
                 Write-Verbose "[$($MyInvocation.MyCommand)] Collecting network config from '$targetComputer'"
 
-                $queryArgs = @($IncludeFirewall, $IncludeListeners, $IncludeARP.IsPresent)
+                $queryArgs = @((-not $ExcludeFirewall.IsPresent), (-not $ExcludeListeners.IsPresent), $IncludeARP.IsPresent)
 
                 if ($isLocal) {
                     $rawConfig = & $queryScriptBlock @queryArgs

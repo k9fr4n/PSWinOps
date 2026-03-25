@@ -39,6 +39,10 @@
 
             Returns IPv4 and IPv6 public addresses for three servers via pipeline.
 
+        .OUTPUTS
+            PSWinOps.PublicIPAddress
+            Returns an object per computer with IPv4Address, IPv6Address, Provider, and Timestamp.
+
         .NOTES
             Author: Franck SALLET
             Version: 1.0.0
@@ -50,11 +54,13 @@
             https://github.com/k9fr4n/PSWinOps
     #>
     [CmdletBinding()]
+    [OutputType('PSWinOps.PublicIPAddress')]
     param (
         [Parameter(Mandatory = $false,
             ValueFromPipeline = $true,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
+        [Alias('CN', 'Name', 'DNSHostName')]
         [string[]]$ComputerName = $env:COMPUTERNAME,
 
         [Parameter(Mandatory = $false)]

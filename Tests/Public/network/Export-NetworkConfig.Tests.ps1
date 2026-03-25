@@ -53,11 +53,26 @@ Describe 'Export-NetworkConfig' {
             $result.Timestamp | Should -Not -BeNullOrEmpty
         }
 
-        It 'Should include DNS, routes, and firewall data' {
+        It 'Should include DNS, routes, and firewall data by default' {
             $result = Export-NetworkConfig
             $result.DnsServers | Should -Not -BeNullOrEmpty
             $result.Routes | Should -Not -BeNullOrEmpty
             $result.FirewallProfiles | Should -Not -BeNullOrEmpty
+        }
+
+        It 'Should exclude firewall data when -ExcludeFirewall is specified' {
+            $result = Export-NetworkConfig -ExcludeFirewall
+            $result.FirewallProfiles | Should -BeNullOrEmpty
+        }
+
+        It 'Should exclude listeners when -ExcludeListeners is specified' {
+            $result = Export-NetworkConfig -ExcludeListeners
+            $result.ListeningPorts | Should -BeNullOrEmpty
+        }
+
+        It 'Should support Name alias for ComputerName' {
+            $cmd = Get-Command -Name 'Export-NetworkConfig'
+            $cmd.Parameters['ComputerName'].Aliases | Should -Contain 'Name'
         }
     }
 
