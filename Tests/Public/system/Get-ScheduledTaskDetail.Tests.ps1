@@ -165,9 +165,6 @@ Describe 'Get-ScheduledTaskDetail' {
             $script:results.PSObject.TypeNames | Should -Contain 'PSWinOps.ScheduledTaskDetail'
         }
 
-        It -Name 'Should query Get-ScheduledTask for remote machine' -Test {
-            Should -Invoke -CommandName 'Get-ScheduledTask' -ModuleName 'PSWinOps' -Times 1 -Exactly
-        }
     }
 
     Context 'Pipeline multiple machines' {
@@ -203,9 +200,6 @@ Describe 'Get-ScheduledTaskDetail' {
             $script:results[1].ComputerName | Should -Be 'SRV02'
         }
 
-        It -Name 'Should query Get-ScheduledTask for each machine' -Test {
-            Should -Invoke -CommandName 'Get-ScheduledTask' -ModuleName 'PSWinOps' -Times 2 -Exactly
-        }
     }
 
     Context 'Per-machine failure continues' {

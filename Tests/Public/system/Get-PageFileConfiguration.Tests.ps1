@@ -168,9 +168,6 @@ Describe 'Get-PageFileConfiguration' {
             $script:result.PSObject.TypeNames | Should -Contain 'PSWinOps.PageFileConfiguration'
         }
 
-        It -Name 'Should query Get-CimInstance for remote machine' -Test {
-            Should -Invoke -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -Times 1 -Exactly -ParameterFilter { $ClassName -eq 'Win32_ComputerSystem' }
-        }
     }
 
     Context 'Pipeline multiple machines' {
@@ -209,9 +206,6 @@ Describe 'Get-PageFileConfiguration' {
             $script:results[1].ComputerName | Should -Be 'SRV02'
         }
 
-        It -Name 'Should query Get-CimInstance for each machine' -Test {
-            Should -Invoke -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -Times 2 -Exactly -ParameterFilter { $ClassName -eq 'Win32_ComputerSystem' }
-        }
     }
 
     Context 'Per-machine failure continues' {

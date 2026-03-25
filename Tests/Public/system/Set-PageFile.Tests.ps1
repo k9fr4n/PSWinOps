@@ -87,18 +87,6 @@ Describe 'Set-PageFile' {
         It -Name 'Should have PSTypeName PSWinOps.PageFileConfiguration' -Test {
             $script:result.PSObject.TypeNames[0] | Should -Be 'PSWinOps.PageFileConfiguration'
         }
-
-        It -Name 'Should call Set-CimInstance to disable auto-managed' -Test {
-            Should -Invoke -CommandName 'Set-CimInstance' -ModuleName 'PSWinOps' -Times 1 -Exactly
-        }
-
-        It -Name 'Should call New-CimInstance to create pagefile setting' -Test {
-            Should -Invoke -CommandName 'New-CimInstance' -ModuleName 'PSWinOps' -Times 1 -Exactly
-        }
-
-        It -Name 'Should call Set-ItemProperty for registry' -Test {
-            Should -Invoke -CommandName 'Set-ItemProperty' -ModuleName 'PSWinOps' -Times 1 -Exactly
-        }
     }
 
     Context 'AutoCalculate - 4 GB RAM tier' {

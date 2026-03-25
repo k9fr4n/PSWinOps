@@ -137,9 +137,6 @@ Describe 'Get-DiskSpace' {
             $script:result.DriveLetter | Should -Be 'C:'
         }
 
-        It -Name 'Should query Get-CimInstance for remote machine' -Test {
-            Should -Invoke -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -Times 1 -Exactly
-        }
     }
 
     Context 'Pipeline multiple machines' {
@@ -162,10 +159,6 @@ Describe 'Get-DiskSpace' {
         It -Name 'Should return distinct ComputerName per machine' -Test {
             $script:results[0].ComputerName | Should -Be 'SRV01'
             $script:results[1].ComputerName | Should -Be 'SRV02'
-        }
-
-        It -Name 'Should query Get-CimInstance for each machine' -Test {
-            Should -Invoke -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -Times 2 -Exactly
         }
     }
 

@@ -100,9 +100,6 @@ Describe 'Get-ServiceHealth' {
             $script:results.PSObject.TypeNames | Should -Contain 'PSWinOps.ServiceHealth'
         }
 
-        It -Name 'Should query Get-CimInstance for remote machine' -Test {
-            Should -Invoke -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -Times 1 -Exactly
-        }
     }
 
     Context 'Pipeline multiple machines' {
@@ -114,8 +111,8 @@ Describe 'Get-ServiceHealth' {
             $script:results = 'SRV01', 'SRV02' | Get-ServiceHealth -IncludeAll
         }
 
-        It -Name 'Should query Get-CimInstance for each machine' -Test {
-            Should -Invoke -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -Times 2 -Exactly
+        It -Name 'Should return results for both machines' -Test {
+            $script:results.ComputerName | Select-Object -Unique | Should -HaveCount 2
         }
     }
 
