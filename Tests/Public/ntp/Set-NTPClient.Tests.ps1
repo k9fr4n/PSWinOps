@@ -26,19 +26,6 @@ BeforeAll {
     $script:modulePath = Split-Path -Path (Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent) -Parent
     Import-Module -Name $script:modulePath -Force -ErrorAction Stop
 
-    $script:mockConfigOutput = @(
-        'NtpServer: ntp1.example.com,0x9 ntp2.example.com,0x9 (Local)'
-        'Type: NTP (Local)'
-        'SpecialPollInterval: 300 (Local)'
-        'MinPollInterval: 6 (Local)'
-        'MaxPollInterval: 10 (Local)'
-    )
-    $script:mockStatusOutput = @(
-        'Leap Indicator: 0(no warning)'
-        'Stratum: 3 (secondary reference)'
-        'Source: ntp1.example.com'
-        'Last Successful Sync Time: 3/15/2026 8:00:00 AM'
-    )
     $script:mockSyncOutputEN = @(
         'Sending resync command to local computer...'
         'The command completed successfully.'
@@ -61,8 +48,10 @@ Describe -Name 'Set-NTPClient' -Fixture {
             Mock -CommandName 'Restart-Service' -ModuleName 'PSWinOps' -MockWith {}
             Mock -CommandName 'Start-Sleep' -ModuleName 'PSWinOps' -MockWith {}
             Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith { return '' } -ParameterFilter { ($args -join ' ') -match '/register' }
-            Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith { $script:mockConfigOutput } -ParameterFilter { ($args -join ' ') -match '/query.*configuration' }
-            Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith { $script:mockStatusOutput } -ParameterFilter { ($args -join ' ') -match '/query.*status' }
+            Mock -CommandName 'Get-ItemProperty' -ModuleName 'PSWinOps' -MockWith {
+                [PSCustomObject]@{ NtpServer = 'ntp1.example.com,0x9' }
+            } -ParameterFilter { $Name -eq 'NtpServer' }
+            Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith { 'ntp1.example.com' } -ParameterFilter { ($args -join ' ') -match '/query.*source' }
             Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith { return '' } -ParameterFilter { ($args -join ' ') -match '/config /update' }
             Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith { $global:LASTEXITCODE = 0; $script:mockSyncOutputEN } -ParameterFilter { ($args -join ' ') -match '/resync' }
         }
@@ -82,13 +71,13 @@ Describe -Name 'Set-NTPClient' -Fixture {
             Set-NTPClient -NtpServers 'ntp1.example.com' -Confirm:$false
             Should -Invoke -CommandName 'Restart-Service' -ModuleName 'PSWinOps' -Times 1 -Exactly
         }
-        It -Name 'Should invoke w32tm for configuration query' -Test {
+        It -Name 'Should read back NtpServer from registry for verification' -Test {
             Set-NTPClient -NtpServers 'ntp1.example.com' -Confirm:$false
-            Should -Invoke -CommandName 'w32tm' -ModuleName 'PSWinOps' -Times 1 -Exactly -ParameterFilter { ($args -join ' ') -match '/query.*configuration' }
+            Should -Invoke -CommandName 'Get-ItemProperty' -ModuleName 'PSWinOps' -Times 1 -ParameterFilter { $Name -eq 'NtpServer' }
         }
-        It -Name 'Should invoke w32tm for status query' -Test {
+        It -Name 'Should invoke w32tm /query /source for verification' -Test {
             Set-NTPClient -NtpServers 'ntp1.example.com' -Confirm:$false
-            Should -Invoke -CommandName 'w32tm' -ModuleName 'PSWinOps' -Times 1 -Exactly -ParameterFilter { ($args -join ' ') -match '/query.*status' }
+            Should -Invoke -CommandName 'w32tm' -ModuleName 'PSWinOps' -Times 1 -Exactly -ParameterFilter { ($args -join ' ') -match '/query.*source' }
         }
     }
 
@@ -123,8 +112,10 @@ Describe -Name 'Set-NTPClient' -Fixture {
             Mock -CommandName 'Set-ItemProperty' -ModuleName 'PSWinOps' -MockWith {}
             Mock -CommandName 'Restart-Service' -ModuleName 'PSWinOps' -MockWith {}
             Mock -CommandName 'Start-Sleep' -ModuleName 'PSWinOps' -MockWith {}
-            Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith { $script:mockConfigOutput } -ParameterFilter { ($args -join ' ') -match '/query.*configuration' }
-            Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith { $script:mockStatusOutput } -ParameterFilter { ($args -join ' ') -match '/query.*status' }
+            Mock -CommandName 'Get-ItemProperty' -ModuleName 'PSWinOps' -MockWith {
+                [PSCustomObject]@{ NtpServer = 'ntp1.example.com,0x9' }
+            } -ParameterFilter { $Name -eq 'NtpServer' }
+            Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith { 'ntp1.example.com' } -ParameterFilter { ($args -join ' ') -match '/query.*source' }
             Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith { return '' } -ParameterFilter { ($args -join ' ') -match '/config /update' }
             Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith { $global:LASTEXITCODE = 0; $script:mockSyncOutputEN } -ParameterFilter { ($args -join ' ') -match '/resync' }
         }
@@ -144,12 +135,42 @@ Describe -Name 'Set-NTPClient' -Fixture {
             Mock -CommandName 'Set-ItemProperty' -ModuleName 'PSWinOps' -MockWith {}
             Mock -CommandName 'Restart-Service' -ModuleName 'PSWinOps' -MockWith {}
             Mock -CommandName 'Start-Sleep' -ModuleName 'PSWinOps' -MockWith {}
-            Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith { $script:mockConfigOutput } -ParameterFilter { ($args -join ' ') -match '/query.*configuration' }
-            Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith { $script:mockStatusOutput } -ParameterFilter { ($args -join ' ') -match '/query.*status' }
+            Mock -CommandName 'Get-ItemProperty' -ModuleName 'PSWinOps' -MockWith {
+                [PSCustomObject]@{ NtpServer = 'ntp1.example.com,0x9' }
+            } -ParameterFilter { $Name -eq 'NtpServer' }
+            Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith { 'ntp1.example.com' } -ParameterFilter { ($args -join ' ') -match '/query.*source' }
             Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith { return '' } -ParameterFilter { ($args -join ' ') -match '/config /update' }
             Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith { $global:LASTEXITCODE = 0; $script:mockSyncOutputDE } -ParameterFilter { ($args -join ' ') -match '/resync' }
         }
         It -Name 'Should complete without throwing with non-EN/FR output when exit code is 0' -Test {
+            { Set-NTPClient -NtpServers 'ntp1.example.com' -Confirm:$false } | Should -Not -Throw
+        }
+    }
+
+    Context -Name 'Locale-agnostic - French output with exit code 0' -Fixture {
+        BeforeEach {
+            Mock -CommandName 'Test-IsAdministrator' -ModuleName 'PSWinOps' -MockWith { return $true }
+            Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith {
+                [PSCustomObject]@{ Name = 'w32time'; Status = 'Running' }
+            } -ParameterFilter { $Name -eq 'w32time' }
+            Mock -CommandName 'Test-Path' -ModuleName 'PSWinOps' -MockWith { $true }
+            Mock -CommandName 'Set-ItemProperty' -ModuleName 'PSWinOps' -MockWith {}
+            Mock -CommandName 'Restart-Service' -ModuleName 'PSWinOps' -MockWith {}
+            Mock -CommandName 'Start-Sleep' -ModuleName 'PSWinOps' -MockWith {}
+            Mock -CommandName 'Get-ItemProperty' -ModuleName 'PSWinOps' -MockWith {
+                [PSCustomObject]@{ NtpServer = 'ntp1.example.com,0x9' }
+            } -ParameterFilter { $Name -eq 'NtpServer' }
+            Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith { 'ntp1.example.com' } -ParameterFilter { ($args -join ' ') -match '/query.*source' }
+            Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith { return '' } -ParameterFilter { ($args -join ' ') -match '/config /update' }
+            Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith {
+                $global:LASTEXITCODE = 0
+                @(
+                    'Envoi de la commande de resynchronisation à l''ordinateur local'
+                    'La commande s''est terminée correctement.'
+                )
+            } -ParameterFilter { ($args -join ' ') -match '/resync' }
+        }
+        It -Name 'Should complete without throwing with French w32tm output when exit code is 0' -Test {
             { Set-NTPClient -NtpServers 'ntp1.example.com' -Confirm:$false } | Should -Not -Throw
         }
     }
