@@ -81,7 +81,7 @@ jobs:
           $config.CodeCoverage.Path = @(
               '.\PSWinOps.psm1',
               '.\Public\**\*.ps1',
-              '.\Private\**\*.ps1'
+              '.\Private\*.ps1'
           )
           $config.CodeCoverage.OutputPath = 'coverage.xml'
           $config.CodeCoverage.OutputFormat = 'JaCoCo'
