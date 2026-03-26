@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 
 function Get-ListeningPort {
     <#
@@ -96,11 +96,13 @@ function Get-ListeningPort {
         $queryScriptBlock = {
             param([string[]]$FilterProtocols, [int]$FilterPort, [string]$FilterProcess)
 
-            # Build process cache
+            # Build process cache (cast to [int] — OwningProcess is UInt32,
+            # Process.Id is Int32; mismatched key types cause lookup failures)
             $processCache = @{}
             Get-Process -ErrorAction SilentlyContinue | ForEach-Object {
-                if (-not $processCache.ContainsKey($_.Id)) {
-                    $processCache[$_.Id] = $_.ProcessName
+                $pidKey = [int]$_.Id
+                if (-not $processCache.ContainsKey($pidKey)) {
+                    $processCache[$pidKey] = $_.ProcessName
                 }
             }
 
@@ -110,23 +112,32 @@ function Get-ListeningPort {
             if ($FilterProtocols -contains 'TCP') {
                 $listeners = Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue
                 foreach ($conn in $listeners) {
-                    if ($FilterPort -gt 0 -and $conn.LocalPort -ne $FilterPort) { continue }
+                    if ($FilterPort -gt 0 -and $conn.LocalPort -ne $FilterPort) {
+                        continue
+                    }
 
-                    $pName = if ($processCache.ContainsKey($conn.OwningProcess)) {
-                        $processCache[$conn.OwningProcess]
-                    } elseif ($conn.OwningProcess -eq 0) { 'System Idle' }
-                    elseif ($conn.OwningProcess -eq 4) { 'System' }
-                    else { '[Unknown]' }
+                    $ownerPid = [int]$conn.OwningProcess
+                    $pName = if ($processCache.ContainsKey($ownerPid)) {
+                        $processCache[$ownerPid]
+                    } elseif ($ownerPid -eq 0) {
+                        'System Idle'
+                    } elseif ($ownerPid -eq 4) {
+                        'System'
+                    } else {
+                        '[Unknown]'
+                    }
 
-                    if ($FilterProcess -and $pName -notlike $FilterProcess) { continue }
+                    if ($FilterProcess -and $pName -notlike $FilterProcess) {
+                        continue
+                    }
 
                     $results.Add([PSCustomObject]@{
-                        Protocol     = 'TCP'
-                        LocalAddress = $conn.LocalAddress
-                        LocalPort    = $conn.LocalPort
-                        ProcessId    = $conn.OwningProcess
-                        ProcessName  = $pName
-                    })
+                            Protocol     = 'TCP'
+                            LocalAddress = $conn.LocalAddress
+                            LocalPort    = $conn.LocalPort
+                            ProcessId    = $conn.OwningProcess
+                            ProcessName  = $pName
+                        })
                 }
             }
 
@@ -134,23 +145,32 @@ function Get-ListeningPort {
             if ($FilterProtocols -contains 'UDP') {
                 $endpoints = Get-NetUDPEndpoint -ErrorAction SilentlyContinue
                 foreach ($ep in $endpoints) {
-                    if ($FilterPort -gt 0 -and $ep.LocalPort -ne $FilterPort) { continue }
+                    if ($FilterPort -gt 0 -and $ep.LocalPort -ne $FilterPort) {
+                        continue
+                    }
 
-                    $pName = if ($processCache.ContainsKey($ep.OwningProcess)) {
-                        $processCache[$ep.OwningProcess]
-                    } elseif ($ep.OwningProcess -eq 0) { 'System Idle' }
-                    elseif ($ep.OwningProcess -eq 4) { 'System' }
-                    else { '[Unknown]' }
+                    $ownerPid = [int]$ep.OwningProcess
+                    $pName = if ($processCache.ContainsKey($ownerPid)) {
+                        $processCache[$ownerPid]
+                    } elseif ($ownerPid -eq 0) {
+                        'System Idle'
+                    } elseif ($ownerPid -eq 4) {
+                        'System'
+                    } else {
+                        '[Unknown]'
+                    }
 
-                    if ($FilterProcess -and $pName -notlike $FilterProcess) { continue }
+                    if ($FilterProcess -and $pName -notlike $FilterProcess) {
+                        continue
+                    }
 
                     $results.Add([PSCustomObject]@{
-                        Protocol     = 'UDP'
-                        LocalAddress = $ep.LocalAddress
-                        LocalPort    = $ep.LocalPort
-                        ProcessId    = $ep.OwningProcess
-                        ProcessName  = $pName
-                    })
+                            Protocol     = 'UDP'
+                            LocalAddress = $ep.LocalAddress
+                            LocalPort    = $ep.LocalPort
+                            ProcessId    = $ep.OwningProcess
+                            ProcessName  = $pName
+                        })
                 }
             }
 
@@ -168,8 +188,16 @@ function Get-ListeningPort {
 
                 $queryArgs = @(
                     $Protocol
-                    $(if ($PSBoundParameters.ContainsKey('Port')) { $Port } else { 0 })
-                    $(if ($ProcessName) { $ProcessName } else { $null })
+                    $(if ($PSBoundParameters.ContainsKey('Port')) {
+                            $Port
+                        } else {
+                            0
+                        })
+                    $(if ($ProcessName) {
+                            $ProcessName
+                        } else {
+                            $null
+                        })
                 )
 
                 if ($isLocal) {

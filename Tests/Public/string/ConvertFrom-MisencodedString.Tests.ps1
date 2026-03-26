@@ -104,7 +104,7 @@ Describe -Name 'ConvertFrom-MisencodedString' -Fixture {
 
         It -Name 'Should write error but not throw on encoding conversion failure' -Test {
             # Mock Write-Error to verify it gets called
-            Mock -CommandName 'Write-Error' -MockWith {} -ModuleName 'PSWinOps'
+            Mock -CommandName 'Write-Error' -ModuleName 'PSWinOps' -MockWith {}
 
             # Create a scenario that triggers an encoding error:
             # Use ASCII encoder with exception fallback, then try to encode a Unicode character
@@ -112,7 +112,7 @@ Describe -Name 'ConvertFrom-MisencodedString' -Fixture {
             # However, we need to trigger this in the conversion logic.
 
             # Alternative reliable approach: Force GetBytes to fail by mocking it
-            Mock -CommandName 'Write-Verbose' -MockWith {} -ModuleName 'PSWinOps'
+            Mock -CommandName 'Write-Verbose' -ModuleName 'PSWinOps' -MockWith {}
 
             # Create a string that will cause issues when converting between incompatible encodings
             # UTF-8 emoji (4-byte sequence) misinterpreted as ASCII then re-encoded
@@ -128,7 +128,7 @@ Describe -Name 'ConvertFrom-MisencodedString' -Fixture {
             # Create a test that actually triggers the catch block
             # Use InModuleScope to directly test error handling
             InModuleScope -ModuleName 'PSWinOps' -ScriptBlock {
-                Mock -CommandName 'Write-Error' -MockWith {}
+                Mock -CommandName 'Write-Error' -ModuleName 'PSWinOps' -MockWith {}
 
                 # Simulate the scenario by directly invoking with a mock that throws
                 # We need to test that the function handles encoding errors gracefully
