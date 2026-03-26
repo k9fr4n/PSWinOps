@@ -53,8 +53,8 @@ function Set-NTPClient {
 
         .NOTES
             Author: Franck SALLET
-            Version: 2.1.0
-            Last Modified: 2026-03-20
+            Version: 2.2.0
+            Last Modified: 2026-03-26
             Requires: PowerShell 5.1+, Local Administrator rights
             Permissions: Administrator required to modify registry and manage W32Time service
 
@@ -219,35 +219,27 @@ function Set-NTPClient {
                 $syncOutput | ForEach-Object { Write-Warning "[$($MyInvocation.MyCommand)] $_" }
             }
 
-            # Step 8: Verify configuration
+            # Step 8: Verify configuration (locale-agnostic)
+            # Read registry directly and use w32tm /query /source to avoid locale-dependent label parsing.
             Start-Sleep -Seconds 3
             Write-Verbose "[$($MyInvocation.MyCommand)] Verifying final configuration..."
 
-            $config = w32tm /query /configuration
-            $configServersMatch = $config | Select-String -Pattern 'NtpServer:'
-            $configServers = if ($configServersMatch) {
-                $configServersMatch.ToString() -replace '.*NtpServer:\s*', '' -replace '\s*.*', ''
-            } else {
-                'N/A (could not parse w32tm output)'
-            }
-            Write-Information -MessageData "[OK] Configured servers: $configServers"
-
-            $status = w32tm /query /status /verbose
-            $lastSyncMatch = $status | Select-String -Pattern 'Last Successful Sync Time:'
-            $lastSync = if ($lastSyncMatch) {
-                $lastSyncMatch.ToString()
-            } else {
-                'Last Successful Sync Time: N/A'
-            }
-            $sourceMatch = $status | Select-String -Pattern 'Source:'
-            $source = if ($sourceMatch) {
-                $sourceMatch.ToString()
-            } else {
-                'Source: N/A'
+            try {
+                $verifyServers = (Get-ItemProperty -Path $registryPaths['Parameters'] -Name 'NtpServer' -ErrorAction Stop).NtpServer
+                Write-Information -MessageData "[OK] Configured servers (registry): $verifyServers"
+            } catch {
+                Write-Warning "[$($MyInvocation.MyCommand)] Could not read back NtpServer from registry: $_"
             }
 
-            Write-Information -MessageData "[OK] $lastSync"
-            Write-Information -MessageData "[OK] $source"
+            try {
+                # w32tm /query /source returns only the source name without any locale-dependent label.
+                $sourceOutput = w32tm /query /source 2>&1
+                $sourceText = ($sourceOutput | Out-String).Trim()
+                Write-Information -MessageData "[OK] Active NTP source: $sourceText"
+            } catch {
+                Write-Warning "[$($MyInvocation.MyCommand)] Could not query active NTP source: $_"
+            }
+
             Write-Information -MessageData '[OK] Windows Time Service configuration completed successfully'
         } catch [System.UnauthorizedAccessException] {
             Write-Error "[$($MyInvocation.MyCommand)] Access denied - Administrator privileges required: $_"
