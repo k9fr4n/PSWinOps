@@ -141,12 +141,16 @@ Describe 'Get-StartupProgram' {
             Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $script:mockStartupEntries }
             $script:propResults = Get-StartupProgram -ComputerName 'SRV01'
         }
-        It -Name 'Should contain all 8 expected properties' -Test {
+        It -Name 'Should contain all expected visible properties' -Test {
             $script:propertyNames = $script:propResults[0].PSObject.Properties.Name
-            $script:expectedProps = @('PSTypeName', 'ComputerName', 'ProgramName', 'Command', 'Location', 'Scope', 'Source', 'Timestamp')
+            $script:expectedProps = @('ComputerName', 'ProgramName', 'Command', 'Location', 'Scope', 'Source', 'Timestamp')
             foreach ($script:prop in $script:expectedProps) {
                 $script:propertyNames | Should -Contain $script:prop
             }
+        }
+
+        It -Name 'Should have PSTypeName PSWinOps.StartupProgram' -Test {
+            $script:propResults[0].PSObject.TypeNames[0] | Should -Be 'PSWinOps.StartupProgram'
         }
     }
 

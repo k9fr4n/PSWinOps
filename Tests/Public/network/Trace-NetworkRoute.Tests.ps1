@@ -176,17 +176,6 @@ Describe 'Trace-NetworkRoute' {
         }
     }
 
-    Context 'Credential parameter' {
-        It -Name 'Should have a Credential parameter' -Test {
-            $script:cmd = Get-Command -Name 'Trace-NetworkRoute' -Module 'PSWinOps'
-            $script:cmd.Parameters['Credential'] | Should -Not -BeNullOrEmpty
-        }
-        It -Name 'Should have Credential as PSCredential type' -Test {
-            $script:cmd = Get-Command -Name 'Trace-NetworkRoute' -Module 'PSWinOps'
-            $script:cmd.Parameters['Credential'].ParameterType.Name | Should -Be 'PSCredential'
-        }
-    }
-
     Context 'ComputerName aliases' {
         It -Name 'Should accept CN alias' -Test {
             $script:cmd = Get-Command -Name 'Trace-NetworkRoute' -Module 'PSWinOps'

@@ -146,12 +146,16 @@ Describe 'Get-EnvironmentVariable' {
             Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $script:mockRemoteEntries }
             $script:propResults = Get-EnvironmentVariable -ComputerName 'SRV01'
         }
-        It -Name 'Should contain all 6 expected properties' -Test {
+        It -Name 'Should contain all expected visible properties' -Test {
             $script:propertyNames = $script:propResults[0].PSObject.Properties.Name
-            $script:expectedProps = @('PSTypeName', 'ComputerName', 'Name', 'Value', 'Scope', 'Timestamp')
+            $script:expectedProps = @('ComputerName', 'Name', 'Value', 'Scope', 'Timestamp')
             foreach ($script:prop in $script:expectedProps) {
                 $script:propertyNames | Should -Contain $script:prop
             }
+        }
+
+        It -Name 'Should have PSTypeName PSWinOps.EnvironmentVariable' -Test {
+            $script:propResults[0].PSObject.TypeNames[0] | Should -Be 'PSWinOps.EnvironmentVariable'
         }
     }
 
