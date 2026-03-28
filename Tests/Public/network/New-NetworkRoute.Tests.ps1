@@ -196,7 +196,7 @@ Describe 'New-NetworkRoute' {
                     AddressFamily = 'IPv4'; Protocol = 'NetMgmt'; Store = 'ActiveStore'
                 }
             }
-            $script:propResult = New-NetworkRoute -ComputerName 'SRV01' -DestinationPrefix '10.10.0.0/16' -NextHop '192.168.1.1' -InterfaceAlias 'Ethernet' -Confirm:\$false
+            $script:propResult = New-NetworkRoute -ComputerName 'SRV01' -DestinationPrefix '10.10.0.0/16' -NextHop '192.168.1.1' -InterfaceAlias 'Ethernet' -Confirm:$false
             $script:propNames = $script:propResult.PSObject.Properties.Name
         }
         It 'Should have ComputerName property' { $script:propNames | Should -Contain 'ComputerName' }
@@ -222,7 +222,7 @@ Describe 'New-NetworkRoute' {
                     AddressFamily = 'IPv4'; Protocol = 'NetMgmt'; Store = 'ActiveStore'
                 }
             }
-            $script:tsResult = New-NetworkRoute -ComputerName 'SRV01' -DestinationPrefix '10.10.0.0/16' -NextHop '192.168.1.1' -InterfaceAlias 'Ethernet' -Confirm:\$false
+            $script:tsResult = New-NetworkRoute -ComputerName 'SRV01' -DestinationPrefix '10.10.0.0/16' -NextHop '192.168.1.1' -InterfaceAlias 'Ethernet' -Confirm:$false
         }
         It 'Should have Timestamp matching ISO 8601 pattern' { $script:tsResult.Timestamp | Should -Match '^\d{4}-\d{2}-\d{2}T' }
     }
@@ -238,7 +238,7 @@ Describe 'New-NetworkRoute' {
             }
         }
         It 'Should accept InterfaceIndex instead of InterfaceAlias' {
-            $script:idxResult = New-NetworkRoute -ComputerName 'SRV01' -DestinationPrefix '10.10.0.0/16' -NextHop '192.168.1.1' -InterfaceIndex 4 -Confirm:\$false
+            $script:idxResult = New-NetworkRoute -ComputerName 'SRV01' -DestinationPrefix '10.10.0.0/16' -NextHop '192.168.1.1' -InterfaceIndex 4 -Confirm:$false
             $script:idxResult | Should -Not -BeNullOrEmpty
         }
     }

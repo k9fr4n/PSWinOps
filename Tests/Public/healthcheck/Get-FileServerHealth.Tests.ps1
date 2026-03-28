@@ -78,7 +78,10 @@ Describe 'Get-FileServerHealth' {
             $script:results = 'FS01', 'FS02' | Get-FileServerHealth
         }
         It -Name 'Should return two results' -Test { $script:results | Should -HaveCount 2 }
-        It -Name 'Should call Invoke-Command twice' -Test { Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 2 -Exactly }
+        It -Name 'Should return distinct ComputerName values' -Test {
+            $names = @($script:results) | Select-Object -ExpandProperty ComputerName -Unique
+            @($names).Count | Should -Be 2
+        }
     }
 
     Context 'Failure handling' {

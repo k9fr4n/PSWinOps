@@ -154,7 +154,7 @@ Describe 'Remove-NetworkRoute' {
             Mock -ModuleName 'PSWinOps' -CommandName 'Invoke-Command' -MockWith { }
         }
         It 'Should accept InterfaceIndex instead of InterfaceAlias' {
-            { Remove-NetworkRoute -ComputerName 'SRV01' -DestinationPrefix '10.10.0.0/16' -InterfaceIndex 4 -Confirm:\$false -ErrorAction SilentlyContinue } | Should -Not -Throw
+            { Remove-NetworkRoute -ComputerName 'SRV01' -DestinationPrefix '10.10.0.0/16' -InterfaceIndex 4 -Confirm:$false -ErrorAction SilentlyContinue } | Should -Not -Throw
         }
     }
 
@@ -163,7 +163,7 @@ Describe 'Remove-NetworkRoute' {
             Mock -ModuleName 'PSWinOps' -CommandName 'Invoke-Command' -MockWith { }
         }
         It 'Should accept optional NextHop to narrow selection' {
-            { Remove-NetworkRoute -ComputerName 'SRV01' -DestinationPrefix '10.10.0.0/16' -InterfaceAlias 'Ethernet' -NextHop '192.168.1.1' -Confirm:\$false -ErrorAction SilentlyContinue } | Should -Not -Throw
+            { Remove-NetworkRoute -ComputerName 'SRV01' -DestinationPrefix '10.10.0.0/16' -InterfaceAlias 'Ethernet' -NextHop '192.168.1.1' -Confirm:$false -ErrorAction SilentlyContinue } | Should -Not -Throw
         }
     }
 

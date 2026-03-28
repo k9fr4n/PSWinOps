@@ -136,11 +136,11 @@ Describe 'Get-NetworkAdapter' {
             }
         }
 
-        It 'Should contain all 18 expected properties' {
+        It 'Should contain all expected properties' {
             $script:propResult = Get-NetworkAdapter
             $script:propertyNames = $script:propResult.PSObject.Properties.Name
             $script:expectedProps = @(
-                'PSTypeName', 'ComputerName', 'Name', 'Description', 'Status', 'Speed',
+                'ComputerName', 'Name', 'Description', 'Status', 'Speed',
                 'MacAddress', 'IPv4Address', 'SubnetPrefix', 'IPv6Address', 'Gateway',
                 'DnsServers', 'MTU', 'InterfaceIndex', 'MediaType', 'DriverVersion',
                 'VlanID', 'Timestamp'
@@ -148,6 +148,11 @@ Describe 'Get-NetworkAdapter' {
             foreach ($script:prop in $script:expectedProps) {
                 $script:propertyNames | Should -Contain $script:prop
             }
+        }
+
+        It 'Should have PSTypeName PSWinOps.NetworkAdapterInfo' {
+            $script:propResult = Get-NetworkAdapter
+            $script:propResult.PSObject.TypeNames[0] | Should -Be 'PSWinOps.NetworkAdapterInfo'
         }
     }
 

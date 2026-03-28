@@ -182,7 +182,7 @@ Describe 'Set-NetworkRoute' {
                     AddressFamily = 'IPv4'; Protocol = 'NetMgmt'; Store = 'ActiveStore'
                 }
             }
-            $script:propResult = Set-NetworkRoute -ComputerName 'SRV01' -DestinationPrefix '10.10.0.0/16' -InterfaceAlias 'Ethernet' -RouteMetric 50 -Confirm:\$false
+            $script:propResult = Set-NetworkRoute -ComputerName 'SRV01' -DestinationPrefix '10.10.0.0/16' -InterfaceAlias 'Ethernet' -RouteMetric 50 -Confirm:$false
             $script:propNames = $script:propResult.PSObject.Properties.Name
         }
         It 'Should have ComputerName property' { $script:propNames | Should -Contain 'ComputerName' }
@@ -208,7 +208,7 @@ Describe 'Set-NetworkRoute' {
                     AddressFamily = 'IPv4'; Protocol = 'NetMgmt'; Store = 'ActiveStore'
                 }
             }
-            $script:tsResult = Set-NetworkRoute -ComputerName 'SRV01' -DestinationPrefix '10.10.0.0/16' -InterfaceAlias 'Ethernet' -RouteMetric 50 -Confirm:\$false
+            $script:tsResult = Set-NetworkRoute -ComputerName 'SRV01' -DestinationPrefix '10.10.0.0/16' -InterfaceAlias 'Ethernet' -RouteMetric 50 -Confirm:$false
         }
         It 'Should have Timestamp matching ISO 8601 pattern' { $script:tsResult.Timestamp | Should -Match '^\d{4}-\d{2}-\d{2}T' }
     }
@@ -224,7 +224,7 @@ Describe 'Set-NetworkRoute' {
             }
         }
         It 'Should accept InterfaceIndex instead of InterfaceAlias' {
-            $script:idxResult = Set-NetworkRoute -ComputerName 'SRV01' -DestinationPrefix '10.10.0.0/16' -InterfaceIndex 4 -RouteMetric 50 -Confirm:\$false
+            $script:idxResult = Set-NetworkRoute -ComputerName 'SRV01' -DestinationPrefix '10.10.0.0/16' -InterfaceIndex 4 -RouteMetric 50 -Confirm:$false
             $script:idxResult | Should -Not -BeNullOrEmpty
         }
     }
@@ -240,7 +240,7 @@ Describe 'Set-NetworkRoute' {
             }
         }
         It 'Should accept optional NextHop parameter' {
-            $script:nhResult = Set-NetworkRoute -ComputerName 'SRV01' -DestinationPrefix '10.10.0.0/16' -InterfaceAlias 'Ethernet' -NextHop '192.168.1.1' -RouteMetric 50 -Confirm:\$false
+            $script:nhResult = Set-NetworkRoute -ComputerName 'SRV01' -DestinationPrefix '10.10.0.0/16' -InterfaceAlias 'Ethernet' -NextHop '192.168.1.1' -RouteMetric 50 -Confirm:$false
             $script:nhResult | Should -Not -BeNullOrEmpty
         }
     }

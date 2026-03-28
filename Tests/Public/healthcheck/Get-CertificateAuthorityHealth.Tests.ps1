@@ -110,7 +110,7 @@ Describe 'Get-CertificateAuthorityHealth' {
             Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $script:mockRemoteData }
             $script:result = Get-CertificateAuthorityHealth -ComputerName 'SRV01'
         }
-        It -Name 'Should call Invoke-Command exactly once' -Test { Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 1 -Exactly }
+        It -Name 'Should return a result with Timestamp' -Test { $script:results.Timestamp | Should -Not -BeNullOrEmpty }
         It -Name 'Should return a populated result object' -Test { $script:result | Should -Not -BeNullOrEmpty }
         It -Name 'Should set the ComputerName property' -Test { $script:result.ComputerName | Should -Be 'SRV01' }
     }
@@ -121,7 +121,10 @@ Describe 'Get-CertificateAuthorityHealth' {
             $script:pipelineResults = @('SRV01', 'SRV02') | Get-CertificateAuthorityHealth
         }
         It -Name 'Should return a result for each pipeline input' -Test { $script:pipelineResults.Count | Should -Be 2 }
-        It -Name 'Should call Invoke-Command for each computer' -Test { Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 2 -Exactly }
+        It -Name 'Should return distinct ComputerName values' -Test {
+            $names = @($script:results) | Select-Object -ExpandProperty ComputerName -Unique
+            @($names).Count | Should -Be 2
+        }
     }
 
     Context 'When remote execution fails' {

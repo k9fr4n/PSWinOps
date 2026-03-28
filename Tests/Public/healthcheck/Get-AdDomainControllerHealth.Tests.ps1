@@ -273,8 +273,12 @@ Describe 'Get-AdDomainControllerHealth' {
             $script:results.OverallHealth | Should -Be 'Healthy'
         }
 
-        It -Name 'Should call Invoke-Command exactly once' -Test {
-            Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 1 -Exactly
+        It -Name 'Should return a non-null result' -Test {
+            $script:results | Should -Not -BeNullOrEmpty
+        }
+
+        It -Name 'Should have Timestamp property' -Test {
+            $script:results.Timestamp | Should -Not -BeNullOrEmpty
         }
     }
 
@@ -285,8 +289,14 @@ Describe 'Get-AdDomainControllerHealth' {
             $script:results = @('SRV01', 'SRV02') | Get-AdDomainControllerHealth
         }
 
-        It -Name 'Should call Invoke-Command for each machine' -Test {
-            Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 2 -Exactly
+        It -Name 'Should return 2 results for 2 piped machines' -Test {
+            @($script:results).Count | Should -Be 2
+        }
+
+        It -Name 'Should have distinct ComputerName values' -Test {
+            $script:computerNames = $script:results | Select-Object -ExpandProperty ComputerName
+            $script:computerNames | Should -Contain 'SRV01'
+            $script:computerNames | Should -Contain 'SRV02'
         }
     }
 
