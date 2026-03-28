@@ -1,4 +1,4 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 #Requires -Modules @{ ModuleName = 'Pester'; ModuleVersion = '5.0' }
 
 BeforeAll {
@@ -134,6 +134,121 @@ Describe 'Set-NetworkRoute' {
             $err | Should -Not -BeNullOrEmpty
             $errMessages = $err | ForEach-Object { $_.Exception.Message }
             ($errMessages -like "*Failed on 'BADSRV01'*") | Should -Not -BeNullOrEmpty
+        }
+    }
+
+    # ================================================================
+    # APPENDED TEST CONTEXTS
+    # ================================================================
+
+    Context 'Verbose output' {
+        BeforeAll {
+            Mock -ModuleName 'PSWinOps' -CommandName 'Invoke-Command' -MockWith { return @() }
+        }
+        It -Name 'Should produce verbose messages' -Test {
+            $script:verbose = Set-NetworkRoute -ComputerName 'SRV01' -DestinationPrefix '10.10.0.0/16' -InterfaceAlias 'Ethernet' -RouteMetric 50 -Confirm:$false -Verbose -ErrorAction SilentlyContinue 4>&1 | Where-Object { $_ -is [System.Management.Automation.VerboseRecord] }
+            $script:verbose | Should -Not -BeNullOrEmpty
+        }
+        It -Name 'Should include function name in verbose' -Test {
+            $script:verbose = Set-NetworkRoute -ComputerName 'SRV01' -DestinationPrefix '10.10.0.0/16' -InterfaceAlias 'Ethernet' -RouteMetric 50 -Confirm:$false -Verbose -ErrorAction SilentlyContinue 4>&1 | Where-Object { $_ -is [System.Management.Automation.VerboseRecord] }
+            ($script:verbose.Message -join ' ') | Should -Match 'Set-NetworkRoute'
+        }
+    }
+
+    Context 'Credential parameter' {
+        It -Name 'Should have a Credential parameter' -Test {
+            $script:cmd = Get-Command -Name 'Set-NetworkRoute' -Module 'PSWinOps'
+            $script:cmd.Parameters['Credential'] | Should -Not -BeNullOrEmpty
+        }
+        It -Name 'Should have Credential as PSCredential type' -Test {
+            $script:cmd = Get-Command -Name 'Set-NetworkRoute' -Module 'PSWinOps'
+            $script:cmd.Parameters['Credential'].ParameterType.Name | Should -Be 'PSCredential'
+        }
+    }
+
+    Context 'ComputerName aliases' {
+        It -Name 'Should accept CN alias' -Test {
+            $script:cmd = Get-Command -Name 'Set-NetworkRoute' -Module 'PSWinOps'
+            $script:cmd.Parameters['ComputerName'].Aliases | Should -Contain 'CN'
+        }
+    }
+
+    Context 'Output property completeness' {
+        BeforeAll {
+            Mock -ModuleName 'PSWinOps' -CommandName 'Invoke-Command' -MockWith {
+                return [PSCustomObject]@{
+                    DestinationPrefix = '10.10.0.0/16'; NextHop = '192.168.1.1'
+                    InterfaceAlias = 'Ethernet'; InterfaceIndex = 4; RouteMetric = 50
+                    AddressFamily = 'IPv4'; Protocol = 'NetMgmt'; Store = 'ActiveStore'
+                }
+            }
+            $script:propResult = Set-NetworkRoute -ComputerName 'SRV01' -DestinationPrefix '10.10.0.0/16' -InterfaceAlias 'Ethernet' -RouteMetric 50 -Confirm:\$false
+            $script:propNames = $script:propResult.PSObject.Properties.Name
+        }
+        It 'Should have ComputerName property' { $script:propNames | Should -Contain 'ComputerName' }
+        It 'Should have Timestamp property' { $script:propNames | Should -Contain 'Timestamp' }
+        It 'Should contain all route properties' {
+            $script:propNames | Should -Contain 'DestinationPrefix'
+            $script:propNames | Should -Contain 'NextHop'
+            $script:propNames | Should -Contain 'InterfaceAlias'
+            $script:propNames | Should -Contain 'InterfaceIndex'
+            $script:propNames | Should -Contain 'RouteMetric'
+            $script:propNames | Should -Contain 'AddressFamily'
+            $script:propNames | Should -Contain 'Protocol'
+            $script:propNames | Should -Contain 'Store'
+        }
+    }
+
+    Context 'Timestamp ISO 8601 format' {
+        BeforeAll {
+            Mock -ModuleName 'PSWinOps' -CommandName 'Invoke-Command' -MockWith {
+                return [PSCustomObject]@{
+                    DestinationPrefix = '10.10.0.0/16'; NextHop = '192.168.1.1'
+                    InterfaceAlias = 'Ethernet'; InterfaceIndex = 4; RouteMetric = 50
+                    AddressFamily = 'IPv4'; Protocol = 'NetMgmt'; Store = 'ActiveStore'
+                }
+            }
+            $script:tsResult = Set-NetworkRoute -ComputerName 'SRV01' -DestinationPrefix '10.10.0.0/16' -InterfaceAlias 'Ethernet' -RouteMetric 50 -Confirm:\$false
+        }
+        It 'Should have Timestamp matching ISO 8601 pattern' { $script:tsResult.Timestamp | Should -Match '^\d{4}-\d{2}-\d{2}T' }
+    }
+
+    Context 'InterfaceIndex path' {
+        BeforeAll {
+            Mock -ModuleName 'PSWinOps' -CommandName 'Invoke-Command' -MockWith {
+                return [PSCustomObject]@{
+                    DestinationPrefix = '10.10.0.0/16'; NextHop = '192.168.1.1'
+                    InterfaceAlias = 'Ethernet'; InterfaceIndex = 4; RouteMetric = 50
+                    AddressFamily = 'IPv4'; Protocol = 'NetMgmt'; Store = 'ActiveStore'
+                }
+            }
+        }
+        It 'Should accept InterfaceIndex instead of InterfaceAlias' {
+            $script:idxResult = Set-NetworkRoute -ComputerName 'SRV01' -DestinationPrefix '10.10.0.0/16' -InterfaceIndex 4 -RouteMetric 50 -Confirm:\$false
+            $script:idxResult | Should -Not -BeNullOrEmpty
+        }
+    }
+
+    Context 'NextHop parameter' {
+        BeforeAll {
+            Mock -ModuleName 'PSWinOps' -CommandName 'Invoke-Command' -MockWith {
+                return [PSCustomObject]@{
+                    DestinationPrefix = '10.10.0.0/16'; NextHop = '192.168.1.1'
+                    InterfaceAlias = 'Ethernet'; InterfaceIndex = 4; RouteMetric = 50
+                    AddressFamily = 'IPv4'; Protocol = 'NetMgmt'; Store = 'ActiveStore'
+                }
+            }
+        }
+        It 'Should accept optional NextHop parameter' {
+            $script:nhResult = Set-NetworkRoute -ComputerName 'SRV01' -DestinationPrefix '10.10.0.0/16' -InterfaceAlias 'Ethernet' -NextHop '192.168.1.1' -RouteMetric 50 -Confirm:\$false
+            $script:nhResult | Should -Not -BeNullOrEmpty
+        }
+    }
+
+    Context 'DNSHostName alias' {
+        It 'Should accept DNSHostName alias for ComputerName' {
+            $script:cmd = Get-Command -Name 'Set-NetworkRoute' -Module 'PSWinOps'
+            $script:cmd.Parameters['ComputerName'].Aliases | Should -Contain 'DNSHostName'
         }
     }
 }

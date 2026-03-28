@@ -157,4 +157,40 @@ Describe 'Trace-NetworkRoute' {
             $result | Should -Not -BeNullOrEmpty
         }
     }
+
+    # ================================================================
+    # APPENDED TEST CONTEXTS
+    # ================================================================
+
+    Context 'Verbose output' {
+        BeforeAll {
+            Mock -ModuleName 'PSWinOps' -CommandName 'Invoke-Command' -MockWith { return @() }
+        }
+        It -Name 'Should produce verbose messages' -Test {
+            $script:verbose = Trace-NetworkRoute -ComputerName '8.8.8.8' -Verbose -ErrorAction SilentlyContinue 4>&1 | Where-Object { $_ -is [System.Management.Automation.VerboseRecord] }
+            $script:verbose | Should -Not -BeNullOrEmpty
+        }
+        It -Name 'Should include function name in verbose' -Test {
+            $script:verbose = Trace-NetworkRoute -ComputerName '8.8.8.8' -Verbose -ErrorAction SilentlyContinue 4>&1 | Where-Object { $_ -is [System.Management.Automation.VerboseRecord] }
+            ($script:verbose.Message -join ' ') | Should -Match 'Trace-NetworkRoute'
+        }
+    }
+
+    Context 'Credential parameter' {
+        It -Name 'Should have a Credential parameter' -Test {
+            $script:cmd = Get-Command -Name 'Trace-NetworkRoute' -Module 'PSWinOps'
+            $script:cmd.Parameters['Credential'] | Should -Not -BeNullOrEmpty
+        }
+        It -Name 'Should have Credential as PSCredential type' -Test {
+            $script:cmd = Get-Command -Name 'Trace-NetworkRoute' -Module 'PSWinOps'
+            $script:cmd.Parameters['Credential'].ParameterType.Name | Should -Be 'PSCredential'
+        }
+    }
+
+    Context 'ComputerName aliases' {
+        It -Name 'Should accept CN alias' -Test {
+            $script:cmd = Get-Command -Name 'Trace-NetworkRoute' -Module 'PSWinOps'
+            $script:cmd.Parameters['ComputerName'].Aliases | Should -Contain 'CN'
+        }
+    }
 }

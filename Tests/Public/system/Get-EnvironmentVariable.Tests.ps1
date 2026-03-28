@@ -126,4 +126,114 @@ Describe 'Get-EnvironmentVariable' {
             { Get-EnvironmentVariable -Scope 'Invalid' } | Should -Throw
         }
     }
+
+    # ================================================================
+    # APPENDED TEST CONTEXTS
+    # ================================================================
+
+    Context 'PSTypeName validation' {
+        BeforeAll {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $script:mockRemoteEntries }
+            $script:typeResults = Get-EnvironmentVariable -ComputerName 'SRV01'
+        }
+        It -Name 'Should have PSTypeName PSWinOps.EnvironmentVariable on all results' -Test {
+            $script:typeResults | ForEach-Object { $_.PSObject.TypeNames | Should -Contain 'PSWinOps.EnvironmentVariable' }
+        }
+    }
+
+    Context 'Output property completeness' {
+        BeforeAll {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $script:mockRemoteEntries }
+            $script:propResults = Get-EnvironmentVariable -ComputerName 'SRV01'
+        }
+        It -Name 'Should contain all 6 expected properties' -Test {
+            $script:propertyNames = $script:propResults[0].PSObject.Properties.Name
+            $script:expectedProps = @('PSTypeName', 'ComputerName', 'Name', 'Value', 'Scope', 'Timestamp')
+            foreach ($script:prop in $script:expectedProps) {
+                $script:propertyNames | Should -Contain $script:prop
+            }
+        }
+    }
+
+    Context 'Timestamp ISO 8601 format' {
+        BeforeAll {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $script:mockRemoteEntries }
+            $script:tsResults = Get-EnvironmentVariable -ComputerName 'SRV01'
+        }
+        It -Name 'Should have Timestamp matching ISO 8601 pattern' -Test {
+            $script:tsResults | ForEach-Object { $_.Timestamp | Should -Match '^\d{4}-\d{2}-\d{2}T' }
+        }
+    }
+
+    Context 'Verbose output' {
+        BeforeAll {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $script:mockRemoteEntries }
+        }
+        It -Name 'Should emit verbose messages containing Get-EnvironmentVariable' -Test {
+            $script:verboseOutput = Get-EnvironmentVariable -ComputerName 'SRV01' -Verbose 4>&1
+            $script:verboseMessages = @($script:verboseOutput | Where-Object { $_ -is [System.Management.Automation.VerboseRecord] })
+            $script:verboseMessages.Count | Should -BeGreaterOrEqual 1
+            $script:verboseText = $script:verboseMessages | ForEach-Object { $_.Message }
+            $script:verboseText -join ' ' | Should -Match 'Get-EnvironmentVariable'
+        }
+    }
+
+    Context 'VariableName wildcard filter' {
+        BeforeAll {
+            $script:mockWildcardEntries = @(
+                [PSCustomObject]@{ Name = 'PATH'; Value = 'C:\Windows'; Scope = 'Machine' },
+                [PSCustomObject]@{ Name = 'PATHEXT'; Value = '.COM;.EXE;.BAT'; Scope = 'Machine' },
+                [PSCustomObject]@{ Name = 'TEMP'; Value = 'C:\Windows\Temp'; Scope = 'Machine' }
+            )
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $script:mockWildcardEntries }
+        }
+        It -Name 'Should return only PATH and PATHEXT when filtering with PATH*' -Test {
+            $script:wildcardResults = Get-EnvironmentVariable -ComputerName 'SRV01' -VariableName 'PATH*'
+            @($script:wildcardResults).Count | Should -Be 2
+            $script:returnedNames = $script:wildcardResults | Select-Object -ExpandProperty Name
+            $script:returnedNames | Should -Contain 'PATH'
+            $script:returnedNames | Should -Contain 'PATHEXT'
+        }
+        It -Name 'Should not return TEMP when filtering with PATH*' -Test {
+            $script:wildcardResults = Get-EnvironmentVariable -ComputerName 'SRV01' -VariableName 'PATH*'
+            $script:returnedNames = $script:wildcardResults | Select-Object -ExpandProperty Name
+            $script:returnedNames | Should -Not -Contain 'TEMP'
+        }
+    }
+
+    Context 'Credential parameter' {
+        It -Name 'Should have a Credential parameter' -Test {
+            $script:cmdInfo = Get-Command -Name 'Get-EnvironmentVariable'
+            $script:cmdInfo.Parameters['Credential'] | Should -Not -BeNullOrEmpty
+        }
+        It -Name 'Should have Credential of type PSCredential' -Test {
+            $script:cmdInfo = Get-Command -Name 'Get-EnvironmentVariable'
+            $script:cmdInfo.Parameters['Credential'].ParameterType.Name | Should -Be 'PSCredential'
+        }
+        It -Name 'Should not require Credential as mandatory' -Test {
+            $script:cmdInfo = Get-Command -Name 'Get-EnvironmentVariable'
+            $script:isMandatory = $script:cmdInfo.Parameters['Credential'].Attributes |
+                Where-Object { $_ -is [System.Management.Automation.ParameterAttribute] } |
+                ForEach-Object { $_.Mandatory }
+            $script:isMandatory | Should -Be $false
+        }
+    }
+
+    Context 'Scope parameter validation' {
+        It -Name 'Should accept Machine as a valid scope' -Test {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return @() }
+            { Get-EnvironmentVariable -ComputerName 'SRV01' -Scope 'Machine' } | Should -Not -Throw
+        }
+        It -Name 'Should accept User as a valid scope' -Test {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return @() }
+            { Get-EnvironmentVariable -ComputerName 'SRV01' -Scope 'User' } | Should -Not -Throw
+        }
+        It -Name 'Should accept All as a valid scope' -Test {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return @() }
+            { Get-EnvironmentVariable -ComputerName 'SRV01' -Scope 'All' } | Should -Not -Throw
+        }
+        It -Name 'Should throw when Scope is Invalid' -Test {
+            { Get-EnvironmentVariable -Scope 'Invalid' } | Should -Throw
+        }
+    }
 }

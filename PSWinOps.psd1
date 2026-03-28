@@ -87,7 +87,13 @@ FunctionsToExport = 'ConvertFrom-MisencodedString', 'Connect-RdpSession',
                'Get-NTPPeer', 'Get-NTPSyncStatus', 'Set-NTPClient', 'Sync-NTPTime', 
                'New-RandomPassword', 'Get-ProxyConfiguration', 
                'Remove-ProxyConfiguration', 'Set-ProxyConfiguration', 
-               'Test-ProxyConnection'
+               'Test-ProxyConnection', 'Get-AdDomainControllerHealth',
+               'Get-ClusterHealth', 'Get-DfsNamespaceHealth',
+               'Get-ADFSHealth', 'Get-CertificateAuthorityHealth',
+               'Get-DfsReplicationHealth', 'Get-DhcpServerHealth',
+               'Get-DnsServerHealth', 'Get-FileServerHealth',
+               'Get-HyperVHostHealth', 'Get-IISHealth',
+               'Get-PrintServerHealth', 'Get-RDSHealth', 'Get-WSUSHealth'
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = @()

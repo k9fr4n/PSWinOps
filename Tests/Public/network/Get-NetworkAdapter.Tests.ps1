@@ -110,4 +110,254 @@ Describe 'Get-NetworkAdapter' {
             $cmd.Parameters['IncludeDisabled'].SwitchParameter | Should -Be $true
         }
     }
+
+    # ================================================================
+    # APPENDED TEST CONTEXTS
+    # ================================================================
+
+    Context 'Output property completeness' {
+
+        BeforeEach {
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-NetAdapter' -MockWith {
+                @([PSCustomObject]@{
+                    Name = 'Ethernet'; InterfaceDescription = 'Intel I350'; Status = 'Up'
+                    LinkSpeed = '1 Gbps'; MacAddress = 'AA-BB-CC-DD-EE-FF'; MtuSize = 1500
+                    ifIndex = 5; MediaType = '802.3'; DriverVersion = '12.18.9.23'; VlanID = 100
+                })
+            }
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-NetIPAddress' -MockWith {
+                @([PSCustomObject]@{ InterfaceIndex = 5; IPAddress = '192.168.1.10'; PrefixLength = 24; AddressFamily = 2; PrefixOrigin = 'Dhcp' })
+            }
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-DnsClientServerAddress' -MockWith {
+                @([PSCustomObject]@{ InterfaceIndex = 5; ServerAddresses = @('10.0.0.1') })
+            }
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-NetRoute' -MockWith {
+                @([PSCustomObject]@{ InterfaceIndex = 5; DestinationPrefix = '0.0.0.0/0'; NextHop = '192.168.1.1'; InterfaceAlias = 'Ethernet' })
+            }
+        }
+
+        It 'Should contain all 18 expected properties' {
+            $script:propResult = Get-NetworkAdapter
+            $script:propertyNames = $script:propResult.PSObject.Properties.Name
+            $script:expectedProps = @(
+                'PSTypeName', 'ComputerName', 'Name', 'Description', 'Status', 'Speed',
+                'MacAddress', 'IPv4Address', 'SubnetPrefix', 'IPv6Address', 'Gateway',
+                'DnsServers', 'MTU', 'InterfaceIndex', 'MediaType', 'DriverVersion',
+                'VlanID', 'Timestamp'
+            )
+            foreach ($script:prop in $script:expectedProps) {
+                $script:propertyNames | Should -Contain $script:prop
+            }
+        }
+    }
+
+    Context 'Timestamp ISO 8601 format' {
+
+        BeforeEach {
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-NetAdapter' -MockWith {
+                @([PSCustomObject]@{
+                    Name = 'Ethernet'; InterfaceDescription = 'Intel I350'; Status = 'Up'
+                    LinkSpeed = '1 Gbps'; MacAddress = 'AA-BB-CC-DD-EE-FF'; MtuSize = 1500
+                    ifIndex = 5; MediaType = '802.3'; DriverVersion = '12.18.9.23'; VlanID = $null
+                })
+            }
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-NetIPAddress' -MockWith {
+                @([PSCustomObject]@{ InterfaceIndex = 5; IPAddress = '192.168.1.10'; PrefixLength = 24; AddressFamily = 2; PrefixOrigin = 'Dhcp' })
+            }
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-DnsClientServerAddress' -MockWith {
+                @([PSCustomObject]@{ InterfaceIndex = 5; ServerAddresses = @('10.0.0.1') })
+            }
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-NetRoute' -MockWith {
+                @([PSCustomObject]@{ InterfaceIndex = 5; DestinationPrefix = '0.0.0.0/0'; NextHop = '192.168.1.1'; InterfaceAlias = 'Ethernet' })
+            }
+        }
+
+        It 'Should have Timestamp matching ISO 8601 pattern' {
+            $script:tsResult = Get-NetworkAdapter
+            $script:tsResult.Timestamp | Should -Match '^\d{4}-\d{2}-\d{2}T'
+        }
+    }
+
+    Context 'IncludeDisabled switch behavior' {
+
+        BeforeEach {
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-NetAdapter' -MockWith {
+                @(
+                    [PSCustomObject]@{
+                        Name = 'Ethernet'; InterfaceDescription = 'Intel I350'; Status = 'Up'
+                        LinkSpeed = '1 Gbps'; MacAddress = 'AA-BB-CC-DD-EE-FF'; MtuSize = 1500
+                        ifIndex = 5; MediaType = '802.3'; DriverVersion = '12.18.9.23'; VlanID = $null
+                    },
+                    [PSCustomObject]@{
+                        Name = 'Wi-Fi'; InterfaceDescription = 'Wireless NIC'; Status = 'Disabled'
+                        LinkSpeed = ''; MacAddress = '11-22-33-44-55-66'; MtuSize = 1500
+                        ifIndex = 8; MediaType = ''; DriverVersion = '2.0.0'; VlanID = $null
+                    }
+                )
+            }
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-NetIPAddress' -MockWith {
+                @([PSCustomObject]@{ InterfaceIndex = 5; IPAddress = '192.168.1.10'; PrefixLength = 24; AddressFamily = 2; PrefixOrigin = 'Dhcp' })
+            }
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-DnsClientServerAddress' -MockWith {
+                @([PSCustomObject]@{ InterfaceIndex = 5; ServerAddresses = @('10.0.0.1') })
+            }
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-NetRoute' -MockWith {
+                @([PSCustomObject]@{ InterfaceIndex = 5; DestinationPrefix = '0.0.0.0/0'; NextHop = '192.168.1.1'; InterfaceAlias = 'Ethernet' })
+            }
+        }
+
+        It 'Should return only Up adapters without IncludeDisabled' {
+            $script:upOnly = Get-NetworkAdapter
+            @($script:upOnly).Count | Should -Be 1
+            $script:upOnly.Status | Should -Be 'Up'
+        }
+
+        It 'Should return both adapters with IncludeDisabled' {
+            $script:allAdapters = Get-NetworkAdapter -IncludeDisabled
+            @($script:allAdapters).Count | Should -Be 2
+        }
+    }
+
+    Context 'InterfaceName filter' {
+
+        BeforeEach {
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-NetAdapter' -MockWith {
+                @(
+                    [PSCustomObject]@{
+                        Name = 'Ethernet'; InterfaceDescription = 'Intel I350'; Status = 'Up'
+                        LinkSpeed = '1 Gbps'; MacAddress = 'AA-BB-CC-DD-EE-FF'; MtuSize = 1500
+                        ifIndex = 5; MediaType = '802.3'; DriverVersion = '12.18.9.23'; VlanID = $null
+                    },
+                    [PSCustomObject]@{
+                        Name = 'Wi-Fi'; InterfaceDescription = 'Wireless NIC'; Status = 'Up'
+                        LinkSpeed = '300 Mbps'; MacAddress = '11-22-33-44-55-66'; MtuSize = 1500
+                        ifIndex = 8; MediaType = 'Native 802.11'; DriverVersion = '2.0.0'; VlanID = $null
+                    }
+                )
+            }
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-NetIPAddress' -MockWith {
+                @(
+                    [PSCustomObject]@{ InterfaceIndex = 5; IPAddress = '192.168.1.10'; PrefixLength = 24; AddressFamily = 2; PrefixOrigin = 'Dhcp' },
+                    [PSCustomObject]@{ InterfaceIndex = 8; IPAddress = '192.168.1.20'; PrefixLength = 24; AddressFamily = 2; PrefixOrigin = 'Dhcp' }
+                )
+            }
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-DnsClientServerAddress' -MockWith {
+                @(
+                    [PSCustomObject]@{ InterfaceIndex = 5; ServerAddresses = @('10.0.0.1') },
+                    [PSCustomObject]@{ InterfaceIndex = 8; ServerAddresses = @('10.0.0.1') }
+                )
+            }
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-NetRoute' -MockWith {
+                @([PSCustomObject]@{ InterfaceIndex = 5; DestinationPrefix = '0.0.0.0/0'; NextHop = '192.168.1.1'; InterfaceAlias = 'Ethernet' })
+            }
+        }
+
+        It 'Should return only Ethernet when filtering with Eth*' {
+            $script:filtered = Get-NetworkAdapter -InterfaceName 'Eth*'
+            @($script:filtered).Count | Should -Be 1
+            $script:filtered.Name | Should -Be 'Ethernet'
+        }
+    }
+
+    Context 'Multiple adapters returned' {
+
+        BeforeEach {
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-NetAdapter' -MockWith {
+                @(
+                    [PSCustomObject]@{
+                        Name = 'Ethernet'; InterfaceDescription = 'Intel I350'; Status = 'Up'
+                        LinkSpeed = '1 Gbps'; MacAddress = 'AA-BB-CC-DD-EE-FF'; MtuSize = 1500
+                        ifIndex = 5; MediaType = '802.3'; DriverVersion = '12.18.9.23'; VlanID = $null
+                    },
+                    [PSCustomObject]@{
+                        Name = 'Ethernet2'; InterfaceDescription = 'Intel I350 #2'; Status = 'Up'
+                        LinkSpeed = '1 Gbps'; MacAddress = 'FF-EE-DD-CC-BB-AA'; MtuSize = 1500
+                        ifIndex = 6; MediaType = '802.3'; DriverVersion = '12.18.9.23'; VlanID = $null
+                    }
+                )
+            }
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-NetIPAddress' -MockWith {
+                @(
+                    [PSCustomObject]@{ InterfaceIndex = 5; IPAddress = '192.168.1.10'; PrefixLength = 24; AddressFamily = 2; PrefixOrigin = 'Dhcp' },
+                    [PSCustomObject]@{ InterfaceIndex = 6; IPAddress = '192.168.2.10'; PrefixLength = 24; AddressFamily = 2; PrefixOrigin = 'Dhcp' }
+                )
+            }
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-DnsClientServerAddress' -MockWith {
+                @(
+                    [PSCustomObject]@{ InterfaceIndex = 5; ServerAddresses = @('10.0.0.1') },
+                    [PSCustomObject]@{ InterfaceIndex = 6; ServerAddresses = @('10.0.0.2') }
+                )
+            }
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-NetRoute' -MockWith {
+                @([PSCustomObject]@{ InterfaceIndex = 5; DestinationPrefix = '0.0.0.0/0'; NextHop = '192.168.1.1'; InterfaceAlias = 'Ethernet' })
+            }
+        }
+
+        It 'Should return 2 adapter results' {
+            $script:multiResult = Get-NetworkAdapter
+            @($script:multiResult).Count | Should -Be 2
+        }
+    }
+
+    Context 'No adapters found' {
+
+        BeforeEach {
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-NetAdapter' -MockWith { @() }
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-NetIPAddress' -MockWith { @() }
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-DnsClientServerAddress' -MockWith { @() }
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-NetRoute' -MockWith { @() }
+        }
+
+        It 'Should return empty result when no adapters exist' {
+            $script:emptyResult = Get-NetworkAdapter
+            $script:emptyResult | Should -BeNullOrEmpty
+        }
+    }
+
+    Context 'Verbose output' {
+
+        BeforeEach {
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-NetAdapter' -MockWith {
+                @([PSCustomObject]@{
+                    Name = 'Ethernet'; InterfaceDescription = 'Intel I350'; Status = 'Up'
+                    LinkSpeed = '1 Gbps'; MacAddress = 'AA-BB-CC-DD-EE-FF'; MtuSize = 1500
+                    ifIndex = 5; MediaType = '802.3'; DriverVersion = '12.18.9.23'; VlanID = $null
+                })
+            }
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-NetIPAddress' -MockWith {
+                @([PSCustomObject]@{ InterfaceIndex = 5; IPAddress = '192.168.1.10'; PrefixLength = 24; AddressFamily = 2; PrefixOrigin = 'Dhcp' })
+            }
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-DnsClientServerAddress' -MockWith {
+                @([PSCustomObject]@{ InterfaceIndex = 5; ServerAddresses = @('10.0.0.1') })
+            }
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-NetRoute' -MockWith {
+                @([PSCustomObject]@{ InterfaceIndex = 5; DestinationPrefix = '0.0.0.0/0'; NextHop = '192.168.1.1'; InterfaceAlias = 'Ethernet' })
+            }
+        }
+
+        It 'Should emit verbose messages containing function name' {
+            $script:verboseOutput = Get-NetworkAdapter -Verbose 4>&1
+            $script:verboseMessages = @($script:verboseOutput | Where-Object { $_ -is [System.Management.Automation.VerboseRecord] })
+            $script:verboseMessages.Count | Should -BeGreaterOrEqual 1
+            $script:verboseText = $script:verboseMessages | ForEach-Object { $_.Message }
+            $script:verboseText -join ' ' | Should -Match 'Get-NetworkAdapter'
+        }
+    }
+
+    Context 'Credential parameter' {
+
+        It 'Should have a Credential parameter of type PSCredential' {
+            $script:cmdInfo = Get-Command -Name 'Get-NetworkAdapter'
+            $script:cmdInfo.Parameters['Credential'] | Should -Not -BeNullOrEmpty
+            $script:cmdInfo.Parameters['Credential'].ParameterType.Name | Should -Be 'PSCredential'
+        }
+
+        It 'Should not require Credential as mandatory' {
+            $script:cmdInfo = Get-Command -Name 'Get-NetworkAdapter'
+            $script:isMandatory = $script:cmdInfo.Parameters['Credential'].Attributes |
+                Where-Object { $_ -is [System.Management.Automation.ParameterAttribute] } |
+                ForEach-Object { $_.Mandatory }
+            $script:isMandatory | Should -Be $false
+        }
+    }
 }
