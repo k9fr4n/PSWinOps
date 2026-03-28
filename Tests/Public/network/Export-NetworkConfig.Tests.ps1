@@ -148,17 +148,22 @@ Describe 'Export-NetworkConfig' {
             }
         }
 
-        It 'Should contain all 12 expected properties' {
+        It 'Should contain all expected visible properties' {
             $script:propResult = Export-NetworkConfig
             $script:propertyNames = $script:propResult.PSObject.Properties.Name
             $script:expectedProps = @(
-                'PSTypeName', 'ComputerName', 'Hostname', 'Adapters', 'IPAddresses',
+                'ComputerName', 'Hostname', 'Adapters', 'IPAddresses',
                 'DnsServers', 'DnsSuffix', 'Routes', 'FirewallProfiles',
                 'ListeningPorts', 'ARPCache', 'Timestamp'
             )
             foreach ($script:prop in $script:expectedProps) {
                 $script:propertyNames | Should -Contain $script:prop
             }
+        }
+
+        It 'Should have PSTypeName PSWinOps.NetworkConfig' {
+            $script:propResult = Export-NetworkConfig
+            $script:propResult.PSObject.TypeNames[0] | Should -Be 'PSWinOps.NetworkConfig'
         }
     }
 

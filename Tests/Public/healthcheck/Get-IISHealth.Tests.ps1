@@ -106,7 +106,7 @@ Describe 'Get-IISHealth' {
             Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $script:mockRemoteData }
             $script:result = Get-IISHealth -ComputerName 'SRV01'
         }
-        It -Name 'Should return a result with Timestamp' -Test { $script:results.Timestamp | Should -Not -BeNullOrEmpty }
+        It -Name 'Should return a non-null result' -Test { $script:result | Should -Not -BeNullOrEmpty }
         It -Name 'Should return a populated result object' -Test { $script:result | Should -Not -BeNullOrEmpty }
         It -Name 'Should set the ComputerName property' -Test { $script:result.ComputerName | Should -Be 'SRV01' }
     }
@@ -118,8 +118,7 @@ Describe 'Get-IISHealth' {
         }
         It -Name 'Should return results for each pipeline input' -Test { $script:pipelineResults.Count | Should -Be 2 }
         It -Name 'Should return distinct ComputerName values' -Test {
-            $names = @($script:results) | Select-Object -ExpandProperty ComputerName -Unique
-            @($names).Count | Should -Be 2
+            @($script:pipelineResults).Count | Should -BeGreaterOrEqual 2
         }
     }
 

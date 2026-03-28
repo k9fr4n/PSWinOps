@@ -8,12 +8,14 @@ BeforeAll {
     # Stub functions for cmdlets not available on CI runner
     function global:Get-DnsServerZone { }
     function global:Get-DnsServerForwarder { }
+    function global:Get-DnsServerRootHint { }
 
 }
 
 AfterAll {
     Remove-Item -Path 'Function:Get-DnsServerZone' -ErrorAction SilentlyContinue
     Remove-Item -Path 'Function:Get-DnsServerForwarder' -ErrorAction SilentlyContinue
+    Remove-Item -Path 'Function:Get-DnsServerRootHint' -ErrorAction SilentlyContinue
 }
 
 

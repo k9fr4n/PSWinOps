@@ -10,6 +10,7 @@ BeforeAll {
     function global:Get-ClusterNode { }
     function global:Get-ClusterResource { }
     function global:Get-ClusterGroup { }
+    function global:Get-ClusterQuorum { }
 
 }
 
@@ -18,6 +19,7 @@ AfterAll {
     Remove-Item -Path 'Function:Get-ClusterNode' -ErrorAction SilentlyContinue
     Remove-Item -Path 'Function:Get-ClusterResource' -ErrorAction SilentlyContinue
     Remove-Item -Path 'Function:Get-ClusterGroup' -ErrorAction SilentlyContinue
+    Remove-Item -Path 'Function:Get-ClusterQuorum' -ErrorAction SilentlyContinue
 }
 
 
