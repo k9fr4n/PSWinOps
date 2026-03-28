@@ -163,15 +163,27 @@ Describe 'Trace-NetworkRoute' {
     # ================================================================
 
     Context 'Verbose output' {
-        BeforeAll {
-            Mock -ModuleName 'PSWinOps' -CommandName 'Invoke-Command' -MockWith { return @() }
+        BeforeEach {
+            Mock -ModuleName 'PSWinOps' -CommandName 'New-Object' -MockWith {
+                $mockPing = [PSCustomObject]@{}
+                $mockPing | Add-Member -MemberType ScriptMethod -Name 'Send' -Value {
+                    param($target, $timeout, $buffer, $options)
+                    [PSCustomObject]@{
+                        Status        = [System.Net.NetworkInformation.IPStatus]::Success
+                        RoundtripTime = 5
+                        Address       = [System.Net.IPAddress]::Parse($target)
+                    }
+                }
+                $mockPing | Add-Member -MemberType ScriptMethod -Name 'Dispose' -Value { }
+                return $mockPing
+            } -ParameterFilter { $TypeName -eq 'System.Net.NetworkInformation.Ping' }
         }
         It -Name 'Should produce verbose messages' -Test {
-            $script:verbose = Trace-NetworkRoute -ComputerName '8.8.8.8' -Verbose -ErrorAction SilentlyContinue 4>&1 | Where-Object { $_ -is [System.Management.Automation.VerboseRecord] }
+            $script:verbose = Trace-NetworkRoute -ComputerName '8.8.8.8' -MaxHops 2 -SkipNameResolution -Verbose 4>&1 | Where-Object { $_ -is [System.Management.Automation.VerboseRecord] }
             $script:verbose | Should -Not -BeNullOrEmpty
         }
         It -Name 'Should include function name in verbose' -Test {
-            $script:verbose = Trace-NetworkRoute -ComputerName '8.8.8.8' -Verbose -ErrorAction SilentlyContinue 4>&1 | Where-Object { $_ -is [System.Management.Automation.VerboseRecord] }
+            $script:verbose = Trace-NetworkRoute -ComputerName '8.8.8.8' -MaxHops 2 -SkipNameResolution -Verbose 4>&1 | Where-Object { $_ -is [System.Management.Automation.VerboseRecord] }
             ($script:verbose.Message -join ' ') | Should -Match 'Trace-NetworkRoute'
         }
     }
