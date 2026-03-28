@@ -143,4 +143,60 @@ Describe 'Get-ServiceHealth' {
             { Get-ServiceHealth -ComputerName $null } | Should -Throw
         }
     }
+
+    # ================================================================
+    # APPENDED TEST CONTEXTS
+    # ================================================================
+
+    Context 'PSTypeName validation' {
+        BeforeAll {
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith { return $script:mockServices }
+            $script:typeResult = Get-ServiceHealth
+        }
+        It -Name 'Should have PSTypeName PSWinOps.ServiceHealth' -Test { (@($script:typeResult))[0].PSObject.TypeNames[0] | Should -Be 'PSWinOps.ServiceHealth' }
+    }
+
+    Context 'Timestamp ISO 8601 format' {
+        BeforeAll {
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith { return $script:mockServices }
+            $script:typeResult = Get-ServiceHealth
+        }
+        It -Name 'Should have Timestamp matching ISO 8601' -Test { (@($script:typeResult))[0].Timestamp | Should -Match '^\d{4}-\d{2}-\d{2}T' }
+    }
+
+    Context 'Verbose output' {
+        BeforeAll {
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith { return $script:mockServices }
+        }
+        It -Name 'Should produce verbose messages' -Test {
+            $script:verbose = Get-ServiceHealth -Verbose 4>&1 | Where-Object { $_ -is [System.Management.Automation.VerboseRecord] }
+            $script:verbose | Should -Not -BeNullOrEmpty
+        }
+        It -Name 'Should include function name in verbose' -Test {
+            $script:verbose = Get-ServiceHealth -Verbose 4>&1 | Where-Object { $_ -is [System.Management.Automation.VerboseRecord] }
+            ($script:verbose.Message -join ' ') | Should -Match 'Get-ServiceHealth'
+        }
+    }
+
+    Context 'Credential parameter' {
+        It -Name 'Should have a Credential parameter' -Test {
+            $script:cmd = Get-Command -Name 'Get-ServiceHealth' -Module 'PSWinOps'
+            $script:cmd.Parameters['Credential'] | Should -Not -BeNullOrEmpty
+        }
+        It -Name 'Should have Credential as PSCredential type' -Test {
+            $script:cmd = Get-Command -Name 'Get-ServiceHealth' -Module 'PSWinOps'
+            $script:cmd.Parameters['Credential'].ParameterType.Name | Should -Be 'PSCredential'
+        }
+    }
+
+    Context 'ComputerName aliases' {
+        It -Name 'Should accept CN alias' -Test {
+            $script:cmd = Get-Command -Name 'Get-ServiceHealth' -Module 'PSWinOps'
+            $script:cmd.Parameters['ComputerName'].Aliases | Should -Contain 'CN'
+        }
+        It -Name 'Should accept Name alias' -Test {
+            $script:cmd = Get-Command -Name 'Get-ServiceHealth' -Module 'PSWinOps'
+            $script:cmd.Parameters['ComputerName'].Aliases | Should -Contain 'Name'
+        }
+    }
 }

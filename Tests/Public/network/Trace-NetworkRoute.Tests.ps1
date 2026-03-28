@@ -157,4 +157,41 @@ Describe 'Trace-NetworkRoute' {
             $result | Should -Not -BeNullOrEmpty
         }
     }
+
+    # ================================================================
+    # APPENDED TEST CONTEXTS
+    # ================================================================
+
+    Context 'Verbose output' {
+        BeforeEach {
+            Mock -ModuleName 'PSWinOps' -CommandName 'New-Object' -MockWith {
+                $mockPing = [PSCustomObject]@{}
+                $mockPing | Add-Member -MemberType ScriptMethod -Name 'Send' -Value {
+                    param($target, $timeout, $buffer, $options)
+                    [PSCustomObject]@{
+                        Status        = [System.Net.NetworkInformation.IPStatus]::Success
+                        RoundtripTime = 5
+                        Address       = [System.Net.IPAddress]::Parse($target)
+                    }
+                }
+                $mockPing | Add-Member -MemberType ScriptMethod -Name 'Dispose' -Value { }
+                return $mockPing
+            } -ParameterFilter { $TypeName -eq 'System.Net.NetworkInformation.Ping' }
+        }
+        It -Name 'Should produce verbose messages' -Test {
+            $script:verbose = Trace-NetworkRoute -ComputerName '8.8.8.8' -MaxHops 2 -SkipNameResolution -Verbose 4>&1 | Where-Object { $_ -is [System.Management.Automation.VerboseRecord] }
+            $script:verbose | Should -Not -BeNullOrEmpty
+        }
+        It -Name 'Should include function name in verbose' -Test {
+            $script:verbose = Trace-NetworkRoute -ComputerName '8.8.8.8' -MaxHops 2 -SkipNameResolution -Verbose 4>&1 | Where-Object { $_ -is [System.Management.Automation.VerboseRecord] }
+            ($script:verbose.Message -join ' ') | Should -Match 'Trace-NetworkRoute'
+        }
+    }
+
+    Context 'ComputerName aliases' {
+        It -Name 'Should accept CN alias' -Test {
+            $script:cmd = Get-Command -Name 'Trace-NetworkRoute' -Module 'PSWinOps'
+            $script:cmd.Parameters['ComputerName'].Aliases | Should -Contain 'CN'
+        }
+    }
 }

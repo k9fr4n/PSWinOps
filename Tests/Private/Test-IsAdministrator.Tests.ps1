@@ -30,4 +30,38 @@ Describe -Name 'Test-IsAdministrator' -Fixture {
             $actual | Should -Be $expected
         }
     }
+
+    # ================================================================
+    # APPENDED TEST CONTEXTS
+    # ================================================================
+
+    Context -Name 'Output type validation' -Fixture {
+
+        It -Name 'Should return boolean true or false' -Test {
+            $result = & (Get-Module -Name 'PSWinOps') { Test-IsAdministrator }
+            $result | Should -BeOfType [bool]
+        }
+
+        It -Name 'Should not return null' -Test {
+            $result = & (Get-Module -Name 'PSWinOps') { Test-IsAdministrator }
+            $result | Should -Not -BeNullOrEmpty
+        }
+
+        It -Name 'Should return exactly one value' -Test {
+            $result = & (Get-Module -Name 'PSWinOps') { Test-IsAdministrator }
+            @($result).Count | Should -Be 1
+        }
+    }
+
+    Context -Name 'Function availability' -Fixture {
+
+        It -Name 'Should be accessible via module scope' -Test {
+            { & (Get-Module -Name 'PSWinOps') { Test-IsAdministrator } } | Should -Not -Throw
+        }
+
+        It -Name 'Should NOT be directly available without module scope' -Test {
+            $cmd = Get-Command -Name 'Test-IsAdministrator' -ErrorAction SilentlyContinue
+            $cmd | Should -BeNullOrEmpty
+        }
+    }
 }

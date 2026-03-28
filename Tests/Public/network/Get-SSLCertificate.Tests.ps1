@@ -82,4 +82,121 @@ Describe 'Get-SSLCertificate' {
             $result.Host | Should -Be 'google.com'
         }
     }
+
+    # ================================================================
+    # APPENDED TEST CONTEXTS
+    # ================================================================
+
+    Context 'Verbose output' {
+
+        BeforeEach {
+            Mock -ModuleName $script:ModuleName -CommandName 'New-Object' -MockWith {
+                $mock = [PSCustomObject]@{}
+                $mock | Add-Member -MemberType ScriptMethod -Name 'ConnectAsync' -Value {
+                    param($h, $p)
+                    throw "Connection refused"
+                }
+                $mock | Add-Member -MemberType ScriptMethod -Name 'Dispose' -Value { }
+                return $mock
+            } -ParameterFilter { $TypeName -eq 'System.Net.Sockets.TcpClient' }
+        }
+
+        It 'Should emit verbose messages with function name' {
+            $script:verboseOutput = Get-SSLCertificate -Uri 'test.example.com' -Verbose -ErrorAction SilentlyContinue 4>&1
+            $script:verboseMessages = @($script:verboseOutput | Where-Object { $_ -is [System.Management.Automation.VerboseRecord] })
+            $script:verboseMessages.Count | Should -BeGreaterOrEqual 1
+            $script:verboseText = $script:verboseMessages | ForEach-Object { $_.Message }
+            $script:verboseText -join ' ' | Should -Match 'Get-SSLCertificate'
+        }
+    }
+
+    Context 'Parameter Port validation' {
+
+        It 'Should accept Port in range 1-65535' {
+            $cmd = Get-Command -Name 'Get-SSLCertificate'
+            $cmd.Parameters['Port'] | Should -Not -BeNullOrEmpty
+        }
+
+        It 'Should reject Port over 65535' {
+            { Get-SSLCertificate -Uri 'test' -Port 70000 } | Should -Throw
+        }
+
+        It 'Should reject negative Port' {
+            { Get-SSLCertificate -Uri 'test' -Port -1 } | Should -Throw
+        }
+    }
+
+    Context 'TimeoutMs parameter' {
+
+        It 'Should accept TimeoutMs in range 1000-30000' {
+            $cmd = Get-Command -Name 'Get-SSLCertificate'
+            $cmd.Parameters['TimeoutMs'] | Should -Not -BeNullOrEmpty
+        }
+
+        It 'Should reject TimeoutMs over 30000' {
+            { Get-SSLCertificate -Uri 'test' -TimeoutMs 50000 } | Should -Throw
+        }
+    }
+
+    Context 'URI format parsing' {
+
+        BeforeEach {
+            Mock -ModuleName $script:ModuleName -CommandName 'New-Object' -MockWith {
+                $mock = [PSCustomObject]@{}
+                $mock | Add-Member -MemberType ScriptMethod -Name 'ConnectAsync' -Value {
+                    param($h, $p)
+                    throw "Connection refused to ${h}:${p}"
+                }
+                $mock | Add-Member -MemberType ScriptMethod -Name 'Dispose' -Value { }
+                return $mock
+            } -ParameterFilter { $TypeName -eq 'System.Net.Sockets.TcpClient' }
+        }
+
+        It 'Should handle plain hostname format' {
+            Get-SSLCertificate -Uri 'example.com' -ErrorVariable err -ErrorAction SilentlyContinue
+            $err | Should -Not -BeNullOrEmpty
+        }
+
+        It 'Should handle https:// prefix' {
+            Get-SSLCertificate -Uri 'https://example.com' -ErrorVariable err -ErrorAction SilentlyContinue
+            $err | Should -Not -BeNullOrEmpty
+        }
+
+        It 'Should handle host:port format' {
+            Get-SSLCertificate -Uri 'example.com:8443' -ErrorVariable err -ErrorAction SilentlyContinue
+            $err | Should -Not -BeNullOrEmpty
+        }
+    }
+
+    Context 'Pipeline multiple URIs' {
+
+        BeforeEach {
+            Mock -ModuleName $script:ModuleName -CommandName 'New-Object' -MockWith {
+                $mock = [PSCustomObject]@{}
+                $mock | Add-Member -MemberType ScriptMethod -Name 'ConnectAsync' -Value {
+                    param($h, $p)
+                    throw "Connection refused"
+                }
+                $mock | Add-Member -MemberType ScriptMethod -Name 'Dispose' -Value { }
+                return $mock
+            } -ParameterFilter { $TypeName -eq 'System.Net.Sockets.TcpClient' }
+        }
+
+        It 'Should process each URI in pipeline and write errors' {
+            $script:errors = @()
+            'host1.example.com', 'host2.example.com' | Get-SSLCertificate -ErrorVariable script:errors -ErrorAction SilentlyContinue
+            @($script:errors).Count | Should -BeGreaterOrEqual 2
+        }
+    }
+
+    Context 'ComputerName alias for Uri' {
+        It 'Should accept ComputerName as alias for Uri' {
+            $cmd = Get-Command -Name 'Get-SSLCertificate'
+            $cmd.Parameters['Uri'].Aliases | Should -Contain 'ComputerName'
+        }
+        It 'Should accept CN as alias for Uri' {
+            $cmd = Get-Command -Name 'Get-SSLCertificate'
+            $cmd.Parameters['Uri'].Aliases | Should -Contain 'CN'
+        }
+    }
 }
