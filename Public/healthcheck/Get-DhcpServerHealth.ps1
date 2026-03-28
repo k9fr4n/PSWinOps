@@ -142,7 +142,7 @@ function Get-DhcpServerHealth {
                 }
             }
             catch {
-                # Failover may not be configured
+                Write-Verbose -Message "DHCP failover query skipped: $_"
             }
 
             # Get all IPv4 scopes
@@ -151,7 +151,7 @@ function Get-DhcpServerHealth {
                 $dhcpScopes = Get-DhcpServerv4Scope -ErrorAction Stop
             }
             catch {
-                # No scopes found or access denied
+                Write-Verbose -Message "DHCP scope retrieval failed: $_"
             }
 
             if (-not $dhcpScopes) {
@@ -185,7 +185,7 @@ function Get-DhcpServerHealth {
                     $percentInUse   = [decimal]$scopeStats.PercentageInUse
                 }
                 catch {
-                    # Statistics unavailable for this scope
+                    Write-Verbose -Message "Statistics unavailable for scope $($scope.ScopeId): $_"
                 }
 
                 $addressesTotal = $addressesInUse + $addressesFree

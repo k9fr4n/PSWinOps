@@ -96,10 +96,10 @@ function Get-FileServerHealth {
                     $userShareList = @($allShares | Where-Object -FilterScript { -not $_.Special })
                     $totalShares = $userShareList.Count
                 }
-                catch { }
+                catch { Write-Verbose -Message "SMB share enumeration failed: $_" }
 
-                try { $openSessions = @(Get-SmbSession -ErrorAction Stop).Count } catch { }
-                try { $openFiles = @(Get-SmbOpenFile -ErrorAction Stop).Count } catch { }
+                try { $openSessions = @(Get-SmbSession -ErrorAction Stop).Count } catch { Write-Verbose -Message "SMB session query failed: $_" }
+                try { $openFiles = @(Get-SmbOpenFile -ErrorAction Stop).Count } catch { Write-Verbose -Message "SMB open file query failed: $_" }
 
                 $fsrmModule = Get-Module -Name 'FileServerResourceManager' -ListAvailable -ErrorAction SilentlyContinue
                 if ($fsrmModule) {
@@ -114,7 +114,7 @@ function Get-FileServerHealth {
                             }
                         }
                     }
-                    catch { }
+                    catch { Write-Verbose -Message "FSRM quota query failed: $_" }
                 }
 
                 if ($userShareList.Count -gt 0) {
@@ -138,7 +138,7 @@ function Get-FileServerHealth {
                             }
                             $minShareDiskFreeGB = $lowestFree
                         }
-                        catch { }
+                        catch { Write-Verbose -Message "Disk space query failed: $_" }
                     }
                 }
             }

@@ -108,7 +108,7 @@ function Get-RDSHealth {
                             elseif ($s.SessionState -eq 'STATE_DISCONNECTED') { $data.DisconnectedSessions++ }
                         }
                     }
-                    catch { }
+                    catch { Write-Verbose -Message "RD user session query failed: $_" }
 
                     if ($roleList -contains 'RDS-LICENSING') {
                         try {
@@ -118,7 +118,7 @@ function Get-RDSHealth {
                         catch { $data.LicensingMode = 'Unknown' }
                     }
                 }
-                catch { }
+                catch { Write-Verbose -Message "RemoteDesktop module import/query failed: $_" }
             }
 
             # Fallback: quser.exe for session counts on standalone hosts
@@ -133,7 +133,7 @@ function Get-RDSHealth {
                         }
                     }
                 }
-                catch { }
+                catch { Write-Verbose -Message "quser.exe fallback failed: $_" }
             }
 
             $data

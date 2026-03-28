@@ -104,13 +104,13 @@ function Get-CertificateAuthorityHealth {
                     $caInfoLines = $caInfoOutput | ForEach-Object -Process { $_.ToString() }
 
                     foreach ($line in $caInfoLines) {
-                        if ($line -match '^\s*CA\s+name:\s*(.+)) {
+                        if ($line -match '^\s*CA\s+name:\s*(.+)') {
                             $data.CAName = $Matches[1].Trim()
                         }
-                        if ($line -match '^\s*CA\s+type:\s*\d+\s*-\s*(.+)) {
+                        if ($line -match '^\s*CA\s+type:\s*\d+\s*-\s*(.+)') {
                             $data.CAType = $Matches[1].Trim()
                         }
-                        elseif ($line -match '^\s*CA\s+type:\s*(.+)) {
+                        elseif ($line -match '^\s*CA\s+type:\s*(.+)') {
                             $data.CAType = $Matches[1].Trim()
                         }
                     }
@@ -125,7 +125,7 @@ function Get-CertificateAuthorityHealth {
                         if ($inCert0 -and $line -match 'CA\s+cert\[\d+\]') {
                             break
                         }
-                        if ($inCert0 -and $line -match 'NotAfter:\s*(.+)) {
+                        if ($inCert0 -and $line -match 'NotAfter:\s*(.+)') {
                             $expiryString = $Matches[1].Trim()
                             $data.CACertExpiry = $expiryString
                             try {
@@ -141,7 +141,7 @@ function Get-CertificateAuthorityHealth {
                 }
             }
             catch {
-                # certutil -CAInfo failed; defaults remain
+                Write-Verbose -Message "certutil -CAInfo failed: $_"
             }
 
             # 4. certutil -CRL : CRL publication check

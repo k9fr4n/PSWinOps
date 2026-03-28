@@ -98,7 +98,7 @@ function Get-ClusterHealth {
                 $data.ServiceStatus = $svc.Status.ToString()
             }
             catch {
-                # Service not installed
+                Write-Verbose -Message "ClusSvc service not found: $_"
             }
 
             # 2. Check FailoverClusters module availability
