@@ -77,14 +77,14 @@ jobs:
       fail-fast: true
       matrix:
         suite:
-          - { name: "Private",            path: "Tests/Private" }
-          - { name: "Public/healthcheck", path: "Tests/Public/healthcheck" }
-          - { name: "Public/network",     path: "Tests/Public/network" }
-          - { name: "Public/ntp",         path: "Tests/Public/ntp" }
-          - { name: "Public/proxy",       path: "Tests/Public/proxy" }
-          - { name: "Public/rdp",         path: "Tests/Public/rdp" }
-          - { name: "Public/system",      path: "Tests/Public/system" }
-          - { name: "Public/utils",       path: "Tests/Public/utils" }
+          - "Private"
+          - "Public/healthcheck"
+          - "Public/network"
+          - "Public/ntp"
+          - "Public/proxy"
+          - "Public/rdp"
+          - "Public/system"
+          - "Public/utils"
 
     steps:
       - uses: actions/checkout@v4
