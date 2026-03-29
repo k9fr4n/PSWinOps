@@ -205,4 +205,104 @@ Describe 'Get-StartupProgram' {
             $script:cmdInfo.Parameters['ComputerName'].Aliases | Should -Contain 'Name'
         }
     }
+
+    Context 'Local execution - registry entries via scriptblock' {
+
+        BeforeAll {
+            Mock -CommandName 'Test-Path' -ModuleName 'PSWinOps' -MockWith { $true }
+            Mock -CommandName 'Get-Item' -ModuleName 'PSWinOps' -MockWith {
+                $mockRegItem = [PSCustomObject]@{}
+                $mockRegItem | Add-Member -MemberType ScriptMethod -Name 'GetValueNames' -Value {
+                    return @('SecurityHealth', 'OneDrive')
+                }
+                $mockRegItem | Add-Member -MemberType ScriptMethod -Name 'GetValue' -Value {
+                    param($valueName)
+                    switch ($valueName) {
+                        'SecurityHealth' { return 'C:\Windows\System32\SecurityHealthSystray.exe' }
+                        'OneDrive' { return 'C:\Users\admin\OneDrive\OneDrive.exe' }
+                        default { return '' }
+                    }
+                }
+                return $mockRegItem
+            }
+            Mock -CommandName 'Get-ChildItem' -ModuleName 'PSWinOps' -MockWith { @() }
+
+            $script:localResults = Get-StartupProgram -ComputerName $env:COMPUTERNAME
+        }
+
+        It -Name 'Should return startup entries from local registry' -Test {
+            $script:localResults | Should -Not -BeNullOrEmpty
+        }
+
+        It -Name 'Should return PSWinOps.StartupProgram type for local results' -Test {
+            $script:localResults[0].PSObject.TypeNames | Should -Contain 'PSWinOps.StartupProgram'
+        }
+
+        It -Name 'Should set ComputerName to local machine name' -Test {
+            $script:localResults[0].ComputerName | Should -Be $env:COMPUTERNAME
+        }
+
+        It -Name 'Should have Source as Registry for registry entries' -Test {
+            $script:localResults | ForEach-Object { $_.Source | Should -Be 'Registry' }
+        }
+
+        It -Name 'Should include Timestamp on each local result' -Test {
+            $script:localResults | ForEach-Object { $_.Timestamp | Should -Not -BeNullOrEmpty }
+        }
+    }
+
+    Context 'Local execution - startup folder with shortcuts' {
+
+        BeforeAll {
+            Mock -CommandName 'Test-Path' -ModuleName 'PSWinOps' -MockWith { $true }
+            Mock -CommandName 'Get-Item' -ModuleName 'PSWinOps' -MockWith {
+                $mockRegItem = [PSCustomObject]@{}
+                $mockRegItem | Add-Member -MemberType ScriptMethod -Name 'GetValueNames' -Value { return @() }
+                $mockRegItem | Add-Member -MemberType ScriptMethod -Name 'GetValue' -Value { return '' }
+                return $mockRegItem
+            }
+            Mock -CommandName 'Get-ChildItem' -ModuleName 'PSWinOps' -MockWith {
+                @(
+                    [PSCustomObject]@{
+                        Name = 'MyApp.lnk'
+                        FullName = 'C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup\MyApp.lnk'
+                    }
+                )
+            }
+            Mock -CommandName 'New-Object' -ModuleName 'PSWinOps' -MockWith {
+                $mockShell = [PSCustomObject]@{}
+                $mockShell | Add-Member -MemberType ScriptMethod -Name 'CreateShortcut' -Value {
+                    param($path)
+                    return [PSCustomObject]@{ TargetPath = 'C:\MyApp\app.exe' }
+                }
+                return $mockShell
+            } -ParameterFilter { $ComObject -eq 'WScript.Shell' }
+
+            $script:localFolderResults = Get-StartupProgram -ComputerName $env:COMPUTERNAME
+        }
+
+        It -Name 'Should return StartupFolder entries from local machine' -Test {
+            $folderEntries = $script:localFolderResults | Where-Object Source -eq 'StartupFolder'
+            $folderEntries | Should -Not -BeNullOrEmpty
+        }
+
+        It -Name 'Should resolve shortcut target via WScript.Shell' -Test {
+            $folderEntries = $script:localFolderResults | Where-Object Source -eq 'StartupFolder'
+            $folderEntries[0].Command | Should -Be 'C:\MyApp\app.exe'
+        }
+    }
+
+    Context 'Local execution - empty registry and startup folders' {
+
+        BeforeAll {
+            Mock -CommandName 'Test-Path' -ModuleName 'PSWinOps' -MockWith { $false }
+            Mock -CommandName 'Get-ChildItem' -ModuleName 'PSWinOps' -MockWith { @() }
+        }
+
+        It -Name 'Should return empty results when no startup entries exist' -Test {
+            $script:emptyResult = Get-StartupProgram -ComputerName $env:COMPUTERNAME
+            $script:emptyResult | Should -BeNullOrEmpty
+        }
+    }
+
 }

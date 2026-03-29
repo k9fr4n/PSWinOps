@@ -240,4 +240,126 @@ Describe 'Get-EnvironmentVariable' {
             { Get-EnvironmentVariable -Scope 'Invalid' } | Should -Throw
         }
     }
+
+    Context 'Local execution - all scopes via scriptblock' {
+
+        BeforeAll {
+            Mock -CommandName 'Get-Item' -ModuleName 'PSWinOps' -MockWith {
+                $mockRegItem = [PSCustomObject]@{}
+                $mockRegItem | Add-Member -MemberType ScriptMethod -Name 'GetValueNames' -Value {
+                    return @('COMPUTERNAME', 'PATH')
+                }
+                $mockRegItem | Add-Member -MemberType ScriptMethod -Name 'GetValue' -Value {
+                    param($valueName, $defaultValue, $options)
+                    switch ($valueName) {
+                        'COMPUTERNAME' { return 'TESTPC' }
+                        'PATH' { return 'C:\Windows;C:\Windows\System32' }
+                        default { return '' }
+                    }
+                }
+                return $mockRegItem
+            }
+        }
+
+        It -Name 'Should return results for local machine with All scope' -Test {
+            $script:localResults = Get-EnvironmentVariable -ComputerName $env:COMPUTERNAME
+            $script:localResults | Should -Not -BeNullOrEmpty
+        }
+
+        It -Name 'Should include Process scope for local queries' -Test {
+            $script:localResults = Get-EnvironmentVariable -ComputerName $env:COMPUTERNAME -Scope 'All'
+            $processEntries = $script:localResults | Where-Object Scope -eq 'Process'
+            $processEntries | Should -Not -BeNullOrEmpty
+        }
+
+        It -Name 'Should return typed objects for local queries' -Test {
+            $script:localResults = Get-EnvironmentVariable -ComputerName $env:COMPUTERNAME
+            $script:localResults[0].PSObject.TypeNames | Should -Contain 'PSWinOps.EnvironmentVariable'
+        }
+
+        It -Name 'Should set ComputerName to local machine name' -Test {
+            $script:localResults = Get-EnvironmentVariable -ComputerName $env:COMPUTERNAME
+            $script:localResults[0].ComputerName | Should -Be $env:COMPUTERNAME
+        }
+    }
+
+    Context 'Local execution - Machine scope only' {
+
+        BeforeAll {
+            Mock -CommandName 'Get-Item' -ModuleName 'PSWinOps' -MockWith {
+                $mockRegItem = [PSCustomObject]@{}
+                $mockRegItem | Add-Member -MemberType ScriptMethod -Name 'GetValueNames' -Value {
+                    return @('OS', 'SystemRoot')
+                }
+                $mockRegItem | Add-Member -MemberType ScriptMethod -Name 'GetValue' -Value {
+                    param($valueName, $defaultValue, $options)
+                    switch ($valueName) {
+                        'OS' { return 'Windows_NT' }
+                        'SystemRoot' { return 'C:\Windows' }
+                        default { return '' }
+                    }
+                }
+                return $mockRegItem
+            }
+        }
+
+        It -Name 'Should return Machine scope results for local Machine query' -Test {
+            $script:machineResults = Get-EnvironmentVariable -ComputerName $env:COMPUTERNAME -Scope 'Machine'
+            $script:machineResults | Should -Not -BeNullOrEmpty
+            $script:machineResults | ForEach-Object { $_.Scope | Should -Be 'Machine' }
+        }
+    }
+
+    Context 'Local execution - Process scope only' {
+
+        It -Name 'Should return Process scope results for local query' -Test {
+            $script:processResults = Get-EnvironmentVariable -ComputerName $env:COMPUTERNAME -Scope 'Process'
+            $script:processResults | Should -Not -BeNullOrEmpty
+            $script:processResults | ForEach-Object { $_.Scope | Should -Be 'Process' }
+        }
+    }
+
+    Context 'Local execution - VariableName filter local' {
+
+        BeforeAll {
+            Mock -CommandName 'Get-Item' -ModuleName 'PSWinOps' -MockWith {
+                $mockRegItem = [PSCustomObject]@{}
+                $mockRegItem | Add-Member -MemberType ScriptMethod -Name 'GetValueNames' -Value {
+                    return @('PATH', 'TEMP', 'TMP')
+                }
+                $mockRegItem | Add-Member -MemberType ScriptMethod -Name 'GetValue' -Value {
+                    param($valueName, $defaultValue, $options)
+                    return "value_$valueName"
+                }
+                return $mockRegItem
+            }
+        }
+
+        It -Name 'Should filter by VariableName with wildcard on local' -Test {
+            $script:filtered = Get-EnvironmentVariable -ComputerName $env:COMPUTERNAME -VariableName 'T*' -Scope 'Machine'
+            $script:filtered | ForEach-Object { $_.Name | Should -BeLike 'T*' }
+        }
+    }
+
+    Context 'Local execution - localhost alias' {
+
+        BeforeAll {
+            Mock -CommandName 'Get-Item' -ModuleName 'PSWinOps' -MockWith {
+                $mockRegItem = [PSCustomObject]@{}
+                $mockRegItem | Add-Member -MemberType ScriptMethod -Name 'GetValueNames' -Value { return @('TEST') }
+                $mockRegItem | Add-Member -MemberType ScriptMethod -Name 'GetValue' -Value {
+                    param($valueName, $defaultValue, $options)
+                    return 'testval'
+                }
+                return $mockRegItem
+            }
+        }
+
+        It -Name 'Should treat localhost as local and use scriptblock' -Test {
+            $script:localhostResult = Get-EnvironmentVariable -ComputerName 'localhost' -Scope 'Machine'
+            $script:localhostResult | Should -Not -BeNullOrEmpty
+            $script:localhostResult[0].ComputerName | Should -Be $env:COMPUTERNAME
+        }
+    }
+
 }

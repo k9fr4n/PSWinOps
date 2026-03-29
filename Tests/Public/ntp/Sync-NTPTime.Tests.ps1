@@ -279,4 +279,62 @@ Describe -Name 'Sync-NTPTime' -Fixture {
         }
     }
 
+
+    Context -Name 'When -RestartService is specified on LOCAL machine' -Fixture {
+
+        BeforeAll {
+            Mock -CommandName 'Test-IsAdministrator' -ModuleName 'PSWinOps' -MockWith { return $true }
+            Mock -CommandName 'Restart-Service' -ModuleName 'PSWinOps' -MockWith { }
+            Mock -CommandName 'Start-Sleep' -ModuleName 'PSWinOps' -MockWith { }
+            Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith {
+                $global:LASTEXITCODE = 0
+                return 'The command completed successfully.'
+            }
+            Mock -CommandName 'Out-String' -ModuleName 'PSWinOps' -MockWith {
+                return ($input | ForEach-Object { "$_" }) -join "`r`n"
+            }
+        }
+
+        It -Name 'Should restart service locally then resync' -Test {
+            $result = Sync-NTPTime -RestartService
+            $result.ServiceRestarted | Should -BeTrue
+            $result.Success | Should -BeTrue
+        }
+
+        It -Name 'Should call Restart-Service for local w32time' -Test {
+            Sync-NTPTime -RestartService
+            Should -Invoke -CommandName 'Restart-Service' -ModuleName 'PSWinOps' -Times 1 -Exactly
+        }
+
+        It -Name 'Should call Start-Sleep after local restart' -Test {
+            Sync-NTPTime -RestartService
+            Should -Invoke -CommandName 'Start-Sleep' -ModuleName 'PSWinOps' -Times 1 -Exactly
+        }
+    }
+
+    Context -Name 'When local w32tm resync fails (non-zero exit code)' -Fixture {
+
+        BeforeAll {
+            Mock -CommandName 'Test-IsAdministrator' -ModuleName 'PSWinOps' -MockWith { return $true }
+            Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith {
+                $global:LASTEXITCODE = 1
+                return 'The computer did not resync because no time data was available.'
+            }
+            Mock -CommandName 'Out-String' -ModuleName 'PSWinOps' -MockWith {
+                return ($input | ForEach-Object { "$_" }) -join "`r`n"
+            }
+        }
+
+        It -Name 'Should return Success false for local failed resync' -Test {
+            $result = Sync-NTPTime
+            $result.Success | Should -BeFalse
+            $result.ComputerName | Should -Be $env:COMPUTERNAME
+        }
+
+        It -Name 'Should include failure message in result' -Test {
+            $result = Sync-NTPTime
+            $result.Message | Should -Not -BeNullOrEmpty
+        }
+    }
+
 }
