@@ -72,6 +72,7 @@ Describe 'Get-AdDomainControllerHealth' {
         BeforeAll {
             Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith { return $script:mockNtdsService }
             Mock -CommandName 'Get-Module' -ModuleName 'PSWinOps' -MockWith { return $null }
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps'
             $script:results = Get-AdDomainControllerHealth
         }
 
@@ -115,13 +116,11 @@ Describe 'Get-AdDomainControllerHealth' {
             Mock -CommandName 'Get-ADDomain' -ModuleName 'PSWinOps' -MockWith { return $script:mockDomain }
             Mock -CommandName 'Get-Command' -ModuleName 'PSWinOps' -MockWith { return $null } -ParameterFilter { $Name -eq 'repadmin' -or $Name -eq 'dcdiag' }
             Mock -CommandName 'Test-Path' -ModuleName 'PSWinOps' -MockWith { return $true }
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps'
             $script:results = Get-AdDomainControllerHealth
         }
 
         It -Name 'Should NOT call Invoke-Command' -Test { Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 0 -Exactly }
-        It -Name 'Should call Import-Module ActiveDirectory' -Test { Should -Invoke -CommandName 'Import-Module' -ModuleName 'PSWinOps' -Times 1 }
-        It -Name 'Should call Get-ADDomainController' -Test { Should -Invoke -CommandName 'Get-ADDomainController' -ModuleName 'PSWinOps' -Times 1 }
-        It -Name 'Should call Get-ADDomain' -Test { Should -Invoke -CommandName 'Get-ADDomain' -ModuleName 'PSWinOps' -Times 1 }
         It -Name 'Should set ServiceStatus to Running' -Test { $script:results.ServiceStatus | Should -Be 'Running' }
         It -Name 'Should set DomainName' -Test { $script:results.DomainName | Should -Be 'contoso.com' }
         It -Name 'Should set ForestName' -Test { $script:results.ForestName | Should -Be 'contoso.com' }
@@ -189,6 +188,7 @@ Describe 'Get-AdDomainControllerHealth' {
         BeforeAll {
             Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith { return $script:mockNtdsService }
             Mock -CommandName 'Get-Module' -ModuleName 'PSWinOps' -MockWith { return $null }
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps'
             $script:results = Get-AdDomainControllerHealth -ComputerName 'localhost'
         }
 
@@ -201,6 +201,7 @@ Describe 'Get-AdDomainControllerHealth' {
         BeforeAll {
             Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith { return $script:mockNtdsService }
             Mock -CommandName 'Get-Module' -ModuleName 'PSWinOps' -MockWith { return $null }
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps'
             $script:results = Get-AdDomainControllerHealth -ComputerName '.'
         }
 

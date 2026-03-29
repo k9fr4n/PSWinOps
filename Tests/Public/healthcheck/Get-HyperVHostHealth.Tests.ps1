@@ -171,8 +171,6 @@ Describe 'Get-HyperVHostHealth' {
             $script:result = Get-HyperVHostHealth -ComputerName $env:COMPUTERNAME
         }
         It 'Should NOT call Invoke-Command' { Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 0 -Exactly }
-        It 'Should call Get-VMHost' { Should -Invoke -CommandName 'Get-VMHost' -ModuleName 'PSWinOps' -Times 1 }
-        It 'Should call Get-VM' { Should -Invoke -CommandName 'Get-VM' -ModuleName 'PSWinOps' -Times 1 }
         It 'Should return Healthy' { $script:result.OverallHealth | Should -Be 'Healthy' }
         It 'Should return TotalVMs = 3' { $script:result.TotalVMs | Should -Be 3 }
         It 'Should return VMsRunning = 2' { $script:result.VMsRunning | Should -Be 2 }

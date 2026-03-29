@@ -458,6 +458,7 @@ Describe 'Get-IISHealth' {
                     }
                 })
             }
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps'
             $script:localStopped = Get-IISHealth -ComputerName $env:COMPUTERNAME
         }
 
@@ -593,6 +594,7 @@ Describe 'Get-IISHealth' {
 
         BeforeAll {
             Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith { throw 'Service not found' }
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps'
             $script:localLH = Get-IISHealth -ComputerName 'localhost'
         }
 
@@ -604,6 +606,7 @@ Describe 'Get-IISHealth' {
 
         BeforeAll {
             Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith { throw 'Service not found' }
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps'
             $script:localDot = Get-IISHealth -ComputerName '.'
         }
 

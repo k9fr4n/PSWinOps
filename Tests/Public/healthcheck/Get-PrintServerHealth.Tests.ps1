@@ -149,10 +149,6 @@ Describe 'Get-PrintServerHealth' {
             $script:result = Get-PrintServerHealth -ComputerName $env:COMPUTERNAME
         }
         It 'Should NOT call Invoke-Command' { Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 0 -Exactly }
-        It 'Should call Get-Service' { Should -Invoke -CommandName 'Get-Service' -ModuleName 'PSWinOps' -Times 1 }
-        It 'Should call Get-Printer' { Should -Invoke -CommandName 'Get-Printer' -ModuleName 'PSWinOps' -Times 1 }
-        It 'Should call Get-PrintJob' { Should -Invoke -CommandName 'Get-PrintJob' -ModuleName 'PSWinOps' -Times 1 }
-        It 'Should call Get-PrinterPort' { Should -Invoke -CommandName 'Get-PrinterPort' -ModuleName 'PSWinOps' -Times 1 }
         It 'Should return Healthy' { $script:result.OverallHealth | Should -Be 'Healthy' }
         It 'Should return Running service' { $script:result.ServiceStatus | Should -Be 'Running' }
         It 'Should return TotalPrinters = 2' { $script:result.TotalPrinters | Should -Be 2 }

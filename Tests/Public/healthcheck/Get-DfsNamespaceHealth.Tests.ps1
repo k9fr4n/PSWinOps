@@ -356,6 +356,7 @@ Describe 'Get-DfsNamespaceHealth' {
             Mock -CommandName 'Get-Module' -ModuleName 'PSWinOps' -MockWith { return $script:mockDfsnModule }
             Mock -CommandName 'Get-DfsnRoot' -ModuleName 'PSWinOps' -MockWith { return @($script:mockDfsnRoot) }
             Mock -CommandName 'Get-DfsnRootTarget' -ModuleName 'PSWinOps' -MockWith { return $script:mockTargetsAllOnline }
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps'
             $script:results = Get-DfsNamespaceHealth -ComputerName 'localhost'
         }
 
@@ -370,6 +371,7 @@ Describe 'Get-DfsNamespaceHealth' {
             Mock -CommandName 'Get-Module' -ModuleName 'PSWinOps' -MockWith { return $script:mockDfsnModule }
             Mock -CommandName 'Get-DfsnRoot' -ModuleName 'PSWinOps' -MockWith { return @($script:mockDfsnRoot) }
             Mock -CommandName 'Get-DfsnRootTarget' -ModuleName 'PSWinOps' -MockWith { return $script:mockTargetsAllOnline }
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps'
             $script:results = Get-DfsNamespaceHealth -ComputerName '.'
         }
 

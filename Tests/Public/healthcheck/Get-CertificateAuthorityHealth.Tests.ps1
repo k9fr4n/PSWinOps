@@ -212,6 +212,7 @@ Describe 'Get-CertificateAuthorityHealth' {
 
         BeforeAll {
             Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith { throw 'not found' }
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps'
             $script:localCALH = Get-CertificateAuthorityHealth -ComputerName 'localhost'
         }
 
@@ -223,6 +224,7 @@ Describe 'Get-CertificateAuthorityHealth' {
 
         BeforeAll {
             Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith { throw 'not found' }
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps'
             $script:localCADot = Get-CertificateAuthorityHealth -ComputerName '.'
         }
 

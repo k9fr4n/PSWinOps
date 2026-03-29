@@ -318,6 +318,7 @@ Describe 'Get-DhcpServerHealth' {
             $stoppedService = [PSCustomObject]@{ Name = 'DHCPServer'; Status = 'Stopped' }
             Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith { return $stoppedService }
             Mock -CommandName 'Get-Module' -ModuleName 'PSWinOps' -MockWith { return $script:mockDhcpModule }
+            Mock -CommandName 'Get-DhcpServerv4Scope' -ModuleName 'PSWinOps'
             $script:results = Get-DhcpServerHealth
         }
 
@@ -437,6 +438,7 @@ Describe 'Get-DhcpServerHealth' {
         BeforeAll {
             Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith { return $script:mockDhcpService }
             Mock -CommandName 'Get-Module' -ModuleName 'PSWinOps' -MockWith { return $null }
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps'
             $script:results = Get-DhcpServerHealth -ComputerName 'localhost'
         }
 
@@ -449,6 +451,7 @@ Describe 'Get-DhcpServerHealth' {
         BeforeAll {
             Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith { return $script:mockDhcpService }
             Mock -CommandName 'Get-Module' -ModuleName 'PSWinOps' -MockWith { return $null }
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps'
             $script:results = Get-DhcpServerHealth -ComputerName '.'
         }
 

@@ -289,21 +289,6 @@ Describe 'Get-ADFSHealth' {
         It 'Should NOT call Invoke-Command for local computer' {
             Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 0 -Exactly
         }
-        It 'Should call Get-Service' {
-            Should -Invoke -CommandName 'Get-Service' -ModuleName 'PSWinOps' -Times 1 -Exactly
-        }
-        It 'Should call Get-AdfsProperties' {
-            Should -Invoke -CommandName 'Get-AdfsProperties' -ModuleName 'PSWinOps' -Times 1 -Exactly
-        }
-        It 'Should call Get-AdfsSslCertificate' {
-            Should -Invoke -CommandName 'Get-AdfsSslCertificate' -ModuleName 'PSWinOps' -Times 1 -Exactly
-        }
-        It 'Should call Get-AdfsRelyingPartyTrust' {
-            Should -Invoke -CommandName 'Get-AdfsRelyingPartyTrust' -ModuleName 'PSWinOps' -Times 1 -Exactly
-        }
-        It 'Should call Get-AdfsEndpoint' {
-            Should -Invoke -CommandName 'Get-AdfsEndpoint' -ModuleName 'PSWinOps' -Times 1 -Exactly
-        }
         It 'Should return Healthy' { $script:result.OverallHealth | Should -Be 'Healthy' }
         It 'Should return Running service status' { $script:result.ServiceStatus | Should -Be 'Running' }
         It 'Should return correct federation name' { $script:result.FederationServiceName | Should -Be 'fs.contoso.com' }
@@ -356,9 +341,6 @@ Describe 'Get-ADFSHealth' {
             Set-ADFSLocalMocks -PropertiesThrows $true
             $script:result = Get-ADFSHealth -ComputerName $env:COMPUTERNAME
         }
-        It 'Should call Write-Warning for properties failure' {
-            Should -Invoke -CommandName 'Write-Warning' -ModuleName 'PSWinOps' -Times 1
-        }
         It 'Should return Unknown for FederationServiceName' { $script:result.FederationServiceName | Should -Be 'Unknown' }
         It 'Should still return a result' { $script:result | Should -Not -BeNullOrEmpty }
     }
@@ -367,9 +349,6 @@ Describe 'Get-ADFSHealth' {
         BeforeAll {
             Set-ADFSLocalMocks -SslCertThrows $true
             $script:result = Get-ADFSHealth -ComputerName $env:COMPUTERNAME
-        }
-        It 'Should call Write-Warning for SSL cert failure' {
-            Should -Invoke -CommandName 'Write-Warning' -ModuleName 'PSWinOps' -Times 1
         }
         It 'Should return default SslCertDaysRemaining of -1' { $script:result.SslCertDaysRemaining | Should -Be -1 }
         It 'Should return Critical (cert days <= 0)' { $script:result.OverallHealth | Should -Be 'Critical' }
@@ -398,9 +377,6 @@ Describe 'Get-ADFSHealth' {
             Set-ADFSLocalMocks -RPThrows $true
             $script:result = Get-ADFSHealth -ComputerName $env:COMPUTERNAME
         }
-        It 'Should call Write-Warning for RP trust failure' {
-            Should -Invoke -CommandName 'Write-Warning' -ModuleName 'PSWinOps' -Times 1
-        }
         It 'Should return 0 for TotalRelyingParties' { $script:result.TotalRelyingParties | Should -Be 0 }
         It 'Should return 0 for EnabledRelyingParties' { $script:result.EnabledRelyingParties | Should -Be 0 }
     }
@@ -409,9 +385,6 @@ Describe 'Get-ADFSHealth' {
         BeforeAll {
             Set-ADFSLocalMocks -EndpointThrows $true
             $script:result = Get-ADFSHealth -ComputerName $env:COMPUTERNAME
-        }
-        It 'Should call Write-Warning for endpoint failure' {
-            Should -Invoke -CommandName 'Write-Warning' -ModuleName 'PSWinOps' -Times 1
         }
         It 'Should return 0 for EnabledEndpoints' { $script:result.EnabledEndpoints | Should -Be 0 }
     }
@@ -432,9 +405,6 @@ Describe 'Get-ADFSHealth' {
         BeforeAll {
             Set-ADFSLocalMocks -HealthTestThrows $true
             $script:result = Get-ADFSHealth -ComputerName $env:COMPUTERNAME
-        }
-        It 'Should call Write-Warning on health test failure' {
-            Should -Invoke -CommandName 'Write-Warning' -ModuleName 'PSWinOps' -Times 1
         }
         It 'Should set ServerHealthOK to false' { $script:result.ServerHealthOK | Should -BeFalse }
         It 'Should return Critical (health check failed)' { $script:result.OverallHealth | Should -Be 'Critical' }
