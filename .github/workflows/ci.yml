@@ -17,7 +17,7 @@ jobs:
   validate:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
 
       - name: Validate Module Manifest
         shell: pwsh
@@ -34,10 +34,10 @@ jobs:
   lint:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
 
       - name: Cache PowerShell modules
-        uses: actions/cache@v4
+        uses: actions/cache@v4.2.3
         with:
           path: C:\Users\runneradmin\Documents\PowerShell\Modules
           key: psmodules-psscriptanalyzer-${{ runner.os }}
@@ -87,10 +87,10 @@ jobs:
           - "Public/utils"
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
 
       - name: Cache PowerShell modules
-        uses: actions/cache@v4
+        uses: actions/cache@v4.2.3
         with:
           path: C:\Users\runneradmin\Documents\PowerShell\Modules
           key: psmodules-pester5-${{ runner.os }}
@@ -102,13 +102,15 @@ jobs:
             Install-Module -Name Pester -MinimumVersion 5.7 -Force -SkipPublisherCheck
           }
 
-      - name: Run tests - ${{ matrix.suite.name }}
+      - name: Run tests - ${{ matrix.suite }}
         shell: pwsh
         run: |
-          $safeName = "${{ matrix.suite.name }}" -replace '[/\\]', '-'
+          $suiteName = "${{ matrix.suite }}"
+          $suitePath = ".\Tests\$($suiteName -replace '/', '\')"
+          $safeName  = $suiteName -replace '[/\\]', '-'
 
           $config = New-PesterConfiguration
-          $config.Run.Path                = '.\${{ matrix.suite.path }}'
+          $config.Run.Path                = $suitePath
           $config.Output.Verbosity        = 'Normal'
           $config.TestResult.Enabled      = $true
           $config.TestResult.OutputPath   = "TestResults-$safeName.xml"
@@ -116,22 +118,16 @@ jobs:
 
           $result = Invoke-Pester -Configuration $config
 
-          Write-Output "[INFO] [${{ matrix.suite.name }}] $($result.PassedCount) passed, $($result.FailedCount) failed"
+          Write-Output "[INFO] [$suiteName] $($result.PassedCount) passed, $($result.FailedCount) failed"
 
           if ($result.FailedCount -gt 0) {
-            throw "[FAIL] $($result.FailedCount) test(s) failed in suite '${{ matrix.suite.name }}'"
+            throw "[FAIL] $($result.FailedCount) test(s) failed in suite '$suiteName'"
           }
 
-          Write-Output "[OK] Suite '${{ matrix.suite.name }}' passed"
+          Write-Output "[OK] Suite '$suiteName' passed"
 
-          if ($result.FailedCount -gt 0) {
-            throw "[FAIL] $($result.FailedCount) test(s) failed in suite '${{ matrix.suite.name }}'"
-          }
-
-          Write-Output "[OK] Suite '${{ matrix.suite.name }}' passed"
-
-      - name: Upload test results - ${{ matrix.suite.name }}
-        uses: actions/upload-artifact@v4
+      - name: Upload test results - ${{ matrix.suite }}
+        uses: actions/upload-artifact@v4.6.2
         if: always()
         with:
           name: test-results-${{ strategy.job-index }}
@@ -151,14 +147,14 @@ jobs:
 
     steps:
       - name: Download all test artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v4.2.1
         with:
           pattern: test-results-*
           merge-multiple: true
           path: all-results
 
       - name: Publish combined test results
-        uses: EnricoMi/publish-unit-test-result-action/windows@v2
+        uses: EnricoMi/publish-unit-test-result-action/windows@v2.17.1
         with:
           files: all-results/**/*.xml
           check_name: Pester Test Results
@@ -172,10 +168,10 @@ jobs:
     if: success()
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
 
       - name: Cache PowerShell modules
-        uses: actions/cache@v4
+        uses: actions/cache@v4.2.3
         with:
           path: C:\Users\runneradmin\Documents\PowerShell\Modules
           key: psmodules-pester5-${{ runner.os }}
@@ -183,8 +179,8 @@ jobs:
       - name: Install Pester
         shell: pwsh
         run: |
-          if (-not (Get-Module -ListAvailable -Name Pester | Where-Object { $_.Version -ge '5.0' })) {
-            Install-Module -Name Pester -MinimumVersion 5.0 -Force -SkipPublisherCheck
+          if (-not (Get-Module -ListAvailable -Name Pester | Where-Object { $_.Version -ge '5.7' })) {
+            Install-Module -Name Pester -MinimumVersion 5.7 -Force -SkipPublisherCheck
           }
 
       - name: Run Pester with code coverage
@@ -220,7 +216,7 @@ jobs:
           }
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v5.4.2
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: coverage.xml
@@ -229,7 +225,7 @@ jobs:
           verbose: true
 
       - name: Upload coverage artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.2
         if: always()
         with:
           name: coverage-report
