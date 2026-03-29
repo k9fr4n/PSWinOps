@@ -187,7 +187,7 @@ function Get-ListeningPort {
                 Write-Verbose "[$($MyInvocation.MyCommand)] Querying listening ports on '$targetComputer'"
 
                 $queryArgs = @(
-                    $Protocol
+                    , $Protocol
                     $(if ($PSBoundParameters.ContainsKey('Port')) {
                             $Port
                         } else {
