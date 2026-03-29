@@ -4,6 +4,14 @@
 BeforeAll {
     $script:modulePath = Split-Path -Path (Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent) -Parent
     Import-Module -Name (Join-Path -Path $script:modulePath -ChildPath 'PSWinOps.psd1') -Force
+
+    & (Get-Module -Name 'PSWinOps') {
+        foreach ($cmdName in @('Get-ADDomainController', 'Get-ADDomain')) {
+            if (-not (Get-Command -Name $cmdName -ErrorAction SilentlyContinue)) {
+                Set-Item -Path "function:script:$cmdName" -Value ([scriptblock]::Create(''))
+            }
+        }
+    }
 }
 
 Describe 'Get-AdDomainControllerHealth' {
@@ -78,6 +86,126 @@ Describe 'Get-AdDomainControllerHealth' {
         It -Name 'Should set ServiceName to NTDS' -Test {
             $script:results.ServiceName | Should -Be 'NTDS'
         }
+
+        It -Name 'Should NOT call Invoke-Command for local execution' -Test {
+            Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 0 -Exactly
+        }
+    }
+
+    Context 'Local - NTDS service not found' {
+
+        BeforeAll {
+            Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith { return $null }
+            Mock -CommandName 'Get-Module' -ModuleName 'PSWinOps' -MockWith { return $null }
+            $script:results = Get-AdDomainControllerHealth
+        }
+
+        It -Name 'Should return a result' -Test { $script:results | Should -Not -BeNullOrEmpty }
+        It -Name 'Should set ServiceStatus to NotFound' -Test { $script:results.ServiceStatus | Should -Be 'NotFound' }
+        It -Name 'Should set OverallHealth to RoleUnavailable' -Test { $script:results.OverallHealth | Should -Be 'RoleUnavailable' }
+    }
+
+    Context 'Local - AD module available, full data collection' {
+
+        BeforeAll {
+            Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith { return $script:mockNtdsService }
+            Mock -CommandName 'Get-Module' -ModuleName 'PSWinOps' -ParameterFilter { $Name -eq 'ActiveDirectory' } -MockWith { return $script:mockAdModule }
+            Mock -CommandName 'Import-Module' -ModuleName 'PSWinOps' -MockWith { }
+            Mock -CommandName 'Get-ADDomainController' -ModuleName 'PSWinOps' -MockWith { return $script:mockDomainController }
+            Mock -CommandName 'Get-ADDomain' -ModuleName 'PSWinOps' -MockWith { return $script:mockDomain }
+            Mock -CommandName 'Get-Command' -ModuleName 'PSWinOps' -MockWith { return $null } -ParameterFilter { $Name -eq 'repadmin' -or $Name -eq 'dcdiag' }
+            Mock -CommandName 'Test-Path' -ModuleName 'PSWinOps' -MockWith { return $true }
+            $script:results = Get-AdDomainControllerHealth
+        }
+
+        It -Name 'Should NOT call Invoke-Command' -Test { Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 0 -Exactly }
+        It -Name 'Should call Import-Module ActiveDirectory' -Test { Should -Invoke -CommandName 'Import-Module' -ModuleName 'PSWinOps' -Times 1 }
+        It -Name 'Should call Get-ADDomainController' -Test { Should -Invoke -CommandName 'Get-ADDomainController' -ModuleName 'PSWinOps' -Times 1 }
+        It -Name 'Should call Get-ADDomain' -Test { Should -Invoke -CommandName 'Get-ADDomain' -ModuleName 'PSWinOps' -Times 1 }
+        It -Name 'Should set ServiceStatus to Running' -Test { $script:results.ServiceStatus | Should -Be 'Running' }
+        It -Name 'Should set DomainName' -Test { $script:results.DomainName | Should -Be 'contoso.com' }
+        It -Name 'Should set ForestName' -Test { $script:results.ForestName | Should -Be 'contoso.com' }
+        It -Name 'Should set SysvolAccessible to true' -Test { $script:results.SysvolAccessible | Should -BeTrue }
+        It -Name 'Should set NetlogonAccessible to true' -Test { $script:results.NetlogonAccessible | Should -BeTrue }
+        It -Name 'Should set ReplicationSuccesses to -1 (repadmin unavailable)' -Test { $script:results.ReplicationSuccesses | Should -Be -1 }
+        It -Name 'Should set DcDiagPassedTests to -1 (dcdiag unavailable)' -Test { $script:results.DcDiagPassedTests | Should -Be -1 }
+        It -Name 'Should have RunAsAccount set' -Test { $script:results.RunAsAccount | Should -Not -BeNullOrEmpty }
+    }
+
+    Context 'Local - Get-ADDomainController throws (catches gracefully)' {
+
+        BeforeAll {
+            Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith { return $script:mockNtdsService }
+            Mock -CommandName 'Get-Module' -ModuleName 'PSWinOps' -ParameterFilter { $Name -eq 'ActiveDirectory' } -MockWith { return $script:mockAdModule }
+            Mock -CommandName 'Import-Module' -ModuleName 'PSWinOps' -MockWith { }
+            Mock -CommandName 'Get-ADDomainController' -ModuleName 'PSWinOps' -MockWith { throw 'DC not found' }
+            Mock -CommandName 'Get-ADDomain' -ModuleName 'PSWinOps' -MockWith { return $script:mockDomain }
+            Mock -CommandName 'Get-Command' -ModuleName 'PSWinOps' -MockWith { return $null } -ParameterFilter { $Name -eq 'repadmin' -or $Name -eq 'dcdiag' }
+            Mock -CommandName 'Test-Path' -ModuleName 'PSWinOps' -MockWith { return $true }
+            $script:results = Get-AdDomainControllerHealth
+        }
+
+        It -Name 'Should return a result' -Test { $script:results | Should -Not -BeNullOrEmpty }
+        It -Name 'Should still have DomainName from Get-ADDomain' -Test { $script:results.DomainName | Should -Be 'contoso.com' }
+    }
+
+    Context 'Local - Get-ADDomain throws (catches gracefully)' {
+
+        BeforeAll {
+            Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith { return $script:mockNtdsService }
+            Mock -CommandName 'Get-Module' -ModuleName 'PSWinOps' -ParameterFilter { $Name -eq 'ActiveDirectory' } -MockWith { return $script:mockAdModule }
+            Mock -CommandName 'Import-Module' -ModuleName 'PSWinOps' -MockWith { }
+            Mock -CommandName 'Get-ADDomainController' -ModuleName 'PSWinOps' -MockWith { return $script:mockDomainController }
+            Mock -CommandName 'Get-ADDomain' -ModuleName 'PSWinOps' -MockWith { throw 'Domain not reachable' }
+            Mock -CommandName 'Get-Command' -ModuleName 'PSWinOps' -MockWith { return $null } -ParameterFilter { $Name -eq 'repadmin' -or $Name -eq 'dcdiag' }
+            Mock -CommandName 'Test-Path' -ModuleName 'PSWinOps' -MockWith { return $true }
+            $script:results = Get-AdDomainControllerHealth
+        }
+
+        It -Name 'Should return a result' -Test { $script:results | Should -Not -BeNullOrEmpty }
+        It -Name 'Should have null DomainName' -Test { $script:results.DomainName | Should -BeNullOrEmpty }
+    }
+
+    Context 'Local - SYSVOL not accessible' {
+
+        BeforeAll {
+            Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith { return $script:mockNtdsService }
+            Mock -CommandName 'Get-Module' -ModuleName 'PSWinOps' -ParameterFilter { $Name -eq 'ActiveDirectory' } -MockWith { return $script:mockAdModule }
+            Mock -CommandName 'Import-Module' -ModuleName 'PSWinOps' -MockWith { }
+            Mock -CommandName 'Get-ADDomainController' -ModuleName 'PSWinOps' -MockWith { return $script:mockDomainController }
+            Mock -CommandName 'Get-ADDomain' -ModuleName 'PSWinOps' -MockWith { return $script:mockDomain }
+            Mock -CommandName 'Get-Command' -ModuleName 'PSWinOps' -MockWith { return $null } -ParameterFilter { $Name -eq 'repadmin' -or $Name -eq 'dcdiag' }
+            Mock -CommandName 'Test-Path' -ModuleName 'PSWinOps' -MockWith { return $false } -ParameterFilter { $Path -like '*SYSVOL*' }
+            Mock -CommandName 'Test-Path' -ModuleName 'PSWinOps' -MockWith { return $true } -ParameterFilter { $Path -like '*NETLOGON*' }
+            $script:results = Get-AdDomainControllerHealth
+        }
+
+        It -Name 'Should set SysvolAccessible to false' -Test { $script:results.SysvolAccessible | Should -BeFalse }
+        It -Name 'Should set NetlogonAccessible to true' -Test { $script:results.NetlogonAccessible | Should -BeTrue }
+    }
+
+    Context 'Local - localhost alias' {
+
+        BeforeAll {
+            Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith { return $script:mockNtdsService }
+            Mock -CommandName 'Get-Module' -ModuleName 'PSWinOps' -MockWith { return $null }
+            $script:results = Get-AdDomainControllerHealth -ComputerName 'localhost'
+        }
+
+        It -Name 'Should NOT call Invoke-Command' -Test { Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 0 -Exactly }
+        It -Name 'Should set ComputerName to LOCALHOST' -Test { $script:results.ComputerName | Should -Be 'LOCALHOST' }
+    }
+
+    Context 'Local - dot alias' {
+
+        BeforeAll {
+            Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith { return $script:mockNtdsService }
+            Mock -CommandName 'Get-Module' -ModuleName 'PSWinOps' -MockWith { return $null }
+            $script:results = Get-AdDomainControllerHealth -ComputerName '.'
+        }
+
+        It -Name 'Should NOT call Invoke-Command' -Test { Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 0 -Exactly }
+        It -Name 'Should return a result' -Test { $script:results | Should -Not -BeNullOrEmpty }
     }
 
     Context 'Healthy - All checks pass via remote mock' {

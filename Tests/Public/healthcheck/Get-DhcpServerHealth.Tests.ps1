@@ -311,4 +311,163 @@ Describe 'Get-DhcpServerHealth' {
             { Get-DhcpServerHealth -ComputerName $null } | Should -Throw
         }
     }
+
+    Context 'Local - Service stopped' {
+
+        BeforeAll {
+            $stoppedService = [PSCustomObject]@{ Name = 'DHCPServer'; Status = 'Stopped' }
+            Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith { return $stoppedService }
+            Mock -CommandName 'Get-Module' -ModuleName 'PSWinOps' -MockWith { return $script:mockDhcpModule }
+            $script:results = Get-DhcpServerHealth
+        }
+
+        It 'Should return Critical' { $script:results.OverallHealth | Should -Be 'Critical' }
+        It 'Should report Stopped ServiceStatus' { $script:results.ServiceStatus | Should -Be 'Stopped' }
+        It 'Should NOT call Get-DhcpServerv4Scope' { Should -Invoke -CommandName 'Get-DhcpServerv4Scope' -ModuleName 'PSWinOps' -Times 0 -Exactly }
+    }
+
+    Context 'Local - No scopes configured' {
+
+        BeforeAll {
+            Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith { return $script:mockDhcpService }
+            Mock -CommandName 'Get-Module' -ModuleName 'PSWinOps' -MockWith { return $script:mockDhcpModule }
+            Mock -CommandName 'Get-DhcpServerv4Failover' -ModuleName 'PSWinOps' -MockWith { return $null }
+            Mock -CommandName 'Get-DhcpServerv4Scope' -ModuleName 'PSWinOps' -MockWith { return $null }
+            $script:results = Get-DhcpServerHealth
+        }
+
+        It 'Should return Healthy' { $script:results.OverallHealth | Should -Be 'Healthy' }
+        It 'Should have ScopeName indicating no scopes' { $script:results.ScopeName | Should -Match 'No scopes' }
+        It 'Should have ScopeId N/A' { $script:results.ScopeId | Should -Be 'N/A' }
+    }
+
+    Context 'Local - Scope statistics failure (graceful)' {
+
+        BeforeAll {
+            Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith { return $script:mockDhcpService }
+            Mock -CommandName 'Get-Module' -ModuleName 'PSWinOps' -MockWith { return $script:mockDhcpModule }
+            Mock -CommandName 'Get-DhcpServerv4Failover' -ModuleName 'PSWinOps' -MockWith { return $null }
+            Mock -CommandName 'Get-DhcpServerv4Scope' -ModuleName 'PSWinOps' -MockWith { return $script:mockScope }
+            Mock -CommandName 'Get-DhcpServerv4ScopeStatistics' -ModuleName 'PSWinOps' -MockWith { throw 'Stats unavailable' }
+            $script:results = Get-DhcpServerHealth
+        }
+
+        It 'Should return a result' { $script:results | Should -Not -BeNullOrEmpty }
+        It 'Should have AddressesTotal = 0' { $script:results.AddressesTotal | Should -Be 0 }
+        It 'Should have PercentInUse = 0' { $script:results.PercentInUse | Should -Be 0 }
+    }
+
+    Context 'Local - Multiple scopes' {
+
+        BeforeAll {
+            $multiScopes = @(
+                [PSCustomObject]@{ ScopeId = '10.0.1.0'; Name = 'LAN'; State = 'Active' },
+                [PSCustomObject]@{ ScopeId = '10.0.2.0'; Name = 'WiFi'; State = 'Active' }
+            )
+            Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith { return $script:mockDhcpService }
+            Mock -CommandName 'Get-Module' -ModuleName 'PSWinOps' -MockWith { return $script:mockDhcpModule }
+            Mock -CommandName 'Get-DhcpServerv4Failover' -ModuleName 'PSWinOps' -MockWith { return $null }
+            Mock -CommandName 'Get-DhcpServerv4Scope' -ModuleName 'PSWinOps' -MockWith { return $multiScopes }
+            Mock -CommandName 'Get-DhcpServerv4ScopeStatistics' -ModuleName 'PSWinOps' -MockWith { return $script:mockScopeStats }
+            $script:results = Get-DhcpServerHealth
+        }
+
+        It 'Should return 2 results' { @($script:results).Count | Should -Be 2 }
+        It 'Should contain LAN scope' { ($script:results | Select-Object -ExpandProperty ScopeName) | Should -Contain 'LAN' }
+        It 'Should contain WiFi scope' { ($script:results | Select-Object -ExpandProperty ScopeName) | Should -Contain 'WiFi' }
+    }
+
+    Context 'Local - Failover relationship with scope' {
+
+        BeforeAll {
+            $failoverRel = [PSCustomObject]@{
+                PartnerServer = 'DHCP02.contoso.com'
+                State         = 'Normal'
+                ScopeId       = @('10.0.1.0')
+            }
+            Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith { return $script:mockDhcpService }
+            Mock -CommandName 'Get-Module' -ModuleName 'PSWinOps' -MockWith { return $script:mockDhcpModule }
+            Mock -CommandName 'Get-DhcpServerv4Failover' -ModuleName 'PSWinOps' -MockWith { return @($failoverRel) }
+            Mock -CommandName 'Get-DhcpServerv4Scope' -ModuleName 'PSWinOps' -MockWith { return $script:mockScope }
+            Mock -CommandName 'Get-DhcpServerv4ScopeStatistics' -ModuleName 'PSWinOps' -MockWith { return $script:mockScopeStats }
+            $script:results = Get-DhcpServerHealth
+        }
+
+        It 'Should set FailoverPartner' { $script:results.FailoverPartner | Should -Be 'DHCP02.contoso.com' }
+        It 'Should set FailoverState to Normal' { $script:results.FailoverState | Should -Be 'Normal' }
+        It 'Should return Healthy' { $script:results.OverallHealth | Should -Be 'Healthy' }
+    }
+
+    Context 'Local - Inactive scope with leases (Critical)' {
+
+        BeforeAll {
+            $inactiveScope = [PSCustomObject]@{ ScopeId = '10.0.2.0'; Name = 'Legacy'; State = 'Inactive' }
+            $inactiveStats = [PSCustomObject]@{ AddressesFree = 85; AddressesInUse = 15; PercentageInUse = [decimal]15 }
+            Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith { return $script:mockDhcpService }
+            Mock -CommandName 'Get-Module' -ModuleName 'PSWinOps' -MockWith { return $script:mockDhcpModule }
+            Mock -CommandName 'Get-DhcpServerv4Failover' -ModuleName 'PSWinOps' -MockWith { return $null }
+            Mock -CommandName 'Get-DhcpServerv4Scope' -ModuleName 'PSWinOps' -MockWith { return $inactiveScope }
+            Mock -CommandName 'Get-DhcpServerv4ScopeStatistics' -ModuleName 'PSWinOps' -MockWith { return $inactiveStats }
+            $script:results = Get-DhcpServerHealth
+        }
+
+        It 'Should return Critical' { $script:results.OverallHealth | Should -Be 'Critical' }
+        It 'Should have ScopeState Inactive' { $script:results.ScopeState | Should -Be 'Inactive' }
+        It 'Should have AddressesInUse > 0' { $script:results.AddressesInUse | Should -BeGreaterThan 0 }
+    }
+
+    Context 'Local - High utilization > 90% (Degraded)' {
+
+        BeforeAll {
+            $highUsageStats = [PSCustomObject]@{ AddressesFree = 10; AddressesInUse = 190; PercentageInUse = [decimal]95 }
+            Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith { return $script:mockDhcpService }
+            Mock -CommandName 'Get-Module' -ModuleName 'PSWinOps' -MockWith { return $script:mockDhcpModule }
+            Mock -CommandName 'Get-DhcpServerv4Failover' -ModuleName 'PSWinOps' -MockWith { return $null }
+            Mock -CommandName 'Get-DhcpServerv4Scope' -ModuleName 'PSWinOps' -MockWith { return $script:mockScope }
+            Mock -CommandName 'Get-DhcpServerv4ScopeStatistics' -ModuleName 'PSWinOps' -MockWith { return $highUsageStats }
+            $script:results = Get-DhcpServerHealth
+        }
+
+        It 'Should return Degraded' { $script:results.OverallHealth | Should -Be 'Degraded' }
+        It 'Should have PercentInUse = 95' { $script:results.PercentInUse | Should -Be 95 }
+    }
+
+    Context 'Local - localhost alias' {
+
+        BeforeAll {
+            Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith { return $script:mockDhcpService }
+            Mock -CommandName 'Get-Module' -ModuleName 'PSWinOps' -MockWith { return $null }
+            $script:results = Get-DhcpServerHealth -ComputerName 'localhost'
+        }
+
+        It 'Should NOT call Invoke-Command' { Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 0 -Exactly }
+        It 'Should set ComputerName to LOCALHOST' { $script:results.ComputerName | Should -Be 'LOCALHOST' }
+    }
+
+    Context 'Local - dot alias' {
+
+        BeforeAll {
+            Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith { return $script:mockDhcpService }
+            Mock -CommandName 'Get-Module' -ModuleName 'PSWinOps' -MockWith { return $null }
+            $script:results = Get-DhcpServerHealth -ComputerName '.'
+        }
+
+        It 'Should NOT call Invoke-Command' { Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 0 -Exactly }
+        It 'Should return a result' { $script:results | Should -Not -BeNullOrEmpty }
+    }
+
+    Context 'PSTypeName validation' {
+
+        BeforeAll {
+            Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith { return $script:mockDhcpService }
+            Mock -CommandName 'Get-Module' -ModuleName 'PSWinOps' -MockWith { return $script:mockDhcpModule }
+            Mock -CommandName 'Get-DhcpServerv4Failover' -ModuleName 'PSWinOps' -MockWith { return $null }
+            Mock -CommandName 'Get-DhcpServerv4Scope' -ModuleName 'PSWinOps' -MockWith { return $script:mockScope }
+            Mock -CommandName 'Get-DhcpServerv4ScopeStatistics' -ModuleName 'PSWinOps' -MockWith { return $script:mockScopeStats }
+            $script:typeResult = Get-DhcpServerHealth
+        }
+
+        It 'Should have PSTypeName PSWinOps.DhcpServerHealth' { $script:typeResult.PSObject.TypeNames[0] | Should -Be 'PSWinOps.DhcpServerHealth' }
+        It 'Should have Timestamp matching ISO 8601' { $script:typeResult.Timestamp | Should -Match '^\d{4}-\d{2}-\d{2}T' }
+    }
 }

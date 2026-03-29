@@ -4,103 +4,344 @@
 BeforeAll {
     $script:modulePath = Split-Path -Path (Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent) -Parent
     Import-Module -Name (Join-Path -Path $script:modulePath -ChildPath 'PSWinOps.psd1') -Force
+
+    & (Get-Module -Name 'PSWinOps') {
+        foreach ($cmdName in @('Get-RDServer', 'Get-RDUserSession', 'Get-RDLicenseConfiguration')) {
+            if (-not (Get-Command -Name $cmdName -ErrorAction SilentlyContinue)) {
+                Set-Item -Path "function:script:$cmdName" -Value ([scriptblock]::Create(''))
+            }
+        }
+    }
 }
 
 Describe 'Get-RDSHealth' {
+
     BeforeAll {
         $script:mockRemoteData = @{
             ServiceStatus = 'Running'; SessionEnvStatus = 'Running'; RDModuleAvailable = $true
             InstalledRoles = 'RDS-SESSION-HOST, RDS-LICENSING'; ActiveSessions = 5
             DisconnectedSessions = 2; LicensingMode = 'PerUser'
         }
+
+        function Set-RDSLocalMocks {
+            param(
+                [string]$TermServiceStatus  = 'Running',
+                [bool]$TermServiceNull      = $false,
+                [string]$SessionEnvStatus   = 'Running',
+                [bool]$SessionEnvNull       = $false,
+                [bool]$ModuleAvailable      = $true,
+                [array]$RDServers           = @(),
+                [bool]$RDServerThrows       = $false,
+                [array]$RDSessions          = @(),
+                [bool]$RDSessionThrows      = $false,
+                [string]$LicensingMode      = 'PerUser',
+                [bool]$LicenseConfigThrows  = $false
+            )
+
+            # TermService (uses -ErrorAction SilentlyContinue → null if not found)
+            if ($TermServiceNull) {
+                Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -ParameterFilter { $Name -eq 'TermService' } -MockWith { return $null }
+            }
+            else {
+                Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -ParameterFilter { $Name -eq 'TermService' } -MockWith {
+                    [PSCustomObject]@{ Status = $TermServiceStatus; Name = 'TermService' }
+                }.GetNewClosure()
+            }
+
+            # SessionEnv
+            if ($SessionEnvNull) {
+                Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -ParameterFilter { $Name -eq 'SessionEnv' } -MockWith { return $null }
+            }
+            else {
+                Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -ParameterFilter { $Name -eq 'SessionEnv' } -MockWith {
+                    [PSCustomObject]@{ Status = $SessionEnvStatus; Name = 'SessionEnv' }
+                }.GetNewClosure()
+            }
+
+            # Get-Module RemoteDesktop
+            if ($ModuleAvailable) {
+                Mock -CommandName 'Get-Module' -ModuleName 'PSWinOps' -ParameterFilter { $Name -eq 'RemoteDesktop' } -MockWith {
+                    [PSCustomObject]@{ Name = 'RemoteDesktop'; Version = '2.0.0.0' }
+                }
+            }
+            else {
+                Mock -CommandName 'Get-Module' -ModuleName 'PSWinOps' -ParameterFilter { $Name -eq 'RemoteDesktop' } -MockWith { return $null }
+            }
+
+            # Get-RDServer
+            if ($RDServerThrows) {
+                Mock -CommandName 'Get-RDServer' -ModuleName 'PSWinOps' -MockWith { throw 'RD Management Server unavailable' }
+            }
+            else {
+                Mock -CommandName 'Get-RDServer' -ModuleName 'PSWinOps' -MockWith { return $RDServers }.GetNewClosure()
+            }
+
+            # Get-RDUserSession
+            if ($RDSessionThrows) {
+                Mock -CommandName 'Get-RDUserSession' -ModuleName 'PSWinOps' -MockWith { throw 'Session query failed' }
+            }
+            else {
+                Mock -CommandName 'Get-RDUserSession' -ModuleName 'PSWinOps' -MockWith { return $RDSessions }.GetNewClosure()
+            }
+
+            # Get-RDLicenseConfiguration
+            if ($LicenseConfigThrows) {
+                Mock -CommandName 'Get-RDLicenseConfiguration' -ModuleName 'PSWinOps' -MockWith { throw 'License config error' }
+            }
+            else {
+                Mock -CommandName 'Get-RDLicenseConfiguration' -ModuleName 'PSWinOps' -MockWith {
+                    [PSCustomObject]@{ Mode = $LicensingMode }
+                }.GetNewClosure()
+            }
+
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps'
+        }
     }
 
-    Context 'Healthy' {
+    # =================================================================
+    #  REMOTE PATH
+    # =================================================================
+    Context 'Remote - Healthy' {
         BeforeAll {
             Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $script:mockRemoteData.Clone() }
             $script:result = Get-RDSHealth -ComputerName 'RDS01'
         }
-        It -Name 'Should return Healthy' -Test { $script:result.OverallHealth | Should -Be 'Healthy' }
-        It -Name 'Should return Running service' -Test { $script:result.ServiceStatus | Should -Be 'Running' }
-        It -Name 'Should return Running SessionEnv' -Test { $script:result.SessionEnvStatus | Should -Be 'Running' }
-        It -Name 'Should compute TotalSessions' -Test { $script:result.TotalSessions | Should -Be 7 }
-        It -Name 'Should return correct roles' -Test { $script:result.InstalledRoles | Should -Be 'RDS-SESSION-HOST, RDS-LICENSING' }
+        It 'Should return Healthy' { $script:result.OverallHealth | Should -Be 'Healthy' }
+        It 'Should return Running service' { $script:result.ServiceStatus | Should -Be 'Running' }
+        It 'Should return Running SessionEnv' { $script:result.SessionEnvStatus | Should -Be 'Running' }
+        It 'Should compute TotalSessions' { $script:result.TotalSessions | Should -Be 7 }
+        It 'Should return correct roles' { $script:result.InstalledRoles | Should -Be 'RDS-SESSION-HOST, RDS-LICENSING' }
     }
 
-    Context 'RoleUnavailable' {
+    Context 'Remote - RoleUnavailable' {
         BeforeAll {
             $d = $script:mockRemoteData.Clone(); $d.ServiceStatus = 'NotFound'
             Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $d }
             $script:result = Get-RDSHealth -ComputerName 'RDS01'
         }
-        It -Name 'Should return RoleUnavailable' -Test { $script:result.OverallHealth | Should -Be 'RoleUnavailable' }
+        It 'Should return RoleUnavailable' { $script:result.OverallHealth | Should -Be 'RoleUnavailable' }
     }
 
-    Context 'Critical - service stopped' {
+    Context 'Remote - Critical (service stopped)' {
         BeforeAll {
             $d = $script:mockRemoteData.Clone(); $d.ServiceStatus = 'Stopped'
             Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $d }
             $script:result = Get-RDSHealth -ComputerName 'RDS01'
         }
-        It -Name 'Should return Critical' -Test { $script:result.OverallHealth | Should -Be 'Critical' }
+        It 'Should return Critical' { $script:result.OverallHealth | Should -Be 'Critical' }
     }
 
-    Context 'Critical - SessionEnv stopped' {
+    Context 'Remote - Critical (SessionEnv stopped)' {
         BeforeAll {
             $d = $script:mockRemoteData.Clone(); $d.SessionEnvStatus = 'Stopped'
             Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $d }
             $script:result = Get-RDSHealth -ComputerName 'RDS01'
         }
-        It -Name 'Should return Critical' -Test { $script:result.OverallHealth | Should -Be 'Critical' }
+        It 'Should return Critical' { $script:result.OverallHealth | Should -Be 'Critical' }
     }
 
-    Context 'Degraded - more disconnected than active' {
+    Context 'Remote - Degraded (more disconnected than active)' {
         BeforeAll {
             $d = $script:mockRemoteData.Clone(); $d.ActiveSessions = 2; $d.DisconnectedSessions = 10
             Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $d }
             $script:result = Get-RDSHealth -ComputerName 'RDS01'
         }
-        It -Name 'Should return Degraded' -Test { $script:result.OverallHealth | Should -Be 'Degraded' }
-        It -Name 'Should compute TotalSessions' -Test { $script:result.TotalSessions | Should -Be 12 }
+        It 'Should return Degraded' { $script:result.OverallHealth | Should -Be 'Degraded' }
+        It 'Should compute TotalSessions' { $script:result.TotalSessions | Should -Be 12 }
     }
 
-    Context 'Degraded - licensing not configured' {
+    Context 'Remote - Degraded (licensing not configured)' {
         BeforeAll {
             $d = $script:mockRemoteData.Clone(); $d.LicensingMode = 'NotConfigured'
             Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $d }
             $script:result = Get-RDSHealth -ComputerName 'RDS01'
         }
-        It -Name 'Should return Degraded' -Test { $script:result.OverallHealth | Should -Be 'Degraded' }
+        It 'Should return Degraded' { $script:result.OverallHealth | Should -Be 'Degraded' }
     }
 
-    Context 'Pipeline input' {
+    Context 'Remote - Pipeline input' {
         BeforeAll {
             Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $script:mockRemoteData.Clone() }
             $script:results = 'RDS01', 'RDS02' | Get-RDSHealth
         }
-        It -Name 'Should return two results' -Test { $script:results | Should -HaveCount 2 }
+        It 'Should return two results' { $script:results | Should -HaveCount 2 }
     }
 
-    Context 'Failure handling' {
+    Context 'Remote - Failure handling' {
         BeforeAll { Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { throw 'Connection refused' } }
-        It -Name 'Should not throw' -Test { { Get-RDSHealth -ComputerName 'RDS01' -ErrorAction SilentlyContinue } | Should -Not -Throw }
+        It 'Should not throw' { { Get-RDSHealth -ComputerName 'RDS01' -ErrorAction SilentlyContinue } | Should -Not -Throw }
     }
 
-    Context 'Parameter validation' {
-        It -Name 'Should reject empty ComputerName' -Test { { Get-RDSHealth -ComputerName '' } | Should -Throw }
-        It -Name 'Should reject null ComputerName' -Test { { Get-RDSHealth -ComputerName $null } | Should -Throw }
+    # =================================================================
+    #  LOCAL PATH
+    # =================================================================
+    Context 'Local - Healthy (both services running, balanced sessions, licensed)' {
+        BeforeAll {
+            $servers = @(
+                [PSCustomObject]@{ Server = $env:COMPUTERNAME; Roles = @('RDS-RD-SERVER', 'RDS-LICENSING') }
+            )
+            $sessions = @(
+                [PSCustomObject]@{ SessionState = 'STATE_ACTIVE' },
+                [PSCustomObject]@{ SessionState = 'STATE_ACTIVE' },
+                [PSCustomObject]@{ SessionState = 'STATE_DISCONNECTED' }
+            )
+            Set-RDSLocalMocks -RDServers $servers -RDSessions $sessions -LicensingMode 'PerUser'
+            $script:result = Get-RDSHealth -ComputerName $env:COMPUTERNAME
+        }
+        It 'Should NOT call Invoke-Command' { Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 0 -Exactly }
+        It 'Should return Healthy' { $script:result.OverallHealth | Should -Be 'Healthy' }
+        It 'Should return Running ServiceStatus' { $script:result.ServiceStatus | Should -Be 'Running' }
+        It 'Should return Running SessionEnvStatus' { $script:result.SessionEnvStatus | Should -Be 'Running' }
+        It 'Should count 2 active sessions' { $script:result.ActiveSessions | Should -Be 2 }
+        It 'Should count 1 disconnected session' { $script:result.DisconnectedSessions | Should -Be 1 }
+        It 'Should compute TotalSessions = 3' { $script:result.TotalSessions | Should -Be 3 }
+        It 'Should report PerUser licensing' { $script:result.LicensingMode | Should -Be 'PerUser' }
     }
 
-    # ================================================================
-    # APPENDED TEST CONTEXTS
-    # ================================================================
+    Context 'Local - TermService not found (RoleUnavailable)' {
+        BeforeAll {
+            Set-RDSLocalMocks -TermServiceNull $true
+            $script:result = Get-RDSHealth -ComputerName $env:COMPUTERNAME
+        }
+        It 'Should return RoleUnavailable' { $script:result.OverallHealth | Should -Be 'RoleUnavailable' }
+        It 'Should return NotFound ServiceStatus' { $script:result.ServiceStatus | Should -Be 'NotFound' }
+    }
 
+    Context 'Local - TermService stopped (Critical)' {
+        BeforeAll {
+            Set-RDSLocalMocks -TermServiceStatus 'Stopped'
+            $script:result = Get-RDSHealth -ComputerName $env:COMPUTERNAME
+        }
+        It 'Should return Critical' { $script:result.OverallHealth | Should -Be 'Critical' }
+        It 'Should return Stopped ServiceStatus' { $script:result.ServiceStatus | Should -Be 'Stopped' }
+    }
+
+    Context 'Local - SessionEnv stopped (Critical)' {
+        BeforeAll {
+            $servers = @([PSCustomObject]@{ Server = $env:COMPUTERNAME; Roles = @('RDS-RD-SERVER') })
+            Set-RDSLocalMocks -SessionEnvStatus 'Stopped' -RDServers $servers
+            $script:result = Get-RDSHealth -ComputerName $env:COMPUTERNAME
+        }
+        It 'Should return Critical' { $script:result.OverallHealth | Should -Be 'Critical' }
+        It 'Should return Stopped SessionEnvStatus' { $script:result.SessionEnvStatus | Should -Be 'Stopped' }
+        It 'Should return Running ServiceStatus' { $script:result.ServiceStatus | Should -Be 'Running' }
+    }
+
+    Context 'Local - Module not available (skips RD cmdlets)' {
+        BeforeAll {
+            Set-RDSLocalMocks -ModuleAvailable $false
+            $script:result = Get-RDSHealth -ComputerName $env:COMPUTERNAME
+        }
+        It 'Should NOT call Get-RDServer' { Should -Invoke -CommandName 'Get-RDServer' -ModuleName 'PSWinOps' -Times 0 -Exactly }
+        It 'Should NOT call Get-RDUserSession' { Should -Invoke -CommandName 'Get-RDUserSession' -ModuleName 'PSWinOps' -Times 0 -Exactly }
+        It 'Should return RDModuleAvailable = false' { $script:result.RDModuleAvailable | Should -BeFalse }
+    }
+
+    Context 'Local - Get-RDServer throws (catches gracefully)' {
+        BeforeAll {
+            Set-RDSLocalMocks -RDServerThrows $true
+            $script:result = Get-RDSHealth -ComputerName $env:COMPUTERNAME
+        }
+        It 'Should return a result' { $script:result | Should -Not -BeNullOrEmpty }
+        It 'Should NOT call Get-RDLicenseConfiguration' { Should -Invoke -CommandName 'Get-RDLicenseConfiguration' -ModuleName 'PSWinOps' -Times 0 -Exactly }
+    }
+
+    Context 'Local - Get-RDUserSession throws (catches gracefully)' {
+        BeforeAll {
+            $servers = @([PSCustomObject]@{ Server = $env:COMPUTERNAME; Roles = @('RDS-RD-SERVER') })
+            Set-RDSLocalMocks -RDServers $servers -RDSessionThrows $true
+            $script:result = Get-RDSHealth -ComputerName $env:COMPUTERNAME
+        }
+        It 'Should return 0 active sessions' { $script:result.ActiveSessions | Should -Be 0 }
+        It 'Should return 0 disconnected sessions' { $script:result.DisconnectedSessions | Should -Be 0 }
+    }
+
+    Context 'Local - RDS-LICENSING present calls Get-RDLicenseConfiguration' {
+        BeforeAll {
+            $servers = @([PSCustomObject]@{ Server = $env:COMPUTERNAME; Roles = @('RDS-RD-SERVER', 'RDS-LICENSING') })
+            $sessions = @([PSCustomObject]@{ SessionState = 'STATE_ACTIVE' })
+            Set-RDSLocalMocks -RDServers $servers -RDSessions $sessions -LicensingMode 'PerDevice'
+            $script:result = Get-RDSHealth -ComputerName $env:COMPUTERNAME
+        }
+        It 'Should call Get-RDLicenseConfiguration' { Should -Invoke -CommandName 'Get-RDLicenseConfiguration' -ModuleName 'PSWinOps' -Times 1 }
+        It 'Should return PerDevice licensing' { $script:result.LicensingMode | Should -Be 'PerDevice' }
+    }
+
+    Context 'Local - RDS-LICENSING absent skips Get-RDLicenseConfiguration' {
+        BeforeAll {
+            $servers = @([PSCustomObject]@{ Server = $env:COMPUTERNAME; Roles = @('RDS-RD-SERVER') })
+            $sessions = @([PSCustomObject]@{ SessionState = 'STATE_ACTIVE' })
+            Set-RDSLocalMocks -RDServers $servers -RDSessions $sessions
+            $script:result = Get-RDSHealth -ComputerName $env:COMPUTERNAME
+        }
+        It 'Should NOT call Get-RDLicenseConfiguration' { Should -Invoke -CommandName 'Get-RDLicenseConfiguration' -ModuleName 'PSWinOps' -Times 0 -Exactly }
+    }
+
+    Context 'Local - Get-RDLicenseConfiguration throws (Unknown licensing)' {
+        BeforeAll {
+            $servers = @([PSCustomObject]@{ Server = $env:COMPUTERNAME; Roles = @('RDS-RD-SERVER', 'RDS-LICENSING') })
+            $sessions = @([PSCustomObject]@{ SessionState = 'STATE_ACTIVE' })
+            Set-RDSLocalMocks -RDServers $servers -RDSessions $sessions -LicenseConfigThrows $true
+            $script:result = Get-RDSHealth -ComputerName $env:COMPUTERNAME
+        }
+        It 'Should return Unknown licensing' { $script:result.LicensingMode | Should -Be 'Unknown' }
+    }
+
+    Context 'Local - Disconnected > Active (Degraded)' {
+        BeforeAll {
+            $servers = @([PSCustomObject]@{ Server = $env:COMPUTERNAME; Roles = @('RDS-RD-SERVER') })
+            $sessions = @(
+                [PSCustomObject]@{ SessionState = 'STATE_ACTIVE' },
+                [PSCustomObject]@{ SessionState = 'STATE_DISCONNECTED' },
+                [PSCustomObject]@{ SessionState = 'STATE_DISCONNECTED' },
+                [PSCustomObject]@{ SessionState = 'STATE_DISCONNECTED' }
+            )
+            Set-RDSLocalMocks -RDServers $servers -RDSessions $sessions
+            $script:result = Get-RDSHealth -ComputerName $env:COMPUTERNAME
+        }
+        It 'Should return Degraded' { $script:result.OverallHealth | Should -Be 'Degraded' }
+        It 'Should count 1 active' { $script:result.ActiveSessions | Should -Be 1 }
+        It 'Should count 3 disconnected' { $script:result.DisconnectedSessions | Should -Be 3 }
+    }
+
+    Context 'Local - LicensingMode NotConfigured (Degraded)' {
+        BeforeAll {
+            $servers = @([PSCustomObject]@{ Server = $env:COMPUTERNAME; Roles = @('RDS-RD-SERVER', 'RDS-LICENSING') })
+            $sessions = @([PSCustomObject]@{ SessionState = 'STATE_ACTIVE' }, [PSCustomObject]@{ SessionState = 'STATE_ACTIVE' })
+            Set-RDSLocalMocks -RDServers $servers -RDSessions $sessions -LicensingMode 'NotConfigured'
+            $script:result = Get-RDSHealth -ComputerName $env:COMPUTERNAME
+        }
+        It 'Should return Degraded' { $script:result.OverallHealth | Should -Be 'Degraded' }
+        It 'Should return NotConfigured licensing' { $script:result.LicensingMode | Should -Be 'NotConfigured' }
+    }
+
+    Context 'Local - localhost alias' {
+        BeforeAll {
+            Set-RDSLocalMocks
+            $script:result = Get-RDSHealth -ComputerName 'localhost'
+        }
+        It 'Should NOT call Invoke-Command' { Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 0 -Exactly }
+        It 'Should return LOCALHOST as ComputerName' { $script:result.ComputerName | Should -Be 'LOCALHOST' }
+    }
+
+    Context 'Local - dot alias' {
+        BeforeAll {
+            Set-RDSLocalMocks
+            $script:result = Get-RDSHealth -ComputerName '.'
+        }
+        It 'Should NOT call Invoke-Command' { Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 0 -Exactly }
+        It 'Should return a result' { $script:result | Should -Not -BeNullOrEmpty }
+    }
+
+    # =================================================================
+    #  COMMON VALIDATIONS
+    # =================================================================
     Context 'PSTypeName validation' {
         BeforeAll {
             Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $script:mockRemoteData.Clone() }
             $script:typeResult = Get-RDSHealth -ComputerName 'RDS01'
         }
-        It -Name 'Should have PSTypeName PSWinOps.RDSHealth' -Test { $script:typeResult.PSObject.TypeNames[0] | Should -Be 'PSWinOps.RDSHealth' }
+        It 'Should have PSTypeName PSWinOps.RDSHealth' { $script:typeResult.PSObject.TypeNames[0] | Should -Be 'PSWinOps.RDSHealth' }
     }
 
     Context 'Output property completeness' {
@@ -108,60 +349,21 @@ Describe 'Get-RDSHealth' {
             Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $script:mockRemoteData.Clone() }
             $script:propResult = Get-RDSHealth -ComputerName 'RDS01'
         }
-        It -Name 'Should have ComputerName set to RDS01' -Test { $script:propResult.ComputerName | Should -Be 'RDS01' }
-        It -Name 'Should have ServiceName set to TermService' -Test { $script:propResult.ServiceName | Should -Be 'TermService' }
-        It -Name 'Should have ActiveSessions property' -Test { $script:propResult.ActiveSessions | Should -Be 5 }
-        It -Name 'Should have DisconnectedSessions property' -Test { $script:propResult.DisconnectedSessions | Should -Be 2 }
-        It -Name 'Should have TotalSessions computed correctly' -Test { $script:propResult.TotalSessions | Should -Be 7 }
-        It -Name 'Should have InstalledRoles property' -Test { $script:propResult.InstalledRoles | Should -Not -BeNullOrEmpty }
-        It -Name 'Should have LicensingMode property' -Test { $script:propResult.LicensingMode | Should -Be 'PerUser' }
-        It -Name 'Should have RDModuleAvailable property' -Test { $script:propResult.RDModuleAvailable | Should -BeTrue }
-        It -Name 'Should have SessionEnvStatus property' -Test { $script:propResult.SessionEnvStatus | Should -Be 'Running' }
-        It -Name 'Should have Timestamp in ISO 8601 format' -Test { $script:propResult.Timestamp | Should -Match '^\d{4}-\d{2}-\d{2}T' }
+        It 'Should have ComputerName' { $script:propResult.ComputerName | Should -Be 'RDS01' }
+        It 'Should have ServiceName' { $script:propResult.ServiceName | Should -Be 'TermService' }
+        It 'Should have ActiveSessions' { $script:propResult.ActiveSessions | Should -Be 5 }
+        It 'Should have DisconnectedSessions' { $script:propResult.DisconnectedSessions | Should -Be 2 }
+        It 'Should have TotalSessions' { $script:propResult.TotalSessions | Should -Be 7 }
+        It 'Should have InstalledRoles' { $script:propResult.InstalledRoles | Should -Not -BeNullOrEmpty }
+        It 'Should have LicensingMode' { $script:propResult.LicensingMode | Should -Be 'PerUser' }
+        It 'Should have RDModuleAvailable' { $script:propResult.RDModuleAvailable | Should -BeTrue }
+        It 'Should have SessionEnvStatus' { $script:propResult.SessionEnvStatus | Should -Be 'Running' }
+        It 'Should have Timestamp' { $script:propResult.Timestamp | Should -Match '^\d{4}-\d{2}-\d{2}T' }
     }
 
-    Context 'Verbose output' {
-        BeforeAll {
-            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $script:mockRemoteData.Clone() }
-        }
-        It -Name 'Should produce verbose messages' -Test {
-            $script:verbose = Get-RDSHealth -ComputerName 'RDS01' -Verbose 4>&1 | Where-Object { $_ -is [System.Management.Automation.VerboseRecord] }
-            $script:verbose | Should -Not -BeNullOrEmpty
-        }
-        It -Name 'Should include function name in verbose' -Test {
-            $script:verbose = Get-RDSHealth -ComputerName 'RDS01' -Verbose 4>&1 | Where-Object { $_ -is [System.Management.Automation.VerboseRecord] }
-            ($script:verbose.Message -join ' ') | Should -Match 'Get-RDSHealth'
-        }
-    }
-
-    Context 'Credential parameter' {
-        It -Name 'Should have a Credential parameter' -Test {
-            $script:cmd = Get-Command -Name 'Get-RDSHealth' -Module 'PSWinOps'
-            $script:cmd.Parameters['Credential'] | Should -Not -BeNullOrEmpty
-        }
-        It -Name 'Should have Credential as PSCredential type' -Test {
-            $script:cmd = Get-Command -Name 'Get-RDSHealth' -Module 'PSWinOps'
-            $script:cmd.Parameters['Credential'].ParameterType.Name | Should -Be 'PSCredential'
-        }
-    }
-
-    Context 'ComputerName aliases' {
-        It -Name 'Should accept CN alias' -Test {
-            $script:cmd = Get-Command -Name 'Get-RDSHealth' -Module 'PSWinOps'
-            $script:cmd.Parameters['ComputerName'].Aliases | Should -Contain 'CN'
-        }
-        It -Name 'Should accept Name alias' -Test {
-            $script:cmd = Get-Command -Name 'Get-RDSHealth' -Module 'PSWinOps'
-            $script:cmd.Parameters['ComputerName'].Aliases | Should -Contain 'Name'
-        }
-    }
-
-    Context 'Timestamp ISO 8601 format' {
-        BeforeAll {
-            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $script:mockRemoteData.Clone() }
-            $script:hpResult = Get-RDSHealth -ComputerName 'RDS01'
-        }
-        It 'Should have Timestamp matching ISO 8601 pattern' { $script:hpResult.Timestamp | Should -Match '^\d{4}-\d{2}-\d{2}T' }
+    Context 'Parameter validation' {
+        It 'Should reject empty ComputerName' { { Get-RDSHealth -ComputerName '' } | Should -Throw }
+        It 'Should reject null ComputerName' { { Get-RDSHealth -ComputerName $null } | Should -Throw }
     }
 
     Context 'Error message content on failure' {

@@ -276,4 +276,104 @@ Describe 'Get-DfsNamespaceHealth' {
             $script:cmd.Parameters['ComputerName'].Aliases | Should -Contain 'Name'
         }
     }
+
+    Context 'Local - Get-DfsnRoot throws (Critical)' {
+
+        BeforeAll {
+            Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith { return $script:mockServiceRunning }
+            Mock -CommandName 'Get-Module' -ModuleName 'PSWinOps' -MockWith { return $script:mockDfsnModule }
+            Mock -CommandName 'Get-DfsnRoot' -ModuleName 'PSWinOps' -MockWith { throw 'Access denied' }
+            $script:results = Get-DfsNamespaceHealth
+        }
+
+        It 'Should have OverallHealth Critical' { $script:results[0].OverallHealth | Should -Be 'Critical' }
+        It 'Should have RootPath N/A' { $script:results[0].RootPath | Should -Be 'N/A' }
+    }
+
+    Context 'Local - Zero roots (Healthy)' {
+
+        BeforeAll {
+            Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith { return $script:mockServiceRunning }
+            Mock -CommandName 'Get-Module' -ModuleName 'PSWinOps' -MockWith { return $script:mockDfsnModule }
+            Mock -CommandName 'Get-DfsnRoot' -ModuleName 'PSWinOps' -MockWith { return @() }
+            $script:results = Get-DfsNamespaceHealth
+        }
+
+        It 'Should have OverallHealth Healthy' { $script:results[0].OverallHealth | Should -Be 'Healthy' }
+        It 'Should have RootPath N/A' { $script:results[0].RootPath | Should -Be 'N/A' }
+        It 'Should have TargetCount 0' { $script:results[0].TargetCount | Should -Be 0 }
+    }
+
+    Context 'Local - Get-DfsnRootTarget throws (Critical, 0 targets)' {
+
+        BeforeAll {
+            Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith { return $script:mockServiceRunning }
+            Mock -CommandName 'Get-Module' -ModuleName 'PSWinOps' -MockWith { return $script:mockDfsnModule }
+            Mock -CommandName 'Get-DfsnRoot' -ModuleName 'PSWinOps' -MockWith { return @($script:mockDfsnRoot) }
+            Mock -CommandName 'Get-DfsnRootTarget' -ModuleName 'PSWinOps' -MockWith { throw 'Target query failed' }
+            $script:results = Get-DfsNamespaceHealth
+        }
+
+        It 'Should have OverallHealth Critical' { $script:results[0].OverallHealth | Should -Be 'Critical' }
+        It 'Should have TargetCount 0' { $script:results[0].TargetCount | Should -Be 0 }
+        It 'Should have HealthyTargets 0' { $script:results[0].HealthyTargets | Should -Be 0 }
+    }
+
+    Context 'Local - All targets offline (Critical)' {
+
+        BeforeAll {
+            $allOffline = @(
+                [PSCustomObject]@{ TargetPath = '\\SRV01\Share'; State = 'Offline' },
+                [PSCustomObject]@{ TargetPath = '\\SRV02\Share'; State = 'Offline' }
+            )
+            Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith { return $script:mockServiceRunning }
+            Mock -CommandName 'Get-Module' -ModuleName 'PSWinOps' -MockWith { return $script:mockDfsnModule }
+            Mock -CommandName 'Get-DfsnRoot' -ModuleName 'PSWinOps' -MockWith { return @($script:mockDfsnRoot) }
+            Mock -CommandName 'Get-DfsnRootTarget' -ModuleName 'PSWinOps' -MockWith { return $allOffline }
+            $script:results = Get-DfsNamespaceHealth
+        }
+
+        It 'Should have OverallHealth Critical' { $script:results[0].OverallHealth | Should -Be 'Critical' }
+        It 'Should have TargetCount 2' { $script:results[0].TargetCount | Should -Be 2 }
+        It 'Should have HealthyTargets 0' { $script:results[0].HealthyTargets | Should -Be 0 }
+    }
+
+    Context 'Local - Service not found (DFS not installed)' {
+
+        BeforeAll {
+            Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith { throw 'not found' }
+            $script:results = Get-DfsNamespaceHealth
+        }
+
+        It 'Should have ServiceStatus NotFound' { $script:results[0].ServiceStatus | Should -Be 'NotFound' }
+        It 'Should have OverallHealth RoleUnavailable' { $script:results[0].OverallHealth | Should -Be 'RoleUnavailable' }
+    }
+
+    Context 'Local - localhost alias' {
+
+        BeforeAll {
+            Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith { return $script:mockServiceRunning }
+            Mock -CommandName 'Get-Module' -ModuleName 'PSWinOps' -MockWith { return $script:mockDfsnModule }
+            Mock -CommandName 'Get-DfsnRoot' -ModuleName 'PSWinOps' -MockWith { return @($script:mockDfsnRoot) }
+            Mock -CommandName 'Get-DfsnRootTarget' -ModuleName 'PSWinOps' -MockWith { return $script:mockTargetsAllOnline }
+            $script:results = Get-DfsNamespaceHealth -ComputerName 'localhost'
+        }
+
+        It 'Should NOT call Invoke-Command' { Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 0 -Exactly }
+        It 'Should return LOCALHOST as ComputerName' { $script:results[0].ComputerName | Should -Be 'LOCALHOST' }
+    }
+
+    Context 'Local - dot alias' {
+
+        BeforeAll {
+            Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith { return $script:mockServiceRunning }
+            Mock -CommandName 'Get-Module' -ModuleName 'PSWinOps' -MockWith { return $script:mockDfsnModule }
+            Mock -CommandName 'Get-DfsnRoot' -ModuleName 'PSWinOps' -MockWith { return @($script:mockDfsnRoot) }
+            Mock -CommandName 'Get-DfsnRootTarget' -ModuleName 'PSWinOps' -MockWith { return $script:mockTargetsAllOnline }
+            $script:results = Get-DfsNamespaceHealth -ComputerName '.'
+        }
+
+        It 'Should NOT call Invoke-Command' { Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 0 -Exactly }
+        It 'Should return a result' { $script:results | Should -Not -BeNullOrEmpty }
+    }
 }
