@@ -38,9 +38,6 @@ Describe -Name 'Sync-NTPTime' -Fixture {
                 $global:LASTEXITCODE = 0
                 return "Sending resync command to local computer`r`nThe command completed successfully."
             }
-            Mock -CommandName 'Out-String' -ModuleName 'PSWinOps' -MockWith {
-                return ($input | ForEach-Object { "$_" }) -join "`r`n"
-            }
         }
 
         It -Name 'Should return a success result for the local machine' -Test {
@@ -290,9 +287,6 @@ Describe -Name 'Sync-NTPTime' -Fixture {
                 $global:LASTEXITCODE = 0
                 return 'The command completed successfully.'
             }
-            Mock -CommandName 'Out-String' -ModuleName 'PSWinOps' -MockWith {
-                return ($input | ForEach-Object { "$_" }) -join "`r`n"
-            }
         }
 
         It -Name 'Should restart service locally then resync' -Test {
@@ -319,9 +313,6 @@ Describe -Name 'Sync-NTPTime' -Fixture {
             Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith {
                 $global:LASTEXITCODE = 1
                 return 'The computer did not resync because no time data was available.'
-            }
-            Mock -CommandName 'Out-String' -ModuleName 'PSWinOps' -MockWith {
-                return ($input | ForEach-Object { "$_" }) -join "`r`n"
             }
         }
 
