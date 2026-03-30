@@ -614,4 +614,174 @@ Describe 'Get-IISHealth' {
         It 'Should return a result' { $script:localDot | Should -Not -BeNullOrEmpty }
     }
 
+    Context 'Local - IISAdministration module path' {
+
+        BeforeAll {
+            Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith {
+                [PSCustomObject]@{ Name = 'W3SVC'; Status = 'Running' }
+            }
+            Mock -CommandName 'Get-Module' -ModuleName 'PSWinOps' -MockWith { $null } -ParameterFilter { $Name -eq 'WebAdministration' -and $ListAvailable }
+            Mock -CommandName 'Get-Module' -ModuleName 'PSWinOps' -MockWith {
+                [PSCustomObject]@{ Name = 'IISAdministration' }
+            } -ParameterFilter { $Name -eq 'IISAdministration' -and $ListAvailable }
+            Mock -CommandName 'Import-Module' -ModuleName 'PSWinOps' -MockWith { }
+            Mock -CommandName 'Get-IISAppPool' -ModuleName 'PSWinOps' -MockWith {
+                @([PSCustomObject]@{ Name = 'DefaultAppPool'; State = 'Started' })
+            }
+            Mock -CommandName 'Get-IISSite' -ModuleName 'PSWinOps' -MockWith {
+                $vdir = [PSCustomObject]@{ PhysicalPath = 'C:\inetpub\wwwroot' }
+                $app = [PSCustomObject]@{
+                    ApplicationPoolName = 'DefaultAppPool'
+                    VirtualDirectories  = @{ '/' = $vdir }
+                }
+                @([PSCustomObject]@{
+                    Name         = 'IISSite'
+                    State        = 'Started'
+                    Bindings     = @([PSCustomObject]@{ Protocol = 'http'; BindingInformation = '*:80:' })
+                    Applications = @{ '/' = $app }
+                })
+            }
+            $script:iisAdminResult = Get-IISHealth -ComputerName $env:COMPUTERNAME
+        }
+
+        It 'Should return Healthy' { $script:iisAdminResult[0].OverallHealth | Should -Be 'Healthy' }
+        It 'Should return IISSite as SiteName' { $script:iisAdminResult[0].SiteName | Should -Be 'IISSite' }
+        It 'Should return DefaultAppPool' { $script:iisAdminResult[0].AppPoolName | Should -Be 'DefaultAppPool' }
+        It 'Should return Started AppPoolState' { $script:iisAdminResult[0].AppPoolState | Should -Be 'Started' }
+        It 'Should contain binding info' { $script:iisAdminResult[0].Bindings | Should -Match 'http' }
+        It 'Should have PhysicalPath' { $script:iisAdminResult[0].PhysicalPath | Should -Be 'C:\inetpub\wwwroot' }
+    }
+
+    Context 'Local - IISAdministration pool not in index' {
+
+        BeforeAll {
+            Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith {
+                [PSCustomObject]@{ Name = 'W3SVC'; Status = 'Running' }
+            }
+            Mock -CommandName 'Get-Module' -ModuleName 'PSWinOps' -MockWith { $null } -ParameterFilter { $Name -eq 'WebAdministration' -and $ListAvailable }
+            Mock -CommandName 'Get-Module' -ModuleName 'PSWinOps' -MockWith {
+                [PSCustomObject]@{ Name = 'IISAdministration' }
+            } -ParameterFilter { $Name -eq 'IISAdministration' -and $ListAvailable }
+            Mock -CommandName 'Import-Module' -ModuleName 'PSWinOps' -MockWith { }
+            Mock -CommandName 'Get-IISAppPool' -ModuleName 'PSWinOps' -MockWith { @() }
+            Mock -CommandName 'Get-IISSite' -ModuleName 'PSWinOps' -MockWith {
+                $vdir = [PSCustomObject]@{ PhysicalPath = 'C:\web' }
+                $app = [PSCustomObject]@{
+                    ApplicationPoolName = 'OrphanPool'
+                    VirtualDirectories  = @{ '/' = $vdir }
+                }
+                @([PSCustomObject]@{
+                    Name         = 'OrphanSite'
+                    State        = 'Started'
+                    Bindings     = @([PSCustomObject]@{ Protocol = 'https'; BindingInformation = '*:443:' })
+                    Applications = @{ '/' = $app }
+                })
+            }
+            $script:orphanResult = Get-IISHealth -ComputerName $env:COMPUTERNAME
+        }
+
+        It 'Should set AppPoolState to Unknown' { $script:orphanResult[0].AppPoolState | Should -Be 'Unknown' }
+        It 'Should return Degraded' { $script:orphanResult[0].OverallHealth | Should -Be 'Degraded' }
+    }
+
+    Context 'Local - IISAdministration module throws' {
+
+        BeforeAll {
+            Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith {
+                [PSCustomObject]@{ Name = 'W3SVC'; Status = 'Running' }
+            }
+            Mock -CommandName 'Get-Module' -ModuleName 'PSWinOps' -MockWith { $null } -ParameterFilter { $Name -eq 'WebAdministration' -and $ListAvailable }
+            Mock -CommandName 'Get-Module' -ModuleName 'PSWinOps' -MockWith {
+                [PSCustomObject]@{ Name = 'IISAdministration' }
+            } -ParameterFilter { $Name -eq 'IISAdministration' -and $ListAvailable }
+            Mock -CommandName 'Import-Module' -ModuleName 'PSWinOps' -MockWith { throw 'Module load failed' }
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith { throw 'CIM not found' } -ParameterFilter { $Namespace -eq 'root/webadministration' }
+            $script:iisAdminFail = Get-IISHealth -ComputerName $env:COMPUTERNAME
+        }
+
+        It 'Should fallback to RoleUnavailable' { $script:iisAdminFail[0].OverallHealth | Should -Be 'RoleUnavailable' }
+    }
+
+    Context 'Local - No sites found via WebAdministration' {
+
+        BeforeAll {
+            Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith {
+                [PSCustomObject]@{ Name = 'W3SVC'; Status = 'Running' }
+            }
+            Mock -CommandName 'Get-Module' -ModuleName 'PSWinOps' -MockWith {
+                [PSCustomObject]@{ Name = 'WebAdministration' }
+            } -ParameterFilter { $Name -eq 'WebAdministration' -and $ListAvailable }
+            Mock -CommandName 'Get-Module' -ModuleName 'PSWinOps' -MockWith { $null } -ParameterFilter { $Name -eq 'IISAdministration' -and $ListAvailable }
+            Mock -CommandName 'Import-Module' -ModuleName 'PSWinOps' -MockWith { }
+            Mock -CommandName 'Get-ChildItem' -ModuleName 'PSWinOps' -MockWith { @() } -ParameterFilter { $Path -like 'IIS:\AppPools*' }
+            Mock -CommandName 'Get-Website' -ModuleName 'PSWinOps' -MockWith { @() }
+            $script:noSites = Get-IISHealth -ComputerName $env:COMPUTERNAME
+        }
+
+        It 'Should return NoSitesFound' { $script:noSites[0].SiteName | Should -Be 'NoSitesFound' }
+        It 'Should return Healthy when service is Running' { $script:noSites[0].OverallHealth | Should -Be 'Healthy' }
+    }
+
+    Context 'Local - GetWebAppPoolState throws' {
+
+        BeforeAll {
+            Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith {
+                [PSCustomObject]@{ Name = 'W3SVC'; Status = 'Running' }
+            }
+            Mock -CommandName 'Get-Module' -ModuleName 'PSWinOps' -MockWith {
+                [PSCustomObject]@{ Name = 'WebAdministration' }
+            } -ParameterFilter { $Name -eq 'WebAdministration' -and $ListAvailable }
+            Mock -CommandName 'Get-Module' -ModuleName 'PSWinOps' -MockWith { $null } -ParameterFilter { $Name -eq 'IISAdministration' -and $ListAvailable }
+            Mock -CommandName 'Import-Module' -ModuleName 'PSWinOps' -MockWith { }
+            Mock -CommandName 'Get-ChildItem' -ModuleName 'PSWinOps' -MockWith {
+                @([PSCustomObject]@{ Name = 'DefaultAppPool' })
+            } -ParameterFilter { $Path -like 'IIS:\AppPools*' }
+            Mock -CommandName 'Get-WebAppPoolState' -ModuleName 'PSWinOps' -MockWith { throw 'Access denied' }
+            Mock -CommandName 'Get-Website' -ModuleName 'PSWinOps' -MockWith {
+                @([PSCustomObject]@{
+                    Name = 'Default Web Site'; State = 'Started'
+                    applicationPool = 'DefaultAppPool'; physicalPath = 'C:\inetpub\wwwroot'
+                    Bindings = [PSCustomObject]@{
+                        Collection = @([PSCustomObject]@{ protocol = 'http'; bindingInformation = '*:80:' })
+                    }
+                })
+            }
+            $script:poolThrow = Get-IISHealth -ComputerName $env:COMPUTERNAME
+        }
+
+        It 'Should set AppPoolState to Unknown' { $script:poolThrow[0].AppPoolState | Should -Be 'Unknown' }
+    }
+
+    Context 'Local - CIM Invoke-CimMethod throws' {
+
+        BeforeAll {
+            Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith {
+                [PSCustomObject]@{ Name = 'W3SVC'; Status = 'Running' }
+            }
+            Mock -CommandName 'Get-Module' -ModuleName 'PSWinOps' -MockWith { $null } -ParameterFilter { $ListAvailable }
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
+                @([PSCustomObject]@{ Name = 'CIMSite' })
+            } -ParameterFilter { $Namespace -eq 'root/webadministration' }
+            Mock -CommandName 'Invoke-CimMethod' -ModuleName 'PSWinOps' -MockWith { throw 'Method failed' }
+            $script:cimMethodFail = Get-IISHealth -ComputerName $env:COMPUTERNAME
+        }
+
+        It 'Should set SiteState to Unknown' { $script:cimMethodFail[0].SiteState | Should -Be 'Unknown' }
+        It 'Should still return a result' { $script:cimMethodFail | Should -Not -BeNullOrEmpty }
+    }
+
+    Context 'Remote with Credential' {
+
+        BeforeAll {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $script:mockRemoteData }
+            $script:cred = [PSCredential]::new('testuser', (ConvertTo-SecureString -String 'P@ss1' -AsPlainText -Force))
+            $script:credResult = Get-IISHealth -ComputerName 'SRV01' -Credential $script:cred
+        }
+
+        It 'Should return a result' { $script:credResult | Should -Not -BeNullOrEmpty }
+        It 'Should pass Credential to Invoke-Command' {
+            Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 1 -Exactly -ParameterFilter { $null -ne $Credential }
+        }
+    }
+
 }

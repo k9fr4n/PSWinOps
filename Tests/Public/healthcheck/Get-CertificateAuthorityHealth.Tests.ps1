@@ -243,4 +243,212 @@ Describe 'Get-CertificateAuthorityHealth' {
         It 'Should have Timestamp matching ISO 8601' { $script:typeResult.Timestamp | Should -Match '^\d{4}-\d{2}-\d{2}T' }
     }
 
+    Context 'Local - certutil parsing all checks pass' {
+
+        BeforeAll {
+            Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith {
+                [PSCustomObject]@{ Name = 'CertSvc'; Status = 'Running' }
+            }
+            Mock -CommandName 'Get-Command' -ModuleName 'PSWinOps' -MockWith {
+                [PSCustomObject]@{ Name = 'certutil.exe' }
+            } -ParameterFilter { $Name -eq 'certutil.exe' }
+
+            & (Get-Module -Name 'PSWinOps') {
+                function script:certutil.exe {
+                    $global:LASTEXITCODE = 0
+                    $argStr = $args -join ' '
+                    if ($argStr -match 'CAInfo') {
+                        return @(
+                            '  CA name: Test-Root-CA'
+                            '  CA type: 0 - Enterprise Root CA'
+                            '  CA cert[0]:'
+                            "    NotAfter: $((Get-Date).AddYears(4).ToString('MM/dd/yyyy HH:mm:ss'))"
+                            '  CA cert[1]:'
+                        )
+                    }
+                    elseif ($argStr -match 'CRL') {
+                        return @('CRL published successfully')
+                    }
+                    elseif ($argStr -match 'ping') {
+                        return @('CertUtil: -ping command completed successfully.')
+                    }
+                }
+            }
+
+            $script:localParsed = Get-CertificateAuthorityHealth -ComputerName $env:COMPUTERNAME
+        }
+
+        AfterAll {
+            & (Get-Module -Name 'PSWinOps') {
+                Remove-Item -Path 'Function:\certutil.exe' -ErrorAction SilentlyContinue
+            }
+        }
+
+        It 'Should return Healthy' { $script:localParsed.OverallHealth | Should -Be 'Healthy' }
+        It 'Should parse CA name' { $script:localParsed.CAName | Should -Be 'Test-Root-CA' }
+        It 'Should parse CA type with numeric prefix' { $script:localParsed.CAType | Should -Be 'Enterprise Root CA' }
+        It 'Should have positive days remaining' { $script:localParsed.CACertDaysRemaining | Should -BeGreaterThan 0 }
+        It 'Should have CRLPublishOK true' { $script:localParsed.CRLPublishOK | Should -BeTrue }
+        It 'Should have CAPingOK true' { $script:localParsed.CAPingOK | Should -BeTrue }
+        It 'Should have CACertExpiry populated' { $script:localParsed.CACertExpiry | Should -Not -Be 'Unknown' }
+    }
+
+    Context 'Local - certutil CRL has error text' {
+
+        BeforeAll {
+            Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith {
+                [PSCustomObject]@{ Name = 'CertSvc'; Status = 'Running' }
+            }
+            Mock -CommandName 'Get-Command' -ModuleName 'PSWinOps' -MockWith {
+                [PSCustomObject]@{ Name = 'certutil.exe' }
+            } -ParameterFilter { $Name -eq 'certutil.exe' }
+
+            & (Get-Module -Name 'PSWinOps') {
+                function script:certutil.exe {
+                    $global:LASTEXITCODE = 0
+                    $argStr = $args -join ' '
+                    if ($argStr -match 'CAInfo') {
+                        return @(
+                            '  CA name: Test-Root-CA'
+                            '  CA type: 0 - Enterprise Root CA'
+                            '  CA cert[0]:'
+                            "    NotAfter: $((Get-Date).AddYears(4).ToString('MM/dd/yyyy HH:mm:ss'))"
+                            '  CA cert[1]:'
+                        )
+                    }
+                    elseif ($argStr -match 'CRL') {
+                        return @('CRL publish error: The revocation function was unable to check revocation')
+                    }
+                    elseif ($argStr -match 'ping') {
+                        return @('CertUtil: -ping command completed successfully.')
+                    }
+                }
+            }
+
+            $script:localCRLError = Get-CertificateAuthorityHealth -ComputerName $env:COMPUTERNAME
+        }
+
+        AfterAll {
+            & (Get-Module -Name 'PSWinOps') {
+                Remove-Item -Path 'Function:\certutil.exe' -ErrorAction SilentlyContinue
+            }
+        }
+
+        It 'Should return Degraded' { $script:localCRLError.OverallHealth | Should -Be 'Degraded' }
+        It 'Should have CRLPublishOK false' { $script:localCRLError.CRLPublishOK | Should -BeFalse }
+        It 'Should still have CAPingOK true' { $script:localCRLError.CAPingOK | Should -BeTrue }
+    }
+
+    Context 'Local - certutil ping fails but text says successfully' {
+
+        BeforeAll {
+            Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith {
+                [PSCustomObject]@{ Name = 'CertSvc'; Status = 'Running' }
+            }
+            Mock -CommandName 'Get-Command' -ModuleName 'PSWinOps' -MockWith {
+                [PSCustomObject]@{ Name = 'certutil.exe' }
+            } -ParameterFilter { $Name -eq 'certutil.exe' }
+
+            & (Get-Module -Name 'PSWinOps') {
+                function script:certutil.exe {
+                    $argStr = $args -join ' '
+                    if ($argStr -match 'CAInfo') {
+                        $global:LASTEXITCODE = 0
+                        return @(
+                            '  CA name: Test-Root-CA'
+                            '  CA type: Standalone Root CA'
+                            '  CA cert[0]:'
+                            "    NotAfter: $((Get-Date).AddYears(4).ToString('MM/dd/yyyy HH:mm:ss'))"
+                            '  CA cert[1]:'
+                        )
+                    }
+                    elseif ($argStr -match 'CRL') {
+                        $global:LASTEXITCODE = 0
+                        return @('CRL published successfully')
+                    }
+                    elseif ($argStr -match 'ping') {
+                        $global:LASTEXITCODE = 1
+                        return @(
+                            'Server "Test-Root-CA" ICertRequest2 interface is alive (0ms)'
+                            'CertUtil: -ping command completed successfully.'
+                        )
+                    }
+                }
+            }
+
+            $script:localPingText = Get-CertificateAuthorityHealth -ComputerName $env:COMPUTERNAME
+        }
+
+        AfterAll {
+            & (Get-Module -Name 'PSWinOps') {
+                Remove-Item -Path 'Function:\certutil.exe' -ErrorAction SilentlyContinue
+            }
+        }
+
+        It 'Should have CAPingOK true via text match' { $script:localPingText.CAPingOK | Should -BeTrue }
+        It 'Should parse CA type without numeric prefix' { $script:localPingText.CAType | Should -Be 'Standalone Root CA' }
+        It 'Should return Healthy' { $script:localPingText.OverallHealth | Should -Be 'Healthy' }
+    }
+
+    Context 'Local - certutil ping fails completely' {
+
+        BeforeAll {
+            Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith {
+                [PSCustomObject]@{ Name = 'CertSvc'; Status = 'Running' }
+            }
+            Mock -CommandName 'Get-Command' -ModuleName 'PSWinOps' -MockWith {
+                [PSCustomObject]@{ Name = 'certutil.exe' }
+            } -ParameterFilter { $Name -eq 'certutil.exe' }
+
+            & (Get-Module -Name 'PSWinOps') {
+                function script:certutil.exe {
+                    $argStr = $args -join ' '
+                    if ($argStr -match 'CAInfo') {
+                        $global:LASTEXITCODE = 0
+                        return @(
+                            '  CA name: Test-Root-CA'
+                            '  CA type: 0 - Enterprise Root CA'
+                            '  CA cert[0]:'
+                            "    NotAfter: $((Get-Date).AddYears(4).ToString('MM/dd/yyyy HH:mm:ss'))"
+                            '  CA cert[1]:'
+                        )
+                    }
+                    elseif ($argStr -match 'CRL') {
+                        $global:LASTEXITCODE = 0
+                        return @('CRL published')
+                    }
+                    elseif ($argStr -match 'ping') {
+                        $global:LASTEXITCODE = 1
+                        return @('CertUtil: -ping command FAILED: 0x800706ba')
+                    }
+                }
+            }
+
+            $script:localPingFail = Get-CertificateAuthorityHealth -ComputerName $env:COMPUTERNAME
+        }
+
+        AfterAll {
+            & (Get-Module -Name 'PSWinOps') {
+                Remove-Item -Path 'Function:\certutil.exe' -ErrorAction SilentlyContinue
+            }
+        }
+
+        It 'Should have CAPingOK false' { $script:localPingFail.CAPingOK | Should -BeFalse }
+        It 'Should return Critical' { $script:localPingFail.OverallHealth | Should -Be 'Critical' }
+    }
+
+    Context 'Remote with Credential' {
+
+        BeforeAll {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $script:mockRemoteData }
+            $script:cred = [PSCredential]::new('testuser', (ConvertTo-SecureString -String 'P@ss1' -AsPlainText -Force))
+            $script:credResult = Get-CertificateAuthorityHealth -ComputerName 'SRV01' -Credential $script:cred
+        }
+
+        It 'Should return a result' { $script:credResult | Should -Not -BeNullOrEmpty }
+        It 'Should pass Credential to Invoke-Command' {
+            Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 1 -Exactly -ParameterFilter { $null -ne $Credential }
+        }
+    }
+
 }
