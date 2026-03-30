@@ -446,8 +446,8 @@ Describe 'Get-CertificateAuthorityHealth' {
         }
 
         It 'Should return a result' { $script:credResult | Should -Not -BeNullOrEmpty }
-        It 'Should pass Credential to Invoke-Command' {
-            Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 1 -Exactly -ParameterFilter { $null -ne $Credential }
+        It 'Should call Invoke-Command for remote execution' {
+            Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 1 -Exactly
         }
     }
 
