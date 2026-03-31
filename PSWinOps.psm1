@@ -17,6 +17,9 @@ if ($PSEdition -eq 'Core' -and -not $IsWindows) {
 # Get module root path
 $script:ModuleRoot = $PSScriptRoot
 
+# Module-scoped list of names that identify the local machine
+$script:LocalComputerNames = @($env:COMPUTERNAME, 'localhost', '.')
+
 Write-Verbose "[$($MyInvocation.MyCommand)] Loading PSWinOps module from: $script:ModuleRoot"
 
 # Import Private functions

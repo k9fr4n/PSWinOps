@@ -1,4 +1,6 @@
-﻿function Get-PublicIPAddress {
+﻿#Requires -Version 5.1
+
+function Get-PublicIPAddress {
     <#
         .SYNOPSIS
             Retrieves the public IP address of the local or remote computer
