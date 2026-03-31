@@ -419,14 +419,13 @@ Describe 'Get-IISHealth' {
             }
             Mock -CommandName 'Get-Module' -ModuleName 'PSWinOps' -MockWith { $null } -ParameterFilter { $ListAvailable }
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
-                @([PSCustomObject]@{ Name = 'TestSite' })
-            } -ParameterFilter { $ClassName -eq 'Site' }
-            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
-                @([PSCustomObject]@{ Name = 'DefaultAppPool' })
-            } -ParameterFilter { $ClassName -eq 'ApplicationPool' }
-            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
-                @([PSCustomObject]@{ SiteName = 'TestSite'; Path = '/'; ApplicationPool = 'DefaultAppPool' })
-            } -ParameterFilter { $ClassName -eq 'Application' }
+                switch ($ClassName) {
+                    'Site'            { @([PSCustomObject]@{ Name = 'TestSite' }) }
+                    'ApplicationPool' { @([PSCustomObject]@{ Name = 'DefaultAppPool' }) }
+                    'Application'     { @([PSCustomObject]@{ SiteName = 'TestSite'; Path = '/'; ApplicationPool = 'DefaultAppPool' }) }
+                    default           { throw "Unexpected CIM class: $ClassName" }
+                }
+            } -ParameterFilter { $Namespace -eq 'root/webadministration' }
             Mock -CommandName 'Invoke-CimMethod' -ModuleName 'PSWinOps' -MockWith {
                 [PSCustomObject]@{ ReturnValue = 1 }
             }
@@ -450,14 +449,11 @@ Describe 'Get-IISHealth' {
             }
             Mock -CommandName 'Get-Module' -ModuleName 'PSWinOps' -MockWith { $null } -ParameterFilter { $ListAvailable }
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
-                @([PSCustomObject]@{ Name = 'TestSite' })
-            } -ParameterFilter { $ClassName -eq 'Site' }
-            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
-                throw 'ApplicationPool CIM class not available'
-            } -ParameterFilter { $ClassName -eq 'ApplicationPool' }
-            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
-                throw 'Application CIM class not available'
-            } -ParameterFilter { $ClassName -eq 'Application' }
+                switch ($ClassName) {
+                    'Site' { @([PSCustomObject]@{ Name = 'TestSite' }) }
+                    default { throw "$ClassName CIM class not available" }
+                }
+            } -ParameterFilter { $Namespace -eq 'root/webadministration' }
             Mock -CommandName 'Invoke-CimMethod' -ModuleName 'PSWinOps' -MockWith {
                 [PSCustomObject]@{ ReturnValue = 1 }
             }
