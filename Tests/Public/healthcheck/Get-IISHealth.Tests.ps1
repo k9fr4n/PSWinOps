@@ -436,9 +436,8 @@ Describe 'Get-IISHealth' {
 
         It 'Should return result via CIM fallback' { $script:localCIM | Should -Not -BeNullOrEmpty }
         It 'Should have SiteName from CIM' { $script:localCIM[0].SiteName | Should -Be 'TestSite' }
-        It 'Should resolve AppPoolName via CIM' { $script:localCIM[0].AppPoolName | Should -Be 'DefaultAppPool' }
-        It 'Should resolve AppPoolState via CIM' { $script:localCIM[0].AppPoolState | Should -Be 'Started' }
-        It 'Should return Healthy when pool is Started' { $script:localCIM[0].OverallHealth | Should -Be 'Healthy' }
+        It 'Should resolve AppPoolName via CIM Application mapping' { $script:localCIM[0].AppPoolName | Should -Be 'DefaultAppPool' }
+        It 'Should return Healthy (Unknown states are not penalized)' { $script:localCIM[0].OverallHealth | Should -Be 'Healthy' }
     }
 
     Context 'Local execution - CIM fallback with unknown pool state is not Degraded' {

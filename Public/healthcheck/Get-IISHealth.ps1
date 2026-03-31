@@ -267,7 +267,7 @@ function Get-IISHealth {
             else {
                 foreach ($siteInfo in $sitesData) {
                     $health = if ($w3svcStatus -ne 'Running') { 'Critical' }
-                    elseif ($siteInfo.SiteState -ne 'Started') { 'Critical' }
+                    elseif ($siteInfo.SiteState -notin @('Started', 'Unknown')) { 'Critical' }
                     elseif ($siteInfo.AppPoolState -notin @('Started', 'Unknown')) { 'Degraded' }
                     else { 'Healthy' }
 
