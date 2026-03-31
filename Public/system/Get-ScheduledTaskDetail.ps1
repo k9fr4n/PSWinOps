@@ -112,7 +112,9 @@ function Get-ScheduledTaskDetail {
                 $runInfo = $null
                 try {
                     $runInfo = ScheduledTasks\Get-ScheduledTaskInfo -TaskName $task.TaskName -TaskPath $task.TaskPath -ErrorAction SilentlyContinue
-                } catch { }
+                } catch {
+                    Write-Verbose -Message "[$($MyInvocation.MyCommand)] Could not retrieve run info for '$($task.TaskPath)$($task.TaskName)': $_"
+                }
 
                 [PSCustomObject]@{
                     TaskName       = $task.TaskName
