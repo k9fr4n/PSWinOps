@@ -99,6 +99,7 @@ function Get-DfsReplicationHealth {
                     ReplicatedFolderName = 'N/A'
                     State                = 'N/A'
                     CurrentConflictSize  = [long]0
+                    OverallHealth        = 'RoleUnavailable'
                 })
             }
             else {
@@ -115,6 +116,15 @@ function Get-DfsReplicationHealth {
                         default { "Unknown ($stateValue)" }
                     }
 
+                    $health = if ($serviceStatus -ne 'Running' -or $stateText -eq 'In Error') {
+                        'Critical'
+                    }
+                    elseif ($stateText -ne 'Normal') {
+                        'Degraded'
+                    }
+                    else {
+                        'Healthy'
+                    }
 
                     $conflictSize = if ($null -ne $folder.CurrentConflictSizeInMb) {
                         [long]$folder.CurrentConflictSizeInMb
@@ -129,6 +139,7 @@ function Get-DfsReplicationHealth {
                         ReplicatedFolderName = $folder.ReplicatedFolderName
                         State                = $stateText
                         CurrentConflictSize  = $conflictSize
+                        OverallHealth        = $health
                     })
                 }
             }
@@ -152,20 +163,6 @@ function Get-DfsReplicationHealth {
                 }
 
                 foreach ($entry in $rawResults) {
-                    # Compute OverallHealth outside the scriptblock
-                    $healthStatus = if ($entry.State -eq 'N/A') {
-                        'RoleUnavailable'
-                    }
-                    elseif ($entry.ServiceStatus -ne 'Running' -or $entry.State -eq 'In Error') {
-                        'Critical'
-                    }
-                    elseif ($entry.State -ne 'Normal') {
-                        'Degraded'
-                    }
-                    else {
-                        'Healthy'
-                    }
-
                     [PSCustomObject]@{
                         PSTypeName           = 'PSWinOps.DfsReplicationHealth'
                         ComputerName         = $displayName
@@ -175,7 +172,7 @@ function Get-DfsReplicationHealth {
                         ReplicatedFolderName = $entry.ReplicatedFolderName
                         State                = $entry.State
                         CurrentConflictSize  = $entry.CurrentConflictSize
-                        OverallHealth        = $healthStatus
+                        OverallHealth        = $entry.OverallHealth
                         Timestamp            = Get-Date -Format 'o'
                     }
                 }

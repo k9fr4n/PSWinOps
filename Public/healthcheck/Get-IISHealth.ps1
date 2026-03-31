@@ -88,6 +88,7 @@ function Get-IISHealth {
                     PhysicalPath  = 'N/A'
                     AppPoolName   = 'N/A'
                     AppPoolState  = 'N/A'
+                    OverallHealth = 'RoleUnavailable'
                 })
                 return $siteResults
             }
@@ -243,7 +244,8 @@ function Get-IISHealth {
                         PhysicalPath  = 'N/A'
                         AppPoolName   = 'N/A'
                         AppPoolState  = 'N/A'
-                        })
+                        OverallHealth = 'RoleUnavailable'
+                    })
                     return $siteResults
                 }
             }
@@ -258,10 +260,15 @@ function Get-IISHealth {
                     PhysicalPath  = 'N/A'
                     AppPoolName   = 'N/A'
                     AppPoolState  = 'N/A'
+                    OverallHealth = if ($w3svcStatus -ne 'Running') { 'Critical' } else { 'Healthy' }
                 })
             }
             else {
                 foreach ($siteInfo in $sitesData) {
+                    $health = if ($w3svcStatus -ne 'Running') { 'Critical' }
+                    elseif ($siteInfo.SiteState -notin @('Started', 'Unknown')) { 'Critical' }
+                    elseif ($siteInfo.AppPoolState -notin @('Started', 'Unknown')) { 'Degraded' }
+                    else { 'Healthy' }
 
                     $siteResults.Add(@{
                         ServiceStatus = $w3svcStatus
@@ -271,6 +278,7 @@ function Get-IISHealth {
                         PhysicalPath  = $siteInfo.PhysicalPath
                         AppPoolName   = $siteInfo.AppPoolName
                         AppPoolState  = $siteInfo.AppPoolState
+                        OverallHealth = $health
                     })
                 }
             }
@@ -288,29 +296,6 @@ function Get-IISHealth {
                 $rawResults = Invoke-RemoteOrLocal -ComputerName $machine -ScriptBlock $scriptBlock -Credential $Credential
 
                 foreach ($entry in $rawResults) {
-                    # Compute OverallHealth outside the scriptblock
-                    $healthStatus = if ($entry.ServiceStatus -eq 'NotInstalled') {
-                        'RoleUnavailable'
-                    }
-                    elseif ($entry.SiteName -eq 'N/A') {
-                        'RoleUnavailable'
-                    }
-                    elseif ($entry.SiteName -eq 'NoSitesFound') {
-                        if ($entry.ServiceStatus -ne 'Running') { 'Critical' } else { 'Healthy' }
-                    }
-                    elseif ($entry.ServiceStatus -ne 'Running') {
-                        'Critical'
-                    }
-                    elseif ($entry.SiteState -notin @('Started', 'Unknown')) {
-                        'Critical'
-                    }
-                    elseif ($entry.AppPoolState -notin @('Started', 'Unknown')) {
-                        'Degraded'
-                    }
-                    else {
-                        'Healthy'
-                    }
-
                     [PSCustomObject]@{
                         PSTypeName    = 'PSWinOps.IISHealth'
                         ComputerName  = $displayName
@@ -322,7 +307,7 @@ function Get-IISHealth {
                         PhysicalPath  = $entry.PhysicalPath
                         AppPoolName   = $entry.AppPoolName
                         AppPoolState  = $entry.AppPoolState
-                        OverallHealth = $healthStatus
+                        OverallHealth = $entry.OverallHealth
                         Timestamp     = Get-Date -Format 'o'
                     }
                 }

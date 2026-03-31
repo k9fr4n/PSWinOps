@@ -52,15 +52,18 @@ Describe 'Get-DfsNamespaceHealth' {
         )
 
         $script:mockRemoteResult = @(
-            @{
+            [PSCustomObject]@{
+                PSTypeName     = 'PSWinOps.DfsNamespaceHealth'
+                ComputerName   = 'SRV01'
+                ServiceName    = 'Dfs'
                 ServiceStatus  = 'Running'
                 RootPath       = '\\contoso.com\Share'
                 RootType       = 'DomainV2'
                 State          = 'Online'
                 TargetCount    = 2
                 HealthyTargets = 2
-                DfsnAvailable  = $true
-                QueryError     = $false
+                OverallHealth  = 'Healthy'
+                Timestamp      = '2026-03-26T12:00:00.0000000+00:00'
             }
         )
     }
