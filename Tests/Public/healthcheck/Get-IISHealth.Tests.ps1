@@ -462,7 +462,7 @@ Describe 'Get-IISHealth' {
             $script:localStopped = Get-IISHealth -ComputerName $env:COMPUTERNAME
         }
 
-        It 'Should NOT call Invoke-Command' { Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 0 -Exactly }
+        It 'Should NOT call Invoke-Command' { Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 0 -Exactly -Scope Context }
         It 'Should return Critical' { $script:localStopped[0].OverallHealth | Should -Be 'Critical' }
         It 'Should report Stopped SiteState' { $script:localStopped[0].SiteState | Should -Be 'Stopped' }
     }
@@ -598,7 +598,7 @@ Describe 'Get-IISHealth' {
             $script:localLH = Get-IISHealth -ComputerName 'localhost'
         }
 
-        It 'Should NOT call Invoke-Command' { Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 0 -Exactly }
+        It 'Should NOT call Invoke-Command' { Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 0 -Exactly -Scope Context }
         It 'Should return LOCALHOST as ComputerName' { $script:localLH[0].ComputerName | Should -Be 'LOCALHOST' }
     }
 
@@ -610,7 +610,7 @@ Describe 'Get-IISHealth' {
             $script:localDot = Get-IISHealth -ComputerName '.'
         }
 
-        It 'Should NOT call Invoke-Command' { Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 0 -Exactly }
+        It 'Should NOT call Invoke-Command' { Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 0 -Exactly -Scope Context }
         It 'Should return a result' { $script:localDot | Should -Not -BeNullOrEmpty }
     }
 
@@ -780,7 +780,7 @@ Describe 'Get-IISHealth' {
 
         It 'Should return a result' { $script:credResult | Should -Not -BeNullOrEmpty }
         It 'Should call Invoke-Command for remote execution' {
-            Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 1 -Exactly
+            Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 1 -Exactly -Scope Context
         }
     }
 

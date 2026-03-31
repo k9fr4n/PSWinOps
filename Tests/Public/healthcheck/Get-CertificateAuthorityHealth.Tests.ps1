@@ -216,7 +216,7 @@ Describe 'Get-CertificateAuthorityHealth' {
             $script:localCALH = Get-CertificateAuthorityHealth -ComputerName 'localhost'
         }
 
-        It 'Should NOT call Invoke-Command' { Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 0 -Exactly }
+        It 'Should NOT call Invoke-Command' { Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 0 -Exactly -Scope Context }
         It 'Should return LOCALHOST as ComputerName' { $script:localCALH.ComputerName | Should -Be 'LOCALHOST' }
     }
 
@@ -228,7 +228,7 @@ Describe 'Get-CertificateAuthorityHealth' {
             $script:localCADot = Get-CertificateAuthorityHealth -ComputerName '.'
         }
 
-        It 'Should NOT call Invoke-Command' { Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 0 -Exactly }
+        It 'Should NOT call Invoke-Command' { Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 0 -Exactly -Scope Context }
         It 'Should return a result' { $script:localCADot | Should -Not -BeNullOrEmpty }
     }
 
@@ -447,7 +447,7 @@ Describe 'Get-CertificateAuthorityHealth' {
 
         It 'Should return a result' { $script:credResult | Should -Not -BeNullOrEmpty }
         It 'Should call Invoke-Command for remote execution' {
-            Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 1 -Exactly
+            Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 1 -Exactly -Scope Context
         }
     }
 
