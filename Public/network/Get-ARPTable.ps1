@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 
 function Get-ArpTable {
     <#
@@ -91,7 +91,7 @@ function Get-ArpTable {
             param([string]$QueryState, [string]$QueryAddressFamily)
 
             $getParams = @{
-                ErrorAction   = 'Stop'
+                ErrorAction = 'Stop'
             }
 
             if ($QueryAddressFamily -eq 'IPv4') {
@@ -128,11 +128,23 @@ function Get-ArpTable {
                         } else {
                             $hex
                         }
-                    } else { '' }
+                    } else {
+                        ''
+                    }
                     State          = [string]$entry.State
-                    InterfaceAlias = if ($interfaces.ContainsKey($entry.InterfaceIndex)) { $interfaces[$entry.InterfaceIndex] } else { "Index $($entry.InterfaceIndex)" }
+                    InterfaceAlias = if ($interfaces.ContainsKey($entry.InterfaceIndex)) {
+                        $interfaces[$entry.InterfaceIndex]
+                    } else {
+                        "Index $($entry.InterfaceIndex)"
+                    }
                     InterfaceIndex = $entry.InterfaceIndex
-                    AddressFamily  = if ($entry.AddressFamily -eq 2) { 'IPv4' } elseif ($entry.AddressFamily -eq 23) { 'IPv6' } else { [string]$entry.AddressFamily }
+                    AddressFamily  = if ($entry.AddressFamily -eq 2) {
+                        'IPv4'
+                    } elseif ($entry.AddressFamily -eq 23) {
+                        'IPv6'
+                    } else {
+                        [string]$entry.AddressFamily
+                    }
                 }
             }
         }
@@ -146,7 +158,11 @@ function Get-ArpTable {
                 Write-Verbose "[$($MyInvocation.MyCommand)] Querying ARP table on '$targetComputer'"
 
                 $queryArgs = @(
-                    $(if ($State) { $State } else { $null })
+                    $(if ($State) {
+                            $State
+                        } else {
+                            $null
+                        })
                     $AddressFamily
                 )
 

@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 
 function Get-SubnetInfo {
     <#
@@ -75,13 +75,13 @@ function Get-SubnetInfo {
 
         [Parameter(Mandatory = $false, ParameterSetName = 'Mask')]
         [ValidateScript({
-            try {
-                $null = [System.Net.IPAddress]::Parse($_)
-                $true
-            } catch {
-                throw "Invalid subnet mask format: '$_'"
-            }
-        })]
+                try {
+                    $null = [System.Net.IPAddress]::Parse($_)
+                    $true
+                } catch {
+                    throw "Invalid subnet mask format: '$_'"
+                }
+            })]
         [string]$SubnetMask
     )
 
@@ -97,11 +97,11 @@ function Get-SubnetInfo {
         function ConvertFrom-UInt32 {
             param([uint32]$Value)
             [System.Net.IPAddress]::new([byte[]]@(
-                [byte](($Value -shr 24) -band 0xFF),
-                [byte](($Value -shr 16) -band 0xFF),
-                [byte](($Value -shr 8) -band 0xFF),
-                [byte]($Value -band 0xFF)
-            ))
+                    [byte](($Value -shr 24) -band 0xFF),
+                    [byte](($Value -shr 16) -band 0xFF),
+                    [byte](($Value -shr 8) -band 0xFF),
+                    [byte]($Value -band 0xFF)
+                ))
         }
 
         function ConvertTo-PrefixLength {
@@ -162,7 +162,11 @@ function Get-SubnetInfo {
                     # /31 = point-to-point (RFC 3021), /32 = single host
                     $firstHostInt = $networkInt
                     $lastHostInt = $broadcastInt
-                    $totalHosts = if ($parsedPrefix -eq 32) { 1 } else { 2 }
+                    $totalHosts = if ($parsedPrefix -eq 32) {
+                        1 
+                    } else {
+                        2 
+                    }
                     $usableHosts = $totalHosts
                 } else {
                     $firstHostInt = $networkInt + 1
@@ -183,7 +187,7 @@ function Get-SubnetInfo {
                     LastUsableHost   = (ConvertFrom-UInt32 -Value $lastHostInt).ToString()
                     TotalHosts       = [long]$totalHosts
                     UsableHosts      = [long]$usableHosts
-                    CIDR             = "{0}/{1}" -f (ConvertFrom-UInt32 -Value $networkInt).ToString(), $parsedPrefix
+                    CIDR             = '{0}/{1}' -f (ConvertFrom-UInt32 -Value $networkInt).ToString(), $parsedPrefix
                     Timestamp        = Get-Date -Format 'o'
                 }
             } catch {

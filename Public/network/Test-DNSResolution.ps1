@@ -102,9 +102,13 @@ function Test-DNSResolution {
             }
 
             for ($i = 0; $i -lt $serverList.Count; $i++) {
-                $server      = $serverList[$i]
-                $isDefault   = [string]::IsNullOrEmpty($server)
-                $serverLabel = if ($isDefault) { '(Default)' } else { $server }
+                $server = $serverList[$i]
+                $isDefault = [string]::IsNullOrEmpty($server)
+                $serverLabel = if ($isDefault) {
+                    '(Default)'
+                } else {
+                    $server
+                }
 
                 Write-Verbose "[$($MyInvocation.MyCommand)] Resolving '$dnsName' (Type=$Type) via $serverLabel"
 
@@ -127,18 +131,26 @@ function Test-DNSResolution {
 
                     # Extract values matching the requested record type
                     $records = @($dnsResult | Where-Object {
-                        $_.QueryType -eq $Type -or
-                        ($Type -eq 'A'    -and $_.Type -eq 1) -or
-                        ($Type -eq 'AAAA' -and $_.Type -eq 28)
-                    } | ForEach-Object {
-                        if     ($_.IPAddress)         { $_.IPAddress }
-                        elseif ($_.NameHost)           { $_.NameHost }
-                        elseif ($_.NameExchange)       { $_.NameExchange }
-                        elseif ($_.NameAdministrator)  { $_.NameAdministrator }
-                        elseif ($_.NameTarget)         { $_.NameTarget }
-                        elseif ($_.Strings)            { $_.Strings -join '; ' }
-                        else                           { $_.ToString() }
-                    })
+                            $_.QueryType -eq $Type -or
+                            ($Type -eq 'A' -and $_.Type -eq 1) -or
+                            ($Type -eq 'AAAA' -and $_.Type -eq 28)
+                        } | ForEach-Object {
+                            if ($_.IPAddress) {
+                                $_.IPAddress
+                            } elseif ($_.NameHost) {
+                                $_.NameHost
+                            } elseif ($_.NameExchange) {
+                                $_.NameExchange
+                            } elseif ($_.NameAdministrator) {
+                                $_.NameAdministrator
+                            } elseif ($_.NameTarget) {
+                                $_.NameTarget
+                            } elseif ($_.Strings) {
+                                $_.Strings -join '; '
+                            } else {
+                                $_.ToString()
+                            }
+                        })
 
                     $hasRecords = $records.Count -gt 0
 
@@ -147,11 +159,19 @@ function Test-DNSResolution {
                         Name         = $dnsName
                         DnsServer    = $serverLabel
                         QueryType    = $Type
-                        Result       = if ($hasRecords) { $records -join ', ' } else { $null }
+                        Result       = if ($hasRecords) {
+                            $records -join ', '
+                        } else {
+                            $null
+                        }
                         QueryTimeMs  = $elapsedMs
                         Success      = $hasRecords
                         Consistent   = $null  # Computed in end {}
-                        ErrorMessage = if (-not $hasRecords) { "No $Type records found in DNS response" } else { $null }
+                        ErrorMessage = if (-not $hasRecords) {
+                            "No $Type records found in DNS response"
+                        } else {
+                            $null
+                        }
                         Timestamp    = Get-Date -Format 'o'
                     }
 
@@ -187,16 +207,22 @@ function Test-DNSResolution {
         foreach ($group in $grouped) {
             if (-not $multiServer) {
                 # Single server or default: consistency is not applicable
-                foreach ($r in $group.Group) { $r.Consistent = $null }
+                foreach ($r in $group.Group) {
+                    $r.Consistent = $null
+                }
             } else {
                 $successResults = @($group.Group | Where-Object { $_.Success })
                 if ($successResults.Count -le 1) {
                     # Zero or one succeeded: cannot determine consistency
-                    foreach ($r in $group.Group) { $r.Consistent = $null }
+                    foreach ($r in $group.Group) {
+                        $r.Consistent = $null
+                    }
                 } else {
                     $uniqueResults = @($successResults.Result | Sort-Object -Unique)
-                    $isConsistent  = $uniqueResults.Count -eq 1
-                    foreach ($r in $group.Group) { $r.Consistent = $isConsistent }
+                    $isConsistent = $uniqueResults.Count -eq 1
+                    foreach ($r in $group.Group) {
+                        $r.Consistent = $isConsistent
+                    }
                 }
             }
         }

@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 
 function Export-NetworkConfig {
     <#
@@ -106,43 +106,43 @@ function Export-NetworkConfig {
 
             # Adapters
             $config['Adapters'] = @(Get-NetAdapter -ErrorAction SilentlyContinue | ForEach-Object {
-                @{
-                    Name        = $_.Name
-                    Description = $_.InterfaceDescription
-                    Status      = [string]$_.Status
-                    Speed       = $_.LinkSpeed
-                    MacAddress  = $_.MacAddress
-                    MTU         = $_.MtuSize
-                    IfIndex     = $_.ifIndex
-                }
-            })
+                    @{
+                        Name        = $_.Name
+                        Description = $_.InterfaceDescription
+                        Status      = [string]$_.Status
+                        Speed       = $_.LinkSpeed
+                        MacAddress  = $_.MacAddress
+                        MTU         = $_.MtuSize
+                        IfIndex     = $_.ifIndex
+                    }
+                })
 
             # IP Addresses
             $config['IPAddresses'] = @(Get-NetIPAddress -ErrorAction SilentlyContinue |
-                Where-Object { $_.AddressFamily -eq 2 -and $_.IPAddress -ne '127.0.0.1' } | ForEach-Object {
-                @{
-                    InterfaceAlias = $_.InterfaceAlias
-                    IPAddress      = $_.IPAddress
-                    PrefixLength   = $_.PrefixLength
-                    AddressFamily  = 'IPv4'
-                    Type           = [string]$_.PrefixOrigin
-                }
-            })
+                    Where-Object { $_.AddressFamily -eq 2 -and $_.IPAddress -ne '127.0.0.1' } | ForEach-Object {
+                        @{
+                            InterfaceAlias = $_.InterfaceAlias
+                            IPAddress      = $_.IPAddress
+                            PrefixLength   = $_.PrefixLength
+                            AddressFamily  = 'IPv4'
+                            Type           = [string]$_.PrefixOrigin
+                        }
+                    })
 
             # DNS
             $config['DnsServers'] = @(Get-DnsClientServerAddress -ErrorAction SilentlyContinue |
-                Where-Object { $_.ServerAddresses } | ForEach-Object {
-                @{
-                    InterfaceAlias = $_.InterfaceAlias
-                    Servers        = $_.ServerAddresses
-                }
-            })
+                    Where-Object { $_.ServerAddresses } | ForEach-Object {
+                        @{
+                            InterfaceAlias = $_.InterfaceAlias
+                            Servers        = $_.ServerAddresses
+                        }
+                    })
 
             # DNS Suffix
             try {
                 $dnsSuffix = (Get-DnsClient -ErrorAction SilentlyContinue |
-                    Where-Object { $_.ConnectionSpecificSuffix } |
-                    Select-Object -First 1).ConnectionSpecificSuffix
+                        Where-Object { $_.ConnectionSpecificSuffix } |
+                        Select-Object -First 1).ConnectionSpecificSuffix
                 $config['DnsSuffix'] = $dnsSuffix
             } catch {
                 $config['DnsSuffix'] = $null
@@ -150,26 +150,26 @@ function Export-NetworkConfig {
 
             # Routes
             $config['Routes'] = @(Get-NetRoute -ErrorAction SilentlyContinue |
-                Where-Object { $_.DestinationPrefix -ne 'ff00::/8' -and $_.DestinationPrefix -ne '::/0' } |
-                Where-Object { $_.AddressFamily -eq 2 } | ForEach-Object {
-                @{
-                    DestinationPrefix = $_.DestinationPrefix
-                    NextHop           = $_.NextHop
-                    RouteMetric       = $_.RouteMetric
-                    InterfaceAlias    = $_.InterfaceAlias
-                }
-            })
+                    Where-Object { $_.DestinationPrefix -ne 'ff00::/8' -and $_.DestinationPrefix -ne '::/0' } |
+                    Where-Object { $_.AddressFamily -eq 2 } | ForEach-Object {
+                        @{
+                            DestinationPrefix = $_.DestinationPrefix
+                            NextHop           = $_.NextHop
+                            RouteMetric       = $_.RouteMetric
+                            InterfaceAlias    = $_.InterfaceAlias
+                        }
+                    })
 
             # Firewall profiles
             if ($CollectFirewall) {
                 $config['FirewallProfiles'] = @(Get-NetFirewallProfile -ErrorAction SilentlyContinue | ForEach-Object {
-                    @{
-                        Name    = $_.Name
-                        Enabled = $_.Enabled
-                        DefaultInboundAction  = [string]$_.DefaultInboundAction
-                        DefaultOutboundAction = [string]$_.DefaultOutboundAction
-                    }
-                })
+                        @{
+                            Name                  = $_.Name
+                            Enabled               = $_.Enabled
+                            DefaultInboundAction  = [string]$_.DefaultInboundAction
+                            DefaultOutboundAction = [string]$_.DefaultOutboundAction
+                        }
+                    })
             }
 
             # Listening ports
@@ -179,24 +179,28 @@ function Export-NetworkConfig {
                     $processCache[$_.Id] = $_.ProcessName
                 }
                 $config['ListeningPorts'] = @(Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue | ForEach-Object {
-                    @{
-                        Protocol    = 'TCP'
-                        LocalPort   = $_.LocalPort
-                        LocalAddress = $_.LocalAddress
-                        ProcessName = if ($processCache.ContainsKey($_.OwningProcess)) { $processCache[$_.OwningProcess] } else { "PID:$($_.OwningProcess)" }
-                    }
-                })
+                        @{
+                            Protocol     = 'TCP'
+                            LocalPort    = $_.LocalPort
+                            LocalAddress = $_.LocalAddress
+                            ProcessName  = if ($processCache.ContainsKey($_.OwningProcess)) {
+                                $processCache[$_.OwningProcess]
+                            } else {
+                                "PID:$($_.OwningProcess)"
+                            }
+                        }
+                    })
             }
 
             # ARP cache
             if ($CollectARP) {
                 $config['ARPCache'] = @(Get-NetNeighbor -AddressFamily IPv4 -ErrorAction SilentlyContinue | ForEach-Object {
-                    @{
-                        IPAddress     = $_.IPAddress
-                        LinkLayerAddr = $_.LinkLayerAddress
-                        State         = [string]$_.State
-                    }
-                })
+                        @{
+                            IPAddress     = $_.IPAddress
+                            LinkLayerAddr = $_.LinkLayerAddress
+                            State         = [string]$_.State
+                        }
+                    })
             }
 
             return $config
@@ -215,18 +219,18 @@ function Export-NetworkConfig {
                 $rawConfig = Invoke-RemoteOrLocal -ComputerName $targetComputer -ScriptBlock $queryScriptBlock -ArgumentList $queryArgs -Credential $Credential
 
                 $configObj = [PSCustomObject]@{
-                    PSTypeName        = 'PSWinOps.NetworkConfig'
-                    ComputerName      = $targetComputer
-                    Hostname          = $rawConfig.Hostname
-                    Adapters          = $rawConfig.Adapters
-                    IPAddresses       = $rawConfig.IPAddresses
-                    DnsServers        = $rawConfig.DnsServers
-                    DnsSuffix         = $rawConfig.DnsSuffix
-                    Routes            = $rawConfig.Routes
-                    FirewallProfiles  = $rawConfig.FirewallProfiles
-                    ListeningPorts    = $rawConfig.ListeningPorts
-                    ARPCache          = $rawConfig.ARPCache
-                    Timestamp         = $timestamp
+                    PSTypeName       = 'PSWinOps.NetworkConfig'
+                    ComputerName     = $targetComputer
+                    Hostname         = $rawConfig.Hostname
+                    Adapters         = $rawConfig.Adapters
+                    IPAddresses      = $rawConfig.IPAddresses
+                    DnsServers       = $rawConfig.DnsServers
+                    DnsSuffix        = $rawConfig.DnsSuffix
+                    Routes           = $rawConfig.Routes
+                    FirewallProfiles = $rawConfig.FirewallProfiles
+                    ListeningPorts   = $rawConfig.ListeningPorts
+                    ARPCache         = $rawConfig.ARPCache
+                    Timestamp        = $timestamp
                 }
 
                 # Export to file if Path specified

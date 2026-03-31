@@ -107,8 +107,8 @@ function Get-NTPConfiguration {
 
             try {
                 $isLocal = ($computer -eq $env:COMPUTERNAME) -or
-                           ($computer -eq 'localhost') -or
-                           ($computer -eq '.')
+                ($computer -eq 'localhost') -or
+                ($computer -eq '.')
 
                 if ($isLocal) {
                     # Local execution: call commands by name so they are mockable in Pester
@@ -125,7 +125,7 @@ function Get-NTPConfiguration {
 
                 $configOutput = $rawData.Config
                 $statusOutput = $rawData.Status
-                $peersOutput  = $rawData.Peers
+                $peersOutput = $rawData.Peers
 
                 # Parse configuration
                 $ntpServerLine = $configOutput | Select-String -Pattern 'NtpServer:\s*(.+)\s*\(.*\)' | Select-Object -First 1
@@ -136,29 +136,61 @@ function Get-NTPConfiguration {
                 }
 
                 $typeMatch = $configOutput | Select-String -Pattern 'Type:\s*(.+)' | Select-Object -First 1
-                $syncType = if ($typeMatch) { $typeMatch.Matches.Groups[1].Value.Trim() } else { 'Unknown' }
+                $syncType = if ($typeMatch) {
+                    $typeMatch.Matches.Groups[1].Value.Trim()
+                } else {
+                    'Unknown'
+                }
 
                 $specialPollMatch = $configOutput | Select-String -Pattern 'SpecialPollInterval:\s*(\d+)' | Select-Object -First 1
-                $specialPollInterval = if ($specialPollMatch) { [int]$specialPollMatch.Matches.Groups[1].Value } else { $null }
+                $specialPollInterval = if ($specialPollMatch) {
+                    [int]$specialPollMatch.Matches.Groups[1].Value
+                } else {
+                    $null
+                }
 
                 $minPollMatch = $configOutput | Select-String -Pattern 'MinPollInterval:\s*(\d+)' | Select-Object -First 1
-                $minPollInterval = if ($minPollMatch) { [int]$minPollMatch.Matches.Groups[1].Value } else { $null }
+                $minPollInterval = if ($minPollMatch) {
+                    [int]$minPollMatch.Matches.Groups[1].Value
+                } else {
+                    $null
+                }
 
                 $maxPollMatch = $configOutput | Select-String -Pattern 'MaxPollInterval:\s*(\d+)' | Select-Object -First 1
-                $maxPollInterval = if ($maxPollMatch) { [int]$maxPollMatch.Matches.Groups[1].Value } else { $null }
+                $maxPollInterval = if ($maxPollMatch) {
+                    [int]$maxPollMatch.Matches.Groups[1].Value
+                } else {
+                    $null
+                }
 
                 # Parse status
                 $sourceMatch = $statusOutput | Select-String -Pattern 'Source:\s*(.+)' | Select-Object -First 1
-                $currentSource = if ($sourceMatch) { $sourceMatch.Matches.Groups[1].Value.Trim() } else { 'Unknown' }
+                $currentSource = if ($sourceMatch) {
+                    $sourceMatch.Matches.Groups[1].Value.Trim()
+                } else {
+                    'Unknown'
+                }
 
                 $lastSyncMatch = $statusOutput | Select-String -Pattern 'Last Successful Sync Time:\s*(.+)' | Select-Object -First 1
-                $lastSyncTime = if ($lastSyncMatch) { $lastSyncMatch.Matches.Groups[1].Value.Trim() } else { 'Never' }
+                $lastSyncTime = if ($lastSyncMatch) {
+                    $lastSyncMatch.Matches.Groups[1].Value.Trim()
+                } else {
+                    'Never'
+                }
 
                 $stratumMatch = $statusOutput | Select-String -Pattern 'Stratum:\s*(\d+)' | Select-Object -First 1
-                $stratum = if ($stratumMatch) { [int]$stratumMatch.Matches.Groups[1].Value } else { $null }
+                $stratum = if ($stratumMatch) {
+                    [int]$stratumMatch.Matches.Groups[1].Value
+                } else {
+                    $null
+                }
 
                 $leapMatch = $statusOutput | Select-String -Pattern 'Leap Indicator:\s*(.+)' | Select-Object -First 1
-                $leapIndicator = if ($leapMatch) { $leapMatch.Matches.Groups[1].Value.Trim() } else { 'Unknown' }
+                $leapIndicator = if ($leapMatch) {
+                    $leapMatch.Matches.Groups[1].Value.Trim()
+                } else {
+                    'Unknown'
+                }
 
                 # Build result object
                 $result = [PSCustomObject]@{
@@ -175,8 +207,16 @@ function Get-NTPConfiguration {
                     SpecialPollInterval = $specialPollInterval
                     MinPollInterval     = $minPollInterval
                     MaxPollInterval     = $maxPollInterval
-                    MinPollIntervalSec  = if ($minPollInterval) { [math]::Pow(2, $minPollInterval) } else { $null }
-                    MaxPollIntervalSec  = if ($maxPollInterval) { [math]::Pow(2, $maxPollInterval) } else { $null }
+                    MinPollIntervalSec  = if ($minPollInterval) {
+                        [math]::Pow(2, $minPollInterval)
+                    } else {
+                        $null
+                    }
+                    MaxPollIntervalSec  = if ($maxPollInterval) {
+                        [math]::Pow(2, $maxPollInterval)
+                    } else {
+                        $null
+                    }
                     Timestamp           = Get-Date -Format 'o'
                 }
 

@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 
 function Get-SSLCertificate {
     <#
@@ -119,7 +119,7 @@ function Get-SSLCertificate {
                 $sslStream = $null
                 try {
                     $callback = if ($AcceptUntrusted) {
-                        [System.Net.Security.RemoteCertificateValidationCallback]{ $true }
+                        [System.Net.Security.RemoteCertificateValidationCallback] { $true }
                     } else {
                         $null
                     }
@@ -134,34 +134,36 @@ function Get-SSLCertificate {
 
                     # Extract SAN (Subject Alternative Names)
                     $san = @($cert2.Extensions |
-                        Where-Object { $_.Oid.FriendlyName -eq 'Subject Alternative Name' } |
-                        ForEach-Object { $_.Format($false) }) -join ', '
+                            Where-Object { $_.Oid.FriendlyName -eq 'Subject Alternative Name' } |
+                            ForEach-Object { $_.Format($false) }) -join ', '
 
                     $now = Get-Date
                     $daysRemaining = [int][math]::Floor(($cert2.NotAfter - $now).TotalDays)
 
                     [PSCustomObject]@{
-                        PSTypeName     = 'PSWinOps.SSLCertificate'
-                        Host           = $targetHost
-                        Port           = $targetPort
-                        Subject        = $cert2.Subject
-                        Issuer         = $cert2.Issuer
-                        NotBefore      = $cert2.NotBefore
-                        NotAfter       = $cert2.NotAfter
-                        DaysRemaining  = $daysRemaining
-                        IsExpired      = ($now -gt $cert2.NotAfter)
-                        Thumbprint     = $cert2.Thumbprint
-                        SerialNumber   = $cert2.SerialNumber
+                        PSTypeName         = 'PSWinOps.SSLCertificate'
+                        Host               = $targetHost
+                        Port               = $targetPort
+                        Subject            = $cert2.Subject
+                        Issuer             = $cert2.Issuer
+                        NotBefore          = $cert2.NotBefore
+                        NotAfter           = $cert2.NotAfter
+                        DaysRemaining      = $daysRemaining
+                        IsExpired          = ($now -gt $cert2.NotAfter)
+                        Thumbprint         = $cert2.Thumbprint
+                        SerialNumber       = $cert2.SerialNumber
                         SignatureAlgorithm = $cert2.SignatureAlgorithm.FriendlyName
-                        KeyLength      = $cert2.PublicKey.Key.KeySize
-                        SAN            = $san
-                        Protocol       = $sslStream.SslProtocol
-                        Timestamp      = Get-Date -Format 'o'
+                        KeyLength          = $cert2.PublicKey.Key.KeySize
+                        SAN                = $san
+                        Protocol           = $sslStream.SslProtocol
+                        Timestamp          = Get-Date -Format 'o'
                     }
 
                     $cert2.Dispose()
                 } finally {
-                    if ($sslStream) { $sslStream.Dispose() }
+                    if ($sslStream) {
+                        $sslStream.Dispose()
+                    }
                     $tcpClient.Dispose()
                 }
             } catch {

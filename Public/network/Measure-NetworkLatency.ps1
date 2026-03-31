@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 
 function Measure-NetworkLatency {
     <#
@@ -119,7 +119,11 @@ function Measure-NetworkLatency {
 
                 # Compute statistics
                 $lost = $sent - $received
-                $lossPercent = if ($sent -gt 0) { [math]::Round(($lost / $sent) * 100, 1) } else { 100.0 }
+                $lossPercent = if ($sent -gt 0) {
+                    [math]::Round(($lost / $sent) * 100, 1)
+                } else {
+                    100.0
+                }
 
                 if ($latencies.Count -gt 0) {
                     $minMs = [math]::Round(($latencies | Measure-Object -Minimum).Minimum, 1)
@@ -142,18 +146,18 @@ function Measure-NetworkLatency {
                 }
 
                 [PSCustomObject]@{
-                    PSTypeName      = 'PSWinOps.NetworkLatency'
-                    ComputerName    = $targetComputer
-                    IPAddress       = $resolvedAddress
-                    Sent            = $sent
-                    Received        = $received
-                    Lost            = $lost
-                    LossPercent     = $lossPercent
-                    MinMs           = $minMs
-                    MaxMs           = $maxMs
-                    AvgMs           = $avgMs
-                    JitterMs        = $jitterMs
-                    Timestamp       = Get-Date -Format 'o'
+                    PSTypeName   = 'PSWinOps.NetworkLatency'
+                    ComputerName = $targetComputer
+                    IPAddress    = $resolvedAddress
+                    Sent         = $sent
+                    Received     = $received
+                    Lost         = $lost
+                    LossPercent  = $lossPercent
+                    MinMs        = $minMs
+                    MaxMs        = $maxMs
+                    AvgMs        = $avgMs
+                    JitterMs     = $jitterMs
+                    Timestamp    = Get-Date -Format 'o'
                 }
             } catch {
                 Write-Error "[$($MyInvocation.MyCommand)] Failed on '$targetComputer': $_"

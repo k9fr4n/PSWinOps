@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 
 function Trace-NetworkRoute {
     <#
@@ -157,16 +157,30 @@ function Trace-NetworkRoute {
                     }
 
                     [PSCustomObject]@{
-                        PSTypeName   = 'PSWinOps.TraceRouteHop'
-                        Destination  = $targetComputer
-                        Hop          = $ttl
-                        IPAddress    = if ($hopIP) { $hopIP } else { '*' }
-                        Hostname     = if ($hostname) { $hostname } else { '' }
-                        AvgMs        = $avgMs
-                        MinMs        = $minMs
-                        MaxMs        = $maxMs
-                        Status       = if ($timedOut) { 'TimedOut' } elseif ($hopIP -eq $targetIPString) { 'Reached' } else { 'Hop' }
-                        Timestamp    = $timestamp
+                        PSTypeName  = 'PSWinOps.TraceRouteHop'
+                        Destination = $targetComputer
+                        Hop         = $ttl
+                        IPAddress   = if ($hopIP) {
+                            $hopIP
+                        } else {
+                            '*'
+                        }
+                        Hostname    = if ($hostname) {
+                            $hostname
+                        } else {
+                            ''
+                        }
+                        AvgMs       = $avgMs
+                        MinMs       = $minMs
+                        MaxMs       = $maxMs
+                        Status      = if ($timedOut) {
+                            'TimedOut'
+                        } elseif ($hopIP -eq $targetIPString) {
+                            'Reached'
+                        } else {
+                            'Hop'
+                        }
+                        Timestamp   = $timestamp
                     }
 
                     # Stop if we reached the destination
