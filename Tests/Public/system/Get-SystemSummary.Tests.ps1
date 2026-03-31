@@ -1,4 +1,4 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 #Requires -Modules @{ ModuleName = 'Pester'; ModuleVersion = '5.0.0' }
 
 BeforeAll {
@@ -73,9 +73,9 @@ Describe 'Get-SystemSummary' {
             $ClassName -eq 'Win32_NetworkAdapterConfiguration'
         } -MockWith { return $script:fakeNetwork }
 
-        }
-            if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
         Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+            if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+        }
     }
 
     Context 'Happy path - local machine' {

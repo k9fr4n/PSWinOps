@@ -1,4 +1,4 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 #Requires -Modules @{ ModuleName = 'Pester'; ModuleVersion = '5.0' }
 
 BeforeAll {
@@ -259,9 +259,9 @@ Describe 'Get-EnvironmentVariable' {
                 }
                 return $mockRegItem
             }
-            }
-                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+            }
         }
 
         It -Name 'Should return results for local machine with All scope' -Test {
@@ -304,9 +304,9 @@ Describe 'Get-EnvironmentVariable' {
                 }
                 return $mockRegItem
             }
-            }
-                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+            }
         }
 
         It -Name 'Should return Machine scope results for local Machine query' -Test {
@@ -339,9 +339,9 @@ Describe 'Get-EnvironmentVariable' {
                 }
                 return $mockRegItem
             }
-            }
-                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+            }
         }
 
         It -Name 'Should filter by VariableName with wildcard on local' -Test {
@@ -362,9 +362,9 @@ Describe 'Get-EnvironmentVariable' {
                 }
                 return $mockRegItem
             }
-            }
-                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+            }
         }
 
         It -Name 'Should treat localhost as local and use scriptblock' -Test {
