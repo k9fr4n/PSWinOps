@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 function ConvertTo-ScheduledTaskResultMessage {
     <#
         .SYNOPSIS
@@ -38,15 +38,35 @@ function ConvertTo-ScheduledTaskResultMessage {
     [int]$code = $ResultCode
 
     switch ($code) {
-        0           { 'Success (0x0)' }
-        1           { 'Incorrect function (0x1)' }
-        2           { 'File not found (0x2)' }
-        10          { 'Environment incorrect (0xA)' }
-        267009      { 'Task is currently running (0x41301)' }
-        267011      { 'Task has not yet run (0x41303)' }
-        267014      { 'Task terminated by user (0x41306)' }
-        -2147020576 { 'Operator or user refused (0x800710E0)' }
-        -2147216609 { 'Instance already running (0x8004131F)' }
-        default     { 'Unknown (0x{0:X})' -f $code }
+        0 {
+            'Success (0x0)'
+        }
+        1 {
+            'Incorrect function (0x1)'
+        }
+        2 {
+            'File not found (0x2)'
+        }
+        10 {
+            'Environment incorrect (0xA)'
+        }
+        267009 {
+            'Task is currently running (0x41301)'
+        }
+        267011 {
+            'Task has not yet run (0x41303)'
+        }
+        267014 {
+            'Task terminated by user (0x41306)'
+        }
+        -2147020576 {
+            'Operator or user refused (0x800710E0)'
+        }
+        -2147216609 {
+            'Instance already running (0x8004131F)'
+        }
+        default {
+            'Unknown (0x{0:X})' -f $code
+        }
     }
 }
