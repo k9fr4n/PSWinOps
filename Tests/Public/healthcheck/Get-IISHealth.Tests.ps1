@@ -419,17 +419,52 @@ Describe 'Get-IISHealth' {
             }
             Mock -CommandName 'Get-Module' -ModuleName 'PSWinOps' -MockWith { $null } -ParameterFilter { $ListAvailable }
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
-                @([PSCustomObject]@{ Name = 'TestSite' })
+                switch ($ClassName) {
+                    'Site'            { @([PSCustomObject]@{ Name = 'TestSite' }) }
+                    'ApplicationPool' { @([PSCustomObject]@{ Name = 'DefaultAppPool' }) }
+                    'Application'     { @([PSCustomObject]@{ SiteName = 'TestSite'; Path = '/'; ApplicationPool = 'DefaultAppPool' }) }
+                    default           { throw "Unexpected CIM class: $ClassName" }
+                }
             } -ParameterFilter { $Namespace -eq 'root/webadministration' }
             Mock -CommandName 'Invoke-CimMethod' -ModuleName 'PSWinOps' -MockWith {
                 [PSCustomObject]@{ ReturnValue = 1 }
             }
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps'
 
             $script:localCIM = Get-IISHealth -ComputerName $env:COMPUTERNAME
         }
 
         It 'Should return result via CIM fallback' { $script:localCIM | Should -Not -BeNullOrEmpty }
         It 'Should have SiteName from CIM' { $script:localCIM[0].SiteName | Should -Be 'TestSite' }
+        It 'Should resolve AppPoolName via CIM Application mapping' { $script:localCIM[0].AppPoolName | Should -Be 'DefaultAppPool' }
+        It 'Should return Healthy (Unknown states are not penalized)' { $script:localCIM[0].OverallHealth | Should -Be 'Healthy' }
+    }
+
+    Context 'Local execution - CIM fallback with unknown pool state is not Degraded' {
+
+        BeforeAll {
+            Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith {
+                [PSCustomObject]@{ Name = 'W3SVC'; Status = 'Running' }
+            }
+            Mock -CommandName 'Get-Module' -ModuleName 'PSWinOps' -MockWith { $null } -ParameterFilter { $ListAvailable }
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
+                switch ($ClassName) {
+                    'Site' { @([PSCustomObject]@{ Name = 'TestSite' }) }
+                    default { throw "$ClassName CIM class not available" }
+                }
+            } -ParameterFilter { $Namespace -eq 'root/webadministration' }
+            Mock -CommandName 'Invoke-CimMethod' -ModuleName 'PSWinOps' -MockWith {
+                [PSCustomObject]@{ ReturnValue = 1 }
+            }
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps'
+
+            $script:localCIMUnknown = Get-IISHealth -ComputerName $env:COMPUTERNAME
+        }
+
+        It 'Should return result' { $script:localCIMUnknown | Should -Not -BeNullOrEmpty }
+        It 'Should set AppPoolName to Unknown' { $script:localCIMUnknown[0].AppPoolName | Should -Be 'Unknown' }
+        It 'Should set AppPoolState to Unknown' { $script:localCIMUnknown[0].AppPoolState | Should -Be 'Unknown' }
+        It 'Should return Healthy (not Degraded) when pool state is Unknown' { $script:localCIMUnknown[0].OverallHealth | Should -Be 'Healthy' }
     }
 
     Context 'Local - Stopped site via WebAdministration (Critical)' {
@@ -681,7 +716,7 @@ Describe 'Get-IISHealth' {
         }
 
         It 'Should set AppPoolState to Unknown' { $script:orphanResult[0].AppPoolState | Should -Be 'Unknown' }
-        It 'Should return Degraded' { $script:orphanResult[0].OverallHealth | Should -Be 'Degraded' }
+        It 'Should return Healthy (Unknown pool state is not penalized)' { $script:orphanResult[0].OverallHealth | Should -Be 'Healthy' }
     }
 
     Context 'Local - IISAdministration module throws' {

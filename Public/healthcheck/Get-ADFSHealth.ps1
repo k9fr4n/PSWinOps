@@ -39,8 +39,8 @@ function Get-ADFSHealth {
 
         .NOTES
             Author: Franck SALLET
-            Version: 1.0.0
-            Last Modified: 2026-03-26
+            Version: 1.1.0
+            Last Modified: 2026-03-31
             Requires: PowerShell 5.1+ / Windows only
             Requires: AD FS role installed on target servers
 
@@ -80,6 +80,8 @@ function Get-ADFSHealth {
                 EnabledRelyingParties = 0
                 EnabledEndpoints      = 0
                 ServerHealthOK        = $true
+                FarmRole              = 'Unknown'
+                PrimaryServer         = 'Unknown'
             }
 
             try {
@@ -97,8 +99,17 @@ function Get-ADFSHealth {
                 try {
                     $adfsProps = Get-AdfsProperties -ErrorAction Stop
                     $data.FederationServiceName = [string]$adfsProps.HostName
+                    $data.FarmRole = 'Primary'
                 }
-                catch { Write-Warning -Message "Failed to retrieve ADFS properties: $_" }
+                catch {
+                    if ($_.Exception.Message -match 'PS0033') {
+                        $data.FarmRole = 'Secondary'
+                        if ($_.Exception.Message -match 'primary server is presently:\s*(\S+)') {
+                            $data.PrimaryServer = $Matches[1].TrimEnd('.')
+                        }
+                    }
+                    Write-Warning -Message "Failed to retrieve ADFS properties: $_"
+                }
 
                 try {
                     $sslCerts = Get-AdfsSslCertificate -ErrorAction Stop
@@ -170,13 +181,15 @@ function Get-ADFSHealth {
                     $result = Invoke-Command @invokeParams
                 }
 
+                $isSecondary = $result.FarmRole -eq 'Secondary'
+
                 if (-not $result.ModuleAvailable) {
                     $healthStatus = 'RoleUnavailable'
                 }
                 elseif ($result.ServiceStatus -ne 'Running' -or $result.SslCertDaysRemaining -le 0 -or -not $result.ServerHealthOK) {
                     $healthStatus = 'Critical'
                 }
-                elseif ($result.SslCertDaysRemaining -lt 30 -or $result.EnabledRelyingParties -eq 0) {
+                elseif ($result.SslCertDaysRemaining -lt 30 -or ($result.EnabledRelyingParties -eq 0 -and -not $isSecondary)) {
                     $healthStatus = 'Degraded'
                 }
                 else {
@@ -188,6 +201,8 @@ function Get-ADFSHealth {
                     ComputerName          = $displayName
                     ServiceName           = 'adfssrv'
                     ServiceStatus         = [string]$result.ServiceStatus
+                    FarmRole              = [string]$result.FarmRole
+                    PrimaryServer         = [string]$result.PrimaryServer
                     FederationServiceName = [string]$result.FederationServiceName
                     SslCertExpiry         = [string]$result.SslCertExpiry
                     SslCertDaysRemaining  = [int]$result.SslCertDaysRemaining

@@ -107,7 +107,7 @@ function Get-CertificateAuthorityHealth {
                         if ($line -match '^\s*CA\s+name:\s*(.+)') {
                             $data.CAName = $Matches[1].Trim()
                         }
-                        if ($line -match '^\s*CA\s+type:\s*\d+\s*-\s*(.+)') {
+                        if ($line -match '^\s*CA\s+type:\s*\d+\s*-+\s*(.+)') {
                             $data.CAType = $Matches[1].Trim()
                         }
                         elseif ($line -match '^\s*CA\s+type:\s*(.+)') {
@@ -125,7 +125,7 @@ function Get-CertificateAuthorityHealth {
                         if ($inCert0 -and $line -match 'CA\s+cert\[\d+\]') {
                             break
                         }
-                        if ($inCert0 -and $line -match 'NotAfter:\s*(.+)') {
+                        if ($inCert0 -and $line -match 'Not\s*After\s*:\s*(.+)') {
                             $expiryString = $Matches[1].Trim()
                             $data.CACertExpiry = $expiryString
                             try {
@@ -136,6 +136,24 @@ function Get-CertificateAuthorityHealth {
                                 $data.CACertDaysRemaining = -1
                             }
                             break
+                        }
+                    }
+
+                    # Fallback: parse Cert Expires line if NotAfter was not found
+                    if ($data.CACertExpiry -eq 'Unknown') {
+                        foreach ($line in $caInfoLines) {
+                            if ($line -match '(?i)Cert\s+expires?:\s*(.+)') {
+                                $expiryString = $Matches[1].Trim()
+                                $data.CACertExpiry = $expiryString
+                                try {
+                                    $expiryDate = [datetime]::Parse($expiryString)
+                                    $data.CACertDaysRemaining = ($expiryDate - (Get-Date)).Days
+                                }
+                                catch {
+                                    $data.CACertDaysRemaining = -1
+                                }
+                                break
+                            }
                         }
                     }
                 }

@@ -335,6 +335,35 @@
     <!-- Used by: Get-NTPConfiguration                                -->
     <!-- ============================================================ -->
     <View>
+      <Name>PSWinOps.NtpConfiguration.Table</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.NtpConfiguration</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>ComputerName</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Service</Label><Width>10</Width></TableColumnHeader>
+          <TableColumnHeader><Label>SyncType</Label><Width>10</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Source</Label><Width>24</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Stratum</Label><Width>8</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>LastSync</Label><Width>22</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>ServiceStatus</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>SyncType</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>CurrentSource</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Stratum</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>LastSuccessfulSync</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <View>
       <Name>PSWinOps.NtpConfiguration</Name>
       <ViewSelectedBy>
         <TypeName>PSWinOps.NtpConfiguration</TypeName>
@@ -399,6 +428,35 @@
     <!-- Used by: Get-SystemSummary                                   -->
     <!-- ============================================================ -->
     <View>
+      <Name>PSWinOps.SystemSummary.Table</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.SystemSummary</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>ComputerName</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>OS</Label><Width>30</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Uptime</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>CPU</Label><Width>6</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>RAM</Label><Width>14</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>IPs</Label><Width>20</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>OSName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>UptimeDisplay</PropertyName></TableColumnItem>
+              <TableColumnItem><ScriptBlock>'{0}/{1}' -f $_.TotalCores, $_.TotalLogicalProcessors</ScriptBlock></TableColumnItem>
+              <TableColumnItem><ScriptBlock>'{0}GB/{1}%' -f $_.TotalRAMGB, $_.RAMUsagePercent</ScriptBlock></TableColumnItem>
+              <TableColumnItem><PropertyName>IPAddresses</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <View>
       <Name>PSWinOps.SystemSummary</Name>
       <ViewSelectedBy>
         <TypeName>PSWinOps.SystemSummary</TypeName>
@@ -441,6 +499,35 @@
     <!-- PSWinOps.ProxyConfiguration                                  -->
     <!-- Used by: Get-ProxyConfiguration                              -->
     <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.ProxyConfiguration.Table</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.ProxyConfiguration</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>ComputerName</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>WinINET</Label><Width>8</Width></TableColumnHeader>
+          <TableColumnHeader><Label>WinINET Server</Label><Width>24</Width></TableColumnHeader>
+          <TableColumnHeader><Label>WinHTTP</Label><Width>8</Width></TableColumnHeader>
+          <TableColumnHeader><Label>WinHTTP Server</Label><Width>24</Width></TableColumnHeader>
+          <TableColumnHeader><Label>HTTP_PROXY</Label><Width>24</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem><ScriptBlock>if ($_.WinInetEnabled) { 'Yes' } else { 'No' }</ScriptBlock></TableColumnItem>
+              <TableColumnItem><ScriptBlock>if ($_.WinInetServer) { $_.WinInetServer } else { '-' }</ScriptBlock></TableColumnItem>
+              <TableColumnItem><ScriptBlock>if ($_.WinHttpEnabled) { 'Yes' } else { 'No' }</ScriptBlock></TableColumnItem>
+              <TableColumnItem><ScriptBlock>if ($_.WinHttpServer) { $_.WinHttpServer } else { '-' }</ScriptBlock></TableColumnItem>
+              <TableColumnItem><ScriptBlock>if ($_.EnvHttpProxy) { $_.EnvHttpProxy } else { '-' }</ScriptBlock></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
     <View>
       <Name>PSWinOps.ProxyConfiguration</Name>
       <ViewSelectedBy>
@@ -863,6 +950,35 @@
     <!-- Used by: Get-SubnetInfo                                      -->
     <!-- ============================================================ -->
     <View>
+      <Name>PSWinOps.SubnetInfo.Table</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.SubnetInfo</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>CIDR</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Network</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Broadcast</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>FirstHost</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>LastHost</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Usable</Label><Width>10</Width><Alignment>Right</Alignment></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>CIDR</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>NetworkAddress</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>BroadcastAddress</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>FirstUsableHost</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>LastUsableHost</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>UsableHosts</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <View>
       <Name>PSWinOps.SubnetInfo</Name>
       <ViewSelectedBy>
         <TypeName>PSWinOps.SubnetInfo</TypeName>
@@ -1002,6 +1118,34 @@
       </TableControl>
     </View>
 
+    <!-- PSWinOps.NetworkConfig - Table (default) -->
+    <View>
+      <Name>PSWinOps.NetworkConfig.Table</Name>
+      <ViewSelectedBy><TypeName>PSWinOps.NetworkConfig</TypeName></ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>ComputerName</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Hostname</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>IPs</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>DNS</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>DnsSuffix</Label><Width>18</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Firewall</Label><Width>18</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Hostname</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>IPAddresses</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>DnsServers</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>DnsSuffix</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>FirewallProfiles</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
     <!-- PSWinOps.NetworkConfig - List -->
     <View>
       <Name>PSWinOps.NetworkConfig</Name>
@@ -1103,6 +1247,37 @@
     <!-- PSWinOps.PageFileConfiguration                               -->
     <!-- Used by: Get-PageFileConfiguration                           -->
     <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.PageFileConfiguration.Table</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.PageFileConfiguration</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>ComputerName</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Drive</Label><Width>6</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Path</Label><Width>24</Width></TableColumnHeader>
+          <TableColumnHeader><Label>InitMB</Label><Width>8</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>MaxMB</Label><Width>8</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Auto</Label><Width>5</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Status</Label><Width>12</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>DriveLetter</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>PageFilePath</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>InitialSizeMB</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>MaximumSizeMB</PropertyName></TableColumnItem>
+              <TableColumnItem><ScriptBlock>if ($_.AutoManagedPagefile) { 'Yes' } else { 'No' }</ScriptBlock></TableColumnItem>
+              <TableColumnItem><PropertyName>Status</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
     <View>
       <Name>PSWinOps.PageFileConfiguration</Name>
       <ViewSelectedBy>
@@ -1414,7 +1589,46 @@
     </View>
 
     <!-- ============================================================ -->
-    <!-- PSWinOps.AdDomainControllerHealth                            -->
+    <!-- PSWinOps.AdDomainControllerHealth (Table — default)          -->
+    <!-- Used by: Get-AdDomainControllerHealth                        -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.AdDomainControllerHealth.Table</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.AdDomainControllerHealth</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>ComputerName</Label><Width>18</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Service</Label><Width>10</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Site</Label><Width>14</Width></TableColumnHeader>
+          <TableColumnHeader><Label>GC</Label><Width>5</Width></TableColumnHeader>
+          <TableColumnHeader><Label>SYSVOL</Label><Width>7</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Netlogon</Label><Width>9</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Repl</Label><Width>7</Width></TableColumnHeader>
+          <TableColumnHeader><Label>DcDiag</Label><Width>7</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Health</Label><Width>16</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>ServiceStatus</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>SiteName</PropertyName></TableColumnItem>
+              <TableColumnItem><ScriptBlock>if ($_.IsGlobalCatalog) { 'Yes' } else { 'No' }</ScriptBlock></TableColumnItem>
+              <TableColumnItem><ScriptBlock>if ($_.SysvolAccessible) { 'OK' } else { 'FAIL' }</ScriptBlock></TableColumnItem>
+              <TableColumnItem><ScriptBlock>if ($_.NetlogonAccessible) { 'OK' } else { 'FAIL' }</ScriptBlock></TableColumnItem>
+              <TableColumnItem><ScriptBlock>'{0}/{1}' -f $_.ReplicationSuccesses, $_.ReplicationFailures</ScriptBlock></TableColumnItem>
+              <TableColumnItem><ScriptBlock>'{0}/{1}' -f $_.DcDiagPassedTests, $_.DcDiagFailedTests</ScriptBlock></TableColumnItem>
+              <TableColumnItem><PropertyName>OverallHealth</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.AdDomainControllerHealth (List — Format-List)       -->
     <!-- Used by: Get-AdDomainControllerHealth                        -->
     <!-- ============================================================ -->
     <View>
@@ -1520,7 +1734,42 @@
     </View>
 
     <!-- ============================================================ -->
-    <!-- PSWinOps.ClusterHealth                                       -->
+    <!-- PSWinOps.ClusterHealth (Table — default)                     -->
+    <!-- Used by: Get-ClusterHealth                                   -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.ClusterHealth.Table</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.ClusterHealth</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>ComputerName</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Cluster</Label><Width>18</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Node</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>NodeState</Label><Width>10</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Nodes</Label><Width>7</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Resources</Label><Width>10</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Health</Label><Width>16</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>ClusterName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>NodeName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>NodeState</PropertyName></TableColumnItem>
+              <TableColumnItem><ScriptBlock>'{0}/{1}' -f $_.NodesUp, $_.TotalNodes</ScriptBlock></TableColumnItem>
+              <TableColumnItem><ScriptBlock>'{0}/{1}' -f $_.ResourcesOnline, $_.TotalResources</ScriptBlock></TableColumnItem>
+              <TableColumnItem><PropertyName>OverallHealth</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.ClusterHealth (List — Format-List)                  -->
     <!-- Used by: Get-ClusterHealth                                   -->
     <!-- ============================================================ -->
     <View>
@@ -1552,7 +1801,42 @@
     </View>
 
     <!-- ============================================================ -->
-    <!-- PSWinOps.HyperVHostHealth                                    -->
+    <!-- PSWinOps.HyperVHostHealth (Table — default)                  -->
+    <!-- Used by: Get-HyperVHostHealth                                -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.HyperVHostHealth.Table</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.HyperVHostHealth</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>ComputerName</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Service</Label><Width>10</Width></TableColumnHeader>
+          <TableColumnHeader><Label>VMs(Run/Tot)</Label><Width>12</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>MemUsed%</Label><Width>9</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>CPUs</Label><Width>5</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Storage(GB)</Label><Width>12</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Health</Label><Width>16</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>ServiceStatus</PropertyName></TableColumnItem>
+              <TableColumnItem><ScriptBlock>'{0}/{1}' -f $_.RunningVMs, $_.TotalVMs</ScriptBlock></TableColumnItem>
+              <TableColumnItem><ScriptBlock>if ($null -ne $_.MemoryUsedPercent) { '{0:N0}' -f $_.MemoryUsedPercent } else { 'N/A' }</ScriptBlock></TableColumnItem>
+              <TableColumnItem><PropertyName>LogicalProcessors</PropertyName></TableColumnItem>
+              <TableColumnItem><ScriptBlock>if ($null -ne $_.VHDTotalSizeGB) { '{0:N1}' -f $_.VHDTotalSizeGB } else { 'N/A' }</ScriptBlock></TableColumnItem>
+              <TableColumnItem><PropertyName>OverallHealth</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.HyperVHostHealth (List — Format-List)               -->
     <!-- Used by: Get-HyperVHostHealth                                -->
     <!-- ============================================================ -->
     <View>
@@ -1620,7 +1904,42 @@
     </View>
 
     <!-- ============================================================ -->
-    <!-- PSWinOps.CertificateAuthorityHealth                          -->
+    <!-- PSWinOps.CertificateAuthorityHealth (Table — default)        -->
+    <!-- Used by: Get-CertificateAuthorityHealth                      -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.CertificateAuthorityHealth.Table</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.CertificateAuthorityHealth</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>ComputerName</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Service</Label><Width>10</Width></TableColumnHeader>
+          <TableColumnHeader><Label>CAName</Label><Width>22</Width></TableColumnHeader>
+          <TableColumnHeader><Label>CertDays</Label><Width>9</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>CRL</Label><Width>5</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Ping</Label><Width>5</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Health</Label><Width>16</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>ServiceStatus</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>CAName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>CACertDaysRemaining</PropertyName></TableColumnItem>
+              <TableColumnItem><ScriptBlock>if ($_.CRLPublishOK) { 'OK' } else { 'FAIL' }</ScriptBlock></TableColumnItem>
+              <TableColumnItem><ScriptBlock>if ($_.CAPingOK) { 'OK' } else { 'FAIL' }</ScriptBlock></TableColumnItem>
+              <TableColumnItem><PropertyName>OverallHealth</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.CertificateAuthorityHealth (List — Format-List)     -->
     <!-- Used by: Get-CertificateAuthorityHealth                      -->
     <!-- ============================================================ -->
     <View>
@@ -1649,7 +1968,44 @@
     </View>
 
     <!-- ============================================================ -->
-    <!-- PSWinOps.WSUSHealth                                          -->
+    <!-- PSWinOps.WSUSHealth (Table — default)                        -->
+    <!-- Used by: Get-WSUSHealth                                      -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.WSUSHealth.Table</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.WSUSHealth</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>ComputerName</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Service</Label><Width>10</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Clients</Label><Width>8</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Needing</Label><Width>8</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Errors</Label><Width>7</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Unapproved</Label><Width>10</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>DiskFree</Label><Width>10</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Health</Label><Width>16</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>ServiceStatus</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>TotalClients</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>ClientsNeedingUpdates</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>ClientsWithErrors</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>UnapprovedUpdates</PropertyName></TableColumnItem>
+              <TableColumnItem><ScriptBlock>'{0:N1} GB' -f $_.ContentDirFreeSpaceGB</ScriptBlock></TableColumnItem>
+              <TableColumnItem><PropertyName>OverallHealth</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.WSUSHealth (List — Format-List)                     -->
     <!-- Used by: Get-WSUSHealth                                      -->
     <!-- ============================================================ -->
     <View>
@@ -1682,7 +2038,42 @@
     </View>
 
     <!-- ============================================================ -->
-    <!-- PSWinOps.FileServerHealth                                    -->
+    <!-- PSWinOps.FileServerHealth (Table — default)                  -->
+    <!-- Used by: Get-FileServerHealth                                -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.FileServerHealth.Table</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.FileServerHealth</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>ComputerName</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Service</Label><Width>10</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Shares</Label><Width>7</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Sessions</Label><Width>9</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Files</Label><Width>6</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>DiskFree</Label><Width>10</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Health</Label><Width>16</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>ServiceStatus</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>TotalShares</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>OpenSessions</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>OpenFiles</PropertyName></TableColumnItem>
+              <TableColumnItem><ScriptBlock>if ($null -ne $_.MinShareDiskFreeGB) { '{0:N1} GB' -f $_.MinShareDiskFreeGB } else { 'N/A' }</ScriptBlock></TableColumnItem>
+              <TableColumnItem><PropertyName>OverallHealth</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.FileServerHealth (List — Format-List)               -->
     <!-- Used by: Get-FileServerHealth                                -->
     <!-- ============================================================ -->
     <View>
@@ -1712,7 +2103,42 @@
     </View>
 
     <!-- ============================================================ -->
-    <!-- PSWinOps.ADFSHealth                                          -->
+    <!-- PSWinOps.ADFSHealth (Table — default)                        -->
+    <!-- Used by: Get-ADFSHealth                                      -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.ADFSHealth.Table</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.ADFSHealth</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>ComputerName</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Service</Label><Width>10</Width></TableColumnHeader>
+          <TableColumnHeader><Label>FarmRole</Label><Width>10</Width></TableColumnHeader>
+          <TableColumnHeader><Label>FedService</Label><Width>24</Width></TableColumnHeader>
+          <TableColumnHeader><Label>CertDays</Label><Width>9</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>RPs</Label><Width>5</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Health</Label><Width>16</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>ServiceStatus</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>FarmRole</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>FederationServiceName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>SslCertDaysRemaining</PropertyName></TableColumnItem>
+              <TableColumnItem><ScriptBlock>'{0}/{1}' -f $_.EnabledRelyingParties, $_.TotalRelyingParties</ScriptBlock></TableColumnItem>
+              <TableColumnItem><PropertyName>OverallHealth</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.ADFSHealth (List — Format-List)                     -->
     <!-- Used by: Get-ADFSHealth                                      -->
     <!-- ============================================================ -->
     <View>
@@ -1726,6 +2152,8 @@
             <ListItems>
               <ListItem><Label>ComputerName</Label><PropertyName>ComputerName</PropertyName></ListItem>
               <ListItem><Label>ServiceStatus</Label><PropertyName>ServiceStatus</PropertyName></ListItem>
+              <ListItem><Label>FarmRole</Label><PropertyName>FarmRole</PropertyName></ListItem>
+              <ListItem><Label>PrimaryServer</Label><PropertyName>PrimaryServer</PropertyName></ListItem>
               <ListItem><Label>FederationServiceName</Label><PropertyName>FederationServiceName</PropertyName></ListItem>
               <ListItem><Label>SslCertExpiry</Label><PropertyName>SslCertExpiry</PropertyName></ListItem>
               <ListItem><Label>SslCertDaysRemaining</Label><PropertyName>SslCertDaysRemaining</PropertyName></ListItem>
@@ -1742,7 +2170,42 @@
     </View>
 
     <!-- ============================================================ -->
-    <!-- PSWinOps.RDSHealth                                           -->
+    <!-- PSWinOps.RDSHealth (Table — default)                         -->
+    <!-- Used by: Get-RDSHealth                                       -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.RDSHealth.Table</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.RDSHealth</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>ComputerName</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Service</Label><Width>10</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Active</Label><Width>7</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Disconn</Label><Width>8</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Total</Label><Width>6</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Licensing</Label><Width>12</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Health</Label><Width>16</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>ServiceStatus</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>ActiveSessions</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>DisconnectedSessions</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>TotalSessions</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>LicensingMode</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>OverallHealth</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.RDSHealth (List — Format-List)                      -->
     <!-- Used by: Get-RDSHealth                                       -->
     <!-- ============================================================ -->
     <View>
@@ -1772,7 +2235,42 @@
     </View>
 
     <!-- ============================================================ -->
-    <!-- PSWinOps.PrintServerHealth                                   -->
+    <!-- PSWinOps.PrintServerHealth (Table — default)                 -->
+    <!-- Used by: Get-PrintServerHealth                               -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.PrintServerHealth.Table</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.PrintServerHealth</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>ComputerName</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Service</Label><Width>10</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Printers</Label><Width>9</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Online</Label><Width>7</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Errors</Label><Width>7</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Jobs</Label><Width>5</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Health</Label><Width>16</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>ServiceStatus</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>TotalPrinters</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>PrintersOnline</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>PrintersInError</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>TotalPrintJobs</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>OverallHealth</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.PrintServerHealth (List — Format-List)              -->
     <!-- Used by: Get-PrintServerHealth                               -->
     <!-- ============================================================ -->
     <View>
@@ -1802,7 +2300,44 @@
     </View>
 
     <!-- ============================================================ -->
-    <!-- PSWinOps.DnsServerHealth                                     -->
+    <!-- PSWinOps.DnsServerHealth (Table — default)                   -->
+    <!-- Used by: Get-DnsServerHealth                                 -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.DnsServerHealth.Table</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.DnsServerHealth</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>ComputerName</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Service</Label><Width>10</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Zones</Label><Width>6</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Primary</Label><Width>8</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Paused</Label><Width>7</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Fwders</Label><Width>7</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>SelfRes</Label><Width>8</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Health</Label><Width>16</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>ServiceStatus</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>TotalZones</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>PrimaryZones</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>PausedZones</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>ForwarderCount</PropertyName></TableColumnItem>
+              <TableColumnItem><ScriptBlock>if ($_.SelfResolution) { 'OK' } else { 'FAIL' }</ScriptBlock></TableColumnItem>
+              <TableColumnItem><PropertyName>OverallHealth</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.DnsServerHealth (List — Format-List)                -->
     <!-- Used by: Get-DnsServerHealth                                 -->
     <!-- ============================================================ -->
     <View>
