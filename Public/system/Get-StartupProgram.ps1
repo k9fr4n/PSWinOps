@@ -68,7 +68,6 @@ function Get-StartupProgram {
 
     begin {
         Write-Verbose -Message "[$($MyInvocation.MyCommand)] Starting"
-        $localNames = @($env:COMPUTERNAME, 'localhost', '.')
 
         $registrySources = @(
             @{ Path = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run';                          Scope = 'Machine'; Label = 'HKLM\...\Run' }
@@ -173,24 +172,8 @@ function Get-StartupProgram {
             Write-Verbose -Message "[$($MyInvocation.MyCommand)] Processing '$machine'"
 
             try {
-                $isLocal = $localNames -contains $machine
-                $displayName = if ($isLocal) { $env:COMPUTERNAME } else { $machine }
-
-                if ($isLocal) {
-                    $rawEntries = & $scriptBlock -Sources $registrySources
-                }
-                else {
-                    $invokeParams = @{
-                        ComputerName = $machine
-                        ScriptBlock  = $scriptBlock
-                        ArgumentList = @(, $registrySources)
-                        ErrorAction  = 'Stop'
-                    }
-                    if ($Credential -ne [System.Management.Automation.PSCredential]::Empty) {
-                        $invokeParams['Credential'] = $Credential
-                    }
-                    $rawEntries = Invoke-Command @invokeParams
-                }
+                $displayName = $machine
+                $rawEntries = Invoke-RemoteOrLocal -ComputerName $machine -ScriptBlock $scriptBlock -ArgumentList @(, $registrySources) -Credential $Credential
 
                 foreach ($entry in $rawEntries) {
                     [PSCustomObject]@{

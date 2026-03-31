@@ -61,34 +61,40 @@ function Get-SystemSummary {
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand)] Starting"
-        $localNames = @($env:COMPUTERNAME, 'localhost', '.')
-        $hasCredential = $PSBoundParameters.ContainsKey('Credential')
+
+        $scriptBlock = {
+            $system = Get-CimInstance -ClassName 'Win32_ComputerSystem' -ErrorAction Stop
+            $os = Get-CimInstance -ClassName 'Win32_OperatingSystem' -ErrorAction Stop
+            $bios = Get-CimInstance -ClassName 'Win32_BIOS' -ErrorAction Stop
+            $processor = Get-CimInstance -ClassName 'Win32_Processor' -ErrorAction Stop | Select-Object -First 1
+            $disks = Get-CimInstance -ClassName 'Win32_LogicalDisk' -ErrorAction Stop | Where-Object -FilterScript { $_.DriveType -eq 3 }
+            $networkAdapters = Get-CimInstance -ClassName 'Win32_NetworkAdapterConfiguration' -ErrorAction Stop | Where-Object -FilterScript { $null -ne $_.DefaultIPGateway }
+
+            @{
+                System          = $system
+                OS              = $os
+                BIOS            = $bios
+                Processor       = $processor
+                Disks           = $disks
+                NetworkAdapters = $networkAdapters
+                PSVersion       = $PSVersionTable.PSVersion.ToString()
+            }
+        }
     }
 
     process {
         foreach ($machine in $ComputerName) {
-            $cimSession = $null
             try {
-                $isLocal = $localNames -contains $machine
+                Write-Verbose "[$($MyInvocation.MyCommand)] Querying system summary on '$machine'"
+                $rawData = Invoke-RemoteOrLocal -ComputerName $machine -ScriptBlock $scriptBlock -Credential $Credential
 
-                # Build common CIM params for this machine (splat for all 6 classes)
-                $cimParams = @{ ErrorAction = 'Stop' }
-                if (-not $isLocal) {
-                    if ($hasCredential) {
-                        $cimSession = New-CimSession -ComputerName $machine -Credential $Credential -ErrorAction Stop
-                        $cimParams['CimSession'] = $cimSession
-                    } else {
-                        $cimParams['ComputerName'] = $machine
-                    }
-                }
-
-                # Query all 6 CIM classes
-                $system = Get-CimInstance -ClassName 'Win32_ComputerSystem' @cimParams
-                $os = Get-CimInstance -ClassName 'Win32_OperatingSystem' @cimParams
-                $bios = Get-CimInstance -ClassName 'Win32_BIOS' @cimParams
-                $processor = Get-CimInstance -ClassName 'Win32_Processor' @cimParams | Select-Object -First 1
-                $disks = Get-CimInstance -ClassName 'Win32_LogicalDisk' @cimParams | Where-Object -FilterScript { $_.DriveType -eq 3 }
-                $networkAdapters = Get-CimInstance -ClassName 'Win32_NetworkAdapterConfiguration' @cimParams | Where-Object -FilterScript { $null -ne $_.DefaultIPGateway }
+                $system = $rawData.System
+                $os = $rawData.OS
+                $bios = $rawData.BIOS
+                $processor = $rawData.Processor
+                $disks = $rawData.Disks
+                $networkAdapters = $rawData.NetworkAdapters
+                $psVersionString = $rawData.PSVersion
 
                 # Calculate uptime
                 $uptime = (Get-Date) - $os.LastBootUpTime
@@ -105,13 +111,6 @@ function Get-SystemSummary {
                 $ipv4Addresses = ($networkAdapters.IPAddress | Where-Object -FilterScript { $_ -match '^\d+\.\d+\.\d+\.\d+$' }) -join ', '
                 $gatewayList = ($networkAdapters.DefaultIPGateway) -join ', '
                 $dnsList = ($networkAdapters.DNSServerSearchOrder) -join ', '
-
-                # Determine PS version string
-                $psVersionString = if ($isLocal) {
-                    $PSVersionTable.PSVersion.ToString()
-                } else {
-                    'N/A (remote)'
-                }
 
                 [PSCustomObject]@{
                     PSTypeName             = 'PSWinOps.SystemSummary'
@@ -143,10 +142,6 @@ function Get-SystemSummary {
                 }
             } catch {
                 Write-Error "[$($MyInvocation.MyCommand)] Failed on '${machine}': $_"
-            } finally {
-                if ($null -ne $cimSession) {
-                    Remove-CimSession -CimSession $cimSession -ErrorAction SilentlyContinue
-                }
             }
         }
     }

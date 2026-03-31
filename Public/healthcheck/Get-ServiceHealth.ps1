@@ -82,34 +82,19 @@ function Get-ServiceHealth {
 
     begin {
         Write-Verbose -Message "[$($MyInvocation.MyCommand)] Starting"
-        $localNames = @($env:COMPUTERNAME, 'localhost', '.')
+
+        $scriptBlock = {
+            @(Get-CimInstance -ClassName 'Win32_Service' -ErrorAction Stop)
+        }
     }
 
     process {
         foreach ($machine in $ComputerName) {
-            $cimSession = $null
-
             try {
-                $isLocal = $localNames -contains $machine
-                $cimParams = @{ ErrorAction = 'Stop' }
-
-                if (-not $isLocal) {
-                    $sessionParams = @{
-                        ComputerName = $machine
-                        ErrorAction  = 'Stop'
-                    }
-                    if ($Credential -ne [System.Management.Automation.PSCredential]::Empty) {
-                        $sessionParams['Credential'] = $Credential
-                    }
-                    $cimSession = New-CimSession @sessionParams
-                    $cimParams['CimSession'] = $cimSession
-                    Write-Verbose -Message "[$($MyInvocation.MyCommand)] CimSession established to '$machine'"
-                }
-
                 Write-Verbose -Message "[$($MyInvocation.MyCommand)] Querying Win32_Service on '$machine'"
-                $services = @(Get-CimInstance -ClassName 'Win32_Service' @cimParams)
+                $services = @(Invoke-RemoteOrLocal -ComputerName $machine -ScriptBlock $scriptBlock -Credential $Credential)
 
-                $displayName = if ($isLocal) { $env:COMPUTERNAME } else { $machine }
+                $displayName = $machine
 
                 foreach ($svc in $services) {
                     # Apply name filter if specified
@@ -159,11 +144,7 @@ function Get-ServiceHealth {
                 Write-Error -Message "[$($MyInvocation.MyCommand)] Failed on '${machine}': $_"
                 continue
             }
-            finally {
-                if ($cimSession) {
-                    Remove-CimSession -CimSession $cimSession -ErrorAction SilentlyContinue
-                }
-            }
+
         }
     }
 

@@ -124,24 +124,7 @@
     process {
         foreach ($targetComputer in $ComputerName) {
             try {
-                $isLocal = ($targetComputer -eq $env:COMPUTERNAME) -or
-                ($targetComputer -eq 'localhost') -or
-                ($targetComputer -eq '.')
-
-                if ($isLocal) {
-                    $rawResult = & $queryBlock -Timeout $TimeoutSec -IncludeIPv6 $IPv6.IsPresent
-                } else {
-                    $invokeParams = @{
-                        ComputerName = $targetComputer
-                        ScriptBlock  = $queryBlock
-                        ArgumentList = @($TimeoutSec, $IPv6.IsPresent)
-                        ErrorAction  = 'Stop'
-                    }
-                    if ($Credential) {
-                        $invokeParams['Credential'] = $Credential
-                    }
-                    $rawResult = Invoke-Command @invokeParams
-                }
+                $rawResult = Invoke-RemoteOrLocal -ComputerName $targetComputer -ScriptBlock $queryBlock -ArgumentList @($TimeoutSec, $IPv6.IsPresent) -Credential $Credential
 
                 [PSCustomObject]@{
                     PSTypeName   = 'PSWinOps.PublicIPAddress'

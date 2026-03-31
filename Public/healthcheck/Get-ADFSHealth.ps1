@@ -67,7 +67,6 @@ function Get-ADFSHealth {
 
     begin {
         Write-Verbose -Message "[$($MyInvocation.MyCommand)] Starting"
-        $localNames = @($env:COMPUTERNAME, 'localhost', '.')
 
         $scriptBlock = {
             $data = @{
@@ -165,21 +164,7 @@ function Get-ADFSHealth {
             Write-Verbose -Message "[$($MyInvocation.MyCommand)] Querying '${machine}'"
 
             try {
-                $isLocal = $localNames -contains $machine
-                if ($isLocal) {
-                    $result = & $scriptBlock
-                }
-                else {
-                    $invokeParams = @{
-                        ComputerName = $machine
-                        ScriptBlock  = $scriptBlock
-                        ErrorAction  = 'Stop'
-                    }
-                    if ($Credential -ne [System.Management.Automation.PSCredential]::Empty) {
-                        $invokeParams['Credential'] = $Credential
-                    }
-                    $result = Invoke-Command @invokeParams
-                }
+                $result = Invoke-RemoteOrLocal -ComputerName $machine -ScriptBlock $scriptBlock -Credential $Credential
 
                 $isSecondary = $result.FarmRole -eq 'Secondary'
 

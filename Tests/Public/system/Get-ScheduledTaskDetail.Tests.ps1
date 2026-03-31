@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 #Requires -Modules @{ ModuleName = 'Pester'; ModuleVersion = '5.0' }
 
 BeforeAll {
@@ -27,7 +27,6 @@ BeforeAll {
         NextRunTime    = [datetime]'2026-03-26 02:00:00'
     }
 
-    # CimSession mock created inline via New-MockObject
 }
 
 Describe 'Get-ScheduledTaskDetail' {
@@ -47,6 +46,9 @@ Describe 'Get-ScheduledTaskDetail' {
                 return 'Success (0x0)'
             }
 
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+            }
             $script:results = Get-ScheduledTaskDetail
         }
 
@@ -90,6 +92,9 @@ Describe 'Get-ScheduledTaskDetail' {
                 return 'Success (0x0)'
             }
 
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+            }
             $script:results = Get-ScheduledTaskDetail -IncludeMicrosoftTasks
         }
 
@@ -121,6 +126,9 @@ Describe 'Get-ScheduledTaskDetail' {
                 return 'Success (0x0)'
             }
 
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+            }
             $script:results = Get-ScheduledTaskDetail -TaskName 'Backup*' -IncludeMicrosoftTasks
         }
 
@@ -136,12 +144,6 @@ Describe 'Get-ScheduledTaskDetail' {
     Context 'Remote single machine' {
 
         BeforeAll {
-            Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
-                New-MockObject -Type 'Microsoft.Management.Infrastructure.CimSession'
-            }
-
-            Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
-
             Mock -CommandName 'Get-ScheduledTask' -ModuleName 'PSWinOps' -MockWith {
                 return @($script:mockTask1)
             }
@@ -154,6 +156,9 @@ Describe 'Get-ScheduledTaskDetail' {
                 return 'Success (0x0)'
             }
 
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+            }
             $script:results = Get-ScheduledTaskDetail -ComputerName 'SRV01'
         }
 
@@ -170,12 +175,6 @@ Describe 'Get-ScheduledTaskDetail' {
     Context 'Pipeline multiple machines' {
 
         BeforeAll {
-            Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
-                New-MockObject -Type 'Microsoft.Management.Infrastructure.CimSession'
-            }
-
-            Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
-
             Mock -CommandName 'Get-ScheduledTask' -ModuleName 'PSWinOps' -MockWith {
                 return @($script:mockTask1)
             }
@@ -188,6 +187,9 @@ Describe 'Get-ScheduledTaskDetail' {
                 return 'Success (0x0)'
             }
 
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+            }
             $script:results = 'SRV01', 'SRV02' | Get-ScheduledTaskDetail
         }
 
@@ -205,9 +207,6 @@ Describe 'Get-ScheduledTaskDetail' {
     Context 'Per-machine failure continues' {
 
         BeforeAll {
-            Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
-                throw 'RPC server is unavailable'
-            }
         }
 
         It -Name 'Should write error with ErrorAction Stop' -Test {

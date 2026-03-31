@@ -68,7 +68,6 @@ function Get-FileServerHealth {
 
     begin {
         Write-Verbose -Message "[$($MyInvocation.MyCommand)] Starting"
-        $localNames = @($env:COMPUTERNAME, 'localhost', '.')
 
         $scriptBlock = {
             $svcStatus = 'Unknown'
@@ -163,21 +162,7 @@ function Get-FileServerHealth {
             Write-Verbose -Message "[$($MyInvocation.MyCommand)] Querying '${machine}'"
 
             try {
-                $isLocal = $localNames -contains $machine
-                if ($isLocal) {
-                    $data = & $scriptBlock
-                }
-                else {
-                    $invokeParams = @{
-                        ComputerName = $machine
-                        ScriptBlock  = $scriptBlock
-                        ErrorAction  = 'Stop'
-                    }
-                    if ($Credential -ne [System.Management.Automation.PSCredential]::Empty) {
-                        $invokeParams['Credential'] = $Credential
-                    }
-                    $data = Invoke-Command @invokeParams
-                }
+                $data = Invoke-RemoteOrLocal -ComputerName $machine -ScriptBlock $scriptBlock -Credential $Credential
 
                 $overallHealth = if (-not $data.RoleAvailable) { 'RoleUnavailable' }
                 elseif ($data.ServiceStatus -ne 'Running' -or

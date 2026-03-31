@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 #Requires -Modules @{ ModuleName = 'Pester'; ModuleVersion = '5.0' }
 
 BeforeAll {
@@ -28,7 +28,6 @@ BeforeAll {
         PeakUsage         = 1024
     }
 
-    # CimSession mock created inline via New-MockObject
 }
 
 Describe 'Get-PageFileConfiguration' {
@@ -48,6 +47,9 @@ Describe 'Get-PageFileConfiguration' {
                 return $script:mockPageFileUsage
             } -ParameterFilter { $ClassName -eq 'Win32_PageFileUsage' }
 
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+            }
             $script:result = Get-PageFileConfiguration
         }
 
@@ -108,6 +110,9 @@ Describe 'Get-PageFileConfiguration' {
                 return $script:mockPageFileUsage
             } -ParameterFilter { $ClassName -eq 'Win32_PageFileUsage' }
 
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+            }
             $script:result = Get-PageFileConfiguration
         }
 
@@ -139,24 +144,21 @@ Describe 'Get-PageFileConfiguration' {
     Context 'Remote single machine' {
 
         BeforeAll {
-            Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
-                New-MockObject -Type 'Microsoft.Management.Infrastructure.CimSession'
-            }
-
-            Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
-
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockCompSystem
-            } -ParameterFilter { $null -ne $CimSession -and $ClassName -eq 'Win32_ComputerSystem' }
+            } -ParameterFilter { $ClassName -eq 'Win32_ComputerSystem' }
 
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockPageFileSetting
-            } -ParameterFilter { $null -ne $CimSession -and $ClassName -eq 'Win32_PageFileSetting' }
+            } -ParameterFilter { $ClassName -eq 'Win32_PageFileSetting' }
 
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockPageFileUsage
-            } -ParameterFilter { $null -ne $CimSession -and $ClassName -eq 'Win32_PageFileUsage' }
+            } -ParameterFilter { $ClassName -eq 'Win32_PageFileUsage' }
 
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+            }
             $script:result = Get-PageFileConfiguration -ComputerName 'SRV01'
         }
 
@@ -173,24 +175,21 @@ Describe 'Get-PageFileConfiguration' {
     Context 'Pipeline multiple machines' {
 
         BeforeAll {
-            Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
-                New-MockObject -Type 'Microsoft.Management.Infrastructure.CimSession'
-            }
-
-            Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
-
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockCompSystem
-            } -ParameterFilter { $null -ne $CimSession -and $ClassName -eq 'Win32_ComputerSystem' }
+            } -ParameterFilter { $ClassName -eq 'Win32_ComputerSystem' }
 
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockPageFileSetting
-            } -ParameterFilter { $null -ne $CimSession -and $ClassName -eq 'Win32_PageFileSetting' }
+            } -ParameterFilter { $ClassName -eq 'Win32_PageFileSetting' }
 
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockPageFileUsage
-            } -ParameterFilter { $null -ne $CimSession -and $ClassName -eq 'Win32_PageFileUsage' }
+            } -ParameterFilter { $ClassName -eq 'Win32_PageFileUsage' }
 
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+            }
             $script:results = 'SRV01', 'SRV02' | Get-PageFileConfiguration
         }
 
@@ -211,9 +210,6 @@ Describe 'Get-PageFileConfiguration' {
     Context 'Per-machine failure continues' {
 
         BeforeAll {
-            Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
-                throw 'RPC server is unavailable'
-            }
         }
 
         It -Name 'Should write error with ErrorAction Stop' -Test {
