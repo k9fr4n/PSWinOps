@@ -360,4 +360,88 @@ Describe 'Set-PageFile' {
             $script:result.PageFilePath | Should -Be 'C:\pagefile.sys'
         }
     }
+
+    Context 'RestoreAutoManaged - remote via Invoke-Command' {
+        BeforeAll {
+            Mock -CommandName 'Test-IsAdministrator' -ModuleName 'PSWinOps' -MockWith { $true }
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
+                [PSCustomObject]@{ RamGB = 16 }
+            }
+            $script:restoreRemote = Set-PageFile -RestoreAutoManaged -ComputerName 'REMOTE01' -Confirm:$false
+        }
+
+        It -Name 'Should call Invoke-Command for remote RestoreAutoManaged' -Test {
+            Set-PageFile -RestoreAutoManaged -ComputerName 'REMOTE01' -Confirm:$false
+            Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 1 -Exactly
+        }
+
+        It -Name 'Should return RestoredAutoManaged status for remote' -Test {
+            $script:restoreRemote.Status | Should -Be 'RestoredAutoManaged'
+        }
+
+        It -Name 'Should set ComputerName to REMOTE01' -Test {
+            $script:restoreRemote.ComputerName | Should -Be 'REMOTE01'
+        }
+
+        It -Name 'Should set AutoManagedPagefile to true for remote restore' -Test {
+            $script:restoreRemote.AutoManagedPagefile | Should -BeTrue
+        }
+    }
+
+    Context 'AutoCalculate - remote via Invoke-Command' {
+        BeforeAll {
+            Mock -CommandName 'Test-IsAdministrator' -ModuleName 'PSWinOps' -MockWith { $true }
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -ParameterFilter {
+                $ClassName -eq 'Win32_ComputerSystem' -and $null -ne $ComputerName
+            } -MockWith { $script:mockCompSystem }
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { }
+            $script:remoteAutoResult = Set-PageFile -ComputerName 'REMOTE02' -AutoCalculate -Confirm:$false
+        }
+
+        It -Name 'Should call Invoke-Command for remote auto configuration' -Test {
+            Set-PageFile -ComputerName 'REMOTE02' -AutoCalculate -Confirm:$false
+            Should -Invoke -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -Times 1 -Exactly
+        }
+
+        It -Name 'Should return Configured status for remote auto' -Test {
+            $script:remoteAutoResult.Status | Should -Be 'Configured'
+        }
+    }
+
+    Context 'Error handling - UnauthorizedAccessException catch block' {
+        BeforeAll {
+            Mock -CommandName 'Test-IsAdministrator' -ModuleName 'PSWinOps' -MockWith { $true }
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -ParameterFilter {
+                $ClassName -eq 'Win32_ComputerSystem'
+            } -MockWith { $script:mockCompSystem }
+            Mock -CommandName 'Set-CimInstance' -ModuleName 'PSWinOps' -MockWith {
+                throw [System.UnauthorizedAccessException]::new('Access denied')
+            }
+        }
+
+        It -Name 'Should write error on UnauthorizedAccessException and continue' -Test {
+            Set-PageFile -AutoCalculate -Confirm:$false -ErrorVariable pageErr -ErrorAction SilentlyContinue
+            $pageErr | Should -Not -BeNullOrEmpty
+            "$pageErr" | Should -BeLike '*Access denied*'
+        }
+    }
+
+    Context 'Error handling - COMException catch block' {
+        BeforeAll {
+            Mock -CommandName 'Test-IsAdministrator' -ModuleName 'PSWinOps' -MockWith { $true }
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -ParameterFilter {
+                $ClassName -eq 'Win32_ComputerSystem'
+            } -MockWith { $script:mockCompSystem }
+            Mock -CommandName 'Set-CimInstance' -ModuleName 'PSWinOps' -MockWith {
+                throw [System.Runtime.InteropServices.COMException]::new('WMI error')
+            }
+        }
+
+        It -Name 'Should write error on COMException and continue' -Test {
+            Set-PageFile -AutoCalculate -Confirm:$false -ErrorVariable pageErr -ErrorAction SilentlyContinue
+            $pageErr | Should -Not -BeNullOrEmpty
+            "$pageErr" | Should -BeLike '*CIM/WMI*'
+        }
+    }
+
 }

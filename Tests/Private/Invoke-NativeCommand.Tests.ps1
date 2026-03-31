@@ -57,4 +57,16 @@ Describe 'Invoke-NativeCommand' {
             $result.Output | Should -BeLike '*TestOutput123*'
         }
     }
+
+    Context -Name 'When called without ArgumentList (else branch at line 49)' -Fixture {
+
+        It -Name 'Should execute without ArgumentList and return an object' -Tag 'Integration' -Skip:(-not (Test-Path "$env:SystemRoot\System32\cmd.exe")) {
+            $result = & (Get-Module -Name $script:ModuleName) {
+                Invoke-NativeCommand -FilePath "$env:SystemRoot\System32\cmd.exe"
+            }
+            $result | Should -Not -BeNullOrEmpty
+            $result.PSObject.Properties.Name | Should -Contain 'Output'
+            $result.PSObject.Properties.Name | Should -Contain 'ExitCode'
+        }
+    }
 }

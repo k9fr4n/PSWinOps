@@ -121,4 +121,188 @@ Describe 'Get-StartupProgram' {
             { Get-StartupProgram -ComputerName $null } | Should -Throw
         }
     }
+
+    # ================================================================
+    # APPENDED TEST CONTEXTS
+    # ================================================================
+
+    Context 'PSTypeName validation' {
+        BeforeAll {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $script:mockStartupEntries }
+            $script:typeResults = Get-StartupProgram -ComputerName 'SRV01'
+        }
+        It -Name 'Should have PSTypeName PSWinOps.StartupProgram on all results' -Test {
+            $script:typeResults | ForEach-Object { $_.PSObject.TypeNames | Should -Contain 'PSWinOps.StartupProgram' }
+        }
+    }
+
+    Context 'Output property completeness' {
+        BeforeAll {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $script:mockStartupEntries }
+            $script:propResults = Get-StartupProgram -ComputerName 'SRV01'
+        }
+        It -Name 'Should contain all expected visible properties' -Test {
+            $script:propertyNames = $script:propResults[0].PSObject.Properties.Name
+            $script:expectedProps = @('ComputerName', 'ProgramName', 'Command', 'Location', 'Scope', 'Source', 'Timestamp')
+            foreach ($script:prop in $script:expectedProps) {
+                $script:propertyNames | Should -Contain $script:prop
+            }
+        }
+
+        It -Name 'Should have PSTypeName PSWinOps.StartupProgram' -Test {
+            $script:propResults[0].PSObject.TypeNames[0] | Should -Be 'PSWinOps.StartupProgram'
+        }
+    }
+
+    Context 'Timestamp ISO 8601 format' {
+        BeforeAll {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $script:mockStartupEntries }
+            $script:tsResults = Get-StartupProgram -ComputerName 'SRV01'
+        }
+        It -Name 'Should have Timestamp matching ISO 8601 pattern' -Test {
+            $script:tsResults | ForEach-Object { $_.Timestamp | Should -Match '^\d{4}-\d{2}-\d{2}T' }
+        }
+    }
+
+    Context 'Verbose output' {
+        BeforeAll {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $script:mockStartupEntries }
+        }
+        It -Name 'Should emit verbose messages containing Get-StartupProgram' -Test {
+            $script:verboseOutput = Get-StartupProgram -ComputerName 'SRV01' -Verbose 4>&1
+            $script:verboseMessages = @($script:verboseOutput | Where-Object { $_ -is [System.Management.Automation.VerboseRecord] })
+            $script:verboseMessages.Count | Should -BeGreaterOrEqual 1
+            $script:verboseText = $script:verboseMessages | ForEach-Object { $_.Message }
+            $script:verboseText -join ' ' | Should -Match 'Get-StartupProgram'
+        }
+    }
+
+    Context 'Credential parameter' {
+        It -Name 'Should have a Credential parameter' -Test {
+            $script:cmdInfo = Get-Command -Name 'Get-StartupProgram'
+            $script:cmdInfo.Parameters['Credential'] | Should -Not -BeNullOrEmpty
+        }
+        It -Name 'Should have Credential of type PSCredential' -Test {
+            $script:cmdInfo = Get-Command -Name 'Get-StartupProgram'
+            $script:cmdInfo.Parameters['Credential'].ParameterType.Name | Should -Be 'PSCredential'
+        }
+        It -Name 'Should not require Credential as mandatory' -Test {
+            $script:cmdInfo = Get-Command -Name 'Get-StartupProgram'
+            $script:isMandatory = $script:cmdInfo.Parameters['Credential'].Attributes |
+                Where-Object { $_ -is [System.Management.Automation.ParameterAttribute] } |
+                ForEach-Object { $_.Mandatory }
+            $script:isMandatory | Should -Be $false
+        }
+    }
+
+    Context 'ComputerName aliases' {
+        It -Name 'Should support CN alias' -Test {
+            $script:cmdInfo = Get-Command -Name 'Get-StartupProgram'
+            $script:cmdInfo.Parameters['ComputerName'].Aliases | Should -Contain 'CN'
+        }
+        It -Name 'Should support Name alias' -Test {
+            $script:cmdInfo = Get-Command -Name 'Get-StartupProgram'
+            $script:cmdInfo.Parameters['ComputerName'].Aliases | Should -Contain 'Name'
+        }
+    }
+
+    Context 'Local execution - registry entries via scriptblock' {
+
+        BeforeAll {
+            Mock -CommandName 'Test-Path' -ModuleName 'PSWinOps' -MockWith { $true }
+            Mock -CommandName 'Get-Item' -ModuleName 'PSWinOps' -MockWith {
+                $mockRegItem = [PSCustomObject]@{}
+                $mockRegItem | Add-Member -MemberType ScriptMethod -Name 'GetValueNames' -Value {
+                    return @('SecurityHealth', 'OneDrive')
+                }
+                $mockRegItem | Add-Member -MemberType ScriptMethod -Name 'GetValue' -Value {
+                    param($valueName)
+                    switch ($valueName) {
+                        'SecurityHealth' { return 'C:\Windows\System32\SecurityHealthSystray.exe' }
+                        'OneDrive' { return 'C:\Users\admin\OneDrive\OneDrive.exe' }
+                        default { return '' }
+                    }
+                }
+                return $mockRegItem
+            }
+            Mock -CommandName 'Get-ChildItem' -ModuleName 'PSWinOps' -MockWith { @() }
+
+            $script:localResults = Get-StartupProgram -ComputerName $env:COMPUTERNAME
+        }
+
+        It -Name 'Should return startup entries from local registry' -Test {
+            $script:localResults | Should -Not -BeNullOrEmpty
+        }
+
+        It -Name 'Should return PSWinOps.StartupProgram type for local results' -Test {
+            $script:localResults[0].PSObject.TypeNames | Should -Contain 'PSWinOps.StartupProgram'
+        }
+
+        It -Name 'Should set ComputerName to local machine name' -Test {
+            $script:localResults[0].ComputerName | Should -Be $env:COMPUTERNAME
+        }
+
+        It -Name 'Should have Source as Registry for registry entries' -Test {
+            $script:localResults | ForEach-Object { $_.Source | Should -Be 'Registry' }
+        }
+
+        It -Name 'Should include Timestamp on each local result' -Test {
+            $script:localResults | ForEach-Object { $_.Timestamp | Should -Not -BeNullOrEmpty }
+        }
+    }
+
+    Context 'Local execution - startup folder with shortcuts' {
+
+        BeforeAll {
+            Mock -CommandName 'Test-Path' -ModuleName 'PSWinOps' -MockWith { $true }
+            Mock -CommandName 'Get-Item' -ModuleName 'PSWinOps' -MockWith {
+                $mockRegItem = [PSCustomObject]@{}
+                $mockRegItem | Add-Member -MemberType ScriptMethod -Name 'GetValueNames' -Value { return @() }
+                $mockRegItem | Add-Member -MemberType ScriptMethod -Name 'GetValue' -Value { return '' }
+                return $mockRegItem
+            }
+            Mock -CommandName 'Get-ChildItem' -ModuleName 'PSWinOps' -MockWith {
+                @(
+                    [PSCustomObject]@{
+                        Name = 'MyApp.lnk'
+                        FullName = 'C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup\MyApp.lnk'
+                    }
+                )
+            }
+            Mock -CommandName 'New-Object' -ModuleName 'PSWinOps' -MockWith {
+                $mockShell = [PSCustomObject]@{}
+                $mockShell | Add-Member -MemberType ScriptMethod -Name 'CreateShortcut' -Value {
+                    param($path)
+                    return [PSCustomObject]@{ TargetPath = 'C:\MyApp\app.exe' }
+                }
+                return $mockShell
+            } -ParameterFilter { $ComObject -eq 'WScript.Shell' }
+
+            $script:localFolderResults = Get-StartupProgram -ComputerName $env:COMPUTERNAME
+        }
+
+        It -Name 'Should return StartupFolder entries from local machine' -Test {
+            $folderEntries = $script:localFolderResults | Where-Object Source -eq 'StartupFolder'
+            $folderEntries | Should -Not -BeNullOrEmpty
+        }
+
+        It -Name 'Should resolve shortcut target via WScript.Shell' -Test {
+            $folderEntries = $script:localFolderResults | Where-Object Source -eq 'StartupFolder'
+            $folderEntries[0].Command | Should -Be 'C:\MyApp\app.exe'
+        }
+    }
+
+    Context 'Local execution - empty registry and startup folders' {
+
+        BeforeAll {
+            Mock -CommandName 'Test-Path' -ModuleName 'PSWinOps' -MockWith { $false }
+            Mock -CommandName 'Get-ChildItem' -ModuleName 'PSWinOps' -MockWith { @() }
+        }
+
+        It -Name 'Should return empty results when no startup entries exist' -Test {
+            $script:emptyResult = Get-StartupProgram -ComputerName $env:COMPUTERNAME
+            $script:emptyResult | Should -BeNullOrEmpty
+        }
+    }
+
 }

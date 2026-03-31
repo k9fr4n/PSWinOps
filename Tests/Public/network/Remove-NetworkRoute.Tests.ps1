@@ -1,4 +1,4 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 #Requires -Modules @{ ModuleName = 'Pester'; ModuleVersion = '5.0' }
 
 BeforeAll {
@@ -110,6 +110,67 @@ Describe 'Remove-NetworkRoute' {
 
             { 'BADSRV', 'GOODSRV' | Remove-NetworkRoute -DestinationPrefix '10.10.0.0/16' -InterfaceAlias 'Ethernet' -Confirm:$false -ErrorAction SilentlyContinue } | Should -Not -Throw
             Should -Invoke -CommandName 'Invoke-Command' -ModuleName $script:ModuleName -Times 2 -Exactly
+        }
+    }
+
+    # ================================================================
+    # APPENDED TEST CONTEXTS
+    # ================================================================
+
+    Context 'Verbose output' {
+        BeforeAll {
+            Mock -ModuleName 'PSWinOps' -CommandName 'Invoke-Command' -MockWith { return @() }
+        }
+        It -Name 'Should produce verbose messages' -Test {
+            $script:verbose = Remove-NetworkRoute -ComputerName 'SRV01' -DestinationPrefix '10.10.0.0/16' -InterfaceAlias 'Ethernet' -Confirm:$false -Verbose -ErrorAction SilentlyContinue 4>&1 | Where-Object { $_ -is [System.Management.Automation.VerboseRecord] }
+            $script:verbose | Should -Not -BeNullOrEmpty
+        }
+        It -Name 'Should include function name in verbose' -Test {
+            $script:verbose = Remove-NetworkRoute -ComputerName 'SRV01' -DestinationPrefix '10.10.0.0/16' -InterfaceAlias 'Ethernet' -Confirm:$false -Verbose -ErrorAction SilentlyContinue 4>&1 | Where-Object { $_ -is [System.Management.Automation.VerboseRecord] }
+            ($script:verbose.Message -join ' ') | Should -Match 'Remove-NetworkRoute'
+        }
+    }
+
+    Context 'Credential parameter' {
+        It -Name 'Should have a Credential parameter' -Test {
+            $script:cmd = Get-Command -Name 'Remove-NetworkRoute' -Module 'PSWinOps'
+            $script:cmd.Parameters['Credential'] | Should -Not -BeNullOrEmpty
+        }
+        It -Name 'Should have Credential as PSCredential type' -Test {
+            $script:cmd = Get-Command -Name 'Remove-NetworkRoute' -Module 'PSWinOps'
+            $script:cmd.Parameters['Credential'].ParameterType.Name | Should -Be 'PSCredential'
+        }
+    }
+
+    Context 'ComputerName aliases' {
+        It -Name 'Should accept CN alias' -Test {
+            $script:cmd = Get-Command -Name 'Remove-NetworkRoute' -Module 'PSWinOps'
+            $script:cmd.Parameters['ComputerName'].Aliases | Should -Contain 'CN'
+        }
+    }
+
+    Context 'InterfaceIndex path' {
+        BeforeAll {
+            Mock -ModuleName 'PSWinOps' -CommandName 'Invoke-Command' -MockWith { }
+        }
+        It 'Should accept InterfaceIndex instead of InterfaceAlias' {
+            { Remove-NetworkRoute -ComputerName 'SRV01' -DestinationPrefix '10.10.0.0/16' -InterfaceIndex 4 -Confirm:$false -ErrorAction SilentlyContinue } | Should -Not -Throw
+        }
+    }
+
+    Context 'NextHop narrowing' {
+        BeforeAll {
+            Mock -ModuleName 'PSWinOps' -CommandName 'Invoke-Command' -MockWith { }
+        }
+        It 'Should accept optional NextHop to narrow selection' {
+            { Remove-NetworkRoute -ComputerName 'SRV01' -DestinationPrefix '10.10.0.0/16' -InterfaceAlias 'Ethernet' -NextHop '192.168.1.1' -Confirm:$false -ErrorAction SilentlyContinue } | Should -Not -Throw
+        }
+    }
+
+    Context 'DNSHostName alias' {
+        It 'Should accept DNSHostName alias for ComputerName' {
+            $script:cmd = Get-Command -Name 'Remove-NetworkRoute' -Module 'PSWinOps'
+            $script:cmd.Parameters['ComputerName'].Aliases | Should -Contain 'DNSHostName'
         }
     }
 }

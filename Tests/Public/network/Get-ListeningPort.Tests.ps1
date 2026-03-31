@@ -252,4 +252,128 @@ Describe 'Get-ListeningPort' {
             { Get-ListeningPort -ComputerName '' } | Should -Throw
         }
     }
+
+    Context 'Local execution - TCP and UDP via scriptblock' {
+
+        BeforeEach {
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-NetTCPConnection' -MockWith {
+                @(
+                    [PSCustomObject]@{ LocalAddress = '0.0.0.0'; LocalPort = 80; OwningProcess = [uint32]1234; State = 'Listen' }
+                )
+            }
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-NetUDPEndpoint' -MockWith {
+                @(
+                    [PSCustomObject]@{ LocalAddress = '0.0.0.0'; LocalPort = 53; OwningProcess = [uint32]5678 }
+                )
+            }
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-Process' -MockWith {
+                @(
+                    [PSCustomObject]@{ Id = 1234; ProcessName = 'httpd' },
+                    [PSCustomObject]@{ Id = 5678; ProcessName = 'dns' }
+                )
+            }
+        }
+
+        It 'Should return both TCP and UDP results for local machine' {
+            $result = Get-ListeningPort -ComputerName $env:COMPUTERNAME
+            $result | Should -Not -BeNullOrEmpty
+            ($result | Where-Object Protocol -eq 'TCP') | Should -Not -BeNullOrEmpty
+            ($result | Where-Object Protocol -eq 'UDP') | Should -Not -BeNullOrEmpty
+        }
+
+        It 'Should resolve process names for local TCP connections' {
+            $result = Get-ListeningPort -ComputerName $env:COMPUTERNAME -Protocol TCP
+            $result[0].ProcessName | Should -Be 'httpd'
+        }
+
+        It 'Should resolve process names for local UDP endpoints' {
+            $result = Get-ListeningPort -ComputerName $env:COMPUTERNAME -Protocol UDP
+            $result[0].ProcessName | Should -Be 'dns'
+        }
+
+        It 'Should handle localhost as local machine' {
+            $result = Get-ListeningPort -ComputerName 'localhost' -Protocol TCP
+            $result | Should -Not -BeNullOrEmpty
+        }
+    }
+
+    Context 'Local execution - special PIDs in scriptblock' {
+
+        BeforeEach {
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-NetTCPConnection' -MockWith {
+                @(
+                    [PSCustomObject]@{ LocalAddress = '0.0.0.0'; LocalPort = 135; OwningProcess = [uint32]0; State = 'Listen' },
+                    [PSCustomObject]@{ LocalAddress = '0.0.0.0'; LocalPort = 445; OwningProcess = [uint32]4; State = 'Listen' },
+                    [PSCustomObject]@{ LocalAddress = '0.0.0.0'; LocalPort = 8080; OwningProcess = [uint32]99999; State = 'Listen' }
+                )
+            }
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-NetUDPEndpoint' -MockWith { @() }
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-Process' -MockWith {
+                @([PSCustomObject]@{ Id = 100; ProcessName = 'svchost' })
+            }
+        }
+
+        It 'Should label PID 0 as System Idle locally' {
+            $result = Get-ListeningPort -ComputerName $env:COMPUTERNAME -Protocol TCP
+            ($result | Where-Object ProcessId -eq 0).ProcessName | Should -Be 'System Idle'
+        }
+
+        It 'Should label PID 4 as System locally' {
+            $result = Get-ListeningPort -ComputerName $env:COMPUTERNAME -Protocol TCP
+            ($result | Where-Object ProcessId -eq 4).ProcessName | Should -Be 'System'
+        }
+
+        It 'Should label unknown PID as [Unknown] locally' {
+            $result = Get-ListeningPort -ComputerName $env:COMPUTERNAME -Protocol TCP
+            ($result | Where-Object ProcessId -eq 99999).ProcessName | Should -Be '[Unknown]'
+        }
+    }
+
+    Context 'Local execution - Port filter in scriptblock' {
+
+        BeforeEach {
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-NetTCPConnection' -MockWith {
+                @(
+                    [PSCustomObject]@{ LocalAddress = '0.0.0.0'; LocalPort = 80; OwningProcess = [uint32]100; State = 'Listen' },
+                    [PSCustomObject]@{ LocalAddress = '0.0.0.0'; LocalPort = 443; OwningProcess = [uint32]100; State = 'Listen' }
+                )
+            }
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-NetUDPEndpoint' -MockWith { @() }
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-Process' -MockWith {
+                @([PSCustomObject]@{ Id = 100; ProcessName = 'nginx' })
+            }
+        }
+
+        It 'Should filter by port locally' {
+            $result = Get-ListeningPort -ComputerName $env:COMPUTERNAME -Protocol TCP -Port 443
+            $result | Should -HaveCount 1
+            $result[0].LocalPort | Should -Be 443
+        }
+    }
+
+    Context 'Local execution - ProcessName filter in scriptblock' {
+
+        BeforeEach {
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-NetTCPConnection' -MockWith {
+                @(
+                    [PSCustomObject]@{ LocalAddress = '0.0.0.0'; LocalPort = 80; OwningProcess = [uint32]100; State = 'Listen' },
+                    [PSCustomObject]@{ LocalAddress = '0.0.0.0'; LocalPort = 443; OwningProcess = [uint32]200; State = 'Listen' }
+                )
+            }
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-NetUDPEndpoint' -MockWith { @() }
+            Mock -ModuleName $script:ModuleName -CommandName 'Get-Process' -MockWith {
+                @(
+                    [PSCustomObject]@{ Id = 100; ProcessName = 'httpd' },
+                    [PSCustomObject]@{ Id = 200; ProcessName = 'nginx' }
+                )
+            }
+        }
+
+        It 'Should filter by process name locally' {
+            $result = Get-ListeningPort -ComputerName $env:COMPUTERNAME -Protocol TCP -ProcessName 'httpd'
+            $result | Should -HaveCount 1
+            $result[0].ProcessName | Should -Be 'httpd'
+        }
+    }
+
 }

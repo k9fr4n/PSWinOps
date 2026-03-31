@@ -10,24 +10,18 @@ on:
       - main
       - develop
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
+  # ─────────────────────────────────────────
+  # JOB 1 — VALIDATE MODULE MANIFEST
+  # ─────────────────────────────────────────
   validate:
     runs-on: windows-latest
-    permissions:
-      contents: read
-      checks: write
-      pull-requests: write
-
     steps:
-      # ─────────────────────────────────────────
-      # 1. CHECKOUT
-      # ─────────────────────────────────────────
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
 
-      # ─────────────────────────────────────────
-      # 2. VALIDATE MODULE MANIFEST
-      # ─────────────────────────────────────────
       - name: Validate Module Manifest
         shell: pwsh
         run: |
@@ -37,16 +31,29 @@ jobs:
           Write-Output "Version: $($result.Version)"
           Write-Output "Author : $($result.Author)"
 
-      # ─────────────────────────────────────────
-      # 3. LINTER — PSScriptAnalyzer
-      # ─────────────────────────────────────────
+  # ─────────────────────────────────────────
+  # JOB 2 — LINT
+  # ─────────────────────────────────────────
+  lint:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4.2.2
+
+      - name: Cache PowerShell modules
+        uses: actions/cache@v4.2.3
+        with:
+          path: C:\Users\runneradmin\Documents\PowerShell\Modules
+          key: psmodules-psscriptanalyzer-${{ runner.os }}
+
       - name: Lint with PSScriptAnalyzer
         shell: pwsh
         run: |
-          Install-Module -Name PSScriptAnalyzer -Force -SkipPublisherCheck
+          if (-not (Get-Module -ListAvailable -Name PSScriptAnalyzer)) {
+            Install-Module -Name PSScriptAnalyzer -Force -SkipPublisherCheck
+          }
 
           $files = Get-ChildItem -Path . -Recurse -Include *.ps1, *.psm1 |
-            Where-Object { $_.FullName -notmatch '[\\/](Tests|\.git)[\\/]' }
+            Where-Object { $_.FullName -notmatch '[\\/](Tests|\.git|output)[\\/]' }
 
           Write-Output "[INFO] Analyzing $($files.Count) file(s)..."
 
@@ -56,93 +63,174 @@ jobs:
 
           if ($results) {
             $results | Format-Table -AutoSize
-            $errorCount = ($results | Where-Object { $_.Severity -eq 'Error' }).Count
+            $errorCount   = ($results | Where-Object { $_.Severity -eq 'Error'   }).Count
             $warningCount = ($results | Where-Object { $_.Severity -eq 'Warning' }).Count
             throw "[FAIL] PSScriptAnalyzer found $errorCount error(s) and $warningCount warning(s)"
           }
 
           Write-Output "[OK] Linting passed - zero errors and warnings"
 
-      # ─────────────────────────────────────────
-      # 4. TESTS — Pester
-      # ─────────────────────────────────────────
-      - name: Run Pester Tests
+  # ─────────────────────────────────────────
+  # JOB 3 — TESTS (parallel matrix by category)
+  # ─────────────────────────────────────────
+  test:
+    needs: [validate, lint]
+    runs-on: windows-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        suite:
+          - "Private"
+          - "Public/healthcheck"
+          - "Public/network"
+          - "Public/ntp"
+          - "Public/proxy"
+          - "Public/rdp"
+          - "Public/system"
+          - "Public/utils"
+
+    steps:
+      - uses: actions/checkout@v4.2.2
+
+      - name: Cache PowerShell modules
+        uses: actions/cache@v4.2.3
+        with:
+          path: C:\Users\runneradmin\Documents\PowerShell\Modules
+          key: psmodules-pester5-${{ runner.os }}
+
+      - name: Install Pester
         shell: pwsh
         run: |
-          Install-Module -Name Pester -MinimumVersion 5.0 -Force -SkipPublisherCheck
+          if (-not (Get-Module -ListAvailable -Name Pester | Where-Object { $_.Version -ge '5.7' })) {
+            Install-Module -Name Pester -MinimumVersion 5.7 -Force -SkipPublisherCheck
+          }
+
+      - name: Run tests - ${{ matrix.suite }}
+        shell: pwsh
+        run: |
+          $suiteName = "${{ matrix.suite }}"
+          $suitePath = ".\Tests\$($suiteName -replace '/', '\')"
+          $safeName  = $suiteName -replace '[/\\]', '-'
 
           $config = New-PesterConfiguration
-          $config.Run.Path = '.\Tests'
-          $config.Output.Verbosity = 'Detailed'
-          $config.TestResult.Enabled = $true
-          $config.TestResult.OutputPath = 'TestResults.xml'
+          $config.Run.Path                = $suitePath
+          $config.Output.Verbosity        = 'Normal'
+          $config.TestResult.Enabled      = $true
+          $config.TestResult.OutputPath   = "TestResults-$safeName.xml"
           $config.TestResult.OutputFormat = 'NUnitXml'
-          $config.CodeCoverage.Enabled = $true
-          $config.CodeCoverage.Path = @(
+
+          $result = Invoke-Pester -Configuration $config
+
+          Write-Output "[INFO] [$suiteName] $($result.PassedCount) passed, $($result.FailedCount) failed"
+
+          if ($result.FailedCount -gt 0) {
+            throw "[FAIL] $($result.FailedCount) test(s) failed in suite '$suiteName'"
+          }
+
+          Write-Output "[OK] Suite '$suiteName' passed"
+
+      - name: Upload test results - ${{ matrix.suite }}
+        uses: actions/upload-artifact@v4.6.2
+        if: always()
+        with:
+          name: test-results-${{ strategy.job-index }}
+          path: TestResults-*.xml
+          retention-days: 30
+
+  # ─────────────────────────────────────────
+  # JOB 4 — PUBLISH COMBINED RESULTS
+  # ─────────────────────────────────────────
+  publish-results:
+    needs: test
+    runs-on: windows-latest
+    if: always()
+    permissions:
+      checks: write
+      pull-requests: write
+
+    steps:
+      - name: Download all test artifacts
+        uses: actions/download-artifact@v4.2.1
+        with:
+          pattern: test-results-*
+          merge-multiple: true
+          path: all-results
+
+      - name: Publish combined test results
+        uses: EnricoMi/publish-unit-test-result-action/windows@v2.17.1
+        with:
+          files: all-results/**/*.xml
+          check_name: Pester Test Results
+
+  # ─────────────────────────────────────────
+  # JOB 5 — CODE COVERAGE (only if all tests pass)
+  # ─────────────────────────────────────────
+  coverage:
+    needs: test
+    runs-on: windows-latest
+    if: success()
+
+    steps:
+      - uses: actions/checkout@v4.2.2
+
+      - name: Cache PowerShell modules
+        uses: actions/cache@v4.2.3
+        with:
+          path: C:\Users\runneradmin\Documents\PowerShell\Modules
+          key: psmodules-pester5-${{ runner.os }}
+
+      - name: Install Pester
+        shell: pwsh
+        run: |
+          if (-not (Get-Module -ListAvailable -Name Pester | Where-Object { $_.Version -ge '5.7' })) {
+            Install-Module -Name Pester -MinimumVersion 5.7 -Force -SkipPublisherCheck
+          }
+
+      - name: Run Pester with code coverage
+        shell: pwsh
+        run: |
+          $config = New-PesterConfiguration
+          $config.Run.Path                  = '.\Tests'
+          $config.Output.Verbosity          = 'None'
+          $config.CodeCoverage.Enabled      = $true
+          $config.CodeCoverage.Path         = @(
               '.\PSWinOps.psm1',
               '.\Public\**\*.ps1',
               '.\Private\*.ps1'
           )
-          $config.CodeCoverage.OutputPath = 'coverage.xml'
+          $config.CodeCoverage.OutputPath   = 'coverage.xml'
           $config.CodeCoverage.OutputFormat = 'JaCoCo'
 
-          $result = Invoke-Pester -Configuration $config
+          Invoke-Pester -Configuration $config
 
-          Write-Output "[INFO] Tests completed: $($result.PassedCount) passed, $($result.FailedCount) failed"
-
-          if ($result.FailedCount -gt 0) {
-              throw "[FAIL] $($result.FailedCount) test(s) failed"
-          }
-
-          Write-Output "[OK] All tests passed"
-
-      # ─────────────────────────────────────────
-      # 5. PUBLISH TEST RESULTS
-      # ─────────────────────────────────────────
-      - name: Publish Test Results
-        uses: EnricoMi/publish-unit-test-result-action/windows@v2
-        if: always()
-        with:
-          files: TestResults.xml
-          check_name: Pester Test Results
-
-      - name: Upload Test Artifacts
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: test-results
-          path: |
-            TestResults.xml
-            coverage.xml
-          retention-days: 30
-
-      # ─────────────────────────────────────────
-      # 6. CODE COVERAGE REPORT (Optional)
-      # ─────────────────────────────────────────
-      - name: Generate Coverage Report
-        if: success()
+      - name: Generate coverage summary
         shell: pwsh
         run: |
           if (Test-Path -Path 'coverage.xml') {
-            [xml]$coverage = Get-Content -Path 'coverage.xml'
-            $report = $coverage.report
-            $covered = [int]($report.counter | Where-Object { $_.type -eq 'LINE' }).covered
-            $missed  = [int]($report.counter | Where-Object { $_.type -eq 'LINE' }).missed
-            $total   = $covered + $missed
+            [xml]$coverage  = Get-Content -Path 'coverage.xml'
+            $lineCounter    = $coverage.report.counter | Where-Object { $_.type -eq 'LINE' }
+            $covered        = [int]$lineCounter.covered
+            $missed         = [int]$lineCounter.missed
+            $total          = $covered + $missed
             if ($total -gt 0) {
-              $percentage = [math]::Round(($covered / $total) * 100, 2)
-              Write-Output "[INFO] Code coverage: $percentage% ($covered/$total lines)"
+              $pct = [math]::Round(($covered / $total) * 100, 2)
+              Write-Output "[INFO] Code coverage: $pct% ($covered/$total lines)"
             }
           }
-      # ─────────────────────────────────────────
-      # 5b. UPLOAD COVERAGE TO CODECOV
-      # ─────────────────────────────────────────
-      - name: Upload Coverage to Codecov
-        if: always()
-        uses: codecov/codecov-action@v5
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5.4.2
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: coverage.xml
           flags: pester
           fail_ci_if_error: false
           verbose: true
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4.6.2
+        if: always()
+        with:
+          name: coverage-report
+          path: coverage.xml
+          retention-days: 30

@@ -10,6 +10,13 @@ param()
 BeforeAll {
     $script:modulePath = Split-Path -Path (Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent) -Parent
     Import-Module -Name "$($script:modulePath)/PSWinOps.psd1" -Force
+
+    if (-not (Get-Command -Name 'New-CimSession' -ErrorAction SilentlyContinue)) {
+        function global:New-CimSession { param($ComputerName, $Credential, $ErrorAction) }
+    }
+    if (-not (Get-Command -Name 'Remove-CimSession' -ErrorAction SilentlyContinue)) {
+        function global:Remove-CimSession { param($CimSession, $ErrorAction) }
+    }
 }
 
 Describe -Name 'Get-ComputerUptime' -Fixture {
@@ -154,4 +161,46 @@ Describe -Name 'Get-ComputerUptime' -Fixture {
             $result.Timestamp | Should -Match '^\d{4}-\d{2}-\d{2}T'
         }
     }
+
+    Context -Name 'Remote with Credential - CimSession code path' -Fixture {
+
+        BeforeAll {
+            $script:mockCimSession = New-MockObject -Type 'Microsoft.Management.Infrastructure.CimSession'
+
+            Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
+                return $script:mockCimSession
+            }
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
+                return $script:fakeOsInfo
+            }
+            Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith { }
+
+            $script:cred = [PSCredential]::new('admin', (ConvertTo-SecureString -String 'pass' -AsPlainText -Force))
+        }
+
+        It -Name 'Should use New-CimSession when Credential is provided for remote' -Test {
+            Get-ComputerUptime -ComputerName 'SRV01' -Credential $script:cred
+            Should -Invoke -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -Times 1 -Exactly
+        }
+
+        It -Name 'Should call Remove-CimSession in finally block' -Test {
+            Get-ComputerUptime -ComputerName 'SRV01' -Credential $script:cred
+            Should -Invoke -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -Times 1 -Exactly
+        }
+
+        It -Name 'Should return uptime result with Credential' -Test {
+            $script:credResult = Get-ComputerUptime -ComputerName 'SRV01' -Credential $script:cred
+            $script:credResult | Should -Not -BeNullOrEmpty
+            $script:credResult.ComputerName | Should -Be 'SRV01'
+        }
+
+        It -Name 'Should clean up CimSession even when Get-CimInstance fails' -Test {
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
+                throw 'CIM query failed'
+            }
+            Get-ComputerUptime -ComputerName 'SRV01' -Credential $script:cred -ErrorAction SilentlyContinue
+            Should -Invoke -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -Times 1 -Exactly
+        }
+    }
+
 }
