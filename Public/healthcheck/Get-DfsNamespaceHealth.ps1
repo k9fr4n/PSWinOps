@@ -71,7 +71,6 @@ function Get-DfsNamespaceHealth {
         Write-Verbose -Message "[$($MyInvocation.MyCommand)] Starting"
 
         $scriptBlock = {
-            $timestamp = Get-Date -Format 'o'
             $resultList = [System.Collections.Generic.List[object]]::new()
 
             # Step 1 - Check DFS service
@@ -90,28 +89,15 @@ function Get-DfsNamespaceHealth {
             }
 
             if (-not $dfsnAvailable) {
-                $health = if ($svcStatus -eq 'Running') {
-                    'RoleUnavailable'
-                }
-                elseif ($svcStatus -eq 'NotFound') {
-                    'RoleUnavailable'
-                }
-                else {
-                    'Critical'
-                }
-
-                $resultList.Add([PSCustomObject]@{
-                    PSTypeName     = 'PSWinOps.DfsNamespaceHealth'
-                    ComputerName   = $env:COMPUTERNAME
-                    ServiceName    = 'Dfs'
+                $resultList.Add(@{
                     ServiceStatus  = $svcStatus
                     RootPath       = 'N/A'
                     RootType       = 'N/A'
                     State          = 'N/A'
                     TargetCount    = 0
                     HealthyTargets = 0
-                    OverallHealth  = $health
-                    Timestamp      = $timestamp
+                    DfsnAvailable  = $false
+                    QueryError     = $false
                 })
                 return $resultList.ToArray()
             }
@@ -122,35 +108,29 @@ function Get-DfsNamespaceHealth {
                 $dfsRoots = @(Get-DfsnRoot -ErrorAction Stop)
             }
             catch {
-                $resultList.Add([PSCustomObject]@{
-                    PSTypeName     = 'PSWinOps.DfsNamespaceHealth'
-                    ComputerName   = $env:COMPUTERNAME
-                    ServiceName    = 'Dfs'
+                $resultList.Add(@{
                     ServiceStatus  = $svcStatus
                     RootPath       = 'N/A'
                     RootType       = 'N/A'
                     State          = 'N/A'
                     TargetCount    = 0
                     HealthyTargets = 0
-                    OverallHealth  = 'Critical'
-                    Timestamp      = $timestamp
+                    DfsnAvailable  = $true
+                    QueryError     = $true
                 })
                 return $resultList.ToArray()
             }
 
             if ($dfsRoots.Count -eq 0) {
-                $resultList.Add([PSCustomObject]@{
-                    PSTypeName     = 'PSWinOps.DfsNamespaceHealth'
-                    ComputerName   = $env:COMPUTERNAME
-                    ServiceName    = 'Dfs'
+                $resultList.Add(@{
                     ServiceStatus  = $svcStatus
                     RootPath       = 'N/A'
                     RootType       = 'N/A'
                     State          = 'N/A'
                     TargetCount    = 0
                     HealthyTargets = 0
-                    OverallHealth  = 'Healthy'
-                    Timestamp      = $timestamp
+                    DfsnAvailable  = $true
+                    QueryError     = $false
                 })
                 return $resultList.ToArray()
             }
@@ -176,31 +156,15 @@ function Get-DfsNamespaceHealth {
                     $targetHealthy = 0
                 }
 
-                $rootHealth = if ($targetTotal -eq 0) {
-                    'Critical'
-                }
-                elseif ($targetHealthy -eq 0) {
-                    'Critical'
-                }
-                elseif ($targetHealthy -lt $targetTotal) {
-                    'Degraded'
-                }
-                else {
-                    'Healthy'
-                }
-
-                $resultList.Add([PSCustomObject]@{
-                    PSTypeName     = 'PSWinOps.DfsNamespaceHealth'
-                    ComputerName   = $env:COMPUTERNAME
-                    ServiceName    = 'Dfs'
+                $resultList.Add(@{
                     ServiceStatus  = $svcStatus
                     RootPath       = $root.Path
                     RootType       = $rootType
                     State          = $rootState
                     TargetCount    = $targetTotal
                     HealthyTargets = $targetHealthy
-                    OverallHealth  = $rootHealth
-                    Timestamp      = $timestamp
+                    DfsnAvailable  = $true
+                    QueryError     = $false
                 })
             }
 
@@ -216,9 +180,45 @@ function Get-DfsNamespaceHealth {
                 $rawResults = Invoke-RemoteOrLocal -ComputerName $machine -ScriptBlock $scriptBlock -Credential $Credential
 
                 foreach ($item in $rawResults) {
-                    $item.PSObject.TypeNames.Insert(0, 'PSWinOps.DfsNamespaceHealth')
-                    $item.ComputerName = $displayName
-                    $item
+                    # Compute OverallHealth outside the scriptblock
+                    $healthStatus = if ($item.ServiceStatus -eq 'NotFound') {
+                        'RoleUnavailable'
+                    }
+                    elseif ($item.ServiceStatus -ne 'Running') {
+                        'Critical'
+                    }
+                    elseif (-not $item.DfsnAvailable) {
+                        'RoleUnavailable'
+                    }
+                    elseif ($item.QueryError) {
+                        'Critical'
+                    }
+                    elseif ($item.RootPath -eq 'N/A') {
+                        'Healthy'
+                    }
+                    elseif ($item.TargetCount -eq 0 -or $item.HealthyTargets -eq 0) {
+                        'Critical'
+                    }
+                    elseif ($item.HealthyTargets -lt $item.TargetCount) {
+                        'Degraded'
+                    }
+                    else {
+                        'Healthy'
+                    }
+
+                    [PSCustomObject]@{
+                        PSTypeName     = 'PSWinOps.DfsNamespaceHealth'
+                        ComputerName   = $displayName
+                        ServiceName    = 'Dfs'
+                        ServiceStatus  = $item.ServiceStatus
+                        RootPath       = $item.RootPath
+                        RootType       = $item.RootType
+                        State          = $item.State
+                        TargetCount    = [int]$item.TargetCount
+                        HealthyTargets = [int]$item.HealthyTargets
+                        OverallHealth  = $healthStatus
+                        Timestamp      = Get-Date -Format 'o'
+                    }
                 }
             }
             catch {
