@@ -45,27 +45,27 @@ function Get-NetworkConnection {
             Filter by owning process name. Supports wildcards.
 
         .EXAMPLE
-            Get-NetworkStatistic
+            Get-NetworkConnection
 
             Returns all TCP and UDP connections on the local machine.
 
         .EXAMPLE
-            Get-NetworkStatistic -Protocol TCP -State Established
+            Get-NetworkConnection -Protocol TCP -State Established
 
             Returns only established TCP connections on the local machine.
 
         .EXAMPLE
-            Get-NetworkStatistic -ComputerName 'SRV01', 'SRV02' -Protocol TCP -State Listen
+            Get-NetworkConnection -ComputerName 'SRV01', 'SRV02' -Protocol TCP -State Listen
 
             Returns listening TCP connections on two remote servers.
 
         .EXAMPLE
-            Get-NetworkStatistic -ProcessName 'svchost' -LocalPort 443
+            Get-NetworkConnection -ProcessName 'svchost' -LocalPort 443
 
             Returns connections on local port 443 owned by svchost.
 
         .EXAMPLE
-            'SRV01', 'SRV02' | Get-NetworkStatistic -Credential (Get-Credential) -Protocol TCP
+            'SRV01', 'SRV02' | Get-NetworkConnection -Credential (Get-Credential) -Protocol TCP
 
             Queries multiple servers via pipeline with explicit credentials.
 

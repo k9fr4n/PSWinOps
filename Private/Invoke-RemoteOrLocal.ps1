@@ -79,9 +79,7 @@ function Invoke-RemoteOrLocal {
         $Credential = [System.Management.Automation.PSCredential]::Empty
     )
 
-    $localNames = @($env:COMPUTERNAME, 'localhost', '.')
-
-    if ($localNames -contains $ComputerName) {
+    if ($script:LocalComputerNames -contains $ComputerName) {
         Write-Verbose -Message "[Invoke-RemoteOrLocal] Executing locally on '$ComputerName'"
         if ($ArgumentList) {
             return & $ScriptBlock @ArgumentList
