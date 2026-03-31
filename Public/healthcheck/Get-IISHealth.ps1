@@ -41,8 +41,8 @@ function Get-IISHealth {
 
         .NOTES
             Author: Franck SALLET
-            Version: 1.0.0
-            Last Modified: 2026-03-26
+            Version: 1.1.0
+            Last Modified: 2026-03-31
             Requires: PowerShell 5.1+ / Windows only
             Requires: Web-Server (IIS) role
 
@@ -181,24 +181,58 @@ function Get-IISHealth {
                     $cimSites = Get-CimInstance -Namespace 'root/webadministration' -ClassName 'Site' -ErrorAction Stop
                     $sitesData = [System.Collections.Generic.List[hashtable]]::new()
 
-                    $stateMap = @{ 1 = 'Started'; 2 = 'Starting'; 3 = 'Stopped'; 4 = 'Stopping' }
+                    # Build app pool index via CIM
+                    $cimPoolIndex = @{}
+                    $cimPoolStateMap = @{ 1 = 'Started'; 2 = 'Starting'; 3 = 'Stopped'; 4 = 'Stopping' }
+                    try {
+                        $cimPools = Get-CimInstance -Namespace 'root/webadministration' -ClassName 'ApplicationPool' -ErrorAction Stop
+                        foreach ($pool in $cimPools) {
+                            $poolState = 'Unknown'
+                            try {
+                                $poolCimState = Invoke-CimMethod -InputObject $pool -MethodName 'GetState' -ErrorAction Stop
+                                if ($cimPoolStateMap.ContainsKey([int]$poolCimState.ReturnValue)) {
+                                    $poolState = $cimPoolStateMap[[int]$poolCimState.ReturnValue]
+                                }
+                            }
+                            catch { $poolState = 'Unknown' }
+                            $cimPoolIndex[$pool.Name] = $poolState
+                        }
+                    }
+                    catch { Write-Verbose -Message 'CIM ApplicationPool query failed; pool data unavailable' }
+
+                    # Build site-to-pool mapping via CIM Application class
+                    $sitePoolMap = @{}
+                    try {
+                        $cimApps = Get-CimInstance -Namespace 'root/webadministration' -ClassName 'Application' -ErrorAction Stop
+                        foreach ($app in $cimApps) {
+                            if ($app.Path -eq '/') {
+                                $sitePoolMap[$app.SiteName] = $app.ApplicationPool
+                            }
+                        }
+                    }
+                    catch { Write-Verbose -Message 'CIM Application query failed; site-to-pool mapping unavailable' }
+
+                    $siteStateMap = @{ 1 = 'Started'; 2 = 'Starting'; 3 = 'Stopped'; 4 = 'Stopping' }
                     foreach ($site in $cimSites) {
                         $siteState = 'Unknown'
                         try {
                             $cimState = Invoke-CimMethod -InputObject $site -MethodName 'GetState' -ErrorAction Stop
-                            if ($stateMap.ContainsKey([int]$cimState.ReturnValue)) {
-                                $siteState = $stateMap[[int]$cimState.ReturnValue]
+                            if ($siteStateMap.ContainsKey([int]$cimState.ReturnValue)) {
+                                $siteState = $siteStateMap[[int]$cimState.ReturnValue]
                             }
                         }
                         catch { $siteState = 'Unknown' }
+
+                        $poolName  = if ($sitePoolMap.ContainsKey($site.Name)) { $sitePoolMap[$site.Name] } else { 'Unknown' }
+                        $poolState = if ($cimPoolIndex.ContainsKey($poolName)) { $cimPoolIndex[$poolName] } else { 'Unknown' }
 
                         $sitesData.Add(@{
                             SiteName     = $site.Name
                             SiteState    = $siteState
                             Bindings     = 'N/A'
                             PhysicalPath = 'N/A'
-                            AppPoolName  = 'Unknown'
-                            AppPoolState = 'Unknown'
+                            AppPoolName  = $poolName
+                            AppPoolState = $poolState
                         })
                     }
                 }
@@ -234,7 +268,7 @@ function Get-IISHealth {
                 foreach ($siteInfo in $sitesData) {
                     $health = if ($w3svcStatus -ne 'Running') { 'Critical' }
                     elseif ($siteInfo.SiteState -ne 'Started') { 'Critical' }
-                    elseif ($siteInfo.AppPoolState -ne 'Started') { 'Degraded' }
+                    elseif ($siteInfo.AppPoolState -notin @('Started', 'Unknown')) { 'Degraded' }
                     else { 'Healthy' }
 
                     $siteResults.Add(@{

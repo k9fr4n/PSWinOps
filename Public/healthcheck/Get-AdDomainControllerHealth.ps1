@@ -212,7 +212,7 @@ function Get-AdDomainControllerHealth {
             $dcdiagPath = Get-Command -Name 'dcdiag' -ErrorAction SilentlyContinue
             if ($dcdiagPath) {
                 try {
-                    $dcdiagOutput = & dcdiag /s:$env:COMPUTERNAME /test:Connectivity /test:Replications /test:Services /test:Advertising /test:FsmoCheck /q 2>&1
+                    $dcdiagOutput = & dcdiag /s:$env:COMPUTERNAME /test:Connectivity /test:Replications /test:Services /test:Advertising /test:FsmoCheck 2>&1
                     $dcdiagText = $dcdiagOutput | Out-String
                     $passedCount = ([regex]::Matches($dcdiagText, 'passed test', 'IgnoreCase')).Count
                     $failedCount = ([regex]::Matches($dcdiagText, 'failed test', 'IgnoreCase')).Count

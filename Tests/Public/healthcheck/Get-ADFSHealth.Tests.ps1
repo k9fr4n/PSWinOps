@@ -38,6 +38,8 @@ Describe 'Get-ADFSHealth' {
             EnabledRelyingParties = 12
             EnabledEndpoints      = 8
             ServerHealthOK        = $true
+            FarmRole              = 'Primary'
+            PrimaryServer         = 'Unknown'
         }
 
         # Helper: set up all local-path mocks for the scriptBlock
@@ -60,7 +62,8 @@ Describe 'Get-ADFSHealth' {
                 [bool]$EndpointThrows        = $false,
                 [bool]$HealthCmdExists       = $true,
                 [bool]$HealthTestThrows      = $false,
-                [bool]$HealthTestFailing     = $false
+                [bool]$HealthTestFailing     = $false,
+                [bool]$IsSecondaryNode       = $false
             )
 
             # Get-Service
@@ -84,7 +87,12 @@ Describe 'Get-ADFSHealth' {
             }
 
             # Get-AdfsProperties
-            if ($PropertiesThrows) {
+            if ($IsSecondaryNode) {
+                Mock -CommandName 'Get-AdfsProperties' -ModuleName 'PSWinOps' -MockWith {
+                    throw 'PS0033: This cmdlet cannot be executed from a secondary server in a local database farm.  The primary server is presently: adfs01.contoso.com.'
+                }
+            }
+            elseif ($PropertiesThrows) {
                 Mock -CommandName 'Get-AdfsProperties' -ModuleName 'PSWinOps' -MockWith { throw 'Cannot get ADFS properties' }
             }
             else {
@@ -241,13 +249,32 @@ Describe 'Get-ADFSHealth' {
         It 'Should return Degraded' { $script:result.OverallHealth | Should -Be 'Degraded' }
     }
 
-    Context 'Remote - Degraded (zero enabled relying parties)' {
+    Context 'Remote - Degraded (zero enabled relying parties on primary)' {
         BeforeAll {
             $d = $script:mockRemoteData.Clone(); $d.EnabledRelyingParties = 0
             Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $d }
             $script:result = Get-ADFSHealth -ComputerName 'ADFS01'
         }
         It 'Should return Degraded' { $script:result.OverallHealth | Should -Be 'Degraded' }
+        It 'Should report FarmRole as Primary' { $script:result.FarmRole | Should -Be 'Primary' }
+    }
+
+    Context 'Remote - Secondary node (WID farm) is Healthy despite zero RPs' {
+        BeforeAll {
+            $d = $script:mockRemoteData.Clone()
+            $d.FarmRole = 'Secondary'
+            $d.PrimaryServer = 'adfs01.contoso.com'
+            $d.FederationServiceName = 'Unknown'
+            $d.EnabledRelyingParties = 0
+            $d.TotalRelyingParties = 0
+            $d.EnabledEndpoints = 0
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $d }
+            $script:result = Get-ADFSHealth -ComputerName 'ADFS02'
+        }
+        It 'Should return Healthy (not Degraded)' { $script:result.OverallHealth | Should -Be 'Healthy' }
+        It 'Should report FarmRole as Secondary' { $script:result.FarmRole | Should -Be 'Secondary' }
+        It 'Should report PrimaryServer' { $script:result.PrimaryServer | Should -Be 'adfs01.contoso.com' }
+        It 'Should report FederationServiceName as Unknown' { $script:result.FederationServiceName | Should -Be 'Unknown' }
     }
 
     Context 'Remote - Pipeline input (two servers)' {
@@ -460,7 +487,7 @@ Describe 'Get-ADFSHealth' {
         It 'Should return cert days less than 30' { $script:result.SslCertDaysRemaining | Should -BeLessThan 30 }
     }
 
-    Context 'Local path - Degraded (zero enabled relying parties)' {
+    Context 'Local path - Degraded (zero enabled relying parties on primary)' {
         BeforeAll {
             Set-ADFSLocalMocks -TotalRP 5 -EnabledRP 0
             $script:result = Get-ADFSHealth -ComputerName $env:COMPUTERNAME
@@ -468,6 +495,17 @@ Describe 'Get-ADFSHealth' {
         It 'Should return Degraded' { $script:result.OverallHealth | Should -Be 'Degraded' }
         It 'Should return 0 EnabledRelyingParties' { $script:result.EnabledRelyingParties | Should -Be 0 }
         It 'Should return 5 TotalRelyingParties' { $script:result.TotalRelyingParties | Should -Be 5 }
+    }
+
+    Context 'Local path - Secondary WID node is Healthy despite zero RPs' {
+        BeforeAll {
+            Set-ADFSLocalMocks -IsSecondaryNode $true -RPThrows $true -EndpointThrows $true
+            $script:result = Get-ADFSHealth -ComputerName $env:COMPUTERNAME
+        }
+        It 'Should return Healthy (not Degraded)' { $script:result.OverallHealth | Should -Be 'Healthy' }
+        It 'Should report FarmRole as Secondary' { $script:result.FarmRole | Should -Be 'Secondary' }
+        It 'Should report PrimaryServer' { $script:result.PrimaryServer | Should -Be 'adfs01.contoso.com' }
+        It 'Should return 0 EnabledRelyingParties' { $script:result.EnabledRelyingParties | Should -Be 0 }
     }
 
     # =========================================================================
@@ -588,6 +626,8 @@ Describe 'Get-ADFSHealth' {
         It 'Should have ComputerName set to ADFS01' { $script:hpResult.ComputerName | Should -Be 'ADFS01' }
         It 'Should have ServiceName property' { $script:hpResult.ServiceName | Should -Be 'adfssrv' }
         It 'Should have ServiceStatus property' { $script:hpResult.ServiceStatus | Should -Be 'Running' }
+        It 'Should have FarmRole property' { $script:hpResult.FarmRole | Should -Be 'Primary' }
+        It 'Should have PrimaryServer property' { $script:hpResult.PSObject.Properties.Name | Should -Contain 'PrimaryServer' }
         It 'Should have FederationServiceName property' { $script:hpResult.FederationServiceName | Should -Be 'fs.contoso.com' }
         It 'Should have SslCertExpiry property' { $script:hpResult.SslCertExpiry | Should -Be '2028-01-01 00:00:00' }
         It 'Should have SslCertDaysRemaining property' { $script:hpResult.SslCertDaysRemaining | Should -Be 700 }
