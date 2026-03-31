@@ -663,7 +663,7 @@ function Invoke-ModuleBuild {
         if (Test-Path -Path $helpPath) {
             $destHelp = Join-Path -Path $script:ModuleOutput -ChildPath 'en-US'
             Copy-Item -Path $helpPath -Destination $destHelp -Recurse
-            Write-BuildSuccess -Message "Help files copied: en-US/"
+            Write-BuildSuccess -Message 'Help files copied: en-US/'
         }
 
         # Calculate new version
