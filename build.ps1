@@ -604,7 +604,10 @@ function Invoke-ModuleBuild {
             foreach ($file in $privateFiles) {
                 Write-Verbose -Message "[$($MyInvocation.MyCommand)] Including Private: $($file.Name)"
                 $null = $psm1Content.AppendLine("# --- Private: $($file.Name) ---")
-                $null = $psm1Content.AppendLine((Get-Content -Path $file.FullName -Raw))
+                $fileContent = Get-Content -Path $file.FullName -Raw
+                # Strip UTF-8 BOM to avoid 'ï»¿#Requires' errors in assembled PSM1
+                $fileContent = $fileContent -replace '^ï»¿', '' -replace '^﻿', ''
+                $null = $psm1Content.AppendLine($fileContent)
                 $null = $psm1Content.AppendLine('')
             }
         }
@@ -618,7 +621,10 @@ function Invoke-ModuleBuild {
             foreach ($file in $publicFiles) {
                 Write-Verbose -Message "[$($MyInvocation.MyCommand)] Including Public: $($file.Name)"
                 $null = $psm1Content.AppendLine("# --- Public: $($file.Name) ---")
-                $null = $psm1Content.AppendLine((Get-Content -Path $file.FullName -Raw))
+                $fileContent = Get-Content -Path $file.FullName -Raw
+                # Strip UTF-8 BOM to avoid 'ï»¿#Requires' errors in assembled PSM1
+                $fileContent = $fileContent -replace '^ï»¿', '' -replace '^﻿', ''
+                $null = $psm1Content.AppendLine($fileContent)
                 $null = $psm1Content.AppendLine('')
                 $functionName = [System.IO.Path]::GetFileNameWithoutExtension($file.Name)
                 $exportedFunctions.Add($functionName)
