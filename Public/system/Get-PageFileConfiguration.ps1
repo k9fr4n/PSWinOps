@@ -65,42 +65,27 @@ function Get-PageFileConfiguration {
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand)] Starting"
-        $localNames = @($env:COMPUTERNAME, 'localhost', '.')
+
+        $scriptBlock = {
+            @{
+                ComputerSystem  = Get-CimInstance -ClassName 'Win32_ComputerSystem' -ErrorAction Stop
+                PageFileSettings = @(Get-CimInstance -ClassName 'Win32_PageFileSetting' -ErrorAction Stop)
+                PageFileUsages   = @(Get-CimInstance -ClassName 'Win32_PageFileUsage' -ErrorAction Stop)
+            }
+        }
     }
 
     process {
         foreach ($machine in $ComputerName) {
-            $cimSession = $null
             try {
-                $isLocal = $localNames -contains $machine
+                Write-Verbose "[$($MyInvocation.MyCommand)] Querying pagefile configuration on '$machine'"
+                $rawData = Invoke-RemoteOrLocal -ComputerName $machine -ScriptBlock $scriptBlock -Credential $Credential
 
-                if ($isLocal) {
-                    Write-Verbose "[$($MyInvocation.MyCommand)] Querying local machine"
-                    $cimParams = @{}
-                }
-                else {
-                    Write-Verbose "[$($MyInvocation.MyCommand)] Creating CimSession to '$machine'"
-                    $sessionParams = @{
-                        ComputerName = $machine
-                        ErrorAction  = 'Stop'
-                    }
-                    if ($Credential -ne [System.Management.Automation.PSCredential]::Empty) {
-                        $sessionParams['Credential'] = $Credential
-                    }
-                    $cimSession = New-CimSession @sessionParams
-                    $cimParams = @{ CimSession = $cimSession }
-                }
+                $compSystem = $rawData.ComputerSystem
+                $pageFileSettings = @($rawData.PageFileSettings)
+                $pageFileUsages = @($rawData.PageFileUsages)
 
-                Write-Verbose "[$($MyInvocation.MyCommand)] Querying Win32_ComputerSystem on '$machine'"
-                $compSystem = Get-CimInstance -ClassName 'Win32_ComputerSystem' @cimParams -ErrorAction Stop
-
-                Write-Verbose "[$($MyInvocation.MyCommand)] Querying Win32_PageFileSetting on '$machine'"
-                $pageFileSettings = @(Get-CimInstance -ClassName 'Win32_PageFileSetting' @cimParams -ErrorAction Stop)
-
-                Write-Verbose "[$($MyInvocation.MyCommand)] Querying Win32_PageFileUsage on '$machine'"
-                $pageFileUsages = @(Get-CimInstance -ClassName 'Win32_PageFileUsage' @cimParams -ErrorAction Stop)
-
-                $displayName = if ($isLocal) { $env:COMPUTERNAME } else { $machine }
+                $displayName = $machine
                 $ramTotalGB = [decimal][math]::Round($compSystem.TotalPhysicalMemory / 1GB, 2)
                 $autoManaged = [bool]$compSystem.AutomaticManagedPagefile
 
@@ -171,12 +156,7 @@ function Get-PageFileConfiguration {
                 Write-Error "[$($MyInvocation.MyCommand)] Failed to query '$machine': $_"
                 continue
             }
-            finally {
-                if ($cimSession) {
-                    Write-Verbose "[$($MyInvocation.MyCommand)] Removing CimSession to '$machine'"
-                    Remove-CimSession -CimSession $cimSession -ErrorAction SilentlyContinue
-                }
-            }
+
         }
     }
 

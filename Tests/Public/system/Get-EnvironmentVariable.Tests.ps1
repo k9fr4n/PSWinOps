@@ -19,7 +19,7 @@ Describe 'Get-EnvironmentVariable' {
     Context 'Remote - all scopes' {
 
         BeforeAll {
-            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $script:mockRemoteEntries }
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith { return $script:mockRemoteEntries }
             $script:results = Get-EnvironmentVariable -ComputerName 'SRV01'
         }
 
@@ -43,7 +43,7 @@ Describe 'Get-EnvironmentVariable' {
     Context 'Remote - VariableName filter' {
 
         BeforeAll {
-            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $script:mockRemoteEntries }
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith { return $script:mockRemoteEntries }
             $script:results = Get-EnvironmentVariable -ComputerName 'SRV01' -VariableName 'PATH'
         }
 
@@ -56,7 +56,7 @@ Describe 'Get-EnvironmentVariable' {
     Context 'Remote - Scope Machine only' {
 
         BeforeAll {
-            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $script:mockRemoteEntries }
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith { return $script:mockRemoteEntries }
             $script:scopeResults = Get-EnvironmentVariable -ComputerName 'SRV01' -Scope 'Machine'
         }
 
@@ -86,7 +86,7 @@ Describe 'Get-EnvironmentVariable' {
     Context 'Pipeline multiple machines' {
 
         BeforeAll {
-            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $script:mockRemoteEntries }
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith { return $script:mockRemoteEntries }
             $script:results = 'SRV01', 'SRV02' | Get-EnvironmentVariable
         }
 
@@ -98,7 +98,7 @@ Describe 'Get-EnvironmentVariable' {
     Context 'Per-machine failure' {
 
         BeforeAll {
-            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { throw 'Connection failed' }
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith { throw 'Connection failed' }
         }
 
         It -Name 'Should write error with ErrorAction Stop' -Test {
@@ -133,7 +133,7 @@ Describe 'Get-EnvironmentVariable' {
 
     Context 'PSTypeName validation' {
         BeforeAll {
-            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $script:mockRemoteEntries }
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith { return $script:mockRemoteEntries }
             $script:typeResults = Get-EnvironmentVariable -ComputerName 'SRV01'
         }
         It -Name 'Should have PSTypeName PSWinOps.EnvironmentVariable on all results' -Test {
@@ -143,7 +143,7 @@ Describe 'Get-EnvironmentVariable' {
 
     Context 'Output property completeness' {
         BeforeAll {
-            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $script:mockRemoteEntries }
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith { return $script:mockRemoteEntries }
             $script:propResults = Get-EnvironmentVariable -ComputerName 'SRV01'
         }
         It -Name 'Should contain all expected visible properties' -Test {
@@ -161,7 +161,7 @@ Describe 'Get-EnvironmentVariable' {
 
     Context 'Timestamp ISO 8601 format' {
         BeforeAll {
-            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $script:mockRemoteEntries }
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith { return $script:mockRemoteEntries }
             $script:tsResults = Get-EnvironmentVariable -ComputerName 'SRV01'
         }
         It -Name 'Should have Timestamp matching ISO 8601 pattern' -Test {
@@ -171,7 +171,7 @@ Describe 'Get-EnvironmentVariable' {
 
     Context 'Verbose output' {
         BeforeAll {
-            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $script:mockRemoteEntries }
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith { return $script:mockRemoteEntries }
         }
         It -Name 'Should emit verbose messages containing Get-EnvironmentVariable' -Test {
             $script:verboseOutput = Get-EnvironmentVariable -ComputerName 'SRV01' -Verbose 4>&1
@@ -189,7 +189,7 @@ Describe 'Get-EnvironmentVariable' {
                 [PSCustomObject]@{ Name = 'PATHEXT'; Value = '.COM;.EXE;.BAT'; Scope = 'Machine' },
                 [PSCustomObject]@{ Name = 'TEMP'; Value = 'C:\Windows\Temp'; Scope = 'Machine' }
             )
-            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $script:mockWildcardEntries }
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith { return $script:mockWildcardEntries }
         }
         It -Name 'Should return only PATH and PATHEXT when filtering with PATH*' -Test {
             $script:wildcardResults = Get-EnvironmentVariable -ComputerName 'SRV01' -VariableName 'PATH*'
@@ -225,15 +225,15 @@ Describe 'Get-EnvironmentVariable' {
 
     Context 'Scope parameter validation' {
         It -Name 'Should accept Machine as a valid scope' -Test {
-            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return @() }
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith { return @() }
             { Get-EnvironmentVariable -ComputerName 'SRV01' -Scope 'Machine' } | Should -Not -Throw
         }
         It -Name 'Should accept User as a valid scope' -Test {
-            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return @() }
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith { return @() }
             { Get-EnvironmentVariable -ComputerName 'SRV01' -Scope 'User' } | Should -Not -Throw
         }
         It -Name 'Should accept All as a valid scope' -Test {
-            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return @() }
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith { return @() }
             { Get-EnvironmentVariable -ComputerName 'SRV01' -Scope 'All' } | Should -Not -Throw
         }
         It -Name 'Should throw when Scope is Invalid' -Test {
@@ -258,6 +258,9 @@ Describe 'Get-EnvironmentVariable' {
                     }
                 }
                 return $mockRegItem
+            }
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
             }
         }
 
@@ -301,6 +304,9 @@ Describe 'Get-EnvironmentVariable' {
                 }
                 return $mockRegItem
             }
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+            }
         }
 
         It -Name 'Should return Machine scope results for local Machine query' -Test {
@@ -333,6 +339,9 @@ Describe 'Get-EnvironmentVariable' {
                 }
                 return $mockRegItem
             }
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+            }
         }
 
         It -Name 'Should filter by VariableName with wildcard on local' -Test {
@@ -353,12 +362,15 @@ Describe 'Get-EnvironmentVariable' {
                 }
                 return $mockRegItem
             }
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+            }
         }
 
         It -Name 'Should treat localhost as local and use scriptblock' -Test {
             $script:localhostResult = Get-EnvironmentVariable -ComputerName 'localhost' -Scope 'Machine'
             $script:localhostResult | Should -Not -BeNullOrEmpty
-            $script:localhostResult[0].ComputerName | Should -Be $env:COMPUTERNAME
+            $script:localhostResult[0].ComputerName | Should -Be 'localhost'
         }
     }
 

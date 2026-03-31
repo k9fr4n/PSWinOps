@@ -101,8 +101,6 @@ function Remove-NetworkRoute {
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand)] Starting network route removal"
-        $localNames = @($env:COMPUTERNAME, 'localhost', '.')
-        $hasCredential = $PSBoundParameters.ContainsKey('Credential')
 
         $queryScriptBlock = {
             param(
@@ -135,10 +133,9 @@ function Remove-NetworkRoute {
     process {
         foreach ($targetComputer in $ComputerName) {
             try {
-                $isLocal = $localNames -contains $targetComputer
                 $shouldProcessTarget = "Route $DestinationPrefix on '$targetComputer'"
 
-                Write-Verbose "[$($MyInvocation.MyCommand)] Removing route on '$targetComputer' (local: $isLocal)"
+                Write-Verbose "[$($MyInvocation.MyCommand)] Removing route on '$targetComputer'"
 
                 if (-not $PSCmdlet.ShouldProcess($shouldProcessTarget, 'Remove network route')) {
                     continue
@@ -163,20 +160,7 @@ function Remove-NetworkRoute {
                         })
                 )
 
-                if ($isLocal) {
-                    & $queryScriptBlock @queryArgs
-                } else {
-                    $invokeParams = @{
-                        ComputerName = $targetComputer
-                        ScriptBlock  = $queryScriptBlock
-                        ArgumentList = $queryArgs
-                        ErrorAction  = 'Stop'
-                    }
-                    if ($hasCredential) {
-                        $invokeParams['Credential'] = $Credential
-                    }
-                    Invoke-Command @invokeParams
-                }
+                $null = Invoke-RemoteOrLocal -ComputerName $targetComputer -ScriptBlock $queryScriptBlock -ArgumentList $queryArgs -Credential $Credential
 
                 Write-Verbose "[$($MyInvocation.MyCommand)] Route '$DestinationPrefix' removed successfully on '$targetComputer'"
             } catch {

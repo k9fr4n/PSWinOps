@@ -92,96 +92,77 @@ function Get-ScheduledTaskDetail {
 
     begin {
         Write-Verbose -Message "[$($MyInvocation.MyCommand)] Starting"
-        $localNames = @($env:COMPUTERNAME, 'localhost', '.')
+
+        $scriptBlock = {
+            param($FilterTaskPath, $FilterTaskName, $InclMicrosoft)
+
+            $allTasks = @(Get-ScheduledTask -ErrorAction Stop)
+
+            if ($FilterTaskPath) {
+                $allTasks = @($allTasks | Where-Object -FilterScript { $_.TaskPath -like $FilterTaskPath })
+            }
+            if (-not $InclMicrosoft) {
+                $allTasks = @($allTasks | Where-Object -FilterScript { $_.TaskPath -notlike '\Microsoft\*' })
+            }
+            if ($FilterTaskName) {
+                $allTasks = @($allTasks | Where-Object -FilterScript { $_.TaskName -like $FilterTaskName })
+            }
+
+            foreach ($task in $allTasks) {
+                $runInfo = $null
+                try {
+                    $runInfo = ScheduledTasks\Get-ScheduledTaskInfo -TaskName $task.TaskName -TaskPath $task.TaskPath -ErrorAction SilentlyContinue
+                } catch {
+                    Write-Verbose -Message "[$($MyInvocation.MyCommand)] Could not retrieve run info for '$($task.TaskPath)$($task.TaskName)': $_"
+                }
+
+                [PSCustomObject]@{
+                    TaskName       = $task.TaskName
+                    TaskPath       = $task.TaskPath
+                    State          = $task.State.ToString()
+                    LastRunTime    = if ($runInfo) { $runInfo.LastRunTime } else { $null }
+                    LastTaskResult = if ($runInfo) { $runInfo.LastTaskResult } else { $null }
+                    NextRunTime    = if ($runInfo) { $runInfo.NextRunTime } else { $null }
+                    Author         = $task.Author
+                    Description    = $task.Description
+                }
+            }
+        }
     }
 
     process {
         foreach ($machine in $ComputerName) {
-            $cimSession = $null
-
             try {
-                $isLocal = $localNames -contains $machine
-
-                # --- Build or skip CimSession ---
-                $taskParams = @{ ErrorAction = 'Stop' }
-
-                if (-not $isLocal) {
-                    $sessionParams = @{
-                        ComputerName = $machine
-                        ErrorAction  = 'Stop'
-                    }
-                    if ($Credential -ne [System.Management.Automation.PSCredential]::Empty) {
-                        $sessionParams['Credential'] = $Credential
-                    }
-                    $cimSession = New-CimSession @sessionParams
-                    $taskParams['CimSession'] = $cimSession
-                    Write-Verbose -Message "[$($MyInvocation.MyCommand)] CimSession established to '$machine'"
-                }
-
-                # --- Retrieve all scheduled tasks ---
                 Write-Verbose -Message "[$($MyInvocation.MyCommand)] Querying scheduled tasks on '$machine'"
-                $allTasks = @(Get-ScheduledTask @taskParams)
 
-                # --- Filter by TaskPath ---
-                if ($PSBoundParameters.ContainsKey('TaskPath')) {
-                    $allTasks = @($allTasks | Where-Object -FilterScript {
-                        $_.TaskPath -like $TaskPath
-                    })
-                }
+                $argList = @(
+                    $(if ($PSBoundParameters.ContainsKey('TaskPath')) { $TaskPath } else { $null }),
+                    $(if ($PSBoundParameters.ContainsKey('TaskName')) { $TaskName } else { $null }),
+                    $IncludeMicrosoftTasks.IsPresent
+                )
 
-                # --- Exclude Microsoft tasks unless requested ---
-                if (-not $IncludeMicrosoftTasks) {
-                    $allTasks = @($allTasks | Where-Object -FilterScript {
-                        $_.TaskPath -notlike '\Microsoft\*'
-                    })
-                }
+                $rawTasks = @(Invoke-RemoteOrLocal -ComputerName $machine -ScriptBlock $scriptBlock -ArgumentList $argList -Credential $Credential)
 
-                # --- Filter by TaskName if specified ---
-                if ($PSBoundParameters.ContainsKey('TaskName')) {
-                    $allTasks = @($allTasks | Where-Object -FilterScript {
-                        $_.TaskName -like $TaskName
-                    })
-                }
-
-                if ($allTasks.Count -eq 0) {
+                if ($rawTasks.Count -eq 0) {
                     Write-Verbose -Message "[$($MyInvocation.MyCommand)] No matching tasks found on '$machine'"
                     continue
                 }
 
-                Write-Verbose -Message "[$($MyInvocation.MyCommand)] Found $($allTasks.Count) task(s) on '$machine'"
+                Write-Verbose -Message "[$($MyInvocation.MyCommand)] Found $($rawTasks.Count) task(s) on '$machine'"
 
-                # --- Process each task ---
-                foreach ($task in $allTasks) {
-                    $runInfo = $null
-                    try {
-                        $infoParams = @{
-                            TaskName    = $task.TaskName
-                            TaskPath    = $task.TaskPath
-                            ErrorAction = 'SilentlyContinue'
-                        }
-                        if ($cimSession) {
-                            $infoParams['CimSession'] = $cimSession
-                        }
-                        # Module-qualified call to avoid recursion with our function name
-                        $runInfo = ScheduledTasks\Get-ScheduledTaskInfo @infoParams
-                    }
-                    catch {
-                        Write-Verbose -Message "[$($MyInvocation.MyCommand)] Could not get run info for '$($task.TaskPath)$($task.TaskName)' on '$machine'"
-                    }
-
-                    $resultCode = if ($runInfo) { $runInfo.LastTaskResult } else { $null }
-                    $resultMessage = ConvertTo-ScheduledTaskResultMessage -ResultCode $resultCode
+                foreach ($task in $rawTasks) {
+                    $resultMessage = ConvertTo-ScheduledTaskResultMessage -ResultCode $task.LastTaskResult
 
                     [PSCustomObject]@{
                         PSTypeName        = 'PSWinOps.ScheduledTaskDetail'
-                        ComputerName      = if ($isLocal) { $env:COMPUTERNAME } else { $machine }
+                        ComputerName      = $machine
                         TaskName          = $task.TaskName
                         TaskPath          = $task.TaskPath
-                        State             = $task.State.ToString()
-                        LastRunTime       = if ($runInfo) { $runInfo.LastRunTime } else { $null }
-                        LastTaskResult    = $resultCode
+                        State             = $task.State
+                        LastRunTime       = $task.LastRunTime
+                        LastTaskResult    = $task.LastTaskResult
                         LastResultMessage = $resultMessage
-                        NextRunTime       = if ($runInfo) { $runInfo.NextRunTime } else { $null }
+                        NextRunTime       = $task.NextRunTime
                         Author            = $task.Author
                         Description       = $task.Description
                         Timestamp         = Get-Date -Format 'o'
@@ -191,12 +172,6 @@ function Get-ScheduledTaskDetail {
             catch {
                 Write-Error -Message "[$($MyInvocation.MyCommand)] Failed on '${machine}': $_"
                 continue
-            }
-            finally {
-                if ($cimSession) {
-                    Remove-CimSession -CimSession $cimSession -ErrorAction SilentlyContinue
-                    Write-Verbose -Message "[$($MyInvocation.MyCommand)] CimSession closed for '$machine'"
-                }
             }
         }
     }

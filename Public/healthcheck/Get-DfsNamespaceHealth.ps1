@@ -69,7 +69,6 @@ function Get-DfsNamespaceHealth {
 
     begin {
         Write-Verbose -Message "[$($MyInvocation.MyCommand)] Starting"
-        $localNames = @($env:COMPUTERNAME, 'localhost', '.')
 
         $scriptBlock = {
             $timestamp = Get-Date -Format 'o'
@@ -212,25 +211,9 @@ function Get-DfsNamespaceHealth {
     process {
         foreach ($machine in $ComputerName) {
             try {
-                $isLocal = $localNames -contains $machine
                 $displayName = $machine.ToUpper()
-
-                if ($isLocal) {
-                    Write-Verbose -Message "[$($MyInvocation.MyCommand)] Querying local computer '${machine}'"
-                    $rawResults = & $scriptBlock
-                }
-                else {
-                    Write-Verbose -Message "[$($MyInvocation.MyCommand)] Querying remote computer '${machine}'"
-                    $invokeParams = @{
-                        ComputerName = $machine
-                        ScriptBlock  = $scriptBlock
-                        ErrorAction  = 'Stop'
-                    }
-                    if ($Credential -ne [System.Management.Automation.PSCredential]::Empty) {
-                        $invokeParams['Credential'] = $Credential
-                    }
-                    $rawResults = Invoke-Command @invokeParams
-                }
+                Write-Verbose -Message "[$($MyInvocation.MyCommand)] Querying '${machine}'"
+                $rawResults = Invoke-RemoteOrLocal -ComputerName $machine -ScriptBlock $scriptBlock -Credential $Credential
 
                 foreach ($item in $rawResults) {
                     $item.PSObject.TypeNames.Insert(0, 'PSWinOps.DfsNamespaceHealth')

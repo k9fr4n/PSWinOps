@@ -86,8 +86,6 @@ function Get-ArpTable {
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand)] Starting ARP table query"
-        $localNames = @($env:COMPUTERNAME, 'localhost', '.')
-        $hasCredential = $PSBoundParameters.ContainsKey('Credential')
 
         $queryScriptBlock = {
             param([string]$QueryState, [string]$QueryAddressFamily)
@@ -143,7 +141,6 @@ function Get-ArpTable {
     process {
         foreach ($targetComputer in $ComputerName) {
             try {
-                $isLocal = $localNames -contains $targetComputer
                 $timestamp = Get-Date -Format 'o'
 
                 Write-Verbose "[$($MyInvocation.MyCommand)] Querying ARP table on '$targetComputer'"
@@ -153,20 +150,7 @@ function Get-ArpTable {
                     $AddressFamily
                 )
 
-                if ($isLocal) {
-                    $rawResults = & $queryScriptBlock @queryArgs
-                } else {
-                    $invokeParams = @{
-                        ComputerName = $targetComputer
-                        ScriptBlock  = $queryScriptBlock
-                        ArgumentList = $queryArgs
-                        ErrorAction  = 'Stop'
-                    }
-                    if ($hasCredential) {
-                        $invokeParams['Credential'] = $Credential
-                    }
-                    $rawResults = Invoke-Command @invokeParams
-                }
+                $rawResults = Invoke-RemoteOrLocal -ComputerName $targetComputer -ScriptBlock $queryScriptBlock -ArgumentList $queryArgs -Credential $Credential
 
                 foreach ($entry in $rawResults) {
                     [PSCustomObject]@{

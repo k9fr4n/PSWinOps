@@ -82,8 +82,6 @@ function Get-NetworkAdapter {
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand)] Starting network adapter query"
-        $localNames = @($env:COMPUTERNAME, 'localhost', '.')
-        $hasCredential = $PSBoundParameters.ContainsKey('Credential')
 
         $queryScriptBlock = {
             param([bool]$ShowDisabled, [string]$FilterName)
@@ -154,7 +152,6 @@ function Get-NetworkAdapter {
     process {
         foreach ($targetComputer in $ComputerName) {
             try {
-                $isLocal = $localNames -contains $targetComputer
                 $timestamp = Get-Date -Format 'o'
 
                 Write-Verbose "[$($MyInvocation.MyCommand)] Querying adapters on '$targetComputer'"
@@ -164,20 +161,7 @@ function Get-NetworkAdapter {
                     $(if ($InterfaceName) { $InterfaceName } else { $null })
                 )
 
-                if ($isLocal) {
-                    $rawResults = & $queryScriptBlock @queryArgs
-                } else {
-                    $invokeParams = @{
-                        ComputerName = $targetComputer
-                        ScriptBlock  = $queryScriptBlock
-                        ArgumentList = $queryArgs
-                        ErrorAction  = 'Stop'
-                    }
-                    if ($hasCredential) {
-                        $invokeParams['Credential'] = $Credential
-                    }
-                    $rawResults = Invoke-Command @invokeParams
-                }
+                $rawResults = Invoke-RemoteOrLocal -ComputerName $targetComputer -ScriptBlock $queryScriptBlock -ArgumentList $queryArgs -Credential $Credential
 
                 foreach ($entry in $rawResults) {
                     [PSCustomObject]@{

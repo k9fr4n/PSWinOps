@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 #Requires -Modules @{ ModuleName = 'Pester'; ModuleVersion = '5.0' }
 
 BeforeAll {
@@ -15,13 +15,15 @@ Describe 'Get-ServiceHealth' {
             [PSCustomObject]@{ Name = 'BITS'; DisplayName = 'Background Intelligent Transfer'; State = 'Stopped'; StartMode = 'Manual'; StartName = 'LocalSystem'; ProcessId = 0 },
             [PSCustomObject]@{ Name = 'RemoteRegistry'; DisplayName = 'Remote Registry'; State = 'Stopped'; StartMode = 'Disabled'; StartName = 'LocalService'; ProcessId = 0 }
         )
-        # CimSession mock created inline via New-MockObject
     }
 
     Context 'Default - only degraded services' {
 
         BeforeAll {
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith { return $script:mockServices }
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+            }
             $script:results = Get-ServiceHealth
         }
 
@@ -46,6 +48,9 @@ Describe 'Get-ServiceHealth' {
 
         BeforeAll {
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith { return $script:mockServices }
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+            }
             $script:results = Get-ServiceHealth -IncludeAll
         }
 
@@ -74,6 +79,9 @@ Describe 'Get-ServiceHealth' {
 
         BeforeAll {
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith { return $script:mockServices }
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+            }
             $script:results = Get-ServiceHealth -ServiceName 'W32*' -IncludeAll
         }
 
@@ -86,9 +94,10 @@ Describe 'Get-ServiceHealth' {
     Context 'Remote single machine' {
 
         BeforeAll {
-            Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith { New-MockObject -Type 'Microsoft.Management.Infrastructure.CimSession' }
-            Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith { return $script:mockServices }
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+            }
             $script:results = Get-ServiceHealth -ComputerName 'SRV01'
         }
 
@@ -105,9 +114,10 @@ Describe 'Get-ServiceHealth' {
     Context 'Pipeline multiple machines' {
 
         BeforeAll {
-            Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith { New-MockObject -Type 'Microsoft.Management.Infrastructure.CimSession' }
-            Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith { return $script:mockServices }
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+            }
             $script:results = 'SRV01', 'SRV02' | Get-ServiceHealth -IncludeAll
         }
 
@@ -119,7 +129,9 @@ Describe 'Get-ServiceHealth' {
     Context 'Per-machine failure' {
 
         BeforeAll {
-            Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith { throw 'Connection failed' }
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -ParameterFilter {
+                $ComputerName -eq 'BADHOST'
+            } -MockWith { throw 'Connection failed' }
         }
 
         It -Name 'Should write error with ErrorAction Stop' -Test {

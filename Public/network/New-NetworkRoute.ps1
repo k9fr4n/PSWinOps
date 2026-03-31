@@ -112,8 +112,6 @@ function New-NetworkRoute {
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand)] Starting new network route creation"
-        $localNames = @($env:COMPUTERNAME, 'localhost', '.')
-        $hasCredential = $PSBoundParameters.ContainsKey('Credential')
 
         if (-not $PSBoundParameters.ContainsKey('InterfaceIndex') -and -not $PSBoundParameters.ContainsKey('InterfaceAlias')) {
             $PSCmdlet.ThrowTerminatingError(
@@ -181,11 +179,10 @@ function New-NetworkRoute {
     process {
         foreach ($targetComputer in $ComputerName) {
             try {
-                $isLocal = $localNames -contains $targetComputer
                 $timestamp = Get-Date -Format 'o'
                 $shouldProcessTarget = "Route $DestinationPrefix via $NextHop on '$targetComputer'"
 
-                Write-Verbose "[$($MyInvocation.MyCommand)] Creating route on '$targetComputer' (local: $isLocal)"
+                Write-Verbose "[$($MyInvocation.MyCommand)] Creating route on '$targetComputer'"
 
                 if (-not $PSCmdlet.ShouldProcess($shouldProcessTarget, 'Create network route')) {
                     continue
@@ -212,20 +209,7 @@ function New-NetworkRoute {
                         })
                 )
 
-                if ($isLocal) {
-                    $rawResult = & $queryScriptBlock @queryArgs
-                } else {
-                    $invokeParams = @{
-                        ComputerName = $targetComputer
-                        ScriptBlock  = $queryScriptBlock
-                        ArgumentList = $queryArgs
-                        ErrorAction  = 'Stop'
-                    }
-                    if ($hasCredential) {
-                        $invokeParams['Credential'] = $Credential
-                    }
-                    $rawResult = Invoke-Command @invokeParams
-                }
+                $rawResult = Invoke-RemoteOrLocal -ComputerName $targetComputer -ScriptBlock $queryScriptBlock -ArgumentList $queryArgs -Credential $Credential
 
                 [PSCustomObject]@{
                     PSTypeName        = 'PSWinOps.NetworkRoute'

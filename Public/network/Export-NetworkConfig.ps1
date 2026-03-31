@@ -95,8 +95,6 @@ function Export-NetworkConfig {
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand)] Starting network config export"
-        $localNames = @($env:COMPUTERNAME, 'localhost', '.')
-        $hasCredential = $PSBoundParameters.ContainsKey('Credential')
 
         $queryScriptBlock = {
             param([bool]$CollectFirewall, [bool]$CollectListeners, [bool]$CollectARP)
@@ -208,27 +206,13 @@ function Export-NetworkConfig {
     process {
         foreach ($targetComputer in $ComputerName) {
             try {
-                $isLocal = $localNames -contains $targetComputer
                 $timestamp = Get-Date -Format 'o'
 
                 Write-Verbose "[$($MyInvocation.MyCommand)] Collecting network config from '$targetComputer'"
 
                 $queryArgs = @((-not $ExcludeFirewall.IsPresent), (-not $ExcludeListeners.IsPresent), $IncludeARP.IsPresent)
 
-                if ($isLocal) {
-                    $rawConfig = & $queryScriptBlock @queryArgs
-                } else {
-                    $invokeParams = @{
-                        ComputerName = $targetComputer
-                        ScriptBlock  = $queryScriptBlock
-                        ArgumentList = $queryArgs
-                        ErrorAction  = 'Stop'
-                    }
-                    if ($hasCredential) {
-                        $invokeParams['Credential'] = $Credential
-                    }
-                    $rawConfig = Invoke-Command @invokeParams
-                }
+                $rawConfig = Invoke-RemoteOrLocal -ComputerName $targetComputer -ScriptBlock $queryScriptBlock -ArgumentList $queryArgs -Credential $Credential
 
                 $configObj = [PSCustomObject]@{
                     PSTypeName        = 'PSWinOps.NetworkConfig'

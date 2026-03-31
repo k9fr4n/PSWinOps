@@ -72,6 +72,10 @@ Describe 'Get-SystemSummary' {
         Mock -ModuleName 'PSWinOps' -CommandName 'Get-CimInstance' -ParameterFilter {
             $ClassName -eq 'Win32_NetworkAdapterConfiguration'
         } -MockWith { return $script:fakeNetwork }
+
+        Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+            if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+        }
     }
 
     Context 'Happy path - local machine' {
@@ -92,7 +96,7 @@ Describe 'Get-SystemSummary' {
 
         It -Name 'Should call Get-CimInstance exactly 6 times for local query' -Test {
             Get-SystemSummary | Out-Null
-            Should -Invoke -ModuleName 'PSWinOps' -CommandName 'Get-CimInstance' -Times 6 -Exactly
+            Should -Invoke -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -Times 1 -Exactly
         }
     }
 
@@ -103,9 +107,9 @@ Describe 'Get-SystemSummary' {
             $script:result.ComputerName | Should -Be 'SRV01'
         }
 
-        It -Name 'Should call Get-CimInstance 6 times with ComputerName parameter' -Test {
+        It -Name 'Should call Invoke-RemoteOrLocal once for remote machine' -Test {
             Get-SystemSummary -ComputerName 'SRV01' | Out-Null
-            Should -Invoke -ModuleName 'PSWinOps' -CommandName 'Get-CimInstance' -Times 6 -Exactly
+            Should -Invoke -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -Times 1 -Exactly
         }
     }
 
@@ -128,17 +132,17 @@ Describe 'Get-SystemSummary' {
             $script:results | Should -HaveCount 2
         }
 
-        It -Name 'Should call Get-CimInstance 12 times total for 2 machines' -Test {
+        It -Name 'Should call Invoke-RemoteOrLocal 2 times for 2 machines' -Test {
             @('SRV01', 'SRV02') | Get-SystemSummary | Out-Null
-            Should -Invoke -ModuleName 'PSWinOps' -CommandName 'Get-CimInstance' -Times 12 -Exactly
+            Should -Invoke -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -Times 2 -Exactly
         }
     }
 
     Context 'Per-machine failure handling' {
         BeforeEach {
-            Mock -ModuleName 'PSWinOps' -CommandName 'Get-CimInstance' -ParameterFilter {
-                $ClassName -eq 'Win32_ComputerSystem' -and $ComputerName -eq 'BADMACHINE'
-            } -MockWith { throw 'RPC server unavailable' }
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -ParameterFilter {
+                $ComputerName -eq 'BADMACHINE'
+            } -MockWith { throw 'Connection failed' }
         }
 
         It -Name 'Should write an error for the failing machine and continue' -Test {

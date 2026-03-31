@@ -80,8 +80,6 @@ function Get-NetworkCIDR {
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand)] Starting network CIDR enumeration"
-        $localNames = @($env:COMPUTERNAME, 'localhost', '.')
-        $hasCredential = $PSBoundParameters.ContainsKey('Credential')
 
         $queryScriptBlock = {
             param([string]$Family, [bool]$ShowVirtual)
@@ -162,25 +160,11 @@ function Get-NetworkCIDR {
     process {
         foreach ($targetComputer in $ComputerName) {
             try {
-                $isLocal = $localNames -contains $targetComputer
                 $timestamp = Get-Date -Format 'o'
 
                 Write-Verbose "[$($MyInvocation.MyCommand)] Querying CIDR on '$targetComputer'"
 
-                if ($isLocal) {
-                    $rawResults = & $queryScriptBlock -Family $AddressFamily -ShowVirtual $IncludeVirtual.IsPresent
-                } else {
-                    $invokeParams = @{
-                        ComputerName = $targetComputer
-                        ScriptBlock  = $queryScriptBlock
-                        ArgumentList = @($AddressFamily, $IncludeVirtual.IsPresent)
-                        ErrorAction  = 'Stop'
-                    }
-                    if ($hasCredential) {
-                        $invokeParams['Credential'] = $Credential
-                    }
-                    $rawResults = Invoke-Command @invokeParams
-                }
+                $rawResults = Invoke-RemoteOrLocal -ComputerName $targetComputer -ScriptBlock $queryScriptBlock -ArgumentList @($AddressFamily, $IncludeVirtual.IsPresent) -Credential $Credential
 
                 foreach ($entry in $rawResults) {
                     [PSCustomObject]@{

@@ -70,8 +70,6 @@ function Get-PendingReboot {
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand)] Starting pending reboot check"
 
-        $localNames = @($env:COMPUTERNAME, 'localhost', '.')
-
         $checkScript = {
             $cbsPath = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending'
             $wuPath = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired'
@@ -112,21 +110,7 @@ function Get-PendingReboot {
             Write-Verbose "[$($MyInvocation.MyCommand)] Checking pending reboot on '$computer'"
 
             try {
-                $isLocal = $localNames -contains $computer
-
-                if ($isLocal) {
-                    $checkResult = & $checkScript
-                } else {
-                    $invokeParams = @{
-                        ComputerName = $computer
-                        ScriptBlock  = $checkScript
-                        ErrorAction  = 'Stop'
-                    }
-                    if ($PSBoundParameters.ContainsKey('Credential')) {
-                        $invokeParams['Credential'] = $Credential
-                    }
-                    $checkResult = Invoke-Command @invokeParams
-                }
+                $checkResult = Invoke-RemoteOrLocal -ComputerName $computer -ScriptBlock $checkScript -Credential $Credential
 
                 $isRebootPending = (
                     $checkResult['ComponentBasedServicing'] -or

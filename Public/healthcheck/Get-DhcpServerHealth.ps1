@@ -68,7 +68,6 @@ function Get-DhcpServerHealth {
 
     begin {
         Write-Verbose -Message "[$($MyInvocation.MyCommand)] Starting"
-        $localNames = @($env:COMPUTERNAME, 'localhost', '.')
 
         $scriptBlock = {
             $scopeResults = [System.Collections.Generic.List[object]]::new()
@@ -223,22 +222,7 @@ function Get-DhcpServerHealth {
             Write-Verbose -Message "[$($MyInvocation.MyCommand)] Querying '${machine}'"
 
             try {
-                $isLocal = $localNames -contains $machine
-
-                if ($isLocal) {
-                    $rawResults = & $scriptBlock
-                }
-                else {
-                    $invokeParams = @{
-                        ComputerName = $machine
-                        ScriptBlock  = $scriptBlock
-                        ErrorAction  = 'Stop'
-                    }
-                    if ($Credential -ne [System.Management.Automation.PSCredential]::Empty) {
-                        $invokeParams['Credential'] = $Credential
-                    }
-                    $rawResults = Invoke-Command @invokeParams
-                }
+                $rawResults = Invoke-RemoteOrLocal -ComputerName $machine -ScriptBlock $scriptBlock -Credential $Credential
 
                 if (-not $rawResults) {
                     Write-Warning -Message "[$($MyInvocation.MyCommand)] No results returned from '${machine}'"

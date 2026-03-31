@@ -84,7 +84,6 @@ function Get-EnvironmentVariable {
 
     begin {
         Write-Verbose -Message "[$($MyInvocation.MyCommand)] Starting with Scope=$Scope"
-        $localNames = @($env:COMPUTERNAME, 'localhost', '.')
 
         $registryPaths = @{
             Machine = 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment'
@@ -137,49 +136,32 @@ function Get-EnvironmentVariable {
             Write-Verbose -Message "[$($MyInvocation.MyCommand)] Processing '$machine'"
 
             try {
-                $isLocal = $localNames -contains $machine
-                $displayName = if ($isLocal) { $env:COMPUTERNAME } else { $machine }
+                $isLocal = @($env:COMPUTERNAME, 'localhost', '.') -contains $machine
+                $displayName = $machine
                 $resultList = [System.Collections.Generic.List[object]]::new()
 
-                if ($isLocal) {
-                    $rawEntries = & $scriptBlock -Paths $registryPaths -RequestedScope $Scope
-
-                    foreach ($entry in $rawEntries) {
-                        $resultList.Add($entry)
-                    }
-
-                    # Add Process scope if requested and local
-                    if ($Scope -eq 'All' -or $Scope -eq 'Process') {
-                        $envVars = [Environment]::GetEnvironmentVariables('Process')
-                        foreach ($key in $envVars.Keys) {
-                            $resultList.Add([PSCustomObject]@{
-                                Name  = $key
-                                Value = $envVars[$key]
-                                Scope = 'Process'
-                            })
-                        }
-                    }
+                # Remote Process scope is not supported
+                if (-not $isLocal -and $Scope -eq 'Process') {
+                    Write-Warning -Message "[$($MyInvocation.MyCommand)] Process scope is not available for remote computers. Skipping '$machine'."
+                    continue
                 }
-                else {
-                    if ($Scope -eq 'Process') {
-                        Write-Warning -Message "[$($MyInvocation.MyCommand)] Process scope is not available for remote computers. Skipping '$machine'."
-                        continue
-                    }
 
-                    $invokeParams = @{
-                        ComputerName = $machine
-                        ScriptBlock  = $scriptBlock
-                        ArgumentList = @($registryPaths, $Scope)
-                        ErrorAction  = 'Stop'
-                    }
-                    if ($Credential -ne [System.Management.Automation.PSCredential]::Empty) {
-                        $invokeParams['Credential'] = $Credential
-                    }
+                # Query Machine/User scopes via Invoke-RemoteOrLocal
+                $rawEntries = Invoke-RemoteOrLocal -ComputerName $machine -ScriptBlock $scriptBlock -ArgumentList @($registryPaths, $Scope) -Credential $Credential
 
-                    $rawEntries = Invoke-Command @invokeParams
+                foreach ($entry in $rawEntries) {
+                    $resultList.Add($entry)
+                }
 
-                    foreach ($entry in $rawEntries) {
-                        $resultList.Add($entry)
+                # Add Process scope if local and requested
+                if ($isLocal -and ($Scope -eq 'All' -or $Scope -eq 'Process')) {
+                    $envVars = [Environment]::GetEnvironmentVariables('Process')
+                    foreach ($key in $envVars.Keys) {
+                        $resultList.Add([PSCustomObject]@{
+                            Name  = $key
+                            Value = $envVars[$key]
+                            Scope = 'Process'
+                        })
                     }
                 }
 

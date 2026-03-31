@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 #Requires -Modules @{ ModuleName = 'Pester'; ModuleVersion = '5.0' }
 
 BeforeAll {
@@ -25,7 +25,6 @@ Describe 'Get-DiskSpace' {
             FreeSpace  = 5368709120
             DriveType  = 3
         }
-        # CimSession mock created inline via New-MockObject
     }
 
     Context 'Happy path - local' {
@@ -33,6 +32,9 @@ Describe 'Get-DiskSpace' {
         BeforeAll {
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockDisk
+            }
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
             }
             $script:result = Get-DiskSpace
         }
@@ -71,6 +73,9 @@ Describe 'Get-DiskSpace' {
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockDiskCritical
             }
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+            }
             $script:result = Get-DiskSpace
         }
 
@@ -93,6 +98,9 @@ Describe 'Get-DiskSpace' {
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockDiskWarning
             }
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+            }
             $script:result = Get-DiskSpace
         }
 
@@ -107,6 +115,9 @@ Describe 'Get-DiskSpace' {
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockDisk
             }
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+            }
             $script:result = Get-DiskSpace -WarningThreshold 40 -CriticalThreshold 20
         }
 
@@ -118,12 +129,11 @@ Describe 'Get-DiskSpace' {
     Context 'Remote single machine' {
 
         BeforeAll {
-            Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
-                New-MockObject -Type 'Microsoft.Management.Infrastructure.CimSession'
-            }
-            Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockDisk
+            }
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
             }
             $script:result = Get-DiskSpace -ComputerName 'SRV01'
         }
@@ -142,12 +152,11 @@ Describe 'Get-DiskSpace' {
     Context 'Pipeline multiple machines' {
 
         BeforeAll {
-            Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
-                New-MockObject -Type 'Microsoft.Management.Infrastructure.CimSession'
-            }
-            Mock -CommandName 'Remove-CimSession' -ModuleName 'PSWinOps' -MockWith {}
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
                 return $script:mockDisk
+            }
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
             }
             $script:results = 'SRV01', 'SRV02' | Get-DiskSpace
         }
@@ -165,9 +174,6 @@ Describe 'Get-DiskSpace' {
     Context 'Per-machine failure' {
 
         BeforeAll {
-            Mock -CommandName 'New-CimSession' -ModuleName 'PSWinOps' -MockWith {
-                throw 'Connection failed'
-            }
         }
 
         It -Name 'Should write error with ErrorAction Stop' -Test {

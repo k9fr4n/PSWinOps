@@ -77,8 +77,6 @@ function Get-InstalledSoftware {
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand)] Starting"
 
-        $localNames = @($env:COMPUTERNAME, 'localhost', '.')
-
         $registryPaths = @{
             '64-bit' = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*'
             '32-bit' = 'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*'
@@ -120,25 +118,7 @@ function Get-InstalledSoftware {
             Write-Verbose "[$($MyInvocation.MyCommand)] Processing $computer"
 
             try {
-                $isLocal = $localNames -contains $computer
-
-                if ($isLocal) {
-                    $rawEntries = & $scriptBlock -Paths $registryPaths
-                }
-                else {
-                    $invokeParams = @{
-                        ComputerName = $computer
-                        ScriptBlock  = $scriptBlock
-                        ArgumentList = @(, $registryPaths)
-                        ErrorAction  = 'Stop'
-                    }
-
-                    if ($Credential -ne [System.Management.Automation.PSCredential]::Empty) {
-                        $invokeParams['Credential'] = $Credential
-                    }
-
-                    $rawEntries = Invoke-Command @invokeParams
-                }
+                $rawEntries = Invoke-RemoteOrLocal -ComputerName $computer -ScriptBlock $scriptBlock -ArgumentList @(, $registryPaths) -Credential $Credential
 
                 $resultList = [System.Collections.Generic.List[object]]::new()
 

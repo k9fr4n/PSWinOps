@@ -69,7 +69,6 @@ function Get-DfsReplicationHealth {
 
     begin {
         Write-Verbose -Message "[$($MyInvocation.MyCommand)] Starting"
-        $localNames = @($env:COMPUTERNAME, 'localhost', '.')
 
         $remoteScriptBlock = {
             $outputList = [System.Collections.Generic.List[object]]::new()
@@ -151,26 +150,12 @@ function Get-DfsReplicationHealth {
 
     process {
         foreach ($machine in $ComputerName) {
-            $isLocal = $localNames -contains $machine
             $displayName = $machine.ToUpper()
 
             Write-Verbose -Message "[$($MyInvocation.MyCommand)] Querying '${machine}'"
 
             try {
-                if ($isLocal) {
-                    $rawResults = & $remoteScriptBlock
-                }
-                else {
-                    $invokeParams = @{
-                        ComputerName = $machine
-                        ScriptBlock  = $remoteScriptBlock
-                        ErrorAction  = 'Stop'
-                    }
-                    if ($Credential -ne [System.Management.Automation.PSCredential]::Empty) {
-                        $invokeParams['Credential'] = $Credential
-                    }
-                    $rawResults = Invoke-Command @invokeParams
-                }
+                $rawResults = Invoke-RemoteOrLocal -ComputerName $machine -ScriptBlock $remoteScriptBlock -Credential $Credential
 
                 if ($null -eq $rawResults) {
                     Write-Warning -Message "[$($MyInvocation.MyCommand)] No data returned from '${machine}'"

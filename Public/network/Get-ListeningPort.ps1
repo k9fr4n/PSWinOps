@@ -90,8 +90,6 @@ function Get-ListeningPort {
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand)] Starting listening port query"
-        $localNames = @($env:COMPUTERNAME, 'localhost', '.')
-        $hasCredential = $PSBoundParameters.ContainsKey('Credential')
 
         $queryScriptBlock = {
             param([string[]]$FilterProtocols, [int]$FilterPort, [string]$FilterProcess)
@@ -181,7 +179,6 @@ function Get-ListeningPort {
     process {
         foreach ($targetComputer in $ComputerName) {
             try {
-                $isLocal = $localNames -contains $targetComputer
                 $timestamp = Get-Date -Format 'o'
 
                 Write-Verbose "[$($MyInvocation.MyCommand)] Querying listening ports on '$targetComputer'"
@@ -200,20 +197,7 @@ function Get-ListeningPort {
                         })
                 )
 
-                if ($isLocal) {
-                    $rawResults = & $queryScriptBlock @queryArgs
-                } else {
-                    $invokeParams = @{
-                        ComputerName = $targetComputer
-                        ScriptBlock  = $queryScriptBlock
-                        ArgumentList = $queryArgs
-                        ErrorAction  = 'Stop'
-                    }
-                    if ($hasCredential) {
-                        $invokeParams['Credential'] = $Credential
-                    }
-                    $rawResults = Invoke-Command @invokeParams
-                }
+                $rawResults = Invoke-RemoteOrLocal -ComputerName $targetComputer -ScriptBlock $queryScriptBlock -ArgumentList $queryArgs -Credential $Credential
 
                 foreach ($entry in $rawResults) {
                     [PSCustomObject]@{

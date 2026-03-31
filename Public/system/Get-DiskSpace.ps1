@@ -82,7 +82,10 @@ function Get-DiskSpace {
 
     begin {
         Write-Verbose -Message "[$($MyInvocation.MyCommand)] Starting"
-        $localNames = @($env:COMPUTERNAME, 'localhost', '.')
+
+        $scriptBlock = {
+            @(Get-CimInstance -ClassName 'Win32_LogicalDisk' -Filter 'DriveType = 3' -ErrorAction Stop)
+        }
 
         if ($CriticalThreshold -ge $WarningThreshold) {
             Write-Warning -Message "[$($MyInvocation.MyCommand)] CriticalThreshold ($CriticalThreshold%) is >= WarningThreshold ($WarningThreshold%). Adjusting CriticalThreshold to $($WarningThreshold - 1)%."
@@ -92,29 +95,11 @@ function Get-DiskSpace {
 
     process {
         foreach ($machine in $ComputerName) {
-            $cimSession = $null
-
             try {
-                $isLocal = $localNames -contains $machine
-                $cimParams = @{ ErrorAction = 'Stop' }
-
-                if (-not $isLocal) {
-                    $sessionParams = @{
-                        ComputerName = $machine
-                        ErrorAction  = 'Stop'
-                    }
-                    if ($Credential -ne [System.Management.Automation.PSCredential]::Empty) {
-                        $sessionParams['Credential'] = $Credential
-                    }
-                    $cimSession = New-CimSession @sessionParams
-                    $cimParams['CimSession'] = $cimSession
-                    Write-Verbose -Message "[$($MyInvocation.MyCommand)] CimSession established to '$machine'"
-                }
-
                 Write-Verbose -Message "[$($MyInvocation.MyCommand)] Querying Win32_LogicalDisk on '$machine'"
-                $disks = @(Get-CimInstance -ClassName 'Win32_LogicalDisk' -Filter 'DriveType = 3' @cimParams)
+                $disks = @(Invoke-RemoteOrLocal -ComputerName $machine -ScriptBlock $scriptBlock -Credential $Credential)
 
-                $displayName = if ($isLocal) { $env:COMPUTERNAME } else { $machine }
+                $displayName = $machine
 
                 foreach ($disk in $disks) {
                     $sizeGB = [math]::Round($disk.Size / 1GB, 2)
@@ -158,11 +143,7 @@ function Get-DiskSpace {
                 Write-Error -Message "[$($MyInvocation.MyCommand)] Failed on '${machine}': $_"
                 continue
             }
-            finally {
-                if ($cimSession) {
-                    Remove-CimSession -CimSession $cimSession -ErrorAction SilentlyContinue
-                }
-            }
+
         }
     }
 

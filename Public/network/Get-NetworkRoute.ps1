@@ -103,8 +103,6 @@ function Get-NetworkRoute {
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand)] Starting network route query"
-        $localNames = @($env:COMPUTERNAME, 'localhost', '.')
-        $hasCredential = $PSBoundParameters.ContainsKey('Credential')
 
         $queryScriptBlock = {
             param(
@@ -155,10 +153,9 @@ function Get-NetworkRoute {
     process {
         foreach ($targetComputer in $ComputerName) {
             try {
-                $isLocal = $localNames -contains $targetComputer
                 $timestamp = Get-Date -Format 'o'
 
-                Write-Verbose "[$($MyInvocation.MyCommand)] Querying '$targetComputer' (local: $isLocal)"
+                Write-Verbose "[$($MyInvocation.MyCommand)] Querying '$targetComputer'"
 
                 $queryArgs = @(
                     $(if ($AddressFamily) {
@@ -183,20 +180,7 @@ function Get-NetworkRoute {
                         })
                 )
 
-                if ($isLocal) {
-                    $rawResults = & $queryScriptBlock @queryArgs
-                } else {
-                    $invokeParams = @{
-                        ComputerName = $targetComputer
-                        ScriptBlock  = $queryScriptBlock
-                        ArgumentList = $queryArgs
-                        ErrorAction  = 'Stop'
-                    }
-                    if ($hasCredential) {
-                        $invokeParams['Credential'] = $Credential
-                    }
-                    $rawResults = Invoke-Command @invokeParams
-                }
+                $rawResults = Invoke-RemoteOrLocal -ComputerName $targetComputer -ScriptBlock $queryScriptBlock -ArgumentList $queryArgs -Credential $Credential
 
                 foreach ($entry in $rawResults) {
                     [PSCustomObject]@{
