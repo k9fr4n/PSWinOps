@@ -1,4 +1,4 @@
-ï»¿#Requires -Version 5.1
+﻿ï»¿#Requires -Version 5.1
 
 <#
     Health status values returned by the 15 healthcheck functions.
