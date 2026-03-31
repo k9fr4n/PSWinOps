@@ -1,0 +1,282 @@
+TOPIC
+    about_PSWinOps
+
+SHORT DESCRIPTION
+    PSWinOps is a Windows-only PowerShell module for system
+    administration, health checks, network diagnostics, NTP
+    management, RDP session management, and more.
+
+LONG DESCRIPTION
+    PSWinOps is a comprehensive toolbox designed for Windows
+    system administrators running PowerShell 5.1 or later.
+    It provides a curated collection of functions organized
+    into seven functional domains, covering everything from
+    service health monitoring to network troubleshooting,
+    NTP synchronization, proxy management, RDP session
+    control, and general system information gathering.
+
+    The module follows PowerShell best practices: every
+    public function returns strongly-typed [PSCustomObject]
+    instances, supports -WhatIf/-Confirm where appropriate,
+    and works transparently against local or remote machines
+    via WinRM.
+
+    Author      : Franck SALLET
+    Repository  : https://github.com/k9fr4n/PSWinOps
+    License     : See repository for license details
+    Requires    : PowerShell 5.1+ / Windows only
+
+FUNCTION DOMAINS
+    PSWinOps organizes its functions into seven domains.
+
+  healthcheck (15 functions)
+    Functions that evaluate the health of Windows roles and
+    services. Each returns an OverallHealth property (see
+    the OVERALLHEALTH VALUES section below).
+
+      Get-AdDomainControllerHealth
+      Get-ADFSHealth
+      Get-CertificateAuthorityHealth
+      Get-ClusterHealth
+      Get-DfsNamespaceHealth
+      Get-DfsReplicationHealth
+      Get-DhcpServerHealth
+      Get-DnsServerHealth
+      Get-FileServerHealth
+      Get-HyperVHostHealth
+      Get-IISHealth
+      Get-PrintServerHealth
+      Get-RDSHealth
+      Get-ServiceHealth
+      Get-WSUSHealth
+
+  network (25 functions)
+    Functions for network diagnostics, discovery, and
+    certificate inspection.
+
+      Clear-Arp
+      Edit-HostsFile
+      Export-NetworkConfig
+      Get-ARPTable
+      Get-ListeningPort
+      Get-NetworkAdapter
+      Get-NetworkCIDR
+      Get-NetworkConnection
+      Get-NetworkRoute
+      Get-NetworkStatistic
+      Get-PublicIPAddress
+      Get-SSLCertificate
+      Get-SubnetInfo
+      Measure-NetworkLatency
+      New-NetworkRoute
+      Remove-NetworkRoute
+      Resolve-MACVendor
+      Set-NetworkRoute
+      Start-NetworkStatisticMonitor
+      Start-PingMonitor
+      Test-DNSResolution
+      Test-PortConnectivity
+      Test-WinRM
+      Trace-NetworkRoute
+
+  ntp (5 functions)
+    Functions for querying and managing NTP time
+    synchronization on Windows machines.
+
+      Get-NTPConfiguration
+      Get-NTPPeer
+      Get-NTPSyncStatus
+      Set-NTPClient
+      Sync-NTPTime
+
+  proxy (4 functions)
+    Functions for inspecting and configuring proxy
+    settings.
+
+      Get-ProxyConfiguration
+      Remove-ProxyConfiguration
+      Set-ProxyConfiguration
+      Test-ProxyConnection
+
+  rdp (6 functions)
+    Functions for managing Remote Desktop sessions on
+    Windows servers.
+
+      Connect-RdpSession
+      Disconnect-RdpSession
+      Get-RdpSession
+      Get-RdpSessionHistory
+      Get-RdpSessionLock
+      Remove-RdpSession
+
+  system (10 functions)
+    Functions for general system information and state.
+
+      Get-ComputerUptime
+      Get-DiskSpace
+      Get-EnvironmentVariable
+      Get-InstalledSoftware
+      Get-PageFileConfiguration
+      Get-PendingReboot
+      Get-ScheduledTaskDetail
+      Get-StartupProgram
+      Get-SystemSummary
+      Set-PageFile
+
+  utils (2 functions)
+    Pure utility functions that do not follow the standard
+    ComputerName/Timestamp output convention.
+
+      ConvertFrom-MisencodedString
+      New-RandomPassword
+
+OUTPUT CONVENTIONS
+    All public functions (except pure utilities) return
+    [PSCustomObject] instances whose PSTypeName is set to
+    'PSWinOps.<ObjectType>'.
+
+    Standard fields present on every object:
+
+      ComputerName   [string]  The target machine name.
+      Timestamp      [string]  ISO 8601 date/time string.
+
+    Exception: the two utility functions listed above
+    (New-RandomPassword, ConvertFrom-MisencodedString) do
+    not include ComputerName or Timestamp fields.
+
+    Custom format views are defined in the file
+    PSWinOps.Format.ps1xml, which ships with the module.
+    These views control default table and list output for
+    each PSWinOps type.
+
+OVERALLHEALTH VALUES
+    The 15 health check functions return an OverallHealth
+    property. Its value is one of the following strings,
+    formally defined by the [PSWinOpsHealthStatus] enum:
+
+    Healthy
+        All checks passed. The role or service is
+        operating normally.
+
+    Degraded
+        The role or service is operational but some
+        components need attention (e.g. partial
+        replication, a stopped application pool).
+
+    Critical
+        The role or service has a serious issue requiring
+        immediate action (e.g. service stopped,
+        replication failed, all targets offline).
+
+    RoleUnavailable
+        The required Windows role or feature is not
+        installed, or the management module is not
+        available on the target machine.
+
+    InsufficientPrivilege
+        The current user lacks the permissions needed
+        to query the role (e.g. a non-admin user
+        querying DHCP server).
+
+    Unknown
+        Health status could not be determined due to
+        an unexpected error or missing data.
+
+    You can reference these values programmatically:
+
+        [PSWinOpsHealthStatus]::Healthy
+        [PSWinOpsHealthStatus]::Critical
+
+        # Filter degraded or worse
+        Get-ServiceHealth -ComputerName 'SRV01' |
+            Where-Object {
+                $_.OverallHealth -ne
+                    [PSWinOpsHealthStatus]::Healthy
+            }
+
+REMOTE EXECUTION PATTERN
+    Most functions accept two common parameters for remote
+    execution:
+
+      -ComputerName [string[]]
+          One or more target machine names. Accepts
+          pipeline input. The values $env:COMPUTERNAME,
+          'localhost', and '.' are detected automatically
+          and cause the function to run locally without
+          WinRM.
+
+      -Credential [PSCredential]
+          Alternate credentials for remote connections.
+          Ignored for local machine queries.
+
+    Remote execution uses Invoke-Command over WinRM.
+    Errors on individual machines are caught and written
+    as non-terminating errors so that remaining machines
+    in the pipeline continue to be processed.
+
+PSWINOPS TYPE REGISTRY
+    The following 51 PSTypeName values are defined by the
+    module. Each corresponds to the output of one or more
+    public functions.
+
+      PSWinOps.ActiveRdpSession
+      PSWinOps.AdDomainControllerHealth
+      PSWinOps.ADFSHealth
+      PSWinOps.ArpEntry
+      PSWinOps.CertificateAuthorityHealth
+      PSWinOps.ClusterHealth
+      PSWinOps.ComputerUptime
+      PSWinOps.DfsNamespaceHealth
+      PSWinOps.DfsReplicationHealth
+      PSWinOps.DhcpServerHealth
+      PSWinOps.DiskSpace
+      PSWinOps.DnsResolution
+      PSWinOps.DnsServerHealth
+      PSWinOps.EnvironmentVariable
+      PSWinOps.FileServerHealth
+      PSWinOps.HyperVHostHealth
+      PSWinOps.IISHealth
+      PSWinOps.InstalledSoftware
+      PSWinOps.ListeningPort
+      PSWinOps.MACVendor
+      PSWinOps.NetworkAdapterInfo
+      PSWinOps.NetworkCIDR
+      PSWinOps.NetworkConfig
+      PSWinOps.NetworkConnection
+      PSWinOps.NetworkLatency
+      PSWinOps.NetworkRoute
+      PSWinOps.NetworkStatistic
+      PSWinOps.NtpConfiguration
+      PSWinOps.NtpPeer
+      PSWinOps.NtpResyncResult
+      PSWinOps.NtpSyncResult
+      PSWinOps.PageFileConfiguration
+      PSWinOps.PendingReboot
+      PSWinOps.PortConnectivity
+      PSWinOps.PrintServerHealth
+      PSWinOps.ProxyConfiguration
+      PSWinOps.ProxyTestResult
+      PSWinOps.PublicIPAddress
+      PSWinOps.RdpSessionAction
+      PSWinOps.RdpSessionHistory
+      PSWinOps.RdpSessionLock
+      PSWinOps.RDSHealth
+      PSWinOps.ScheduledTaskDetail
+      PSWinOps.ServiceHealth
+      PSWinOps.SSLCertificate
+      PSWinOps.StartupProgram
+      PSWinOps.SubnetInfo
+      PSWinOps.SystemSummary
+      PSWinOps.TraceRouteHop
+      PSWinOps.WinRMTestResult
+      PSWinOps.WSUSHealth
+
+SEE ALSO
+    https://github.com/k9fr4n/PSWinOps
+    Get-Help Get-ServiceHealth
+    Get-Help Get-RdpSession
+    Get-Help Get-NTPConfiguration
+
+KEYWORDS
+    PSWinOps, Windows, Administration, HealthCheck,
+    Network, NTP, RDP, System

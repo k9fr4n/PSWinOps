@@ -658,6 +658,14 @@ function Invoke-ModuleBuild {
             Write-BuildSuccess -Message "Type file copied: $($typeFile.Name)"
         }
 
+        # Copy about_ help files if en-US exists
+        $helpPath = Join-Path -Path $script:SrcPath -ChildPath 'en-US'
+        if (Test-Path -Path $helpPath) {
+            $destHelp = Join-Path -Path $script:ModuleOutput -ChildPath 'en-US'
+            Copy-Item -Path $helpPath -Destination $destHelp -Recurse
+            Write-BuildSuccess -Message "Help files copied: en-US/"
+        }
+
         # Calculate new version
         $manifest = Import-PowerShellDataFile -Path $script:ManifestPath
         $currentVersion = [version]$manifest.ModuleVersion
