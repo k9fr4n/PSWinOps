@@ -74,7 +74,7 @@
     'Get-ADFSHealth', 'Get-CertificateAuthorityHealth',
     'Get-ClusterHealth', 'Get-DfsNamespaceHealth',
     'Get-DfsReplicationHealth', 'Get-DhcpServerHealth',
-    'Get-DnsServerHealth', 'Get-FileServerHealth', 'Get-HyperVHostHealth',
+    'Get-DnsServerHealth', 'Get-ExchangeServerHealth', 'Get-FileServerHealth', 'Get-HyperVHostHealth',
     'Get-IISHealth', 'Get-PrintServerHealth', 'Get-RDSHealth',
     'Get-ServiceHealth', 'Get-WSUSHealth', 'Connect-RdpSession',
     'Disconnect-RdpSession', 'Get-RdpSession', 'Get-RdpSessionHistory',

@@ -2407,5 +2407,92 @@
       </TableControl>
     </View>
 
+    <!-- ============================================================ -->
+    <!-- PSWinOps.ExchangeServerHealth (Table — default)              -->
+    <!-- Used by: Get-ExchangeServerHealth                            -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.ExchangeServerHealth.Table</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.ExchangeServerHealth</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>ComputerName</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Transport</Label><Width>10</Width></TableColumnHeader>
+          <TableColumnHeader><Label>IS</Label><Width>10</Width></TableColumnHeader>
+          <TableColumnHeader><Label>DBs</Label><Width>4</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Mounted</Label><Width>8</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Queues</Label><Width>7</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>MaxQ</Label><Width>6</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>DAGOk</Label><Width>6</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Certs</Label><Width>6</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Health</Label><Width>16</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>TransportStatus</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>InformationStoreStatus</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>TotalDatabases</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>MountedDatabases</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>TotalQueueMessages</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>HighestQueueLength</PropertyName></TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>'{0}/{1}' -f $_.DAGCopiesHealthy, $_.DAGCopiesTotal</ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>
+                  if ($_.CertificatesExpired -gt 0) { '{0} EXP' -f $_.CertificatesExpired }
+                  elseif ($_.CertificatesExpiringSoon -gt 0) { '{0} WARN' -f $_.CertificatesExpiringSoon }
+                  else { 'OK' }
+                </ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem><PropertyName>OverallHealth</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.ExchangeServerHealth (List — Format-List)           -->
+    <!-- Used by: Get-ExchangeServerHealth                            -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.ExchangeServerHealth</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.ExchangeServerHealth</TypeName>
+      </ViewSelectedBy>
+      <ListControl>
+        <ListEntries>
+          <ListEntry>
+            <ListItems>
+              <ListItem><Label>ComputerName</Label><PropertyName>ComputerName</PropertyName></ListItem>
+              <ListItem><Label>TransportStatus</Label><PropertyName>TransportStatus</PropertyName></ListItem>
+              <ListItem><Label>InformationStoreStatus</Label><PropertyName>InformationStoreStatus</PropertyName></ListItem>
+              <ListItem><Label>ADTopologyStatus</Label><PropertyName>ADTopologyStatus</PropertyName></ListItem>
+              <ListItem><Label>ServiceHostStatus</Label><PropertyName>ServiceHostStatus</PropertyName></ListItem>
+              <ListItem><Label>TotalDatabases</Label><PropertyName>TotalDatabases</PropertyName></ListItem>
+              <ListItem><Label>MountedDatabases</Label><PropertyName>MountedDatabases</PropertyName></ListItem>
+              <ListItem><Label>DismountedDatabases</Label><PropertyName>DismountedDatabases</PropertyName></ListItem>
+              <ListItem><Label>TotalQueues</Label><PropertyName>TotalQueues</PropertyName></ListItem>
+              <ListItem><Label>TotalQueueMessages</Label><PropertyName>TotalQueueMessages</PropertyName></ListItem>
+              <ListItem><Label>HighestQueueLength</Label><PropertyName>HighestQueueLength</PropertyName></ListItem>
+              <ListItem><Label>DAGCopiesTotal</Label><PropertyName>DAGCopiesTotal</PropertyName></ListItem>
+              <ListItem><Label>DAGCopiesHealthy</Label><PropertyName>DAGCopiesHealthy</PropertyName></ListItem>
+              <ListItem><Label>DAGCopiesUnhealthy</Label><PropertyName>DAGCopiesUnhealthy</PropertyName></ListItem>
+              <ListItem><Label>CertificatesTotal</Label><PropertyName>CertificatesTotal</PropertyName></ListItem>
+              <ListItem><Label>CertificatesExpiringSoon</Label><PropertyName>CertificatesExpiringSoon</PropertyName></ListItem>
+              <ListItem><Label>CertificatesExpired</Label><PropertyName>CertificatesExpired</PropertyName></ListItem>
+              <ListItem><Label>OverallHealth</Label><PropertyName>OverallHealth</PropertyName></ListItem>
+              <ListItem><Label>Timestamp</Label><PropertyName>Timestamp</PropertyName></ListItem>
+            </ListItems>
+          </ListEntry>
+        </ListEntries>
+      </ListControl>
+    </View>
+
   </ViewDefinitions>
 </Configuration>
