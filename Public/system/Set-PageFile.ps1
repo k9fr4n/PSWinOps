@@ -76,6 +76,10 @@ function Set-PageFile {
     .LINK
         https://learn.microsoft.com/en-us/troubleshoot/windows-client/performance/how-to-determine-the-appropriate-page-file-size
     #>
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', 'AutoCalculate',
+        Justification = 'Switch drives parameter-set selection, not used as a variable.')]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', 'RestoreAutoManaged',
+        Justification = 'Switch drives parameter-set selection, not used as a variable.')]
     [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High', DefaultParameterSetName = 'Auto')]
     [OutputType('PSWinOps.PageFileConfiguration')]
     param(
@@ -109,9 +113,6 @@ function Set-PageFile {
 
     begin {
         Write-Verbose -Message "[$($MyInvocation.MyCommand)] Starting"
-        # Satisfy PSScriptAnalyzer - these switches drive parameter-set selection
-        $null = $AutoCalculate, $RestoreAutoManaged
-
 
         # --- Admin check -------------------------------------------------------
         $isAdmin = Test-IsAdministrator
