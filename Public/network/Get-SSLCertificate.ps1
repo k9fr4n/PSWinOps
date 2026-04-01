@@ -61,6 +61,9 @@ function Get-SSLCertificate {
 
         .LINK
             https://github.com/k9fr4n/PSWinOps
+
+        .LINK
+            https://learn.microsoft.com/en-us/dotnet/api/system.net.security.sslstream
     #>
     [CmdletBinding()]
     [OutputType('PSWinOps.SSLCertificate')]
@@ -142,7 +145,7 @@ function Get-SSLCertificate {
 
                     [PSCustomObject]@{
                         PSTypeName         = 'PSWinOps.SSLCertificate'
-                        Host               = $targetHost
+                        ComputerName       = $targetHost
                         Port               = $targetPort
                         Subject            = $cert2.Subject
                         Issuer             = $cert2.Issuer
