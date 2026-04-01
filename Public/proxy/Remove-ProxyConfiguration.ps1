@@ -120,11 +120,11 @@ function Remove-ProxyConfiguration {
                     }
 
                     Write-Verbose "[$($MyInvocation.MyCommand)] Running: netsh winhttp reset proxy"
-                    $netshOutput = & $netshPath winhttp reset proxy 2>&1
-                    $netshExitCode = $LASTEXITCODE
+                    $netshResult = Invoke-NativeCommand -FilePath $netshPath -ArgumentList @('winhttp', 'reset', 'proxy')
+                    $netshExitCode = $netshResult.ExitCode
 
                     if ($netshExitCode -ne 0) {
-                        $outputText = ($netshOutput | Out-String).Trim()
+                        $outputText = $netshResult.Output
                         Write-Error "[$($MyInvocation.MyCommand)] netsh winhttp reset proxy failed (exit code $netshExitCode): $outputText"
                     } else {
                         Write-Information -MessageData '[OK] WinHTTP proxy configuration reset to direct access'

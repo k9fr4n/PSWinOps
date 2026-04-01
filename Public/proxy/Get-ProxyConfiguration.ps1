@@ -88,13 +88,13 @@ function Get-ProxyConfiguration {
             if (-not (Test-Path -Path $netshPath -PathType Leaf)) {
                 Write-Warning "[$($MyInvocation.MyCommand)] netsh.exe not found at '$netshPath'"
             } else {
-                $netshOutput = & $netshPath winhttp show proxy 2>&1
-                $netshExitCode = $LASTEXITCODE
+                $netshResult = Invoke-NativeCommand -FilePath $netshPath -ArgumentList @('winhttp', 'show', 'proxy')
+                $netshExitCode = $netshResult.ExitCode
 
                 if ($netshExitCode -ne 0) {
                     Write-Warning "[$($MyInvocation.MyCommand)] netsh winhttp show proxy returned exit code $netshExitCode"
                 } else {
-                    $outputText = ($netshOutput | Out-String).Trim()
+                    $outputText = $netshResult.Output
                     Write-Verbose "[$($MyInvocation.MyCommand)] netsh output: $outputText"
 
                     if ($outputText -notmatch 'Direct access') {
