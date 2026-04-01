@@ -131,11 +131,72 @@
             # IconUri = ''
 
             # ReleaseNotes of this module
-            ReleaseNotes = '## 0.0.12
-- Initial public release
-- Network, NTP, RDP, Proxy, System, Security utilities
-- Secure-by-default SSL certificate inspection (AcceptUntrusted switch)
-- $IsWindows guard for PS7+ cross-platform safety'
+            ReleaseNotes = '## 0.0.16 - 2026-03-31
+- feat(format): add TableControl default views for all typed outputs (#29)
+
+## 0.0.15 - 2026-03-31
+- Fix (#25)
+- NTP fix (#27)
+- New functions and coverage (#28)
+
+## 0.0.14 - 2026-03-26
+- Fix (#25)
+
+## 0.0.13 - 2026-03-25
+- Rename folder structure (#19)
+- New tests (#20)
+- Optimization (#22)
+- Improvement (#23)
+- Coherence pass (#24)
+
+## 0.0.12 - 2026-03-24
+- Rename folder structure (#19)
+- New tests (#20)
+- Optimization (#22)
+
+## 0.0.11 - 2026-03-24
+- Rename folder structure (#19)
+
+## 0.0.10 - 2026-03-23
+- Optimization (#15)
+- Get-ProxyConfiguration (#16)
+- Improvement (#17)
+- Audit first commit (#18)
+
+## 0.0.9 - 2026-03-23
+- Optimization (#15)
+
+## 0.0.8 - 2026-03-22
+- Minor fix (#14)
+
+## 0.0.7 - 2026-03-22
+- Remove useless property (#8)
+- Get-ComputerUptime (#9)
+- Get-SystemSummary (#10)
+- Improvement (#11)
+- Get-PendingReboot (#12)
+- PSTypeName on all outputs (#13)
+
+## 0.0.6 - 2026-03-21
+- Remove useless property (#8)
+- Get-ComputerUptime (#9)
+
+## 0.0.5 - 2026-03-21
+- Minor improvements
+
+## 0.0.4 - 2026-03-20
+- Fixed function (#5)
+- Fixed sessions functions (#6)
+- Test-NTPSync (#7)
+
+## 0.0.3 - 2026-03-20
+- Minor improvements
+
+## 0.0.2 - 2026-03-19
+- New CI pipeline (#1)
+- ConvertFrom-MisencodedString (#2)
+- Get-RdpSessionHistory (#3)
+- Add sessions functions (#4)'
 
             # Prerelease string of this module
             # Prerelease = ''
