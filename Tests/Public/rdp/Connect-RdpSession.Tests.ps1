@@ -7,11 +7,11 @@ BeforeAll {
 
 .DESCRIPTION
     Validates Connect-RdpSession behavior: shadow session initiation via mstsc.exe,
-    session verification via the private Invoke-QwinstaQuery helper, Control and
+    session verification via qwinsta.exe (wrapped by Invoke-NativeCommand), Control and
     View modes, ShouldProcess support (-WhatIf / -Confirm), and error handling for
     missing executables, failed launches, and non-zero exit codes.
 
-    All native command calls are isolated: Invoke-QwinstaQuery and Start-Process
+    All native command calls are isolated: Invoke-NativeCommand and Start-Process
     are mocked at module scope. No real qwinsta.exe or mstsc.exe is invoked.
 
 .NOTES
@@ -47,14 +47,14 @@ Describe -Name 'Connect-RdpSession' -Fixture {
         # -----------------------------------------------------------------------
         # Default happy-path mocks -- overridden per context as needed.
         # Test-Path returns $true so begin{} never throws on missing mstsc.exe.
-        # Invoke-QwinstaQuery returns session 2 with ExitCode 0.
+        # Invoke-NativeCommand wraps qwinsta.exe -- returns session 2 with ExitCode 0.
         # Start-Process returns ExitCode 0 (shadow session ended normally).
         # -----------------------------------------------------------------------
         Mock -CommandName 'Test-Path' -ModuleName 'PSWinOps' -MockWith { $true }
 
-        Mock -CommandName 'Invoke-QwinstaQuery' -ModuleName 'PSWinOps' -MockWith {
+        Mock -CommandName 'Invoke-NativeCommand' -ModuleName 'PSWinOps' -MockWith {
             [PSCustomObject]@{
-                Output   = $script:qwinstaSession2
+                Output   = ($script:qwinstaSession2 -join "`r`n")
                 ExitCode = 0
             }
         }
@@ -98,9 +98,9 @@ Describe -Name 'Connect-RdpSession' -Fixture {
             Should -Invoke -CommandName 'Start-Process' -ModuleName 'PSWinOps' -Times 1 -Exactly
         }
 
-        It -Name 'Should verify session existence via Invoke-QwinstaQuery before launching' -Test {
+        It -Name 'Should verify session existence via Invoke-NativeCommand before launching' -Test {
             Connect-RdpSession -SessionID 2 -Confirm:$false
-            Should -Invoke -CommandName 'Invoke-QwinstaQuery' -ModuleName 'PSWinOps' -Times 1 -Exactly
+            Should -Invoke -CommandName 'Invoke-NativeCommand' -ModuleName 'PSWinOps' -Times 1 -Exactly
         }
 
         It -Name 'Should pass /shadow and /v arguments to mstsc.exe' -Test {
@@ -153,9 +153,9 @@ Describe -Name 'Connect-RdpSession' -Fixture {
     Context -Name 'When qwinsta reports an error (non-zero exit code)' -Fixture {
 
         BeforeEach {
-            Mock -CommandName 'Invoke-QwinstaQuery' -ModuleName 'PSWinOps' -MockWith {
+            Mock -CommandName 'Invoke-NativeCommand' -ModuleName 'PSWinOps' -MockWith {
                 [PSCustomObject]@{
-                    Output   = @('[ERROR] Access denied to remote server')
+                    Output   = '[ERROR] Access denied to remote server'
                     ExitCode = 5
                 }
             }
@@ -174,7 +174,7 @@ Describe -Name 'Connect-RdpSession' -Fixture {
 
     # ===========================================================================
     Context -Name 'When ShouldProcess is declined via WhatIf' -Fixture {
-        # Session verification runs OUTSIDE ShouldProcess -- Invoke-QwinstaQuery is
+        # Session verification runs OUTSIDE ShouldProcess -- Invoke-NativeCommand is
         # always called. Start-Process is INSIDE ShouldProcess -- never called with -WhatIf.
 
         It -Name 'Should not invoke Start-Process when WhatIf is specified' -Test {
@@ -182,9 +182,9 @@ Describe -Name 'Connect-RdpSession' -Fixture {
             Should -Invoke -CommandName 'Start-Process' -ModuleName 'PSWinOps' -Times 0 -Exactly
         }
 
-        It -Name 'Should still verify session existence via qwinsta when WhatIf is specified' -Test {
+        It -Name 'Should still verify session existence via Invoke-NativeCommand when WhatIf is specified' -Test {
             Connect-RdpSession -SessionID 2 -WhatIf
-            Should -Invoke -CommandName 'Invoke-QwinstaQuery' -ModuleName 'PSWinOps' -Times 1 -Exactly
+            Should -Invoke -CommandName 'Invoke-NativeCommand' -ModuleName 'PSWinOps' -Times 1 -Exactly
         }
     }
 
@@ -228,9 +228,9 @@ Describe -Name 'Connect-RdpSession' -Fixture {
     Context -Name 'When processing pipeline input from Get-RdpSession' -Fixture {
 
         It -Name 'Should accept SessionID and ComputerName from pipeline by property name' -Test {
-            Mock -CommandName 'Invoke-QwinstaQuery' -ModuleName 'PSWinOps' -MockWith {
+            Mock -CommandName 'Invoke-NativeCommand' -ModuleName 'PSWinOps' -MockWith {
                 [PSCustomObject]@{
-                    Output   = $script:qwinstaSession3
+                    Output   = ($script:qwinstaSession3 -join "`r`n")
                     ExitCode = 0
                 }
             }
@@ -281,7 +281,7 @@ Describe -Name 'Connect-RdpSession' -Fixture {
 
         It -Name 'Should throw before attempting session verification' -Test {
             { Connect-RdpSession -SessionID 2 } | Should -Throw
-            Should -Invoke -CommandName 'Invoke-QwinstaQuery' -ModuleName 'PSWinOps' -Times 0 -Exactly
+            Should -Invoke -CommandName 'Invoke-NativeCommand' -ModuleName 'PSWinOps' -Times 0 -Exactly
         }
     }
 }
