@@ -77,7 +77,7 @@ function Set-PageFile {
         https://learn.microsoft.com/en-us/troubleshoot/windows-client/performance/how-to-determine-the-appropriate-page-file-size
     #>
     [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High', DefaultParameterSetName = 'Auto')]
-    [OutputType([PSCustomObject])]
+    [OutputType('PSWinOps.PageFileConfiguration')]
     param(
         [Parameter(Mandatory = $false, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
