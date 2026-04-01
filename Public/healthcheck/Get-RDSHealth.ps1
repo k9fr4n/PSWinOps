@@ -44,6 +44,7 @@ function Get-RDSHealth {
             Last Modified: 2026-03-26
             Requires: PowerShell 5.1+ / Windows only
             Requires: Admin rights on target servers for full RDS enumeration
+            Requires: Module RemoteDesktop (Remote-Desktop-Services role)
 
         .LINK
             https://github.com/k9fr4n/PSWinOps

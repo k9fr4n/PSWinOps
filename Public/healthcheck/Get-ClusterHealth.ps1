@@ -45,6 +45,7 @@ function Get-ClusterHealth {
             Last Modified: 2026-03-26
             Requires: PowerShell 5.1+ / Windows only
             Requires: Failover-Clustering feature
+            Requires: Module FailoverClusters (RSAT-Clustering-PowerShell)
 
         .LINK
             https://github.com/k9fr4n/PSWinOps

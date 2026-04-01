@@ -43,6 +43,7 @@ function Get-WSUSHealth {
             Last Modified: 2026-03-26
             Requires: PowerShell 5.1+ / Windows only
             Requires: WSUS role (UpdateServices)
+            Requires: Module UpdateServices
 
         .LINK
             https://github.com/k9fr4n/PSWinOps

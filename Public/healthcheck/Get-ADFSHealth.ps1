@@ -43,6 +43,7 @@ function Get-ADFSHealth {
             Last Modified: 2026-03-31
             Requires: PowerShell 5.1+ / Windows only
             Requires: AD FS role installed on target servers
+            Requires: Module ADFS
 
         .LINK
             https://github.com/k9fr4n/PSWinOps
