@@ -142,14 +142,30 @@ function Start-NetworkStatisticMonitor {
 
         # Build the splat for Get-NetworkConnection (all filter params except ComputerName)
         $getStatParams = @{}
-        if ($PSBoundParameters.ContainsKey('Credential'))    { $getStatParams['Credential']    = $Credential }
-        if ($PSBoundParameters.ContainsKey('Protocol'))      { $getStatParams['Protocol']      = $Protocol }
-        if ($PSBoundParameters.ContainsKey('State'))         { $getStatParams['State']         = $State }
-        if ($PSBoundParameters.ContainsKey('LocalAddress'))  { $getStatParams['LocalAddress']  = $LocalAddress }
-        if ($PSBoundParameters.ContainsKey('LocalPort'))     { $getStatParams['LocalPort']     = $LocalPort }
-        if ($PSBoundParameters.ContainsKey('RemoteAddress')) { $getStatParams['RemoteAddress'] = $RemoteAddress }
-        if ($PSBoundParameters.ContainsKey('RemotePort'))    { $getStatParams['RemotePort']    = $RemotePort }
-        if ($PSBoundParameters.ContainsKey('ProcessName'))   { $getStatParams['ProcessName']   = $ProcessName }
+        if ($PSBoundParameters.ContainsKey('Credential')) {
+            $getStatParams['Credential'] = $Credential
+        }
+        if ($PSBoundParameters.ContainsKey('Protocol')) {
+            $getStatParams['Protocol'] = $Protocol
+        }
+        if ($PSBoundParameters.ContainsKey('State')) {
+            $getStatParams['State'] = $State
+        }
+        if ($PSBoundParameters.ContainsKey('LocalAddress')) {
+            $getStatParams['LocalAddress'] = $LocalAddress
+        }
+        if ($PSBoundParameters.ContainsKey('LocalPort')) {
+            $getStatParams['LocalPort'] = $LocalPort
+        }
+        if ($PSBoundParameters.ContainsKey('RemoteAddress')) {
+            $getStatParams['RemoteAddress'] = $RemoteAddress
+        }
+        if ($PSBoundParameters.ContainsKey('RemotePort')) {
+            $getStatParams['RemotePort'] = $RemotePort
+        }
+        if ($PSBoundParameters.ContainsKey('ProcessName')) {
+            $getStatParams['ProcessName'] = $ProcessName
+        }
     }
 
     process {

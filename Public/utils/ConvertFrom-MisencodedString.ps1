@@ -94,8 +94,7 @@ function ConvertFrom-MisencodedString {
         try {
             $sourceEncoder = [System.Text.Encoding]::GetEncoding($SourceEncoding)
             Write-Verbose "[$($MyInvocation.MyCommand)] Source encoding: $($sourceEncoder.EncodingName)"
-        }
-        catch {
+        } catch {
             Write-Error "[$($MyInvocation.MyCommand)] Invalid source encoding '$SourceEncoding': $_"
             throw
         }
@@ -103,8 +102,7 @@ function ConvertFrom-MisencodedString {
         try {
             $targetEncoder = [System.Text.Encoding]::GetEncoding($TargetEncoding)
             Write-Verbose "[$($MyInvocation.MyCommand)] Target encoding: $($targetEncoder.EncodingName)"
-        }
-        catch {
+        } catch {
             Write-Error "[$($MyInvocation.MyCommand)] Invalid target encoding '$TargetEncoding': $_"
             throw
         }
@@ -126,16 +124,13 @@ function ConvertFrom-MisencodedString {
             Write-Verbose "[$($MyInvocation.MyCommand)] Converted successfully (Length: $($String.Length) --> $($result.Length))"
 
             $result
-        }
-        catch [System.Text.EncoderFallbackException] {
+        } catch [System.Text.EncoderFallbackException] {
             Write-Error "[$($MyInvocation.MyCommand)] Encoding fallback error for '$String': $_"
             return
-        }
-        catch [System.ArgumentException] {
+        } catch [System.ArgumentException] {
             Write-Error "[$($MyInvocation.MyCommand)] Invalid characters in string for encoding '$SourceEncoding': $_"
             return
-        }
-        catch {
+        } catch {
             Write-Error "[$($MyInvocation.MyCommand)] Conversion failed for string '$String': $_"
             return
         }

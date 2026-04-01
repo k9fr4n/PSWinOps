@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 
 function Get-NetworkCIDR {
     <#
@@ -105,8 +105,12 @@ function Get-NetworkCIDR {
 
                 # Skip virtual/loopback unless requested
                 if (-not $ShowVirtual) {
-                    if ($addr.InterfaceAlias -eq 'Loopback Pseudo-Interface 1') { continue }
-                    if ($adapter -and $adapter.Virtual -eq $true) { continue }
+                    if ($addr.InterfaceAlias -eq 'Loopback Pseudo-Interface 1') {
+                        continue
+                    }
+                    if ($adapter -and $adapter.Virtual -eq $true) {
+                        continue
+                    }
                 }
 
                 # Calculate subnet mask for IPv4
@@ -136,8 +140,16 @@ function Get-NetworkCIDR {
                     $networkAddress = ($networkBytes -join '.')
                 }
 
-                $addrFamily = if ($addr.AddressFamily -eq 2) { 'IPv4' } else { 'IPv6' }
-                $networkCIDR = if ($networkAddress) { '{0}/{1}' -f $networkAddress, $addr.PrefixLength } else { $null }
+                $addrFamily = if ($addr.AddressFamily -eq 2) {
+                    'IPv4'
+                } else {
+                    'IPv6'
+                }
+                $networkCIDR = if ($networkAddress) {
+                    '{0}/{1}' -f $networkAddress, $addr.PrefixLength
+                } else {
+                    $null
+                }
 
                 [PSCustomObject]@{
                     InterfaceName  = $addr.InterfaceAlias
@@ -151,7 +163,11 @@ function Get-NetworkCIDR {
                     NetworkCIDR    = $networkCIDR
                     PrefixOrigin   = [string]$addr.PrefixOrigin
                     SuffixOrigin   = [string]$addr.SuffixOrigin
-                    AdapterStatus  = if ($adapter) { [string]$adapter.Status } else { 'Unknown' }
+                    AdapterStatus  = if ($adapter) {
+                        [string]$adapter.Status
+                    } else {
+                        'Unknown'
+                    }
                 }
             }
         }

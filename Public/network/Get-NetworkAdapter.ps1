@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 
 function Get-NetworkAdapter {
     <#
@@ -132,12 +132,20 @@ function Get-NetworkAdapter {
                     Name           = $adapter.Name
                     Description    = $adapter.InterfaceDescription
                     Status         = [string]$adapter.Status
-                    Speed          = if ($adapter.LinkSpeed) { $adapter.LinkSpeed } else { '-' }
+                    Speed          = if ($adapter.LinkSpeed) {
+                        $adapter.LinkSpeed
+                    } else {
+                        '-'
+                    }
                     MacAddress     = $adapter.MacAddress
                     IPv4Address    = ($ipv4Addrs | ForEach-Object { $_.IPAddress }) -join ', '
                     SubnetPrefix   = ($ipv4Addrs | ForEach-Object { $_.PrefixLength }) -join ', '
                     IPv6Address    = ($ipv6Addrs | Where-Object { $_.PrefixOrigin -ne 'WellKnown' } | ForEach-Object { $_.IPAddress }) -join ', '
-                    Gateway        = if ($defaultGateways[$idx]) { $defaultGateways[$idx] } else { '-' }
+                    Gateway        = if ($defaultGateways[$idx]) {
+                        $defaultGateways[$idx]
+                    } else {
+                        '-'
+                    }
                     DnsServers     = ($dnsServers[$idx]) -join ', '
                     MTU            = $adapter.MtuSize
                     InterfaceIndex = $idx
@@ -158,7 +166,11 @@ function Get-NetworkAdapter {
 
                 $queryArgs = @(
                     $IncludeDisabled.IsPresent
-                    $(if ($InterfaceName) { $InterfaceName } else { $null })
+                    $(if ($InterfaceName) {
+                            $InterfaceName
+                        } else {
+                            $null
+                        })
                 )
 
                 $rawResults = Invoke-RemoteOrLocal -ComputerName $targetComputer -ScriptBlock $queryScriptBlock -ArgumentList $queryArgs -Credential $Credential

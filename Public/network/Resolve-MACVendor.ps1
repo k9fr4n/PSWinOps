@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 
 function Resolve-MACVendor {
     <#
@@ -247,7 +247,11 @@ function Resolve-MACVendor {
                     PSTypeName = 'PSWinOps.MACVendor'
                     MACAddress = $formattedMAC
                     OUI        = $ouiPrefix
-                    Vendor     = if ($vendor) { $vendor } else { 'Unknown' }
+                    Vendor     = if ($vendor) {
+                        $vendor
+                    } else {
+                        'Unknown'
+                    }
                     Source     = $source
                     Timestamp  = Get-Date -Format 'o'
                 }

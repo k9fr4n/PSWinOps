@@ -604,7 +604,10 @@ function Invoke-ModuleBuild {
             foreach ($file in $privateFiles) {
                 Write-Verbose -Message "[$($MyInvocation.MyCommand)] Including Private: $($file.Name)"
                 $null = $psm1Content.AppendLine("# --- Private: $($file.Name) ---")
-                $null = $psm1Content.AppendLine((Get-Content -Path $file.FullName -Raw))
+                $fileContent = Get-Content -Path $file.FullName -Raw
+                # Strip UTF-8 BOM to avoid 'ï»¿#Requires' errors in assembled PSM1
+                $fileContent = $fileContent -replace '^ï»¿', '' -replace '^﻿', ''
+                $null = $psm1Content.AppendLine($fileContent)
                 $null = $psm1Content.AppendLine('')
             }
         }
@@ -618,7 +621,10 @@ function Invoke-ModuleBuild {
             foreach ($file in $publicFiles) {
                 Write-Verbose -Message "[$($MyInvocation.MyCommand)] Including Public: $($file.Name)"
                 $null = $psm1Content.AppendLine("# --- Public: $($file.Name) ---")
-                $null = $psm1Content.AppendLine((Get-Content -Path $file.FullName -Raw))
+                $fileContent = Get-Content -Path $file.FullName -Raw
+                # Strip UTF-8 BOM to avoid 'ï»¿#Requires' errors in assembled PSM1
+                $fileContent = $fileContent -replace '^ï»¿', '' -replace '^﻿', ''
+                $null = $psm1Content.AppendLine($fileContent)
                 $null = $psm1Content.AppendLine('')
                 $functionName = [System.IO.Path]::GetFileNameWithoutExtension($file.Name)
                 $exportedFunctions.Add($functionName)
@@ -656,6 +662,14 @@ function Invoke-ModuleBuild {
             Write-Verbose -Message "[$($MyInvocation.MyCommand)] Copying type file: $($typeFile.Name)"
             Copy-Item -Path $typeFile.FullName -Destination (Join-Path -Path $script:ModuleOutput -ChildPath $typeFile.Name)
             Write-BuildSuccess -Message "Type file copied: $($typeFile.Name)"
+        }
+
+        # Copy about_ help files if en-US exists
+        $helpPath = Join-Path -Path $script:SrcPath -ChildPath 'en-US'
+        if (Test-Path -Path $helpPath) {
+            $destHelp = Join-Path -Path $script:ModuleOutput -ChildPath 'en-US'
+            Copy-Item -Path $helpPath -Destination $destHelp -Recurse
+            Write-BuildSuccess -Message 'Help files copied: en-US/'
         }
 
         # Calculate new version

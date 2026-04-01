@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 function Get-ADFSHealth {
     <#
         .SYNOPSIS
@@ -95,6 +95,7 @@ function Get-ADFSHealth {
             if ($adfsModule) { $data.ModuleAvailable = $true }
 
             if ($data.ModuleAvailable -and $data.ServiceStatus -eq 'Running') {
+                # Detect farm role first — secondary servers cannot run management cmdlets
                 try {
                     $adfsProps = Get-AdfsProperties -ErrorAction Stop
                     $data.FederationServiceName = [string]$adfsProps.HostName
@@ -107,9 +108,12 @@ function Get-ADFSHealth {
                             $data.PrimaryServer = $Matches[1].TrimEnd('.')
                         }
                     }
-                    Write-Warning -Message "Failed to retrieve ADFS properties: $_"
+                    else {
+                        Write-Warning -Message "Failed to retrieve ADFS properties: $_"
+                    }
                 }
 
+                # SSL certificate can be queried on both primary and secondary
                 try {
                     $sslCerts = Get-AdfsSslCertificate -ErrorAction Stop
                     if ($sslCerts) {
@@ -119,24 +123,32 @@ function Get-ADFSHealth {
                             if ($cert -and $cert.NotAfter) {
                                 $data.SslCertExpiry = $cert.NotAfter.ToString('yyyy-MM-dd HH:mm:ss')
                                 $data.SslCertDaysRemaining = [int]($cert.NotAfter - (Get-Date)).Days
+                                # On secondary, try to get federation service name from cert subject
+                                if ($data.FarmRole -eq 'Secondary' -and $data.FederationServiceName -eq 'Unknown') {
+                                    $subject = $cert.Subject -replace '^CN=', ''
+                                    if ($subject) { $data.FederationServiceName = $subject }
+                                }
                             }
                         }
                     }
                 }
                 catch { Write-Warning -Message "Failed to retrieve SSL certificate info: $_" }
 
-                try {
-                    $rpTrusts = @(Get-AdfsRelyingPartyTrust -ErrorAction Stop)
-                    $data.TotalRelyingParties = $rpTrusts.Count
-                    $data.EnabledRelyingParties = @($rpTrusts | Where-Object -FilterScript { $_.Enabled -eq $true }).Count
-                }
-                catch { Write-Warning -Message "Failed to retrieve relying party trusts: $_" }
+                # RP trusts and endpoints: only available on primary servers
+                if ($data.FarmRole -ne 'Secondary') {
+                    try {
+                        $rpTrusts = @(Get-AdfsRelyingPartyTrust -ErrorAction Stop)
+                        $data.TotalRelyingParties = $rpTrusts.Count
+                        $data.EnabledRelyingParties = @($rpTrusts | Where-Object -FilterScript { $_.Enabled -eq $true }).Count
+                    }
+                    catch { Write-Warning -Message "Failed to retrieve relying party trusts: $_" }
 
-                try {
-                    $endpoints = @(Get-AdfsEndpoint -ErrorAction Stop)
-                    $data.EnabledEndpoints = @($endpoints | Where-Object -FilterScript { $_.Enabled -eq $true }).Count
+                    try {
+                        $endpoints = @(Get-AdfsEndpoint -ErrorAction Stop)
+                        $data.EnabledEndpoints = @($endpoints | Where-Object -FilterScript { $_.Enabled -eq $true }).Count
+                    }
+                    catch { Write-Warning -Message "Failed to retrieve ADFS endpoints: $_" }
                 }
-                catch { Write-Warning -Message "Failed to retrieve ADFS endpoints: $_" }
 
                 $testCmd = Get-Command -Name 'Test-AdfsServerHealth' -ErrorAction SilentlyContinue
                 if ($testCmd) {

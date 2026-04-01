@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 
 function Test-WinRM {
     <#
@@ -99,12 +99,12 @@ function Test-WinRM {
             foreach ($proto in $Protocol) {
                 try {
                     $winrmPort = $protocolMap[$proto].Port
-                    $useSSL    = $protocolMap[$proto].UseSSL
-                    $portOpen  = $false
-                    $wsmanOK   = $false
-                    $execOK    = $null
-                    $wsmanVersion  = $null
-                    $errorMessage  = $null
+                    $useSSL = $protocolMap[$proto].UseSSL
+                    $portOpen = $false
+                    $wsmanOK = $false
+                    $execOK = $null
+                    $wsmanVersion = $null
+                    $errorMessage = $null
 
                     Write-Verbose "[$($MyInvocation.MyCommand)] Testing '$targetComputer' $proto (port $winrmPort)"
 
@@ -117,7 +117,9 @@ function Test-WinRM {
                     } catch {
                         Write-Verbose "[$($MyInvocation.MyCommand)] Port $winrmPort closed on '$targetComputer': $_"
                     } finally {
-                        if ($tcpClient) { $tcpClient.Close(); $tcpClient.Dispose() }
+                        if ($tcpClient) {
+                            $tcpClient.Close(); $tcpClient.Dispose()
+                        }
                     }
 
                     # Step 2: WSMan test (only if port is open)
@@ -127,8 +129,12 @@ function Test-WinRM {
                                 ComputerName = $targetComputer
                                 ErrorAction  = 'Stop'
                             }
-                            if ($useSSL) { $wsmanParams['UseSsl'] = $true }
-                            if ($hasCredential) { $wsmanParams['Credential'] = $Credential }
+                            if ($useSSL) {
+                                $wsmanParams['UseSsl'] = $true
+                            }
+                            if ($hasCredential) {
+                                $wsmanParams['Credential'] = $Credential
+                            }
 
                             $wsmanResult = Test-WSMan @wsmanParams
                             $wsmanOK = $true
@@ -149,8 +155,12 @@ function Test-WinRM {
                                 ScriptBlock  = { $env:COMPUTERNAME }
                                 ErrorAction  = 'Stop'
                             }
-                            if ($useSSL) { $invokeParams['UseSSL'] = $true }
-                            if ($hasCredential) { $invokeParams['Credential'] = $Credential }
+                            if ($useSSL) {
+                                $invokeParams['UseSSL'] = $true
+                            }
+                            if ($hasCredential) {
+                                $invokeParams['Credential'] = $Credential
+                            }
 
                             $execResult = Invoke-Command @invokeParams
                             $execOK = ($null -ne $execResult)

@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 
 function Start-PingMonitor {
     <#
@@ -110,8 +110,12 @@ function Start-PingMonitor {
                             $stats.Received++
                             $stats.LastMs = $reply.RoundtripTime
                             $stats.SumMs += $reply.RoundtripTime
-                            if ($reply.RoundtripTime -lt $stats.MinMs) { $stats.MinMs = $reply.RoundtripTime }
-                            if ($reply.RoundtripTime -gt $stats.MaxMs) { $stats.MaxMs = $reply.RoundtripTime }
+                            if ($reply.RoundtripTime -lt $stats.MinMs) {
+                                $stats.MinMs = $reply.RoundtripTime
+                            }
+                            if ($reply.RoundtripTime -gt $stats.MaxMs) {
+                                $stats.MaxMs = $reply.RoundtripTime
+                            }
                             $stats.Status = 'Up'
                         } else {
                             $stats.LastMs = $null
@@ -137,21 +141,59 @@ function Start-PingMonitor {
 
                 foreach ($target in $ComputerName) {
                     $stats = $hostStats[$target]
-                    $lossPercent = if ($stats.Sent -gt 0) { [math]::Round((($stats.Sent - $stats.Received) / $stats.Sent) * 100, 1) } else { 0 }
-                    $avgMs = if ($stats.Received -gt 0) { [math]::Round($stats.SumMs / $stats.Received, 1) } else { $null }
-                    $minDisplay = if ($stats.MinMs -lt [double]::MaxValue) { '{0}ms' -f [math]::Round($stats.MinMs, 0) } else { '-' }
-                    $maxDisplay = if ($stats.Received -gt 0) { '{0}ms' -f [math]::Round($stats.MaxMs, 0) } else { '-' }
-                    $avgDisplay = if ($null -ne $avgMs) { '{0}ms' -f $avgMs } else { '-' }
-                    $lastDisplay = if ($null -ne $stats.LastMs) { '{0}ms' -f $stats.LastMs } else { '-' }
-
-                    $statusColor = switch ($stats.Status) {
-                        'Up'      { 'Green' }
-                        'Down'    { 'Red' }
-                        'Pending' { 'Yellow' }
-                        default   { 'White' }
+                    $lossPercent = if ($stats.Sent -gt 0) {
+                        [math]::Round((($stats.Sent - $stats.Received) / $stats.Sent) * 100, 1)
+                    } else {
+                        0
+                    }
+                    $avgMs = if ($stats.Received -gt 0) {
+                        [math]::Round($stats.SumMs / $stats.Received, 1)
+                    } else {
+                        $null
+                    }
+                    $minDisplay = if ($stats.MinMs -lt [double]::MaxValue) {
+                        '{0}ms' -f [math]::Round($stats.MinMs, 0)
+                    } else {
+                        '-'
+                    }
+                    $maxDisplay = if ($stats.Received -gt 0) {
+                        '{0}ms' -f [math]::Round($stats.MaxMs, 0)
+                    } else {
+                        '-'
+                    }
+                    $avgDisplay = if ($null -ne $avgMs) {
+                        '{0}ms' -f $avgMs
+                    } else {
+                        '-'
+                    }
+                    $lastDisplay = if ($null -ne $stats.LastMs) {
+                        '{0}ms' -f $stats.LastMs
+                    } else {
+                        '-'
                     }
 
-                    $lossColor = if ($lossPercent -eq 0) { 'Green' } elseif ($lossPercent -lt 10) { 'Yellow' } else { 'Red' }
+                    $statusColor = switch ($stats.Status) {
+                        'Up' {
+                            'Green'
+                        }
+                        'Down' {
+                            'Red'
+                        }
+                        'Pending' {
+                            'Yellow'
+                        }
+                        default {
+                            'White'
+                        }
+                    }
+
+                    $lossColor = if ($lossPercent -eq 0) {
+                        'Green'
+                    } elseif ($lossPercent -lt 10) {
+                        'Yellow'
+                    } else {
+                        'Red'
+                    }
 
                     Write-Host ('{0,-28} ' -f $target) -NoNewline
                     Write-Host ('{0,-8} ' -f $stats.Status) -ForegroundColor $statusColor -NoNewline
@@ -163,7 +205,7 @@ function Start-PingMonitor {
                 Write-Host ''
                 $upCount = @($ComputerName | Where-Object { $hostStats[$_].Status -eq 'Up' }).Count
                 $downCount = $ComputerName.Count - $upCount
-                Write-Host "Summary: " -NoNewline
+                Write-Host 'Summary: ' -NoNewline
                 Write-Host "$upCount Up" -ForegroundColor Green -NoNewline
                 Write-Host ' / ' -NoNewline
                 if ($downCount -gt 0) {
@@ -184,8 +226,16 @@ function Start-PingMonitor {
             Write-Host '=== Final Statistics ===' -ForegroundColor Cyan
             foreach ($target in $ComputerName) {
                 $stats = $hostStats[$target]
-                $lossPercent = if ($stats.Sent -gt 0) { [math]::Round((($stats.Sent - $stats.Received) / $stats.Sent) * 100, 1) } else { 0 }
-                $avgMs = if ($stats.Received -gt 0) { [math]::Round($stats.SumMs / $stats.Received, 1) } else { 0 }
+                $lossPercent = if ($stats.Sent -gt 0) {
+                    [math]::Round((($stats.Sent - $stats.Received) / $stats.Sent) * 100, 1)
+                } else {
+                    0
+                }
+                $avgMs = if ($stats.Received -gt 0) {
+                    [math]::Round($stats.SumMs / $stats.Received, 1)
+                } else {
+                    0
+                }
                 Write-Host "  $target - Sent: $($stats.Sent), Received: $($stats.Received), Loss: ${lossPercent}%, Avg: ${avgMs}ms"
             }
             Write-Host ''
