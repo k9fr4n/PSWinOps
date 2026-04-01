@@ -94,7 +94,7 @@ function Get-ExchangeServerHealth {
         Write-Verbose -Message "[$($MyInvocation.MyCommand)] Starting"
 
         $scriptBlock = {
-            param($queueWarn, $queueCrit, $certWarnDays)
+            param($certWarnDays)
 
             $data = @{
                 TransportStatus          = 'NotFound'
@@ -195,7 +195,7 @@ function Get-ExchangeServerHealth {
             try {
                 $result = Invoke-RemoteOrLocal -ComputerName $machine -ScriptBlock $scriptBlock `
                     -Credential $Credential `
-                    -ArgumentList @($QueueWarningThreshold, $QueueCriticalThreshold, $CertificateWarningDays)
+                    -ArgumentList @($CertificateWarningDays)
 
                 # Compute OverallHealth outside the scriptblock
                 if (-not $result.SnapinAvailable) {
