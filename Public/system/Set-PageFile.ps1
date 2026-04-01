@@ -76,9 +76,9 @@ function Set-PageFile {
     .LINK
         https://learn.microsoft.com/en-us/troubleshoot/windows-client/performance/how-to-determine-the-appropriate-page-file-size
     #>
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', 'AutoCalculate',
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'AutoCalculate',
         Justification = 'Switch drives parameter-set selection, not used as a variable.')]
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', 'RestoreAutoManaged',
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'RestoreAutoManaged',
         Justification = 'Switch drives parameter-set selection, not used as a variable.')]
     [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High', DefaultParameterSetName = 'Auto')]
     [OutputType('PSWinOps.PageFileConfiguration')]
