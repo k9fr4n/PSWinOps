@@ -40,8 +40,8 @@ function Start-PingMonitor {
 
         .NOTES
             Author:        Franck SALLET
-            Version:       1.0.0
-            Last Modified: 2026-03-21
+            Version:       1.1.0
+            Last Modified: 2026-04-01
             Requires:      PowerShell 5.1+ / Windows only
             Permissions:   No admin required (ICMP may be blocked by firewall)
             Output:        Writes to console only, no pipeline output.
@@ -94,6 +94,7 @@ function Start-PingMonitor {
         $buffer = [byte[]]::new(32)
         $pingOptions = New-Object System.Net.NetworkInformation.PingOptions(128, $true)
         $startTime = Get-Date
+        $isFirstRender = $true
     }
 
     process {
@@ -127,8 +128,17 @@ function Start-PingMonitor {
                     }
                 }
 
-                # Render dashboard
-                Clear-Host
+                # Render dashboard — use cursor repositioning to avoid flicker
+                if ($isFirstRender) {
+                    Clear-Host
+                    $isFirstRender = $false
+                } else {
+                    try {
+                        [Console]::SetCursorPosition(0, 0)
+                    } catch {
+                        Clear-Host
+                    }
+                }
                 $elapsed = (Get-Date) - $startTime
                 $elapsedStr = '{0:hh\:mm\:ss}' -f $elapsed
                 Write-Host "=== Ping Monitor === $($ComputerName.Count) host(s) === Elapsed: $elapsedStr === Refresh: ${RefreshInterval}s === Ctrl+C to stop ===" -ForegroundColor Cyan

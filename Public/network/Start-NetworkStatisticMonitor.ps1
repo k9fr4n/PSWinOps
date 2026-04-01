@@ -70,8 +70,8 @@ function Start-NetworkStatisticMonitor {
 
         .NOTES
             Author:        Franck SALLET
-            Version:       1.1.0
-            Last Modified: 2026-03-23
+            Version:       1.2.0
+            Last Modified: 2026-04-01
             Requires:      PowerShell 5.1+ / Windows only
             Permissions:   No admin required for basic queries
             Remote:        Requires WinRM / WS-Man enabled on target machines
@@ -178,24 +178,50 @@ function Start-NetworkStatisticMonitor {
         $computerList = $allComputers -join ', '
         Write-Host "Network Statistics Monitor - Refresh every ${RefreshInterval}s - Press Ctrl+C to stop" -ForegroundColor Cyan
 
+        $isFirstRender = $true
+        $previousLineCount = 0
+
         try {
             while ($true) {
                 $allResults = @(Get-NetworkConnection -ComputerName $allComputers.ToArray() @getStatParams -ErrorAction SilentlyContinue)
 
-                Clear-Host
+                # Use cursor repositioning to avoid flicker (Clear-Host on first render only)
+                if ($isFirstRender) {
+                    Clear-Host
+                    $isFirstRender = $false
+                } else {
+                    try {
+                        [Console]::SetCursorPosition(0, 0)
+                    } catch {
+                        Clear-Host
+                    }
+                }
                 $now = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                 Write-Host "=== Network Statistics on $computerList - $now - ${RefreshInterval}s refresh - Ctrl+C to stop ===" -ForegroundColor Cyan
                 Write-Host "Total connections: $($allResults.Count)" -ForegroundColor DarkGray
                 Write-Host ''
 
                 if ($allResults.Count -gt 0) {
-                    $allResults |
+                    $tableOutput = $allResults |
                         Sort-Object ComputerName, ProcessName, Protocol, RemoteAddress |
                         Format-Table -AutoSize |
-                        Out-Host
+                        Out-String
+                    Write-Host $tableOutput -NoNewline
+                    $currentLineCount = ($tableOutput -split "`n").Count + 3
                 } else {
                     Write-Host '(No matching connections found)' -ForegroundColor Yellow
+                    $currentLineCount = 4
                 }
+
+                # Clear stale lines from previous render when content shrinks
+                if ($currentLineCount -lt $previousLineCount) {
+                    $padWidth = try { [Console]::WindowWidth } catch { 120 }
+                    $blankLine = ' ' * $padWidth
+                    for ($i = $currentLineCount; $i -lt $previousLineCount; $i++) {
+                        Write-Host $blankLine
+                    }
+                }
+                $previousLineCount = $currentLineCount
 
                 Start-Sleep -Seconds $RefreshInterval
             }
