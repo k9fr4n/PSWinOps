@@ -163,12 +163,16 @@ jobs:
           check_name: Pester Test Results
 
   # ─────────────────────────────────────────
-  # JOB 5 — CODE COVERAGE (only if all tests pass)
+  # JOB 5 — CODE COVERAGE
   # ─────────────────────────────────────────
   coverage:
     needs: test
     runs-on: windows-latest
-    if: success()
+    if: always() # Run even if some tests failed — you still want the coverage comment
+    permissions:
+      contents: read
+      pull-requests: write # Required for Codecov to post PR comments
+      checks: write # Required for Codecov status checks
 
     steps:
       - uses: actions/checkout@v4.2.2
@@ -203,18 +207,24 @@ jobs:
 
           Invoke-Pester -Configuration $config
 
-      - name: Generate coverage summary
+      - name: Enforce coverage threshold
         shell: pwsh
         run: |
-          if (Test-Path -Path 'coverage.xml') {
-            [xml]$coverage  = Get-Content -Path 'coverage.xml'
-            $lineCounter    = $coverage.report.counter | Where-Object { $_.type -eq 'LINE' }
-            $covered        = [int]$lineCounter.covered
-            $missed         = [int]$lineCounter.missed
-            $total          = $covered + $missed
-            if ($total -gt 0) {
-              $pct = [math]::Round(($covered / $total) * 100, 2)
-              Write-Output "[INFO] Code coverage: $pct% ($covered/$total lines)"
+          if (-not (Test-Path 'coverage.xml')) {
+            Write-Warning 'coverage.xml not found, skipping threshold check'
+            exit 0
+          }
+          [xml]$coverage = Get-Content 'coverage.xml'
+          $lineCounter = $coverage.report.counter | Where-Object { $_.type -eq 'LINE' }
+          $covered = [int]$lineCounter.covered
+          $missed  = [int]$lineCounter.missed
+          $total   = $covered + $missed
+          if ($total -gt 0) {
+            $pct = [math]::Round(($covered / $total) * 100, 2)
+            Write-Output "Coverage: $pct% ($covered/$total lines)"
+            if ($pct -lt 70) {
+              Write-Error "Coverage $pct% is below the 70% threshold"
+              exit 1
             }
           }
 
@@ -226,6 +236,9 @@ jobs:
           flags: pester
           fail_ci_if_error: false
           verbose: true
+          # Tell Codecov this is a single-upload workflow
+          # so it doesn't wait for multiple reports before commenting
+          override_pr: ${{ github.event.pull_request.number }}
 
       - name: Upload coverage artifact
         uses: actions/upload-artifact@v4.6.2
