@@ -30,8 +30,7 @@ function Invoke-RemoteOrLocal {
 
         .PARAMETER Credential
             Optional credential for remote execution. Ignored for local calls.
-            When not supplied (or set to [PSCredential]::Empty), Invoke-Command
-            runs under the current user context.
+            When not supplied, Invoke-Command runs under the current user context.
 
         .EXAMPLE
             Invoke-RemoteOrLocal -ComputerName $env:COMPUTERNAME -ScriptBlock { Get-Service }
@@ -54,8 +53,8 @@ function Invoke-RemoteOrLocal {
 
         .NOTES
             Author: Franck SALLET
-            Version: 1.0.0
-            Last Modified: 2026-03-31
+            Version: 1.1.0
+            Last Modified: 2026-04-02
             Requires: PowerShell 5.1+ / Windows only
             Scope: Private - not exported
 
@@ -76,7 +75,7 @@ function Invoke-RemoteOrLocal {
 
         [Parameter()]
         [System.Management.Automation.PSCredential]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        $Credential
     )
 
     if ($script:LocalComputerNames -contains $ComputerName) {
@@ -96,7 +95,7 @@ function Invoke-RemoteOrLocal {
     if ($ArgumentList) {
         $invokeParams['ArgumentList'] = $ArgumentList
     }
-    if ($null -ne $Credential -and $Credential -ne [System.Management.Automation.PSCredential]::Empty) {
+    if ($null -ne $Credential) {
         $invokeParams['Credential'] = $Credential
     }
 

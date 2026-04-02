@@ -258,4 +258,4 @@ function Set-NTPClient {
     end {
         Write-Verbose "[$($MyInvocation.MyCommand)] Completed"
     }
-}
+}
