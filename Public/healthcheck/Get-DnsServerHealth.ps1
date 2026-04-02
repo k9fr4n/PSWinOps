@@ -116,8 +116,10 @@ function Get-DnsServerHealth {
                     $data.RootHintsCount = @($rootHints).Count
                 }
 
-                # Self-resolution test
-                $resolveResult = Resolve-DnsName -Name $env:COMPUTERNAME -Server 'localhost' -DnsOnly -ErrorAction SilentlyContinue
+                # Self-resolution test — use 127.0.0.1 instead of 'localhost'
+                # because 'localhost' may resolve to ::1 (IPv6) where the DNS
+                # server is not listening, causing a false-negative
+                $resolveResult = Resolve-DnsName -Name $env:COMPUTERNAME -Server '127.0.0.1' -DnsOnly -ErrorAction SilentlyContinue
                 if ($resolveResult) {
                     $data.SelfResolution = $true
                 }
