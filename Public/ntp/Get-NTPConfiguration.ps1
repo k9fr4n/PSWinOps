@@ -85,6 +85,8 @@ function Get-NTPConfiguration {
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand)] Starting - PowerShell $($PSVersionTable.PSVersion)"
 
+        $w32tmPath = Join-Path -Path $env:SystemRoot -ChildPath 'System32\w32tm.exe'
+
         # Script block used for REMOTE execution only (Invoke-Command).
         # Uses full path to w32tm.exe because remote sessions don't inherit local mock context.
         $w32tmRemoteScriptBlock = {
@@ -111,12 +113,12 @@ function Get-NTPConfiguration {
                 ($computer -eq '.')
 
                 if ($isLocal) {
-                    # Local execution: call commands by name so they are mockable in Pester
+                    # Local execution: use Invoke-NativeCommand for testable w32tm calls
                     $rawData = @{
                         ServiceStatus = (Get-Service -Name 'w32time' -ErrorAction Stop).Status
-                        Config        = w32tm /query /configuration 2>&1
-                        Status        = w32tm /query /status /verbose 2>&1
-                        Peers         = w32tm /query /peers 2>&1
+                        Config        = (Invoke-NativeCommand -FilePath $w32tmPath -ArgumentList @('/query', '/configuration')).Output -split '\r?\n'
+                        Status        = (Invoke-NativeCommand -FilePath $w32tmPath -ArgumentList @('/query', '/status', '/verbose')).Output -split '\r?\n'
+                        Peers         = (Invoke-NativeCommand -FilePath $w32tmPath -ArgumentList @('/query', '/peers')).Output -split '\r?\n'
                     }
                 } else {
                     $rawData = Invoke-Command -ComputerName $computer `

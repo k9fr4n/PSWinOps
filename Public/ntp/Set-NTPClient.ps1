@@ -120,6 +120,8 @@ function Set-NTPClient {
             NtpClient  = 'HKLM:\SYSTEM\CurrentControlSet\Services\W32Time\TimeProviders\NtpClient'
             Parameters = 'HKLM:\SYSTEM\CurrentControlSet\Services\W32Time\Parameters'
         }
+
+        $w32tmPath = Join-Path -Path $env:SystemRoot -ChildPath 'System32\w32tm.exe'
     }
 
     process {
@@ -134,7 +136,7 @@ function Set-NTPClient {
 
             if (-not $service) {
                 Write-Warning "[$($MyInvocation.MyCommand)] Windows Time Service not found - registering service..."
-                $null = w32tm /register
+                $null = Invoke-NativeCommand -FilePath $w32tmPath -ArgumentList @('/register')
                 Start-Sleep -Seconds 2
                 $service = Get-Service -Name 'w32time' -ErrorAction Stop
             }
@@ -182,7 +184,7 @@ function Set-NTPClient {
             Set-ItemProperty -Path $registryPaths['Parameters'] -Name 'Type' -Value 'NTP' -Type String -ErrorAction Stop
             Set-ItemProperty -Path $registryPaths['Config'] -Name 'MaxAllowedPhaseOffset' -Value $MaxPhaseOffset -Type DWord -ErrorAction Stop
 
-            $null = w32tm /config /update
+            $null = Invoke-NativeCommand -FilePath $w32tmPath -ArgumentList @('/config', '/update')
 
             Write-Information -MessageData "[OK] NTP servers configured: $serverList"
 
@@ -204,8 +206,8 @@ function Set-NTPClient {
 
             # Step 7: Force synchronization
             Write-Verbose "[$($MyInvocation.MyCommand)] Forcing immediate NTP synchronization..."
-            $syncOutput = w32tm /resync /force 2>&1
-            $syncExitCode = $LASTEXITCODE
+            $syncResult = Invoke-NativeCommand -FilePath $w32tmPath -ArgumentList @('/resync', '/force')
+            $syncExitCode = $syncResult.ExitCode
 
             # Exit code is the authoritative success indicator (locale-agnostic).
             # w32tm output text varies by OS language and is logged for diagnostics only.
@@ -213,10 +215,10 @@ function Set-NTPClient {
 
             if ($isSyncSuccessful) {
                 Write-Information -MessageData '[OK] Time synchronization completed successfully'
-                Write-Verbose "[$($MyInvocation.MyCommand)] w32tm /resync output: $($syncOutput -join ' ')"
+                Write-Verbose "[$($MyInvocation.MyCommand)] w32tm /resync output: $($syncResult.Output)"
             } else {
                 Write-Warning "[$($MyInvocation.MyCommand)] Time synchronization failed (exit code $syncExitCode):"
-                $syncOutput | ForEach-Object { Write-Warning "[$($MyInvocation.MyCommand)] $_" }
+                ($syncResult.Output -split '\r?\n') | ForEach-Object { Write-Warning "[$($MyInvocation.MyCommand)] $_" }
             }
 
             # Step 8: Verify configuration (locale-agnostic)
@@ -233,8 +235,8 @@ function Set-NTPClient {
 
             try {
                 # w32tm /query /source returns only the source name without any locale-dependent label.
-                $sourceOutput = w32tm /query /source 2>&1
-                $sourceText = ($sourceOutput | Out-String).Trim()
+                $sourceResult = Invoke-NativeCommand -FilePath $w32tmPath -ArgumentList @('/query', '/source')
+                $sourceText = $sourceResult.Output
                 Write-Information -MessageData "[OK] Active NTP source: $sourceText"
             } catch {
                 Write-Warning "[$($MyInvocation.MyCommand)] Could not query active NTP source: $_"

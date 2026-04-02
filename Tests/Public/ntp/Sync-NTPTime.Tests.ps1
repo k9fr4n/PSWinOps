@@ -1,10 +1,7 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 
 BeforeAll {
     # Stub Windows-only commands BEFORE module import so Pester can mock them
-    if (-not (Get-Command -Name 'w32tm' -ErrorAction SilentlyContinue)) {
-        function global:w32tm { }
-    }
     if (-not (Get-Command -Name 'Restart-Service' -ErrorAction SilentlyContinue)) {
         function global:Restart-Service { }
     }
@@ -33,10 +30,12 @@ Describe -Name 'Sync-NTPTime' -Fixture {
 
         BeforeAll {
             Mock -CommandName 'Test-IsAdministrator' -ModuleName 'PSWinOps' -MockWith { return $true }
-            # Local path uses bare w32tm call (not Invoke-Command)
-            Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith {
-                $global:LASTEXITCODE = 0
-                return "Sending resync command to local computer`r`nThe command completed successfully."
+            # Local path uses Invoke-NativeCommand (not Invoke-Command)
+            Mock -CommandName 'Invoke-NativeCommand' -ModuleName 'PSWinOps' -MockWith {
+                [PSCustomObject]@{
+                    Output   = "Sending resync command to local computer`r`nThe command completed successfully."
+                    ExitCode = 0
+                }
             }
         }
 
@@ -51,7 +50,7 @@ Describe -Name 'Sync-NTPTime' -Fixture {
 
         It -Name 'Should call w32tm (not Invoke-Command) for local execution' -Test {
             Sync-NTPTime
-            Should -Invoke -CommandName 'w32tm' -ModuleName 'PSWinOps' -Times 1 -Exactly
+            Should -Invoke -CommandName 'Invoke-NativeCommand' -ModuleName 'PSWinOps' -Times 1 -Exactly
         }
     }
 
@@ -283,9 +282,11 @@ Describe -Name 'Sync-NTPTime' -Fixture {
             Mock -CommandName 'Test-IsAdministrator' -ModuleName 'PSWinOps' -MockWith { return $true }
             Mock -CommandName 'Restart-Service' -ModuleName 'PSWinOps' -MockWith { }
             Mock -CommandName 'Start-Sleep' -ModuleName 'PSWinOps' -MockWith { }
-            Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith {
-                $global:LASTEXITCODE = 0
-                return 'The command completed successfully.'
+            Mock -CommandName 'Invoke-NativeCommand' -ModuleName 'PSWinOps' -MockWith {
+                [PSCustomObject]@{
+                    Output   = 'The command completed successfully.'
+                    ExitCode = 0
+                }
             }
         }
 
@@ -310,9 +311,11 @@ Describe -Name 'Sync-NTPTime' -Fixture {
 
         BeforeAll {
             Mock -CommandName 'Test-IsAdministrator' -ModuleName 'PSWinOps' -MockWith { return $true }
-            Mock -CommandName 'w32tm' -ModuleName 'PSWinOps' -MockWith {
-                $global:LASTEXITCODE = 1
-                return 'The computer did not resync because no time data was available.'
+            Mock -CommandName 'Invoke-NativeCommand' -ModuleName 'PSWinOps' -MockWith {
+                [PSCustomObject]@{
+                    Output   = 'The computer did not resync because no time data was available.'
+                    ExitCode = 1
+                }
             }
         }
 

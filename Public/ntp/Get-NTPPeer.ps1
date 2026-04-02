@@ -59,6 +59,8 @@ function Get-NTPPeer {
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand)] Starting"
 
+        $w32tmPath = Join-Path -Path $env:SystemRoot -ChildPath 'System32\w32tm.exe'
+
         # Script block used for REMOTE execution only (Invoke-Command).
         # Uses full path to w32tm.exe because remote sessions don't inherit local mock context.
         $w32tmRemoteScriptBlock = {
@@ -85,11 +87,12 @@ function Get-NTPPeer {
                 ($targetComputer -eq '.')
 
                 if ($isLocal) {
-                    # Local execution: call by bare name so Pester can mock it
-                    $rawOutput = w32tm /query /peers 2>&1
-                    if ($LASTEXITCODE -ne 0) {
-                        throw "w32tm /query /peers failed (exit code $LASTEXITCODE): $($rawOutput -join ' ')"
+                    # Local execution: use Invoke-NativeCommand for testable w32tm calls
+                    $w32tmResult = Invoke-NativeCommand -FilePath $w32tmPath -ArgumentList @('/query', '/peers')
+                    if ($w32tmResult.ExitCode -ne 0) {
+                        throw "w32tm /query /peers failed (exit code $($w32tmResult.ExitCode)): $($w32tmResult.Output)"
                     }
+                    $rawOutput = $w32tmResult.Output -split '\r?\n'
                 } else {
                     $rawOutput = Invoke-Command -ComputerName $targetComputer `
                         -ScriptBlock $w32tmRemoteScriptBlock -ErrorAction Stop
