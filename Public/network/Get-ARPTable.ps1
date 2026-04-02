@@ -1,6 +1,6 @@
 ﻿#Requires -Version 5.1
 
-function Get-ArpTable {
+function Get-ARPTable {
     <#
         .SYNOPSIS
             Retrieves the ARP (Address Resolution Protocol) cache as structured objects

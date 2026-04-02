@@ -76,7 +76,7 @@ function Get-ExchangeServerHealth {
         [ValidateNotNull()]
         [System.Management.Automation.PSCredential]
         [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty,
+        $Credential,
 
         [Parameter(Mandatory = $false)]
         [ValidateRange(1, 10000)]
