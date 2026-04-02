@@ -125,7 +125,28 @@ PrivateData = @{
     PSData = @{
 
         # Tags applied to this module. These help with module discovery in online galleries.
-        Tags = 'SysAdmin','Windows','Ops','Utilities','Administration','NTP','RDP','Proxy','Uptime','Sessions','TimeSynchronization','RemoteDesktop','Security','Password','PendingReboot','WinOps'
+        Tags = @(
+            # General
+            'Windows', 'SysAdmin', 'Administration', 'Ops', 'WinOps', 'Utilities',
+            'Monitoring', 'HealthCheck', 'Automation', 'Infrastructure',
+            # Network
+            'Network', 'DNS', 'ARP', 'TCP', 'Ping', 'Subnet', 'CIDR', 'SSL',
+            'NetStat', 'Traceroute', 'WinRM',
+            # System
+            'Uptime', 'DiskSpace', 'PendingReboot', 'ScheduledTask',
+            'InstalledSoftware', 'PageFile', 'EnvironmentVariable', 'Startup',
+            # RDP / Sessions
+            'RDP', 'RemoteDesktop', 'Sessions',
+            # NTP / Time
+            'NTP', 'TimeSynchronization', 'W32Time',
+            # Proxy
+            'Proxy', 'WinHTTP', 'WinINET',
+            # Security / Utils
+            'Security', 'Password', 'Encoding',
+            # Server Roles
+            'ActiveDirectory', 'DHCP', 'DFS', 'Cluster', 'HyperV',
+            'IIS', 'PrintServer', 'WSUS', 'ADFS', 'Exchange', 'CertificateAuthority'
+        )
 
         # A URL to the license for this module.
         # LicenseUri = ''
