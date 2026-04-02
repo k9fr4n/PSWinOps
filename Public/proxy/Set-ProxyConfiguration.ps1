@@ -60,14 +60,19 @@ function Set-ProxyConfiguration {
 
         .NOTES
             Author: Franck SALLET
-            Version: 1.0.0
-            Last Modified: 2026-03-20
+            Version: 1.0.1
+            Last Modified: 2026-04-02
             Requires: PowerShell 5.1+ / Windows only
 
             WinHTTP scope requires local administrator privileges (netsh winhttp set proxy).
             WinINET writes to HKCU (no elevation needed, applies to current user).
-            Environment scope sets User-level variables (persistent across sessions).
+            Environment scope sets User-level variables via
+            [System.Environment]::SetEnvironmentVariable(..., [User]) — these persist across
+            sessions and are visible to all processes running as the current user.
             Process-level env vars ($env:) are also updated for immediate effect.
+
+            WARNING: The Environment scope writes proxy URLs to User-level environment
+            variables that survive logoff/reboot. Use Remove-ProxyConfiguration to clean up.
 
         .LINK
             https://github.com/k9fr4n/PSWinOps
