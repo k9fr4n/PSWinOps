@@ -97,7 +97,7 @@ function Get-PrintServerHealth {
                     switch ($p.PrinterStatus) {
                         'Normal'   { $printersOnline++ }
                         'Error'    { $printersInError++ }
-                        [PSWinOpsHealthStatus]::Degraded { $printersInError++ }
+                        'Degraded' { $printersInError++ }
                         'Warning'  { $printersInError++ }
                         'Offline'  { $printersOffline++ }
                     }
