@@ -98,6 +98,21 @@ Describe 'Get-CertificateAuthorityHealth' {
         It -Name 'Should report days remaining above zero' -Test { $script:result.CACertDaysRemaining | Should -BeGreaterThan 0 }
     }
 
+    Context 'When CA certificate expiry is unknown (certutil parsing failed)' {
+        BeforeAll {
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
+                $data = $script:mockRemoteData.Clone()
+                $data.CACertExpiry = 'Unknown'
+                $data.CACertDaysRemaining = -1
+                return $data
+            }
+            $script:result = Get-CertificateAuthorityHealth -ComputerName 'SRV01'
+        }
+        It -Name 'Should return Degraded overall health' -Test { $script:result.OverallHealth | Should -Be 'Degraded' }
+        It -Name 'Should report Unknown expiry' -Test { $script:result.CACertExpiry | Should -Be 'Unknown' }
+        It -Name 'Should report -1 days remaining' -Test { $script:result.CACertDaysRemaining | Should -Be -1 }
+    }
+
     Context 'When CRL publish has failed' {
         BeforeAll {
             Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {

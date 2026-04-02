@@ -40,8 +40,8 @@ function Get-CertificateAuthorityHealth {
 
         .NOTES
             Author: Franck SALLET
-            Version: 1.0.0
-            Last Modified: 2026-03-26
+            Version: 1.1.0
+            Last Modified: 2026-04-02
             Requires: PowerShell 5.1+ / Windows only
             Requires: AD-Certificate role (ADCS-Cert-Authority)
             Requires: certutil.exe (included with ADCS or RSAT)
@@ -125,7 +125,7 @@ function Get-CertificateAuthorityHealth {
                         if ($inCert0 -and $line -match 'CA\s+cert\[\d+\]') {
                             break
                         }
-                        if ($inCert0 -and $line -match 'Not\s*After\s*:\s*(.+)') {
+                        if ($inCert0 -and $line -match '(?:Not\s*After|Pas\s+apr[eè]s)\s*:\s*(.+)') {
                             $expiryString = $Matches[1].Trim()
                             $data.CACertExpiry = $expiryString
                             try {
@@ -142,7 +142,7 @@ function Get-CertificateAuthorityHealth {
                     # Fallback: parse Cert Expires line if NotAfter was not found
                     if ($data.CACertExpiry -eq 'Unknown') {
                         foreach ($line in $caInfoLines) {
-                            if ($line -match '(?i)Cert\s+expires?:\s*(.+)') {
+                            if ($line -match '(?i)(?:Cert\s+expires?|Certificat\s+expire)\s*:\s*(.+)') {
                                 $expiryString = $Matches[1].Trim()
                                 $data.CACertExpiry = $expiryString
                                 try {
@@ -224,7 +224,9 @@ function Get-CertificateAuthorityHealth {
                     $healthStatus = [PSWinOpsHealthStatus]::Critical
                 }
                 elseif (($result.CACertDaysRemaining -ne -1 -and $result.CACertDaysRemaining -lt 30) -or
-                        -not $result.CRLPublishOK) {
+                        -not $result.CRLPublishOK -or
+                        $result.CACertExpiry -eq 'Unknown') {
+                    # Unknown expiry means certutil parsing failed — cannot confirm cert validity
                     $healthStatus = [PSWinOpsHealthStatus]::Degraded
                 }
                 else {
