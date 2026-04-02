@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿﻿#Requires -Version 5.1
 function Get-ExchangeServerHealth {
     <#
         .SYNOPSIS
@@ -137,9 +137,8 @@ function Get-ExchangeServerHealth {
                 try {
                     Add-PSSnapin -Name 'Microsoft.Exchange.Management.PowerShell.SnapIn' -ErrorAction Stop
                     $data.SnapinAvailable = $true
-                }
-                catch {
-                    # Snapin not registered — fall through to Import-Module
+                } catch {
+                    Write-Verbose "[$($MyInvocation.MyCommand)] Snapin not available - falling back to Import-Module"
                 }
             }
 
@@ -147,8 +146,7 @@ function Get-ExchangeServerHealth {
                 try {
                     Import-Module -Name 'ExchangeManagementShell' -ErrorAction Stop
                     $data.SnapinAvailable = $true
-                }
-                catch {
+                } catch {
                     $data.SnapinAvailable = $false
                 }
             }
@@ -157,15 +155,15 @@ function Get-ExchangeServerHealth {
                 # Mailbox databases
                 $databases = Get-MailboxDatabase -Status -ErrorAction SilentlyContinue
                 if ($databases) {
-                    $data.TotalDatabases     = @($databases).Count
-                    $data.MountedDatabases   = @($databases | Where-Object { $_.Mounted -eq $true }).Count
+                    $data.TotalDatabases = @($databases).Count
+                    $data.MountedDatabases = @($databases | Where-Object { $_.Mounted -eq $true }).Count
                     $data.DismountedDatabases = $data.TotalDatabases - $data.MountedDatabases
                 }
 
                 # Mail queues
                 $queues = Get-Queue -ErrorAction SilentlyContinue
                 if ($queues) {
-                    $data.TotalQueues        = @($queues).Count
+                    $data.TotalQueues = @($queues).Count
                     $data.TotalQueueMessages = ($queues | Measure-Object -Property MessageCount -Sum).Sum
                     $data.HighestQueueLength = ($queues | Measure-Object -Property MessageCount -Maximum).Maximum
                 }
@@ -173,9 +171,9 @@ function Get-ExchangeServerHealth {
                 # DAG database copy status
                 $copies = Get-MailboxDatabaseCopyStatus -ErrorAction SilentlyContinue
                 if ($copies) {
-                    $data.DAGCopiesTotal     = @($copies).Count
-                    $healthyCopyStatuses     = @('Mounted', 'Healthy')
-                    $data.DAGCopiesHealthy   = @($copies | Where-Object { $_.Status -in $healthyCopyStatuses }).Count
+                    $data.DAGCopiesTotal = @($copies).Count
+                    $healthyCopyStatuses = @('Mounted', 'Healthy')
+                    $data.DAGCopiesHealthy = @($copies | Where-Object { $_.Status -in $healthyCopyStatuses }).Count
                     $data.DAGCopiesUnhealthy = $data.DAGCopiesTotal - $data.DAGCopiesHealthy
                 }
 
@@ -183,11 +181,11 @@ function Get-ExchangeServerHealth {
                 $certs = Get-ExchangeCertificate -ErrorAction SilentlyContinue
                 if ($certs) {
                     $now = Get-Date
-                    $data.CertificatesTotal       = @($certs).Count
-                    $data.CertificatesExpired     = @($certs | Where-Object { $_.NotAfter -lt $now }).Count
+                    $data.CertificatesTotal = @($certs).Count
+                    $data.CertificatesExpired = @($certs | Where-Object { $_.NotAfter -lt $now }).Count
                     $data.CertificatesExpiringSoon = @($certs | Where-Object {
-                        $_.NotAfter -ge $now -and $_.NotAfter -lt $now.AddDays($certWarnDays)
-                    }).Count
+                            $_.NotAfter -ge $now -and $_.NotAfter -lt $now.AddDays($certWarnDays)
+                        }).Count
                 }
             }
 
@@ -208,16 +206,14 @@ function Get-ExchangeServerHealth {
                 # Compute OverallHealth outside the scriptblock
                 if (-not $result.SnapinAvailable) {
                     $healthStatus = 'RoleUnavailable'
-                }
-                elseif (
+                } elseif (
                     $result.TransportStatus -ne 'Running' -or
                     $result.InformationStoreStatus -ne 'Running' -or
                     $result.DismountedDatabases -gt 0 -or
                     $result.HighestQueueLength -ge $QueueCriticalThreshold
                 ) {
                     $healthStatus = 'Critical'
-                }
-                elseif (
+                } elseif (
                     $result.HighestQueueLength -ge $QueueWarningThreshold -or
                     $result.DAGCopiesUnhealthy -gt 0 -or
                     $result.CertificatesExpiringSoon -gt 0 -or
@@ -226,8 +222,7 @@ function Get-ExchangeServerHealth {
                     $result.ServiceHostStatus -ne 'Running'
                 ) {
                     $healthStatus = 'Degraded'
-                }
-                else {
+                } else {
                     $healthStatus = 'Healthy'
                 }
 
@@ -253,8 +248,7 @@ function Get-ExchangeServerHealth {
                     OverallHealth            = $healthStatus
                     Timestamp                = Get-Date -Format 'o'
                 }
-            }
-            catch {
+            } catch {
                 Write-Error -Message "[$($MyInvocation.MyCommand)] Failed on '${machine}': $_"
                 continue
             }
