@@ -47,6 +47,11 @@ function Start-NetworkStatisticMonitor {
         .PARAMETER RefreshInterval
             Refresh interval in seconds. Default: 2. Valid range: 1-300 seconds.
 
+        .PARAMETER NoClear
+            Suppresses the initial Clear-Host call. Useful when embedding the monitor
+            output in a transcript, ISE, or non-interactive host where clearing the
+            console is undesirable.
+
         .EXAMPLE
             Start-NetworkStatisticMonitor
 
@@ -70,8 +75,8 @@ function Start-NetworkStatisticMonitor {
 
         .NOTES
             Author:        Franck SALLET
-            Version:       1.2.0
-            Last Modified: 2026-04-01
+            Version:       1.3.0
+            Last Modified: 2026-04-02
             Requires:      PowerShell 5.1+ / Windows only
             Permissions:   No admin required for basic queries
             Remote:        Requires WinRM / WS-Man enabled on target machines
@@ -131,7 +136,10 @@ function Start-NetworkStatisticMonitor {
 
         [Parameter(Mandatory = $false)]
         [ValidateRange(1, 300)]
-        [int]$RefreshInterval = 2
+        [int]$RefreshInterval = 2,
+
+        [Parameter(Mandatory = $false)]
+        [switch]$NoClear
     )
 
     begin {
@@ -187,7 +195,7 @@ function Start-NetworkStatisticMonitor {
 
                 # Use cursor repositioning to avoid flicker (Clear-Host on first render only)
                 if ($isFirstRender) {
-                    Clear-Host
+                    if (-not $NoClear) { Clear-Host }
                     $isFirstRender = $false
                 } else {
                     try {

@@ -23,6 +23,11 @@ function Start-PingMonitor {
         .PARAMETER PingTimeoutMs
             Timeout per ping in milliseconds. Default: 2000. Valid range: 500-10000.
 
+        .PARAMETER NoClear
+            Suppresses the initial Clear-Host call. Useful when embedding the monitor
+            output in a transcript, ISE, or non-interactive host where clearing the
+            console is undesirable.
+
         .EXAMPLE
             Start-PingMonitor -ComputerName 'SRV01', 'SRV02', 'SRV03', 'gateway'
 
@@ -40,8 +45,8 @@ function Start-PingMonitor {
 
         .NOTES
             Author:        Franck SALLET
-            Version:       1.1.0
-            Last Modified: 2026-04-01
+            Version:       1.2.0
+            Last Modified: 2026-04-02
             Requires:      PowerShell 5.1+ / Windows only
             Permissions:   No admin required (ICMP may be blocked by firewall)
             Output:        Writes to console only, no pipeline output.
@@ -70,7 +75,10 @@ function Start-PingMonitor {
 
         [Parameter(Mandatory = $false)]
         [ValidateRange(500, 10000)]
-        [int]$PingTimeoutMs = 2000
+        [int]$PingTimeoutMs = 2000,
+
+        [Parameter(Mandatory = $false)]
+        [switch]$NoClear
     )
 
     begin {
@@ -130,7 +138,7 @@ function Start-PingMonitor {
 
                 # Render dashboard — use cursor repositioning to avoid flicker
                 if ($isFirstRender) {
-                    Clear-Host
+                    if (-not $NoClear) { Clear-Host }
                     $isFirstRender = $false
                 } else {
                     try {

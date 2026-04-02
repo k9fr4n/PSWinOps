@@ -59,7 +59,7 @@ function Remove-RdpSession {
 
         .NOTES
             Author:        Franck SALLET
-            Version:       2.0.1
+            Version:       2.1.0
             Last Modified: 2026-04-02
             Requires:      PowerShell 5.1+, logoff.exe (built-in on all Windows editions)
             Permissions:   Local Administrator on target machines
@@ -110,7 +110,10 @@ function Remove-RdpSession {
 
         Write-Verbose "[$($MyInvocation.MyCommand)] Found logoff.exe at: $($logoffCmd.Source)"
 
-        if ($Force -and -not $WhatIfPreference) {
+        # When -Force is used without explicit -Confirm, suppress confirmation prompts.
+        # Setting $ConfirmPreference in function scope creates a local copy (does not leak).
+        # Check -Confirm bound explicitly so that -Force -Confirm still prompts.
+        if ($Force -and -not $PSBoundParameters.ContainsKey('Confirm')) {
             $ConfirmPreference = 'None'
         }
 
