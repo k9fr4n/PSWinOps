@@ -8,8 +8,8 @@ function Connect-RdpSession {
         .DESCRIPTION
             Connects to an active RDP session on a remote computer using mstsc.exe shadow
             mode to observe or interactively control the user's session. Session existence
-            is verified via Invoke-QwinstaQuery (private helper wrapping qwinsta.exe) before
-            the shadow window is opened.
+            is verified via qwinsta.exe (wrapped by the private Invoke-NativeCommand helper)
+            before the shadow window is opened.
 
             v1.2.0 fix: removed reliance on Win32_TSSession (class unavailable in
             root\cimv2\TerminalServices) and Win32_TerminalService.RemoteControl()
@@ -82,7 +82,7 @@ function Connect-RdpSession {
             - [FIX] Replaced Win32_TerminalService.RemoteControl() with
             mstsc.exe /shadow, the documented Windows shadow mechanism.
             Win32_TerminalService has no RemoteControl() instance method.
-            - [FIX] Extracted qwinsta call into private Invoke-QwinstaQuery to isolate
+            - [FIX] qwinsta call wrapped via Invoke-NativeCommand to isolate
             $LASTEXITCODE dependency and enable reliable unit testing.
             - [KEEP] Credential now forwarded to Start-Process -Credential.
 
@@ -120,6 +120,7 @@ function Connect-RdpSession {
         Write-Verbose "[$($MyInvocation.MyCommand)] Starting -- PowerShell $($PSVersionTable.PSVersion)"
 
         $script:mstscPath = Join-Path -Path $env:SystemRoot -ChildPath 'System32\mstsc.exe'
+        $script:qwinstaPath = Join-Path -Path $env:SystemRoot -ChildPath 'System32\qwinsta.exe'
 
         if (-not (Test-Path -Path $script:mstscPath -PathType Leaf)) {
             throw "[$($MyInvocation.MyCommand)] mstsc.exe not found at: $script:mstscPath"
@@ -130,7 +131,7 @@ function Connect-RdpSession {
         Write-Verbose "[$($MyInvocation.MyCommand)] Processing session ID $SessionID on $ComputerName"
 
         # -------------------------------------------------------------------
-        # Step 1 -- Verify session exists via Invoke-QwinstaQuery
+        # Step 1 -- Verify session exists via qwinsta.exe
         # -------------------------------------------------------------------
         # qwinsta output format (header + data lines):
         #   [>]SessionName   [UserName]   ID   State   [Type]   [Device]
@@ -140,7 +141,7 @@ function Connect-RdpSession {
         # -------------------------------------------------------------------
         Write-Verbose "[$($MyInvocation.MyCommand)] Verifying session $SessionID on $ComputerName via qwinsta"
 
-        $qwinstaResult = Invoke-QwinstaQuery -ServerName $ComputerName
+        $qwinstaResult = Invoke-NativeCommand -FilePath $script:qwinstaPath -ArgumentList @("/server:$ComputerName")
 
         if ($qwinstaResult.ExitCode -ne 0) {
             Write-Error ("[$($MyInvocation.MyCommand)] qwinsta failed on $ComputerName " +
@@ -151,7 +152,8 @@ function Connect-RdpSession {
         $sessionFound = $false
         $targetIdToken = $SessionID.ToString()
 
-        foreach ($qwinstaLine in ($qwinstaResult.Output | Select-Object -Skip 1)) {
+        $outputLines = ($qwinstaResult.Output -split '\r?\n') | Where-Object { $_ -ne '' }
+        foreach ($qwinstaLine in ($outputLines | Select-Object -Skip 1)) {
             # Strip the leading '>' marker that qwinsta uses for the current session
             $lineText = ($qwinstaLine -replace '^>', ' ').Trim()
             $tokens = $lineText -split '\s+'

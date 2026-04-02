@@ -67,7 +67,7 @@ Describe 'Get-SSLCertificate' {
             $result = Get-SSLCertificate -Uri 'google.com' -TimeoutMs 10000
             $result | Should -Not -BeNullOrEmpty
             $result.PSObject.TypeNames[0] | Should -Be 'PSWinOps.SSLCertificate'
-            $result.Host | Should -Be 'google.com'
+            $result.ComputerName | Should -Be 'google.com'
             $result.Port | Should -Be 443
             $result.Subject | Should -Not -BeNullOrEmpty
             $result.Issuer | Should -Not -BeNullOrEmpty
@@ -79,7 +79,7 @@ Describe 'Get-SSLCertificate' {
         It 'Should parse https:// URI format' -Skip:(-not ($env:OS -eq 'Windows_NT')) {
             $result = Get-SSLCertificate -Uri 'https://google.com' -TimeoutMs 10000
             $result | Should -Not -BeNullOrEmpty
-            $result.Host | Should -Be 'google.com'
+            $result.ComputerName | Should -Be 'google.com'
         }
     }
 

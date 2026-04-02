@@ -44,6 +44,7 @@ function Get-DhcpServerHealth {
             Last Modified: 2026-03-26
             Requires: PowerShell 5.1+ / Windows only
             Requires: DHCP Server role
+            Requires: Module DhcpServer (RSAT-DHCP)
 
         .LINK
             https://github.com/k9fr4n/PSWinOps

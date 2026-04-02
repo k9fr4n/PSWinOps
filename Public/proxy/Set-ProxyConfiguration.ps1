@@ -177,11 +177,11 @@ function Set-ProxyConfiguration {
                         }
 
                         Write-Verbose "[$($MyInvocation.MyCommand)] Running: netsh $($netshArgs -join ' ')"
-                        $netshOutput = & $netshPath @netshArgs 2>&1
-                        $netshExitCode = $LASTEXITCODE
+                        $netshResult = Invoke-NativeCommand -FilePath $netshPath -ArgumentList $netshArgs
+                        $netshExitCode = $netshResult.ExitCode
 
                         if ($netshExitCode -ne 0) {
-                            $outputText = ($netshOutput | Out-String).Trim()
+                            $outputText = $netshResult.Output
                             Write-Error "[$($MyInvocation.MyCommand)] netsh winhttp set proxy failed (exit code $netshExitCode): $outputText"
                         } else {
                             Write-Information -MessageData '[OK] WinHTTP proxy configured successfully'

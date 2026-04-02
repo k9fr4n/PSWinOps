@@ -56,6 +56,7 @@ function Get-ExchangeServerHealth {
             Last Modified: 2026-04-01
             Requires: PowerShell 5.1+ / Windows only
             Requires: Exchange Server 2016+ Management Tools
+            Requires: Module ExchangeManagementShell
 
         .LINK
             https://github.com/k9fr4n/PSWinOps

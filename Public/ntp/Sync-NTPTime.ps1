@@ -98,6 +98,8 @@ function Sync-NTPTime {
             )
         }
 
+        $w32tmPath = Join-Path -Path $env:SystemRoot -ChildPath 'System32\w32tm.exe'
+
         # Script block used for REMOTE execution only (Invoke-Command).
         # Uses full path because remote sessions don't inherit local mock context.
         $resyncScriptBlock = {
@@ -147,12 +149,8 @@ function Sync-NTPTime {
                 if ($PSCmdlet.ShouldProcess($targetComputer, 'Force NTP resynchronization')) {
                     Write-Verbose "[$($MyInvocation.MyCommand)] Running w32tm /resync on '$targetComputer'..."
                     if ($isLocal) {
-                        # Local execution: call by bare name so Pester can mock it
-                        $rawOutput = w32tm /resync 2>&1
-                        $resyncResult = [PSCustomObject]@{
-                            Output   = ($rawOutput | Out-String).Trim()
-                            ExitCode = $LASTEXITCODE
-                        }
+                        # Local execution: use Invoke-NativeCommand for testable w32tm calls
+                        $resyncResult = Invoke-NativeCommand -FilePath $w32tmPath -ArgumentList @('/resync')
                     } else {
                         $resyncResult = Invoke-Command -ComputerName $targetComputer -ScriptBlock $resyncScriptBlock -ErrorAction Stop
                     }

@@ -73,6 +73,8 @@ function Get-NTPSyncStatus {
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand)] Starting - PowerShell $($PSVersionTable.PSVersion)"
 
+        $w32tmPath = Join-Path -Path $env:SystemRoot -ChildPath 'System32\w32tm.exe'
+
         # Script block used for REMOTE execution only (Invoke-Command).
         # Uses full path to w32tm.exe because remote sessions don't inherit local mock context.
         $w32tmRemoteScriptBlock = {
@@ -114,11 +116,12 @@ function Get-NTPSyncStatus {
                 ($targetComputer -eq '.')
 
                 if ($isLocal) {
-                    Write-Verbose "[$($MyInvocation.MyCommand)] Local execution - direct w32tm call"
-                    $rawOutput = w32tm /query /status 2>&1
-                    if ($LASTEXITCODE -ne 0) {
-                        throw "w32tm /query /status failed (exit code $LASTEXITCODE): $($rawOutput -join ' ')"
+                    Write-Verbose "[$($MyInvocation.MyCommand)] Local execution - Invoke-NativeCommand w32tm call"
+                    $w32tmResult = Invoke-NativeCommand -FilePath $w32tmPath -ArgumentList @('/query', '/status')
+                    if ($w32tmResult.ExitCode -ne 0) {
+                        throw "w32tm /query /status failed (exit code $($w32tmResult.ExitCode)): $($w32tmResult.Output)"
                     }
+                    $rawOutput = $w32tmResult.Output -split '\r?\n'
                 } else {
                     Write-Verbose "[$($MyInvocation.MyCommand)] Remote execution on '$targetComputer'"
                     $rawOutput = Invoke-Command -ComputerName $targetComputer -ScriptBlock $w32tmRemoteScriptBlock -ErrorAction Stop

@@ -48,6 +48,7 @@ function Get-AdDomainControllerHealth {
             Last Modified: 2026-03-26
             Requires: PowerShell 5.1+ / Windows only
             Requires: AD-Domain-Services role
+            Requires: Module ActiveDirectory (RSAT-AD-PowerShell)
             Requires: Local Administrator + Domain Admins or Enterprise Admins
 
         .LINK

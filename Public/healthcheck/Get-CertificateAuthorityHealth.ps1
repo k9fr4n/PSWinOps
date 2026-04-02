@@ -44,6 +44,7 @@ function Get-CertificateAuthorityHealth {
             Last Modified: 2026-03-26
             Requires: PowerShell 5.1+ / Windows only
             Requires: AD-Certificate role (ADCS-Cert-Authority)
+            Requires: certutil.exe (included with ADCS or RSAT)
 
         .LINK
             https://github.com/k9fr4n/PSWinOps

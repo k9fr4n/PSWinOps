@@ -1010,7 +1010,7 @@
       <ViewSelectedBy><TypeName>PSWinOps.SSLCertificate</TypeName></ViewSelectedBy>
       <TableControl>
         <TableHeaders>
-          <TableColumnHeader><Label>Host</Label><Width>28</Width></TableColumnHeader>
+          <TableColumnHeader><Label>ComputerName</Label><Width>28</Width></TableColumnHeader>
           <TableColumnHeader><Label>Port</Label><Width>6</Width></TableColumnHeader>
           <TableColumnHeader><Label>Subject</Label><Width>30</Width></TableColumnHeader>
           <TableColumnHeader><Label>Issuer</Label><Width>25</Width></TableColumnHeader>
@@ -1021,7 +1021,7 @@
         <TableRowEntries>
           <TableRowEntry>
             <TableColumnItems>
-              <TableColumnItem><PropertyName>Host</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
               <TableColumnItem><PropertyName>Port</PropertyName></TableColumnItem>
               <TableColumnItem><PropertyName>Subject</PropertyName></TableColumnItem>
               <TableColumnItem><PropertyName>Issuer</PropertyName></TableColumnItem>

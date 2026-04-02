@@ -45,6 +45,7 @@ function Get-IISHealth {
             Last Modified: 2026-03-31
             Requires: PowerShell 5.1+ / Windows only
             Requires: Web-Server (IIS) role
+            Requires: Module WebAdministration or IISAdministration
 
         .LINK
             https://github.com/k9fr4n/PSWinOps

@@ -43,6 +43,7 @@ function Get-DnsServerHealth {
             Last Modified: 2026-03-26
             Requires: PowerShell 5.1+ / Windows only
             Requires: DNS Server role
+            Requires: Module DnsServer (RSAT-DNS-Server)
 
         .LINK
             https://github.com/k9fr4n/PSWinOps

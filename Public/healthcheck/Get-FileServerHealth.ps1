@@ -44,6 +44,7 @@ function Get-FileServerHealth {
             Last Modified: 2026-03-26
             Requires: PowerShell 5.1+ / Windows only
             Requires: Run As Administrator for SMB and FSRM cmdlets
+            Requires: Module SmbShare (built-in) + Module FileServerResourceManager (FS-Resource-Manager, optional)
 
         .LINK
             https://github.com/k9fr4n/PSWinOps

@@ -45,6 +45,7 @@ function Get-DfsReplicationHealth {
             Last Modified: 2026-03-26
             Requires: PowerShell 5.1+ / Windows only
             Requires: DFSR role installed on target computers
+            Requires: CIM namespace root/MicrosoftDfs (no extra PS module needed)
 
         .LINK
             https://github.com/k9fr4n/PSWinOps

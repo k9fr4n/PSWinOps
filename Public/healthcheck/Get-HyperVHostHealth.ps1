@@ -43,6 +43,7 @@ function Get-HyperVHostHealth {
             Last Modified: 2026-03-26
             Requires: PowerShell 5.1+ / Windows only
             Requires: Hyper-V role
+            Requires: Module Hyper-V (Hyper-V-PowerShell feature)
 
         .LINK
             https://github.com/k9fr4n/PSWinOps
