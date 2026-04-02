@@ -40,7 +40,7 @@ function Get-CertificateAuthorityHealth {
 
         .NOTES
             Author: Franck SALLET
-            Version: 1.1.0
+            Version: 1.2.0
             Last Modified: 2026-04-02
             Requires: PowerShell 5.1+ / Windows only
             Requires: AD-Certificate role (ADCS-Cert-Authority)
@@ -139,7 +139,7 @@ function Get-CertificateAuthorityHealth {
                         }
                     }
 
-                    # Fallback: parse Cert Expires line if NotAfter was not found
+                    # Fallback 1: parse Cert Expires line if NotAfter was not found
                     if ($data.CACertExpiry -eq 'Unknown') {
                         foreach ($line in $caInfoLines) {
                             if ($line -match '(?i)(?:Cert\s+expires?|Certificat\s+expire)\s*:\s*(.+)') {
@@ -154,6 +154,24 @@ function Get-CertificateAuthorityHealth {
                                 }
                                 break
                             }
+                        }
+                    }
+
+                    # Fallback 2: query certificate store directly (locale-independent)
+                    # certutil -CAInfo may not include NotAfter on all OS/locale combinations
+                    if ($data.CACertExpiry -eq 'Unknown' -and $data.CAName -ne 'Unknown') {
+                        try {
+                            $caCert = Get-ChildItem -Path 'Cert:\LocalMachine\My' -ErrorAction Stop |
+                                Where-Object { $_.Subject -match [regex]::Escape($data.CAName) -and $_.HasPrivateKey } |
+                                Sort-Object -Property NotAfter -Descending |
+                                Select-Object -First 1
+                            if ($null -ne $caCert) {
+                                $data.CACertExpiry = $caCert.NotAfter.ToString('o')
+                                $data.CACertDaysRemaining = ($caCert.NotAfter - (Get-Date)).Days
+                            }
+                        }
+                        catch {
+                            Write-Verbose -Message "Certificate store fallback failed: $_"
                         }
                     }
                 }
