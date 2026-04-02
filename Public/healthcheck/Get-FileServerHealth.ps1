@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 function Get-FileServerHealth {
     <#
         .SYNOPSIS
@@ -165,12 +165,12 @@ function Get-FileServerHealth {
             try {
                 $data = Invoke-RemoteOrLocal -ComputerName $machine -ScriptBlock $scriptBlock -Credential $Credential
 
-                $overallHealth = if (-not $data.RoleAvailable) { 'RoleUnavailable' }
+                $overallHealth = if (-not $data.RoleAvailable) { [PSWinOpsHealthStatus]::RoleUnavailable }
                 elseif ($data.ServiceStatus -ne 'Running' -or
-                        ($null -ne $data.MinShareDiskFreeGB -and $data.MinShareDiskFreeGB -lt 5)) { 'Critical' }
+                        ($null -ne $data.MinShareDiskFreeGB -and $data.MinShareDiskFreeGB -lt 5)) { [PSWinOpsHealthStatus]::Critical }
                 elseif ($data.QuotasNearLimit -gt 0 -or
-                        ($null -ne $data.MinShareDiskFreeGB -and $data.MinShareDiskFreeGB -lt 20)) { 'Degraded' }
-                else { 'Healthy' }
+                        ($null -ne $data.MinShareDiskFreeGB -and $data.MinShareDiskFreeGB -lt 20)) { [PSWinOpsHealthStatus]::Degraded }
+                else { [PSWinOpsHealthStatus]::Healthy }
 
                 [PSCustomObject]@{
                     PSTypeName         = 'PSWinOps.FileServerHealth'

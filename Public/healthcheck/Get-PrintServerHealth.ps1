@@ -97,7 +97,7 @@ function Get-PrintServerHealth {
                     switch ($p.PrinterStatus) {
                         'Normal'   { $printersOnline++ }
                         'Error'    { $printersInError++ }
-                        'Degraded' { $printersInError++ }
+                        [PSWinOpsHealthStatus]::Degraded { $printersInError++ }
                         'Warning'  { $printersInError++ }
                         'Offline'  { $printersOffline++ }
                     }
@@ -139,16 +139,16 @@ function Get-PrintServerHealth {
                 $data = Invoke-RemoteOrLocal -ComputerName $machine -ScriptBlock $scriptBlock -Credential $Credential
 
                 if (-not $data.ModuleAvailable) {
-                    $healthStatus = 'RoleUnavailable'
+                    $healthStatus = [PSWinOpsHealthStatus]::RoleUnavailable
                 }
                 elseif ($data.ServiceStatus -ne 'Running' -or $data.PrintersInError -gt 0) {
-                    $healthStatus = 'Critical'
+                    $healthStatus = [PSWinOpsHealthStatus]::Critical
                 }
                 elseif ($data.PrintersOffline -gt 0 -or $data.ErroredPrintJobs -gt 0) {
-                    $healthStatus = 'Degraded'
+                    $healthStatus = [PSWinOpsHealthStatus]::Degraded
                 }
                 else {
-                    $healthStatus = 'Healthy'
+                    $healthStatus = [PSWinOpsHealthStatus]::Healthy
                 }
 
                 [PSCustomObject]@{

@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 function Get-IISHealth {
     <#
         .SYNOPSIS
@@ -291,25 +291,25 @@ function Get-IISHealth {
                 foreach ($entry in $rawResults) {
                     # Compute OverallHealth outside the scriptblock
                     $healthStatus = if ($entry.ServiceStatus -eq 'NotInstalled') {
-                        'RoleUnavailable'
+                        [PSWinOpsHealthStatus]::RoleUnavailable
                     }
                     elseif ($entry.SiteName -eq 'N/A') {
-                        'RoleUnavailable'
+                        [PSWinOpsHealthStatus]::RoleUnavailable
                     }
                     elseif ($entry.SiteName -eq 'NoSitesFound') {
-                        if ($entry.ServiceStatus -ne 'Running') { 'Critical' } else { 'Healthy' }
+                        if ($entry.ServiceStatus -ne 'Running') { [PSWinOpsHealthStatus]::Critical } else { [PSWinOpsHealthStatus]::Healthy }
                     }
                     elseif ($entry.ServiceStatus -ne 'Running') {
-                        'Critical'
+                        [PSWinOpsHealthStatus]::Critical
                     }
                     elseif ($entry.SiteState -notin @('Started', 'Unknown')) {
-                        'Critical'
+                        [PSWinOpsHealthStatus]::Critical
                     }
                     elseif ($entry.AppPoolState -notin @('Started', 'Unknown')) {
-                        'Degraded'
+                        [PSWinOpsHealthStatus]::Degraded
                     }
                     else {
-                        'Healthy'
+                        [PSWinOpsHealthStatus]::Healthy
                     }
 
                     [PSCustomObject]@{

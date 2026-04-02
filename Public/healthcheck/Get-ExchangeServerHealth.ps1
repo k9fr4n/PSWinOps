@@ -205,14 +205,14 @@ function Get-ExchangeServerHealth {
 
                 # Compute OverallHealth outside the scriptblock
                 if (-not $result.SnapinAvailable) {
-                    $healthStatus = 'RoleUnavailable'
+                    $healthStatus = [PSWinOpsHealthStatus]::RoleUnavailable
                 } elseif (
                     $result.TransportStatus -ne 'Running' -or
                     $result.InformationStoreStatus -ne 'Running' -or
                     $result.DismountedDatabases -gt 0 -or
                     $result.HighestQueueLength -ge $QueueCriticalThreshold
                 ) {
-                    $healthStatus = 'Critical'
+                    $healthStatus = [PSWinOpsHealthStatus]::Critical
                 } elseif (
                     $result.HighestQueueLength -ge $QueueWarningThreshold -or
                     $result.DAGCopiesUnhealthy -gt 0 -or
@@ -221,9 +221,9 @@ function Get-ExchangeServerHealth {
                     $result.ADTopologyStatus -ne 'Running' -or
                     $result.ServiceHostStatus -ne 'Running'
                 ) {
-                    $healthStatus = 'Degraded'
+                    $healthStatus = [PSWinOpsHealthStatus]::Degraded
                 } else {
-                    $healthStatus = 'Healthy'
+                    $healthStatus = [PSWinOpsHealthStatus]::Healthy
                 }
 
                 [PSCustomObject]@{

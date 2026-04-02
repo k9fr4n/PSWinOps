@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 function Get-RDSHealth {
     <#
         .SYNOPSIS
@@ -153,16 +153,16 @@ function Get-RDSHealth {
                 $totalSessions = $activeSessions + $disconnectedSessions
 
                 if ([string]$result.ServiceStatus -eq 'NotFound') {
-                    $healthStatus = 'RoleUnavailable'
+                    $healthStatus = [PSWinOpsHealthStatus]::RoleUnavailable
                 }
                 elseif ([string]$result.ServiceStatus -ne 'Running' -or [string]$result.SessionEnvStatus -ne 'Running') {
-                    $healthStatus = 'Critical'
+                    $healthStatus = [PSWinOpsHealthStatus]::Critical
                 }
                 elseif ($disconnectedSessions -gt $activeSessions -or [string]$result.LicensingMode -eq 'NotConfigured') {
-                    $healthStatus = 'Degraded'
+                    $healthStatus = [PSWinOpsHealthStatus]::Degraded
                 }
                 else {
-                    $healthStatus = 'Healthy'
+                    $healthStatus = [PSWinOpsHealthStatus]::Healthy
                 }
 
                 [PSCustomObject]@{

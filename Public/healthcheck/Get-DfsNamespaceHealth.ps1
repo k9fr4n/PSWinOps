@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 function Get-DfsNamespaceHealth {
     <#
         .SYNOPSIS
@@ -182,28 +182,28 @@ function Get-DfsNamespaceHealth {
                 foreach ($item in $rawResults) {
                     # Compute OverallHealth outside the scriptblock
                     $healthStatus = if ($item.ServiceStatus -eq 'NotFound') {
-                        'RoleUnavailable'
+                        [PSWinOpsHealthStatus]::RoleUnavailable
                     }
                     elseif ($item.ServiceStatus -ne 'Running') {
-                        'Critical'
+                        [PSWinOpsHealthStatus]::Critical
                     }
                     elseif (-not $item.DfsnAvailable) {
-                        'RoleUnavailable'
+                        [PSWinOpsHealthStatus]::RoleUnavailable
                     }
                     elseif ($item.QueryError) {
-                        'Critical'
+                        [PSWinOpsHealthStatus]::Critical
                     }
                     elseif ($item.RootPath -eq 'N/A') {
-                        'Healthy'
+                        [PSWinOpsHealthStatus]::Healthy
                     }
                     elseif ($item.TargetCount -eq 0 -or $item.HealthyTargets -eq 0) {
-                        'Critical'
+                        [PSWinOpsHealthStatus]::Critical
                     }
                     elseif ($item.HealthyTargets -lt $item.TargetCount) {
-                        'Degraded'
+                        [PSWinOpsHealthStatus]::Degraded
                     }
                     else {
-                        'Healthy'
+                        [PSWinOpsHealthStatus]::Healthy
                     }
 
                     [PSCustomObject]@{
