@@ -118,8 +118,10 @@ function Get-DnsServerHealth {
 
                 # Self-resolution test — use 127.0.0.1 instead of 'localhost'
                 # because 'localhost' may resolve to ::1 (IPv6) where the DNS
-                # server is not listening, causing a false-negative
-                $resolveResult = Resolve-DnsName -Name $env:COMPUTERNAME -Server '127.0.0.1' -DnsOnly -ErrorAction SilentlyContinue
+                # server is not listening, causing a false-negative.
+                # Do NOT use -DnsOnly: on some AD-integrated DNS servers the
+                # short name only resolves via suffix search (not pure DNS).
+                $resolveResult = Resolve-DnsName -Name $env:COMPUTERNAME -Server '127.0.0.1' -ErrorAction SilentlyContinue
                 if ($resolveResult) {
                     $data.SelfResolution = $true
                 }
