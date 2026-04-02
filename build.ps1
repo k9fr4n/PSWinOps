@@ -648,6 +648,17 @@ function Invoke-ModuleBuild {
         $psd1Output = Join-Path -Path $script:ModuleOutput -ChildPath "$script:ModuleName.psd1"
         Copy-Item -Path $script:ManifestPath -Destination $psd1Output
 
+        # Copy ScriptsToProcess files (enum definitions, etc.)
+        $scriptsToProcess = @('PSWinOpsHealthStatus.ps1')
+        foreach ($scriptFile in $scriptsToProcess) {
+            $scriptPath = Join-Path -Path $script:SrcPath -ChildPath $scriptFile
+            if (Test-Path -Path $scriptPath -PathType Leaf) {
+                Write-Verbose -Message "[$($MyInvocation.MyCommand)] Copying ScriptsToProcess: $scriptFile"
+                Copy-Item -Path $scriptPath -Destination (Join-Path -Path $script:ModuleOutput -ChildPath $scriptFile)
+                Write-BuildSuccess -Message "ScriptsToProcess copied: $scriptFile"
+            }
+        }
+
         # Copy format files if they exist
         $formatFiles = Get-ChildItem -Path $script:SrcPath -Filter '*.Format.ps1xml'
         foreach ($formatFile in $formatFiles) {
