@@ -146,14 +146,25 @@ function Get-WSUSHealth {
             try {
                 $data = Invoke-RemoteOrLocal -ComputerName $machine -ScriptBlock $scriptBlock -Credential $Credential
 
+                # Compute error rate as a percentage of total clients
+                $errorRate = if ($data.TotalClients -gt 0) {
+                    ($data.ClientsWithErrors / $data.TotalClients) * 100
+                } else { 0 }
+
                 if (-not $data.ModuleAvailable) {
                     $healthStatus = [PSWinOpsHealthStatus]::RoleUnavailable
                 }
-                elseif ($data.ServiceStatus -ne 'Running' -or $data.ClientsWithErrors -gt 0 -or $data.ContentDirFreeSpaceGB -lt 5) {
+                elseif ($data.ServiceStatus -ne 'Running' -or
+                        $errorRate -gt 5 -or
+                        $data.ContentDirFreeSpaceGB -lt 5) {
+                    # Critical: service down, >5% clients in error, or disk critically low
                     $healthStatus = [PSWinOpsHealthStatus]::Critical
                 }
-                elseif (($data.TotalClients -gt 0 -and $data.ClientsNeedingUpdates -gt ($data.TotalClients * 0.3)) -or
-                        $data.ContentDirFreeSpaceGB -lt 20 -or $data.UnapprovedUpdates -gt 100) {
+                elseif ($errorRate -gt 0 -or
+                        ($data.TotalClients -gt 0 -and $data.ClientsNeedingUpdates -gt ($data.TotalClients * 0.3)) -or
+                        $data.ContentDirFreeSpaceGB -lt 20 -or
+                        $data.UnapprovedUpdates -gt 100) {
+                    # Degraded: any clients in error, >30% needing updates, disk low, or many unapproved
                     $healthStatus = [PSWinOpsHealthStatus]::Degraded
                 }
                 else {

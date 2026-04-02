@@ -160,14 +160,26 @@ Describe 'Get-WSUSHealth' {
         It 'Should return Critical' { $script:result.OverallHealth | Should -Be 'Critical' }
     }
 
-    Context 'Remote - Critical (clients with errors)' {
+    Context 'Remote - Critical (clients with errors above 5 percent)' {
         BeforeAll {
-            $d = $script:mockRemoteData.Clone(); $d.ClientsWithErrors = 5
+            # 6 errors out of 100 clients = 6% > 5% threshold → Critical
+            $d = $script:mockRemoteData.Clone(); $d.ClientsWithErrors = 6
             Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $d }
             $script:result = Get-WSUSHealth -ComputerName 'WSUS01'
         }
         It 'Should return Critical' { $script:result.OverallHealth | Should -Be 'Critical' }
-        It 'Should return error count' { $script:result.ClientsWithErrors | Should -Be 5 }
+        It 'Should return error count' { $script:result.ClientsWithErrors | Should -Be 6 }
+    }
+
+    Context 'Remote - Degraded (clients with errors below 5 percent)' {
+        BeforeAll {
+            # 3 errors out of 100 clients = 3% ≤ 5% → Degraded (not Critical)
+            $d = $script:mockRemoteData.Clone(); $d.ClientsWithErrors = 3
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $d }
+            $script:result = Get-WSUSHealth -ComputerName 'WSUS01'
+        }
+        It 'Should return Degraded' { $script:result.OverallHealth | Should -Be 'Degraded' }
+        It 'Should return error count' { $script:result.ClientsWithErrors | Should -Be 3 }
     }
 
     Context 'Remote - Critical (disk below 5 GB)' {
@@ -350,13 +362,25 @@ Describe 'Get-WSUSHealth' {
         It 'Should return port 8531' { $script:result.WSUSPort | Should -Be 8531 }
     }
 
-    Context 'Local path - Critical (clients with errors)' {
+    Context 'Local path - Critical (clients with errors above 5 percent)' {
         BeforeAll {
-            $wsus = New-MockWsusServer -WithErrors 3
+            # 6 errors out of 100 = 6% > 5% → Critical
+            $wsus = New-MockWsusServer -WithErrors 6
             Set-LocalPathMocks -WsusServer $wsus
             $script:result = Get-WSUSHealth -ComputerName $env:COMPUTERNAME
         }
         It 'Should return Critical' { $script:result.OverallHealth | Should -Be 'Critical' }
+        It 'Should report 6 clients with errors' { $script:result.ClientsWithErrors | Should -Be 6 }
+    }
+
+    Context 'Local path - Degraded (clients with errors below 5 percent)' {
+        BeforeAll {
+            # 3 errors out of 100 = 3% ≤ 5% → Degraded
+            $wsus = New-MockWsusServer -WithErrors 3
+            Set-LocalPathMocks -WsusServer $wsus
+            $script:result = Get-WSUSHealth -ComputerName $env:COMPUTERNAME
+        }
+        It 'Should return Degraded' { $script:result.OverallHealth | Should -Be 'Degraded' }
         It 'Should report 3 clients with errors' { $script:result.ClientsWithErrors | Should -Be 3 }
     }
 
@@ -427,13 +451,13 @@ Describe 'Get-WSUSHealth' {
 
     Context 'Boundary - Critical takes precedence over Degraded' {
         BeforeAll {
-            # Both: errors > 0 (Critical) AND unapproved > 100 (Degraded)
-            $wsus = New-MockWsusServer -WithErrors 5 -UnapprovedUpdates 200 -NeedingUpdates 50
+            # Both: errors > 5% (Critical) AND unapproved > 100 (Degraded) AND disk < 5 GB
+            $wsus = New-MockWsusServer -WithErrors 10 -UnapprovedUpdates 200 -NeedingUpdates 50
             Set-LocalPathMocks -WsusServer $wsus -DiskFreeBytes 3221225472  # 3 GB
             $script:result = Get-WSUSHealth -ComputerName $env:COMPUTERNAME
         }
         It 'Should return Critical (not Degraded)' { $script:result.OverallHealth | Should -Be 'Critical' }
-        It 'Should report clients with errors' { $script:result.ClientsWithErrors | Should -Be 5 }
+        It 'Should report clients with errors' { $script:result.ClientsWithErrors | Should -Be 10 }
     }
 
     # =========================================================================
