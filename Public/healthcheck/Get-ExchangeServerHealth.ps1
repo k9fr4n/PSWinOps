@@ -52,8 +52,8 @@ function Get-ExchangeServerHealth {
 
         .NOTES
             Author: Franck SALLET
-            Version: 1.0.0
-            Last Modified: 2026-04-01
+            Version: 1.1.0
+            Last Modified: 2026-04-02
             Requires: PowerShell 5.1+ / Windows only
             Requires: Exchange Server 2016+ Management Tools
             Requires: Module ExchangeManagementShell
@@ -132,11 +132,18 @@ function Get-ExchangeServerHealth {
             }
 
             # Try loading Exchange Management Shell
-            try {
-                Add-PSSnapin -Name 'Microsoft.Exchange.Management.PowerShell.SnapIn' -ErrorAction Stop
-                $data.SnapinAvailable = $true
+            # Add-PSSnapin is Desktop-edition only; on PS 7 Core skip straight to Import-Module
+            if ($PSVersionTable.PSEdition -ne 'Core') {
+                try {
+                    Add-PSSnapin -Name 'Microsoft.Exchange.Management.PowerShell.SnapIn' -ErrorAction Stop
+                    $data.SnapinAvailable = $true
+                }
+                catch {
+                    # Snapin not registered — fall through to Import-Module
+                }
             }
-            catch {
+
+            if (-not $data.SnapinAvailable) {
                 try {
                     Import-Module -Name 'ExchangeManagementShell' -ErrorAction Stop
                     $data.SnapinAvailable = $true

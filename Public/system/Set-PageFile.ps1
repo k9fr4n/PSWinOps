@@ -147,6 +147,10 @@ function Set-PageFile {
 
         # --- Registry path constant -------------------------------------------
         $registryPath = 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management'
+
+        # --- WQL query constants (avoid magic strings in process block) -----
+        $wqlComputerSystem   = 'SELECT * FROM Win32_ComputerSystem'
+        $wqlPageFileSetting  = 'SELECT * FROM Win32_PageFileSetting'
     }
 
     process {
@@ -168,11 +172,11 @@ function Set-PageFile {
                             $ramBytes = $compSystem.TotalPhysicalMemory
                             $ramGB = [math]::Round($ramBytes / 1GB, 2)
 
-                            Set-CimInstance -Query 'SELECT * FROM Win32_ComputerSystem' -Property @{ AutomaticManagedPagefile = $true } -ErrorAction Stop
+                            Set-CimInstance -Query $wqlComputerSystem -Property @{ AutomaticManagedPagefile = $true } -ErrorAction Stop
 
                             $existingPageFiles = Get-CimInstance -ClassName 'Win32_PageFileSetting' -ErrorAction SilentlyContinue
                             if ($existingPageFiles) {
-                                Remove-CimInstance -Query 'SELECT * FROM Win32_PageFileSetting' -ErrorAction Stop
+                                Remove-CimInstance -Query $wqlPageFileSetting -ErrorAction Stop
                             }
 
                             Set-ItemProperty -Path $registryPath -Name 'PagingFiles' -Value '?:\pagefile.sys' -ErrorAction Stop
@@ -277,12 +281,12 @@ function Set-PageFile {
                 if ($PSCmdlet.ShouldProcess($targetComputer, $shouldMsg)) {
                     if ($isLocal) {
                         # Disable auto-managed
-                        Set-CimInstance -Query 'SELECT * FROM Win32_ComputerSystem' -Property @{ AutomaticManagedPagefile = $false } -ErrorAction Stop
+                        Set-CimInstance -Query $wqlComputerSystem -Property @{ AutomaticManagedPagefile = $false } -ErrorAction Stop
 
                         # Remove existing custom pagefiles
                         $existingPageFiles = Get-CimInstance -ClassName 'Win32_PageFileSetting' -ErrorAction SilentlyContinue
                         if ($existingPageFiles) {
-                            Remove-CimInstance -Query 'SELECT * FROM Win32_PageFileSetting' -ErrorAction Stop
+                            Remove-CimInstance -Query $wqlPageFileSetting -ErrorAction Stop
                         }
 
                         # Create new pagefile setting via CIM

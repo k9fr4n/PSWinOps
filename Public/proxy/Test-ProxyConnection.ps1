@@ -47,8 +47,8 @@ function Test-ProxyConnection {
 
         .NOTES
             Author: Franck SALLET
-            Version: 1.0.0
-            Last Modified: 2026-03-20
+            Version: 1.0.1
+            Last Modified: 2026-04-02
             Requires: PowerShell 5.1+ / Windows only
 
             The default test URI (msftconnecttest.com) is used by Windows itself for
@@ -105,7 +105,7 @@ function Test-ProxyConnection {
 
             if ($Credential) {
                 $webParams['ProxyCredential'] = $Credential
-                Write-Verbose "[$($MyInvocation.MyCommand)] Using proxy credentials for user: $($Credential.UserName)"
+                Write-Verbose "[$($MyInvocation.MyCommand)] Using proxy credentials (username redacted from verbose output)"
             } else {
                 $webParams['ProxyUseDefaultCredentials'] = $true
             }

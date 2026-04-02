@@ -59,8 +59,8 @@ function Sync-NTPTime {
 
         .NOTES
             Author: Franck SALLET
-            Version: 1.1.0
-            Last Modified: 2026-03-20
+            Version: 1.1.1
+            Last Modified: 2026-04-02
             Requires: PowerShell 5.1+ / Windows only
             Permissions: Requires admin rights (local and remote) to restart services
             and run w32tm /resync. Remote targets require PSRemoting enabled.
@@ -100,6 +100,9 @@ function Sync-NTPTime {
 
         $w32tmPath = Join-Path -Path $env:SystemRoot -ChildPath 'System32\w32tm.exe'
 
+        # Seconds to wait after service restart for the service to stabilise.
+        $serviceSettleSeconds = 2
+
         # Script block used for REMOTE execution only (Invoke-Command).
         # Uses full path because remote sessions don't inherit local mock context.
         $resyncScriptBlock = {
@@ -117,8 +120,9 @@ function Sync-NTPTime {
 
         # Script block used for REMOTE execution only (Invoke-Command).
         $restartScriptBlock = {
+            param([int]$SettleSeconds)
             Restart-Service -Name 'w32time' -Force -ErrorAction Stop
-            Start-Sleep -Seconds 2
+            Start-Sleep -Seconds $SettleSeconds
         }
 
     }
@@ -136,9 +140,9 @@ function Sync-NTPTime {
                         Write-Verbose "[$($MyInvocation.MyCommand)] Restarting w32time on '$targetComputer'..."
                         if ($isLocal) {
                             Restart-Service -Name 'w32time' -Force -ErrorAction Stop
-                            Start-Sleep -Seconds 2
+                            Start-Sleep -Seconds $serviceSettleSeconds
                         } else {
-                            $null = Invoke-Command -ComputerName $targetComputer -ScriptBlock $restartScriptBlock -ErrorAction Stop
+                            $null = Invoke-Command -ComputerName $targetComputer -ScriptBlock $restartScriptBlock -ArgumentList $serviceSettleSeconds -ErrorAction Stop
                         }
                         $serviceRestarted = $true
                         Write-Verbose "[$($MyInvocation.MyCommand)] w32time restarted on '$targetComputer'"

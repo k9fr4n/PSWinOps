@@ -39,8 +39,8 @@ function Get-PrintServerHealth {
 
         .NOTES
             Author: Franck SALLET
-            Version: 1.0.0
-            Last Modified: 2026-03-26
+            Version: 1.0.1
+            Last Modified: 2026-04-02
             Requires: PowerShell 5.1+ / Windows only
             Requires: PrintManagement module on target servers
 
@@ -103,7 +103,11 @@ function Get-PrintServerHealth {
                     }
                 }
 
-                $jobList = @(Get-PrintJob -PrinterName '*' -ErrorAction SilentlyContinue)
+                # Iterate per printer instead of using wildcard — Get-PrintJob -PrinterName '*'
+                # is undocumented behaviour that may fail on some print-server versions.
+                $jobList = @($printerList | ForEach-Object {
+                    Get-PrintJob -PrinterName $_.Name -ErrorAction SilentlyContinue
+                })
                 $totalPrintJobs = $jobList.Count
                 foreach ($j in $jobList) {
                     if ($j.JobStatus -match 'Error') { $erroredPrintJobs++ }

@@ -15,6 +15,9 @@ RootModule = 'PSWinOps.psm1'
 ModuleVersion = '0.0.17'
 
 # Supported PSEditions
+# Core is supported on Windows only; the module-level guard in PSWinOps.psm1 blocks
+# non-Windows hosts. Exchange snapin (Add-PSSnapin) is Desktop-only but the function
+# gracefully falls back to Import-Module on Core (see Get-ExchangeServerHealth).
 CompatiblePSEditions = 'Desktop', 'Core'
 
 # ID used to uniquely identify this module
@@ -57,7 +60,9 @@ PowerShellVersion = '5.1'
 # RequiredAssemblies = @()
 
 # Script files (.ps1) that are run in the caller's environment prior to importing this module.
-# ScriptsToProcess = @()
+# Enum types must be defined here (not inside the module) so consumers can reference
+# [PSWinOpsHealthStatus]::Healthy in typed parameters and parse-time expressions.
+ScriptsToProcess = @('PSWinOpsHealthStatus.ps1')
 
 # Type files (.ps1xml) to be loaded when importing this module
 # TypesToProcess = @()
@@ -206,7 +211,25 @@ PrivateData = @{
         # RequireLicenseAcceptance = $false
 
         # External dependent modules of this module
-        # ExternalModuleDependencies = @()
+        # These are OPTIONAL runtime dependencies for specific healthcheck functions.
+        # The module imports successfully without them; individual functions return
+        # RoleUnavailable status when their RSAT/feature module is absent.
+        ExternalModuleDependencies = @(
+            'ActiveDirectory',          # Get-AdDomainControllerHealth
+            'DhcpServer',               # Get-DhcpServerHealth
+            'DnsServer',                # Get-DnsServerHealth
+            'FailoverClusters',         # Get-ClusterHealth
+            'DFSN',                     # Get-DfsNamespaceHealth
+            'DFSR',                     # Get-DfsReplicationHealth
+            'RemoteDesktopServices',    # Get-RDSHealth
+            'WebAdministration',        # Get-IISHealth
+            'UpdateServices',           # Get-WSUSHealth
+            'Hyper-V',                  # Get-HyperVHostHealth
+            'PrintManagement',          # Get-PrintServerHealth
+            'ADCSAdministration',       # Get-CertificateAuthorityHealth
+            'ADFS',                     # Get-ADFSHealth
+            'ScheduledTasks'            # Get-ScheduledTaskDetail
+        )
 
     } # End of PSData hashtable
 
