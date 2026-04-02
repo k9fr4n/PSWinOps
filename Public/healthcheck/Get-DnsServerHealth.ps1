@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 function Get-DnsServerHealth {
     <#
         .SYNOPSIS
@@ -63,7 +63,7 @@ function Get-DnsServerHealth {
         [ValidateNotNull()]
         [System.Management.Automation.PSCredential]
         [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        $Credential
     )
 
     begin {
@@ -137,16 +137,16 @@ function Get-DnsServerHealth {
 
                 # Compute OverallHealth outside the scriptblock
                 if (-not $result.ModuleAvailable) {
-                    $healthStatus = 'RoleUnavailable'
+                    $healthStatus = [PSWinOpsHealthStatus]::RoleUnavailable
                 }
                 elseif ($result.ServiceStatus -ne 'Running' -or -not $result.SelfResolution) {
-                    $healthStatus = 'Critical'
+                    $healthStatus = [PSWinOpsHealthStatus]::Critical
                 }
                 elseif ($result.PausedZones -gt 0 -or $result.ForwarderCount -eq 0) {
-                    $healthStatus = 'Degraded'
+                    $healthStatus = [PSWinOpsHealthStatus]::Degraded
                 }
                 else {
-                    $healthStatus = 'Healthy'
+                    $healthStatus = [PSWinOpsHealthStatus]::Healthy
                 }
 
                 [PSCustomObject]@{
@@ -175,4 +175,4 @@ function Get-DnsServerHealth {
     end {
         Write-Verbose -Message "[$($MyInvocation.MyCommand)] Completed"
     }
-}
+}

@@ -69,7 +69,7 @@ function Get-AdDomainControllerHealth {
         [ValidateNotNull()]
         [System.Management.Automation.PSCredential]
         [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        $Credential
     )
 
     begin {
@@ -249,18 +249,18 @@ function Get-AdDomainControllerHealth {
 
                 # Compute OverallHealth outside the scriptblock
                 if (-not $result['ADModuleAvailable']) {
-                    $healthStatus = 'RoleUnavailable'
+                    $healthStatus = [PSWinOpsHealthStatus]::RoleUnavailable
                 } elseif (-not $result['HasRequiredPrivileges']) {
-                    $healthStatus = 'InsufficientPrivilege'
+                    $healthStatus = [PSWinOpsHealthStatus]::InsufficientPrivilege
                 } elseif ($result['ServiceStatus'] -ne 'Running' -or
                     $result['ReplicationFailures'] -gt 0 -or
                     $result['DcDiagFailedTests'] -gt 0) {
-                    $healthStatus = 'Critical'
+                    $healthStatus = [PSWinOpsHealthStatus]::Critical
                 } elseif (-not $result['SysvolAccessible'] -or
                     -not $result['NetlogonAccessible']) {
-                    $healthStatus = 'Degraded'
+                    $healthStatus = [PSWinOpsHealthStatus]::Degraded
                 } else {
-                    $healthStatus = 'Healthy'
+                    $healthStatus = [PSWinOpsHealthStatus]::Healthy
                 }
 
                 [PSCustomObject]@{

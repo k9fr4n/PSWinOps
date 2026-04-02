@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 function Get-HyperVHostHealth {
     <#
         .SYNOPSIS
@@ -63,7 +63,7 @@ function Get-HyperVHostHealth {
         [ValidateNotNull()]
         [System.Management.Automation.PSCredential]
         [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        $Credential
     )
 
     begin {
@@ -142,16 +142,16 @@ function Get-HyperVHostHealth {
 
                 # Compute OverallHealth
                 if (-not $result.ModuleAvailable) {
-                    $healthStatus = 'RoleUnavailable'
+                    $healthStatus = [PSWinOpsHealthStatus]::RoleUnavailable
                 }
                 elseif ($result.ServiceStatus -ne 'Running' -or $result.VMsCritical -gt 0) {
-                    $healthStatus = 'Critical'
+                    $healthStatus = [PSWinOpsHealthStatus]::Critical
                 }
                 elseif ($memUsagePct -gt 90) {
-                    $healthStatus = 'Degraded'
+                    $healthStatus = [PSWinOpsHealthStatus]::Degraded
                 }
                 else {
-                    $healthStatus = 'Healthy'
+                    $healthStatus = [PSWinOpsHealthStatus]::Healthy
                 }
 
                 [PSCustomObject]@{
@@ -183,4 +183,4 @@ function Get-HyperVHostHealth {
     end {
         Write-Verbose -Message "[$($MyInvocation.MyCommand)] Completed"
     }
-}
+}

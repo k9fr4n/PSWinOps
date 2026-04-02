@@ -63,7 +63,7 @@ function Get-ADFSHealth {
         [ValidateNotNull()]
         [System.Management.Automation.PSCredential]
         [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        $Credential
     )
 
     begin {
@@ -182,16 +182,16 @@ function Get-ADFSHealth {
                 $isSecondary = $result.FarmRole -eq 'Secondary'
 
                 if (-not $result.ModuleAvailable) {
-                    $healthStatus = 'RoleUnavailable'
+                    $healthStatus = [PSWinOpsHealthStatus]::RoleUnavailable
                 }
                 elseif ($result.ServiceStatus -ne 'Running' -or $result.SslCertDaysRemaining -le 0 -or -not $result.ServerHealthOK) {
-                    $healthStatus = 'Critical'
+                    $healthStatus = [PSWinOpsHealthStatus]::Critical
                 }
                 elseif ($result.SslCertDaysRemaining -lt 30 -or ($result.EnabledRelyingParties -eq 0 -and -not $isSecondary)) {
-                    $healthStatus = 'Degraded'
+                    $healthStatus = [PSWinOpsHealthStatus]::Degraded
                 }
                 else {
-                    $healthStatus = 'Healthy'
+                    $healthStatus = [PSWinOpsHealthStatus]::Healthy
                 }
 
                 [PSCustomObject]@{
@@ -222,4 +222,4 @@ function Get-ADFSHealth {
     end {
         Write-Verbose -Message "[$($MyInvocation.MyCommand)] Completed"
     }
-}
+}

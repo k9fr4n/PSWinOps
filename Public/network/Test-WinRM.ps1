@@ -16,7 +16,8 @@ function Test-WinRM {
             in a single call. Use -Protocol to test only one protocol.
 
         .PARAMETER ComputerName
-            One or more computer names to test. Accepts pipeline input.
+            One or more computer names to test. Defaults to the local computer.
+            Accepts pipeline input by value and by property name.
 
         .PARAMETER Credential
             Optional credential for authentication.
@@ -27,6 +28,11 @@ function Test-WinRM {
 
         .PARAMETER TimeoutMs
             TCP port test timeout in milliseconds. Default: 3000.
+
+        .EXAMPLE
+            Test-WinRM
+
+            Tests WinRM on the local computer over both HTTP (5985) and HTTPS (5986).
 
         .EXAMPLE
             Test-WinRM -ComputerName 'SRV01'
@@ -53,8 +59,8 @@ function Test-WinRM {
 
         .NOTES
             Author:        Franck SALLET
-            Version:       1.1.0
-            Last Modified: 2026-03-22
+            Version:       1.2.0
+            Last Modified: 2026-04-02
             Requires:      PowerShell 5.1+ / Windows only
             Permissions:   No admin required for testing, target must allow WinRM
 
@@ -64,13 +70,13 @@ function Test-WinRM {
     [CmdletBinding()]
     [OutputType('PSWinOps.WinRMTestResult')]
     param (
-        [Parameter(Mandatory = $true,
+        [Parameter(Mandatory = $false,
             Position = 0,
             ValueFromPipeline = $true,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
         [Alias('CN', 'Name', 'DNSHostName')]
-        [string[]]$ComputerName,
+        [string[]]$ComputerName = $env:COMPUTERNAME,
 
         [Parameter(Mandatory = $false)]
         [PSCredential]$Credential,

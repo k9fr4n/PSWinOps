@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 function Get-PrintServerHealth {
     <#
         .SYNOPSIS
@@ -39,8 +39,8 @@ function Get-PrintServerHealth {
 
         .NOTES
             Author: Franck SALLET
-            Version: 1.0.0
-            Last Modified: 2026-03-26
+            Version: 1.0.1
+            Last Modified: 2026-04-02
             Requires: PowerShell 5.1+ / Windows only
             Requires: PrintManagement module on target servers
 
@@ -62,7 +62,7 @@ function Get-PrintServerHealth {
         [ValidateNotNull()]
         [System.Management.Automation.PSCredential]
         [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        $Credential
     )
 
     begin {
@@ -103,7 +103,11 @@ function Get-PrintServerHealth {
                     }
                 }
 
-                $jobList = @(Get-PrintJob -PrinterName '*' -ErrorAction SilentlyContinue)
+                # Iterate per printer instead of using wildcard — Get-PrintJob -PrinterName '*'
+                # is undocumented behaviour that may fail on some print-server versions.
+                $jobList = @($printerList | ForEach-Object {
+                    Get-PrintJob -PrinterName $_.Name -ErrorAction SilentlyContinue
+                })
                 $totalPrintJobs = $jobList.Count
                 foreach ($j in $jobList) {
                     if ($j.JobStatus -match 'Error') { $erroredPrintJobs++ }
@@ -135,16 +139,16 @@ function Get-PrintServerHealth {
                 $data = Invoke-RemoteOrLocal -ComputerName $machine -ScriptBlock $scriptBlock -Credential $Credential
 
                 if (-not $data.ModuleAvailable) {
-                    $healthStatus = 'RoleUnavailable'
+                    $healthStatus = [PSWinOpsHealthStatus]::RoleUnavailable
                 }
                 elseif ($data.ServiceStatus -ne 'Running' -or $data.PrintersInError -gt 0) {
-                    $healthStatus = 'Critical'
+                    $healthStatus = [PSWinOpsHealthStatus]::Critical
                 }
                 elseif ($data.PrintersOffline -gt 0 -or $data.ErroredPrintJobs -gt 0) {
-                    $healthStatus = 'Degraded'
+                    $healthStatus = [PSWinOpsHealthStatus]::Degraded
                 }
                 else {
-                    $healthStatus = 'Healthy'
+                    $healthStatus = [PSWinOpsHealthStatus]::Healthy
                 }
 
                 [PSCustomObject]@{
@@ -173,4 +177,4 @@ function Get-PrintServerHealth {
     end {
         Write-Verbose -Message "[$($MyInvocation.MyCommand)] Completed"
     }
-}
+}

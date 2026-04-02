@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 function Get-DfsReplicationHealth {
     <#
         .SYNOPSIS
@@ -65,7 +65,7 @@ function Get-DfsReplicationHealth {
         [ValidateNotNull()]
         [System.Management.Automation.PSCredential]
         [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        $Credential
     )
 
     begin {
@@ -155,16 +155,16 @@ function Get-DfsReplicationHealth {
                 foreach ($entry in $rawResults) {
                     # Compute OverallHealth outside the scriptblock
                     $healthStatus = if ($entry.State -eq 'N/A') {
-                        'RoleUnavailable'
+                        [PSWinOpsHealthStatus]::RoleUnavailable
                     }
                     elseif ($entry.ServiceStatus -ne 'Running' -or $entry.State -eq 'In Error') {
-                        'Critical'
+                        [PSWinOpsHealthStatus]::Critical
                     }
                     elseif ($entry.State -ne 'Normal') {
-                        'Degraded'
+                        [PSWinOpsHealthStatus]::Degraded
                     }
                     else {
-                        'Healthy'
+                        [PSWinOpsHealthStatus]::Healthy
                     }
 
                     [PSCustomObject]@{
@@ -191,4 +191,4 @@ function Get-DfsReplicationHealth {
     end {
         Write-Verbose -Message "[$($MyInvocation.MyCommand)] Completed"
     }
-}
+}

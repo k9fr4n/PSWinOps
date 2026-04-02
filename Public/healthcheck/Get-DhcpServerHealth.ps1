@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 function Get-DhcpServerHealth {
     <#
         .SYNOPSIS
@@ -64,7 +64,7 @@ function Get-DhcpServerHealth {
         [ValidateNotNull()]
         [System.Management.Automation.PSCredential]
         [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        $Credential
     )
 
     begin {
@@ -233,25 +233,25 @@ function Get-DhcpServerHealth {
                 foreach ($scopeData in $rawResults) {
                     # Determine OverallHealth
                     if (-not $scopeData.ModuleAvailable) {
-                        $healthStatus = 'RoleUnavailable'
+                        $healthStatus = [PSWinOpsHealthStatus]::RoleUnavailable
                     }
                     elseif ($scopeData.ServiceStatus -ne 'Running') {
-                        $healthStatus = 'Critical'
+                        $healthStatus = [PSWinOpsHealthStatus]::Critical
                     }
                     elseif ($scopeData.ScopeId -eq 'N/A') {
-                        $healthStatus = 'Healthy'
+                        $healthStatus = [PSWinOpsHealthStatus]::Healthy
                     }
                     elseif ($scopeData.ScopeState -eq 'Inactive' -and $scopeData.AddressesInUse -gt 0) {
-                        $healthStatus = 'Critical'
+                        $healthStatus = [PSWinOpsHealthStatus]::Critical
                     }
                     elseif ($scopeData.PercentInUse -gt 90) {
-                        $healthStatus = 'Degraded'
+                        $healthStatus = [PSWinOpsHealthStatus]::Degraded
                     }
                     elseif ($scopeData.FailoverState -ne 'None' -and $scopeData.FailoverState -ne 'Normal') {
-                        $healthStatus = 'Degraded'
+                        $healthStatus = [PSWinOpsHealthStatus]::Degraded
                     }
                     else {
-                        $healthStatus = 'Healthy'
+                        $healthStatus = [PSWinOpsHealthStatus]::Healthy
                     }
 
                     [PSCustomObject]@{
@@ -283,4 +283,4 @@ function Get-DhcpServerHealth {
     end {
         Write-Verbose -Message "[$($MyInvocation.MyCommand)] Completed"
     }
-}
+}

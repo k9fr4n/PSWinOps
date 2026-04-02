@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 function Get-WSUSHealth {
     <#
         .SYNOPSIS
@@ -63,7 +63,7 @@ function Get-WSUSHealth {
         [ValidateNotNull()]
         [System.Management.Automation.PSCredential]
         [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        $Credential
     )
 
     begin {
@@ -147,17 +147,17 @@ function Get-WSUSHealth {
                 $data = Invoke-RemoteOrLocal -ComputerName $machine -ScriptBlock $scriptBlock -Credential $Credential
 
                 if (-not $data.ModuleAvailable) {
-                    $healthStatus = 'RoleUnavailable'
+                    $healthStatus = [PSWinOpsHealthStatus]::RoleUnavailable
                 }
                 elseif ($data.ServiceStatus -ne 'Running' -or $data.ClientsWithErrors -gt 0 -or $data.ContentDirFreeSpaceGB -lt 5) {
-                    $healthStatus = 'Critical'
+                    $healthStatus = [PSWinOpsHealthStatus]::Critical
                 }
                 elseif (($data.TotalClients -gt 0 -and $data.ClientsNeedingUpdates -gt ($data.TotalClients * 0.3)) -or
                         $data.ContentDirFreeSpaceGB -lt 20 -or $data.UnapprovedUpdates -gt 100) {
-                    $healthStatus = 'Degraded'
+                    $healthStatus = [PSWinOpsHealthStatus]::Degraded
                 }
                 else {
-                    $healthStatus = 'Healthy'
+                    $healthStatus = [PSWinOpsHealthStatus]::Healthy
                 }
 
                 [PSCustomObject]@{
@@ -189,4 +189,4 @@ function Get-WSUSHealth {
     end {
         Write-Verbose -Message "[$($MyInvocation.MyCommand)] Completed"
     }
-}
+}

@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 function Get-ServiceHealth {
     <#
         .SYNOPSIS
@@ -77,7 +77,7 @@ function Get-ServiceHealth {
         [ValidateNotNull()]
         [System.Management.Automation.PSCredential]
         [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        $Credential
     )
 
     begin {
@@ -105,11 +105,11 @@ function Get-ServiceHealth {
                     # Determine health status
                     $status = switch ($true) {
                         ($svc.State -eq 'Running') {
-                            'Healthy'
+                            [PSWinOpsHealthStatus]::Healthy
                             break
                         }
                         ($svc.StartMode -eq 'Auto' -and $svc.State -ne 'Running') {
-                            'Degraded'
+                            [PSWinOpsHealthStatus]::Degraded
                             break
                         }
                         ($svc.StartMode -eq 'Disabled') {
@@ -122,7 +122,7 @@ function Get-ServiceHealth {
                     }
 
                     # Default mode: only show degraded (auto-start not running)
-                    if (-not $IncludeAll -and $status -ne 'Degraded') {
+                    if (-not $IncludeAll -and $status -ne [PSWinOpsHealthStatus]::Degraded) {
                         continue
                     }
 

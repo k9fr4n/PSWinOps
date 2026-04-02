@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 function Get-ClusterHealth {
     <#
         .SYNOPSIS
@@ -65,7 +65,7 @@ function Get-ClusterHealth {
         [ValidateNotNull()]
         [System.Management.Automation.PSCredential]
         [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        $Credential
     )
 
     begin {
@@ -162,20 +162,20 @@ function Get-ClusterHealth {
 
                 # Determine OverallHealth
                 if (-not $clusterData.ModuleAvailable) {
-                    $healthStatus = 'RoleUnavailable'
+                    $healthStatus = [PSWinOpsHealthStatus]::RoleUnavailable
                 }
                 elseif ($clusterData.ServiceStatus -ne 'Running' -or
                         $clusterData.NodesDown -gt 0 -or
                         $clusterData.ResourcesFailed -gt 0 -or
                         $clusterData.QueryError) {
-                    $healthStatus = 'Critical'
+                    $healthStatus = [PSWinOpsHealthStatus]::Critical
                 }
                 elseif ($clusterData.NodesPaused -gt 0 -or
                         $clusterData.GroupsOnline -lt $clusterData.TotalGroups) {
-                    $healthStatus = 'Degraded'
+                    $healthStatus = [PSWinOpsHealthStatus]::Degraded
                 }
                 else {
-                    $healthStatus = 'Healthy'
+                    $healthStatus = [PSWinOpsHealthStatus]::Healthy
                 }
 
                 [PSCustomObject]@{
@@ -209,4 +209,4 @@ function Get-ClusterHealth {
     end {
         Write-Verbose -Message "[$($MyInvocation.MyCommand)] Completed"
     }
-}
+}

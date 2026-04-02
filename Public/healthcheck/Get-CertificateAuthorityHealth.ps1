@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 function Get-CertificateAuthorityHealth {
     <#
         .SYNOPSIS
@@ -64,7 +64,7 @@ function Get-CertificateAuthorityHealth {
         [ValidateNotNull()]
         [System.Management.Automation.PSCredential]
         [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        $Credential
     )
 
     begin {
@@ -216,19 +216,19 @@ function Get-CertificateAuthorityHealth {
                 )
 
                 if ($serviceNotFound -and $certutilMissing) {
-                    $healthStatus = 'RoleUnavailable'
+                    $healthStatus = [PSWinOpsHealthStatus]::RoleUnavailable
                 }
                 elseif ($result.ServiceStatus -ne 'Running' -or
                         ($result.CACertDaysRemaining -ne -1 -and $result.CACertDaysRemaining -le 0) -or
                         -not $result.CAPingOK) {
-                    $healthStatus = 'Critical'
+                    $healthStatus = [PSWinOpsHealthStatus]::Critical
                 }
                 elseif (($result.CACertDaysRemaining -ne -1 -and $result.CACertDaysRemaining -lt 30) -or
                         -not $result.CRLPublishOK) {
-                    $healthStatus = 'Degraded'
+                    $healthStatus = [PSWinOpsHealthStatus]::Degraded
                 }
                 else {
-                    $healthStatus = 'Healthy'
+                    $healthStatus = [PSWinOpsHealthStatus]::Healthy
                 }
 
                 [PSCustomObject]@{
@@ -256,4 +256,4 @@ function Get-CertificateAuthorityHealth {
     end {
         Write-Verbose -Message "[$($MyInvocation.MyCommand)] Completed"
     }
-}
+}

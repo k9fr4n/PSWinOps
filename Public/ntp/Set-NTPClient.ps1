@@ -53,8 +53,8 @@ function Set-NTPClient {
 
         .NOTES
             Author: Franck SALLET
-            Version: 2.2.0
-            Last Modified: 2026-03-26
+            Version: 2.2.1
+            Last Modified: 2026-04-02
             Requires: PowerShell 5.1+, Local Administrator rights
             Permissions: Administrator required to modify registry and manage W32Time service
 
@@ -122,6 +122,9 @@ function Set-NTPClient {
         }
 
         $w32tmPath = Join-Path -Path $env:SystemRoot -ChildPath 'System32\w32tm.exe'
+
+        # Seconds to wait after service restart / registration for the service to stabilise.
+        $serviceSettleSeconds = 2
     }
 
     process {
@@ -137,7 +140,7 @@ function Set-NTPClient {
             if (-not $service) {
                 Write-Warning "[$($MyInvocation.MyCommand)] Windows Time Service not found - registering service..."
                 $null = Invoke-NativeCommand -FilePath $w32tmPath -ArgumentList @('/register')
-                Start-Sleep -Seconds 2
+                Start-Sleep -Seconds $serviceSettleSeconds
                 $service = Get-Service -Name 'w32time' -ErrorAction Stop
             }
 
@@ -201,7 +204,7 @@ function Set-NTPClient {
             # Step 6: Restart W32Time service
             Write-Verbose "[$($MyInvocation.MyCommand)] Restarting Windows Time Service..."
             Restart-Service -Name 'w32time' -Force -ErrorAction Stop
-            Start-Sleep -Seconds 2
+            Start-Sleep -Seconds $serviceSettleSeconds
             Write-Information -MessageData '[OK] Windows Time Service restarted successfully'
 
             # Step 7: Force synchronization
@@ -258,4 +261,4 @@ function Set-NTPClient {
     end {
         Write-Verbose "[$($MyInvocation.MyCommand)] Completed"
     }
-}
+}
