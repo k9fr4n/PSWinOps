@@ -36,8 +36,11 @@ function Get-RdpSessionLock {
             Retrieves 30 days of lock/unlock history from SRV01.
 
         .EXAMPLE
+            $cred = Get-Credential -UserName 'DOMAIN\admin'
             'WEB01', 'APP01' | Get-RdpSessionLock -Credential $cred | Where-Object { $_.Action -eq 'Locked' }
-            Pipeline example: retrieves only lock events (not unlocks) from multiple servers.
+
+            Pipeline example: retrieves only lock events (not unlocks) from multiple servers
+            using alternate credentials.
 
         .EXAMPLE
             Get-ADComputer -Filter "OperatingSystem -like '*Server*'" | Get-RdpSessionLock -StartTime (Get-Date).AddHours(-24) | Group-Object -Property UserName
@@ -49,8 +52,8 @@ function Get-RdpSessionLock {
 
         .NOTES
             Author:        Franck SALLET
-            Version:       1.1.0
-            Last Modified: 2026-03-19
+            Version:       1.1.1
+            Last Modified: 2026-04-02
             Requires:      PowerShell 5.1+
             Permissions:   Event Log Readers group or local Administrator on target machines
             Note:          Security log access requires elevated permissions

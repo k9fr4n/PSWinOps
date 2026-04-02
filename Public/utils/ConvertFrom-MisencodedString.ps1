@@ -44,10 +44,12 @@ function ConvertFrom-MisencodedString {
             the corrected versions.
 
         .EXAMPLE
-            ConvertFrom-MisencodedString -String 'cafe' -SourceEncoding 'windows-1252' -TargetEncoding 'utf-8'
+            ConvertFrom-MisencodedString -String 'café' -SourceEncoding 'windows-1252' -TargetEncoding 'utf-8'
 
-            Fixes a string where UTF-8 characters were misinterpreted as Windows-1252.
-            Returns 'cafe' in proper UTF-8 encoding.
+            Attempts to fix a string where UTF-8 bytes were misinterpreted as Windows-1252.
+            Note: encoding conversion is lossy when characters have no exact mapping in the
+            target encoding. Characters outside the target range are replaced by fallback
+            characters (e.g. '?' for ASCII). Verify results for non-ASCII input.
 
         .EXAMPLE
             Get-Content -Path 'C:\Logs\misencoded.txt' | ConvertFrom-MisencodedString
@@ -60,8 +62,8 @@ function ConvertFrom-MisencodedString {
 
         .NOTES
             Author:        Franck SALLET
-            Version:       1.0.2
-            Last Modified: 2026-03-11
+            Version:       1.0.3
+            Last Modified: 2026-04-02
             Requires:      PowerShell 5.1+
             Permissions:   None required
             Module:        PSWinOps

@@ -48,8 +48,10 @@ function Remove-RdpSession {
             Shows what would happen if session 3 were removed from WEB01.
 
         .EXAMPLE
+            $cred = Get-Credential -UserName 'DOMAIN\admin'
             'APP01' | Get-RdpSession | Where-Object { $_.UserName -eq 'DOMAIN\olduser' } | Remove-RdpSession -Credential $cred
-            Removes all sessions for a specific user on APP01 using provided credentials.
+
+            Removes all sessions for a specific user on APP01 using alternate credentials.
 
         .OUTPUTS
             PSWinOps.RdpSessionAction
@@ -57,8 +59,8 @@ function Remove-RdpSession {
 
         .NOTES
             Author:        Franck SALLET
-            Version:       2.0.0
-            Last Modified: 2026-03-20
+            Version:       2.0.1
+            Last Modified: 2026-04-02
             Requires:      PowerShell 5.1+, logoff.exe (built-in on all Windows editions)
             Permissions:   Local Administrator on target machines
             WinRM access required when using the -Credential parameter

@@ -60,17 +60,24 @@ function Connect-RdpSession {
             Dry-run: shows what would happen without opening the shadow window.
 
         .EXAMPLE
+            $adminCred = Get-Credential -UserName 'DOMAIN\admin'
             Connect-RdpSession -SessionID 5 -ControlMode View -Credential $adminCred
+
             Opens a view-only shadow of session 5, with mstsc.exe running as $adminCred.
 
         .OUTPUTS
             PSWinOps.RdpSessionAction
             Connection action result with session details and status.
+            In addition to the base RdpSessionAction properties (ComputerName,
+            SessionID, Action, Success, Timestamp), this function adds:
+            ControlMode [string] — 'Control' or 'View'.
+            ExitCode [int] — mstsc.exe process exit code.
+            Message [string] — human-readable result summary.
 
         .NOTES
             Author:        Franck SALLET
-            Version:       1.2.0
-            Last Modified: 2026-03-11
+            Version:       1.2.1
+            Last Modified: 2026-04-02
             Requires:      PowerShell 5.1+, mstsc.exe, qwinsta.exe
             Permissions:   Local Administrator on target machine
 
