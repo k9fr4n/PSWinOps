@@ -40,9 +40,10 @@ function Get-RdpSessionHistory {
             Retrieves RDP session history from SRV01 and SRV02 for the last 7 days.
 
         .EXAMPLE
+            $cred = Get-Credential -UserName 'DOMAIN\admin'
             'WEB01', 'APP01' | Get-RdpSessionHistory -Credential $cred
 
-            Pipeline example: queries multiple servers using specified credentials.
+            Pipeline example: queries multiple servers using alternate credentials.
 
         .EXAMPLE
             Get-ADComputer -Filter "OperatingSystem -like '*Server*'" | Get-RdpSessionHistory -StartTime (Get-Date).AddHours(-24)
@@ -60,8 +61,8 @@ function Get-RdpSessionHistory {
 
         .NOTES
             Author:        Franck SALLET
-            Version:       1.1.0
-            Last Modified: 2026-03-19
+            Version:       1.1.1
+            Last Modified: 2026-04-02
             Requires:      PowerShell 5.1+
             Permissions:   Remote Event Log Readers group or local Administrator on target machines
 
