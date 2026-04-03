@@ -80,6 +80,7 @@
         'ConvertFrom-MisencodedString',
         'Disconnect-RdpSession',
         'Edit-HostsFile',
+        'Enable-ADUserAccount',
         'Export-NetworkConfig',
         'Get-ADComputerDetail',
         'Get-ADComputerInventory',
@@ -141,6 +142,7 @@
         'Remove-NetworkRoute',
         'Remove-ProxyConfiguration',
         'Remove-RdpSession',
+        'Reset-ADUserPassword',
         'Resolve-MACVendor',
         'Search-ADObject',
         'Set-NetworkRoute',
@@ -154,7 +156,8 @@
         'Test-PortConnectivity',
         'Test-ProxyConnection',
         'Test-WinRM',
-        'Trace-NetworkRoute'
+        'Trace-NetworkRoute',
+        'Unlock-ADUserAccount'
     )
 
     # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
