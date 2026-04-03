@@ -48,7 +48,7 @@ Describe 'Get-ADStaleAccount' {
         $script:fakeStaleComputers = @(
             [PSCustomObject]@{
                 Name              = 'OLD-PC01'
-                SamAccountName    = 'OLD-PC01
+                SamAccountName    = 'OLD-PC01-COMP'
                 Enabled           = $true
                 LastLogonDate     = (Get-Date).AddDays(-200)
                 WhenCreated       = [datetime]::Parse('2022-03-10')
