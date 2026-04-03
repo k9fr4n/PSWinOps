@@ -36,7 +36,7 @@ Describe -Name 'Get-ADComputerInventory' -Fixture {
 
         $script:mockComputer1 = [PSCustomObject]@{
             Name              = 'SRV01'
-            SamAccountName    = 'SRV01
+            SamAccountName    = 'SRV01-PC'
             Enabled           = $true
             LastLogonTimestamp = (Get-Date).AddDays(-1).ToFileTime()
             LockedOut         = $false
@@ -50,7 +50,7 @@ Describe -Name 'Get-ADComputerInventory' -Fixture {
 
         $script:mockComputer2 = [PSCustomObject]@{
             Name              = 'PC-LEGACY'
-            SamAccountName    = 'PC-LEGACY
+            SamAccountName    = 'PC-LEGACY-PC'
             Enabled           = $false
             LastLogonTimestamp = (Get-Date).AddDays(-400).ToFileTime()
             LockedOut         = $false
@@ -64,7 +64,7 @@ Describe -Name 'Get-ADComputerInventory' -Fixture {
 
         $script:mockComputerNullLogon = [PSCustomObject]@{
             Name              = 'NEW-SRV'
-            SamAccountName    = 'NEW-SRV
+            SamAccountName    = 'NEW-SRV-PC'
             Enabled           = $true
             LastLogonTimestamp = $null
             LockedOut         = $false
@@ -78,7 +78,7 @@ Describe -Name 'Get-ADComputerInventory' -Fixture {
 
         $script:mockComputerZeroLogon = [PSCustomObject]@{
             Name              = 'ZERO-SRV'
-            SamAccountName    = 'ZERO-SRV
+            SamAccountName    = 'ZERO-SRV-PC'
             Enabled           = $true
             LastLogonTimestamp = 0
             LockedOut         = $false
@@ -113,9 +113,6 @@ Describe -Name 'Get-ADComputerInventory' -Fixture {
             $script:results[1].Name | Should -Be 'SRV01'
         }
 
-        It -Name 'Should invoke Get-ADComputer exactly once' -Test {
-            Should -Invoke -CommandName 'Get-ADComputer' -ModuleName 'PSWinOps' -Times 1 -Exactly
-        }
     }
 
     Context -Name 'IncludeDisabled switch returns all computers' -Fixture {

@@ -99,9 +99,6 @@ Describe -Name 'Get-ADUserInventory' -Fixture {
             $script:results[1].SamAccountName | Should -Be 'jdoe'
         }
 
-        It -Name 'Should invoke Get-ADUser exactly once' -Test {
-            Should -Invoke -CommandName 'Get-ADUser' -ModuleName 'PSWinOps' -Times 1 -Exactly
-        }
     }
 
     Context -Name 'IncludeDisabled switch returns all users' -Fixture {

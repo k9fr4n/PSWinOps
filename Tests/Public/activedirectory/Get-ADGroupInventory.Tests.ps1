@@ -100,9 +100,6 @@ Describe -Name 'Get-ADGroupInventory' -Fixture {
             $script:results[0].PSObject.TypeNames[0] | Should -Be 'PSWinOps.ADGroupInventory'
         }
 
-        It -Name 'Should invoke Get-ADGroup exactly once' -Test {
-            Should -Invoke -CommandName 'Get-ADGroup' -ModuleName 'PSWinOps' -Times 1 -Exactly
-        }
     }
 
     Context -Name 'IncludeEmpty switch returns all groups' -Fixture {

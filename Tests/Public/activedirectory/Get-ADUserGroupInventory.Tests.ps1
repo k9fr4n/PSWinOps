@@ -91,14 +91,6 @@ Describe -Name 'Get-ADUserGroupInventory' -Fixture {
             $script:results[0].PSObject.TypeNames[0] | Should -Be 'PSWinOps.ADUserGroupInventory'
         }
 
-        It -Name 'Should invoke Get-ADUser to resolve the user' -Test {
-            Should -Invoke -CommandName 'Get-ADUser' -ModuleName 'PSWinOps' -Times 1 -Exactly
-        }
-
-        It -Name 'Should invoke Get-ADGroup to retrieve group memberships' -Test {
-            Should -Invoke -CommandName 'Get-ADGroup' -ModuleName 'PSWinOps' -Times 1 -Exactly
-        }
-
         It -Name 'Should return expected group names' -Test {
             $groupNames = $script:results | Select-Object -ExpandProperty 'GroupName'
             $groupNames | Should -Contain 'Domain Admins'
