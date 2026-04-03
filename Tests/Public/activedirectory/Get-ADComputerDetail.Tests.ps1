@@ -10,6 +10,16 @@ param()
 BeforeAll {
     $script:modulePath = Split-Path -Path (Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent) -Parent
     Import-Module -Name (Join-Path -Path $script:modulePath -ChildPath 'PSWinOps.psd1') -Force
+
+    # Create proxy functions for AD cmdlets not available on CI runners
+        if (-not (Get-Command -Name 'Get-ADComputer' -ErrorAction SilentlyContinue)) {
+            function global:Get-ADComputer { }
+        }
+    & (Get-Module -Name 'PSWinOps') {
+            if (-not (Get-Command -Name 'Get-ADComputer' -ErrorAction SilentlyContinue)) {
+                function script:Get-ADComputer { }
+            }
+    }
 }
 
 Describe 'Get-ADComputerDetail' {
@@ -98,8 +108,8 @@ Describe 'Get-ADComputerDetail' {
                     IPv4Address               = '10.0.1.51'
                     Enabled                   = $true
                     LastLogonDate             = $null
-                    WhenCreated               = [datetime]'2025-01-01'
-                    WhenChanged               = [datetime]'2025-01-01'
+                    WhenCreated               = [datetime]'2025-01-01T00:00:00'
+                    WhenChanged               = [datetime]'2025-01-01T00:00:00'
                     MemberOf                  = @()
                     DistinguishedName         = 'CN=SRV02,OU=Servers,DC=contoso,DC=com'
                     ServicePrincipalNames     = @()
@@ -196,8 +206,8 @@ Describe 'Get-ADComputerDetail' {
                     IPv4Address               = $null
                     Enabled                   = $true
                     LastLogonDate             = $null
-                    WhenCreated               = [datetime]'2025-01-01'
-                    WhenChanged               = [datetime]'2025-01-01'
+                    WhenCreated               = [datetime]'2025-01-01T00:00:00'
+                    WhenChanged               = [datetime]'2025-01-01T00:00:00'
                     MemberOf                  = $null
                     DistinguishedName         = 'CN=LONELY,OU=Servers,DC=contoso,DC=com'
                     ServicePrincipalNames     = $null

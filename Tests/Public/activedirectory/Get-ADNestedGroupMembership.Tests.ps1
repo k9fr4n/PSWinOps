@@ -4,6 +4,22 @@
 BeforeAll {
     $script:modulePath = Split-Path -Path (Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent) -Parent
     Import-Module -Name (Join-Path -Path $script:modulePath -ChildPath 'PSWinOps.psd1') -Force
+
+    # Create proxy functions for AD cmdlets not available on CI runners
+        if (-not (Get-Command -Name 'Get-ADObject' -ErrorAction SilentlyContinue)) {
+            function global:Get-ADObject { }
+        }
+        if (-not (Get-Command -Name 'Get-ADGroup' -ErrorAction SilentlyContinue)) {
+            function global:Get-ADGroup { }
+        }
+    & (Get-Module -Name 'PSWinOps') {
+            if (-not (Get-Command -Name 'Get-ADObject' -ErrorAction SilentlyContinue)) {
+                function script:Get-ADObject { }
+            }
+            if (-not (Get-Command -Name 'Get-ADGroup' -ErrorAction SilentlyContinue)) {
+                function script:Get-ADGroup { }
+            }
+    }
 }
 
 Describe 'Get-ADNestedGroupMembership' {

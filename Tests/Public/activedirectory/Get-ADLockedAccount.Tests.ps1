@@ -4,6 +4,22 @@
 BeforeAll {
     $script:modulePath = Split-Path -Path (Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent) -Parent
     Import-Module -Name (Join-Path -Path $script:modulePath -ChildPath 'PSWinOps.psd1') -Force
+
+    # Create proxy functions for AD cmdlets not available on CI runners
+        if (-not (Get-Command -Name 'Search-ADAccount' -ErrorAction SilentlyContinue)) {
+            function global:Search-ADAccount { }
+        }
+        if (-not (Get-Command -Name 'Get-ADUser' -ErrorAction SilentlyContinue)) {
+            function global:Get-ADUser { }
+        }
+    & (Get-Module -Name 'PSWinOps') {
+            if (-not (Get-Command -Name 'Search-ADAccount' -ErrorAction SilentlyContinue)) {
+                function script:Search-ADAccount { }
+            }
+            if (-not (Get-Command -Name 'Get-ADUser' -ErrorAction SilentlyContinue)) {
+                function script:Get-ADUser { }
+            }
+    }
 }
 
 Describe 'Get-ADLockedAccount' {

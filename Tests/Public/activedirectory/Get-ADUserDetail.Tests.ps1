@@ -10,6 +10,16 @@ param()
 BeforeAll {
     $script:modulePath = Split-Path -Path (Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent) -Parent
     Import-Module -Name (Join-Path -Path $script:modulePath -ChildPath 'PSWinOps.psd1') -Force
+
+    # Create proxy functions for AD cmdlets not available on CI runners
+        if (-not (Get-Command -Name 'Get-ADUser' -ErrorAction SilentlyContinue)) {
+            function global:Get-ADUser { }
+        }
+    & (Get-Module -Name 'PSWinOps') {
+            if (-not (Get-Command -Name 'Get-ADUser' -ErrorAction SilentlyContinue)) {
+                function script:Get-ADUser { }
+            }
+    }
 }
 
 Describe 'Get-ADUserDetail' {
@@ -114,8 +124,8 @@ Describe 'Get-ADUserDetail' {
                     PasswordNeverExpires = $false
                     CannotChangePassword = $false
                     AccountExpirationDate = $null
-                    WhenCreated       = [datetime]'2025-01-01'
-                    WhenChanged       = [datetime]'2025-01-01'
+                    WhenCreated       = [datetime]'2025-01-01T00:00:00'
+                    WhenChanged       = [datetime]'2025-01-01T00:00:00'
                     MemberOf          = @()
                     DistinguishedName = 'CN=Good User,OU=Users,DC=contoso,DC=com'
                 }
@@ -212,8 +222,8 @@ Describe 'Get-ADUserDetail' {
                     PasswordNeverExpires = $false
                     CannotChangePassword = $false
                     AccountExpirationDate = $null
-                    WhenCreated       = [datetime]'2025-01-01'
-                    WhenChanged       = [datetime]'2025-01-01'
+                    WhenCreated       = [datetime]'2025-01-01T00:00:00'
+                    WhenChanged       = [datetime]'2025-01-01T00:00:00'
                     MemberOf          = $null
                     DistinguishedName = 'CN=Orphan User,OU=Users,DC=contoso,DC=com'
                 }
@@ -246,8 +256,8 @@ Describe 'Get-ADUserDetail' {
                     PasswordNeverExpires = $false
                     CannotChangePassword = $false
                     AccountExpirationDate = $null
-                    WhenCreated       = [datetime]'2025-01-01'
-                    WhenChanged       = [datetime]'2025-01-01'
+                    WhenCreated       = [datetime]'2025-01-01T00:00:00'
+                    WhenChanged       = [datetime]'2025-01-01T00:00:00'
                     MemberOf          = $null
                     DistinguishedName = 'CN=Orphan User,OU=Users,DC=contoso,DC=com'
                 }

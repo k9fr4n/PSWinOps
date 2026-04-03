@@ -10,6 +10,16 @@ param()
 BeforeAll {
     $script:modulePath = Split-Path -Path (Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent) -Parent
     Import-Module -Name (Join-Path -Path $script:modulePath -ChildPath 'PSWinOps.psd1') -Force
+
+    # Create proxy functions for AD cmdlets not available on CI runners
+        if (-not (Get-Command -Name 'Get-ADObject' -ErrorAction SilentlyContinue)) {
+            function global:Get-ADObject { }
+        }
+    & (Get-Module -Name 'PSWinOps') {
+            if (-not (Get-Command -Name 'Get-ADObject' -ErrorAction SilentlyContinue)) {
+                function script:Get-ADObject { }
+            }
+    }
 }
 
 Describe 'Search-ADObject' {
@@ -154,7 +164,7 @@ Describe 'Search-ADObject' {
                         ObjectClass       = 'computer'
                         DistinguishedName = 'CN=SRV01,OU=Servers,DC=contoso,DC=com'
                         OperatingSystem   = 'Windows Server 2022'
-                        LastLogonDate     = [datetime]'2026-04-01'
+                        LastLogonDate     = [datetime]'2026-04-01T00:00:00'
                     }
                 )
             } -ModuleName 'PSWinOps'
