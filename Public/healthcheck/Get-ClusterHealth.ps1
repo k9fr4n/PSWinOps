@@ -114,7 +114,12 @@ function Get-ClusterHealth {
                 try {
                     # -SkipEditionCheck: load natively in PS 7 instead of WinPSCompatSession
                     # -WarningAction SilentlyContinue: suppress WinPSCompat warning if fallback
-                    $importParams = @{ Name = 'FailoverClusters'; ErrorAction = 'Stop'; WarningAction = 'SilentlyContinue' }
+                    $importParams = @{
+                        Name           = 'FailoverClusters'
+                        ErrorAction    = 'Stop'
+                        WarningAction  = 'SilentlyContinue'
+                        Verbose        = $false
+                    }
                     if ($PSVersionTable.PSEdition -eq 'Core') { $importParams['SkipEditionCheck'] = $true }
                     Import-Module @importParams
 
@@ -143,10 +148,17 @@ function Get-ClusterHealth {
                     $quorumInfo = Get-ClusterQuorum -ErrorAction Stop
                     $data.QuorumType = $quorumInfo.QuorumType.ToString()
                     if ($quorumInfo.QuorumResource) {
-                        # Force .ToString() — in PS 7 with -SkipEditionCheck the State
-                        # property may be a deserialized enum that fails string comparison
-                        $resourceState = "$($quorumInfo.QuorumResource.State)"
-                        $data.QuorumState = if ($resourceState -eq 'Online') { 'Normal' } else { 'Warning' }
+                        # In PS 7, QuorumResource may be a bare string (resource name)
+                        # instead of a ClusterResource object. Resolve via Get-ClusterResource.
+                        $quorumResName = "$($quorumInfo.QuorumResource)"
+                        $quorumRes = Get-ClusterResource -Name $quorumResName -ErrorAction SilentlyContinue
+                        if ($quorumRes) {
+                            $resourceState = "$($quorumRes.State)"
+                            $data.QuorumState = if ($resourceState -eq 'Online') { 'Normal' } else { 'Warning' }
+                        }
+                        else {
+                            $data.QuorumState = 'Normal'
+                        }
                     }
                     else {
                         $data.QuorumState = 'Normal'
