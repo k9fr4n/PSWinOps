@@ -2494,5 +2494,322 @@
       </ListControl>
     </View>
 
+    <!-- ============================================================ -->
+    <!-- PSWinOps.ADStaleAccount                                      -->
+    <!-- Used by: Get-ADStaleAccount                                  -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.ADStaleAccount</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.ADStaleAccount</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>SamAccountName</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Type</Label><Width>8</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Enabled</Label><Width>7</Width></TableColumnHeader>
+          <TableColumnHeader><Label>LastLogonDate</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Days</Label><Width>6</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>DistinguishedName</Label></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>SamAccountName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>AccountType</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Enabled</PropertyName></TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>if ($_.LastLogonDate) { $_.LastLogonDate.ToString('yyyy-MM-dd HH:mm') } else { 'Never' }</ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>if ($null -ne $_.DaysSinceLogon) { $_.DaysSinceLogon } else { 'N/A' }</ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem><PropertyName>DistinguishedName</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.ADLockedAccount                                     -->
+    <!-- Used by: Get-ADLockedAccount                                 -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.ADLockedAccount</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.ADLockedAccount</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>SamAccountName</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>LockoutTime</Label><Width>22</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Bad</Label><Width>5</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>LastBadAttempt</Label><Width>22</Width></TableColumnHeader>
+          <TableColumnHeader><Label>DistinguishedName</Label></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>SamAccountName</PropertyName></TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>if ($_.LockoutTime) { $_.LockoutTime.ToString('yyyy-MM-dd HH:mm:ss') } else { '' }</ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem><PropertyName>BadLogonCount</PropertyName></TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>if ($_.LastBadPasswordAttempt) { $_.LastBadPasswordAttempt.ToString('yyyy-MM-dd HH:mm:ss') } else { '' }</ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem><PropertyName>DistinguishedName</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.ADPasswordStatus                                    -->
+    <!-- Used by: Get-ADPasswordStatus                                -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.ADPasswordStatus</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.ADPasswordStatus</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>SamAccountName</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Expired</Label><Width>7</Width></TableColumnHeader>
+          <TableColumnHeader><Label>NeverExp</Label><Width>8</Width></TableColumnHeader>
+          <TableColumnHeader><Label>MustChg</Label><Width>7</Width></TableColumnHeader>
+          <TableColumnHeader><Label>AgeDays</Label><Width>7</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>PasswordLastSet</Label><Width>22</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>SamAccountName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>PasswordExpired</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>PasswordNeverExpires</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>MustChangePassword</PropertyName></TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>if ($null -ne $_.PasswordAgeDays) { $_.PasswordAgeDays } else { 'N/A' }</ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>if ($_.PasswordLastSet) { $_.PasswordLastSet.ToString('yyyy-MM-dd HH:mm:ss') } else { 'Never' }</ScriptBlock>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.ADPrivilegedAccount                                 -->
+    <!-- Used by: Get-ADPrivilegedAccount                             -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.ADPrivilegedAccount</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.ADPrivilegedAccount</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>GroupName</Label><Width>24</Width></TableColumnHeader>
+          <TableColumnHeader><Label>MemberName</Label><Width>24</Width></TableColumnHeader>
+          <TableColumnHeader><Label>SamAccountName</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Type</Label><Width>10</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Enabled</Label><Width>7</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>GroupName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>MemberName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>SamAccountName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>ObjectClass</PropertyName></TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>if ($null -ne $_.Enabled) { $_.Enabled } else { '' }</ScriptBlock>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.ADUserDetail                                        -->
+    <!-- Used by: Get-ADUserDetail                                    -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.ADUserDetail</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.ADUserDetail</TypeName>
+      </ViewSelectedBy>
+      <ListControl>
+        <ListEntries>
+          <ListEntry>
+            <ListItems>
+              <ListItem><Label>SamAccountName</Label><PropertyName>SamAccountName</PropertyName></ListItem>
+              <ListItem><Label>DisplayName</Label><PropertyName>DisplayName</PropertyName></ListItem>
+              <ListItem><Label>EmailAddress</Label><PropertyName>EmailAddress</PropertyName></ListItem>
+              <ListItem><Label>Department</Label><PropertyName>Department</PropertyName></ListItem>
+              <ListItem><Label>Title</Label><PropertyName>Title</PropertyName></ListItem>
+              <ListItem><Label>Company</Label><PropertyName>Company</PropertyName></ListItem>
+              <ListItem><Label>Office</Label><PropertyName>Office</PropertyName></ListItem>
+              <ListItem><Label>Manager</Label><PropertyName>Manager</PropertyName></ListItem>
+              <ListItem><Label>Description</Label><PropertyName>Description</PropertyName></ListItem>
+              <ListItem><Label>Enabled</Label><PropertyName>Enabled</PropertyName></ListItem>
+              <ListItem><Label>LockedOut</Label><PropertyName>LockedOut</PropertyName></ListItem>
+              <ListItem><Label>LockoutTime</Label><PropertyName>LockoutTime</PropertyName></ListItem>
+              <ListItem><Label>LastLogonDate</Label><PropertyName>LastLogonDate</PropertyName></ListItem>
+              <ListItem><Label>LastBadPasswordAttempt</Label><PropertyName>LastBadPasswordAttempt</PropertyName></ListItem>
+              <ListItem><Label>BadLogonCount</Label><PropertyName>BadLogonCount</PropertyName></ListItem>
+              <ListItem><Label>PasswordLastSet</Label><PropertyName>PasswordLastSet</PropertyName></ListItem>
+              <ListItem><Label>PasswordExpired</Label><PropertyName>PasswordExpired</PropertyName></ListItem>
+              <ListItem><Label>PasswordNeverExpires</Label><PropertyName>PasswordNeverExpires</PropertyName></ListItem>
+              <ListItem><Label>CannotChangePassword</Label><PropertyName>CannotChangePassword</PropertyName></ListItem>
+              <ListItem><Label>AccountExpirationDate</Label><PropertyName>AccountExpirationDate</PropertyName></ListItem>
+              <ListItem><Label>WhenCreated</Label><PropertyName>WhenCreated</PropertyName></ListItem>
+              <ListItem><Label>WhenChanged</Label><PropertyName>WhenChanged</PropertyName></ListItem>
+              <ListItem><Label>MemberOfCount</Label><PropertyName>MemberOfCount</PropertyName></ListItem>
+              <ListItem><Label>OrganizationalUnit</Label><PropertyName>OrganizationalUnit</PropertyName></ListItem>
+              <ListItem><Label>DistinguishedName</Label><PropertyName>DistinguishedName</PropertyName></ListItem>
+              <ListItem><Label>Timestamp</Label><PropertyName>Timestamp</PropertyName></ListItem>
+            </ListItems>
+          </ListEntry>
+        </ListEntries>
+      </ListControl>
+    </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.ADGroupMember                                       -->
+    <!-- Used by: Get-ADGroupMembership                               -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.ADGroupMember</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.ADGroupMember</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>GroupName</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>MemberName</Label><Width>24</Width></TableColumnHeader>
+          <TableColumnHeader><Label>SamAccountName</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>ObjectClass</Label><Width>10</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Direct</Label><Width>6</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>GroupName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>MemberName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>SamAccountName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>ObjectClass</PropertyName></TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>if ($_.IsDirect) { 'Yes' } else { 'No' }</ScriptBlock>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.ADComputerDetail                                    -->
+    <!-- Used by: Get-ADComputerDetail                                -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.ADComputerDetail</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.ADComputerDetail</TypeName>
+      </ViewSelectedBy>
+      <ListControl>
+        <ListEntries>
+          <ListEntry>
+            <ListItems>
+              <ListItem><Label>Name</Label><PropertyName>Name</PropertyName></ListItem>
+              <ListItem><Label>DNSHostName</Label><PropertyName>DNSHostName</PropertyName></ListItem>
+              <ListItem><Label>Description</Label><PropertyName>Description</PropertyName></ListItem>
+              <ListItem><Label>OperatingSystem</Label><PropertyName>OperatingSystem</PropertyName></ListItem>
+              <ListItem><Label>OperatingSystemVersion</Label><PropertyName>OperatingSystemVersion</PropertyName></ListItem>
+              <ListItem><Label>IPv4Address</Label><PropertyName>IPv4Address</PropertyName></ListItem>
+              <ListItem><Label>Enabled</Label><PropertyName>Enabled</PropertyName></ListItem>
+              <ListItem><Label>LastLogonDate</Label><PropertyName>LastLogonDate</PropertyName></ListItem>
+              <ListItem><Label>WhenCreated</Label><PropertyName>WhenCreated</PropertyName></ListItem>
+              <ListItem><Label>WhenChanged</Label><PropertyName>WhenChanged</PropertyName></ListItem>
+              <ListItem><Label>Location</Label><PropertyName>Location</PropertyName></ListItem>
+              <ListItem><Label>MemberOfCount</Label><PropertyName>MemberOfCount</PropertyName></ListItem>
+              <ListItem><Label>SPNCount</Label><PropertyName>SPNCount</PropertyName></ListItem>
+              <ListItem><Label>OrganizationalUnit</Label><PropertyName>OrganizationalUnit</PropertyName></ListItem>
+              <ListItem><Label>DistinguishedName</Label><PropertyName>DistinguishedName</PropertyName></ListItem>
+              <ListItem><Label>Timestamp</Label><PropertyName>Timestamp</PropertyName></ListItem>
+            </ListItems>
+          </ListEntry>
+        </ListEntries>
+      </ListControl>
+    </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.ADSearchResult                                      -->
+    <!-- Used by: Search-ADObject                                     -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.ADSearchResult</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.ADSearchResult</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>Name</Label><Width>30</Width></TableColumnHeader>
+          <TableColumnHeader><Label>ObjectClass</Label><Width>14</Width></TableColumnHeader>
+          <TableColumnHeader><Label>DistinguishedName</Label></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>Name</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>ObjectClass</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>DistinguishedName</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.ADNestedGroupMembership                             -->
+    <!-- Used by: Get-ADNestedGroupMembership                         -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.ADNestedGroupMembership</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.ADNestedGroupMembership</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>Identity</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>GroupName</Label><Width>30</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Category</Label><Width>12</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Scope</Label><Width>12</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Direct</Label><Width>6</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Description</Label></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>Identity</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>GroupName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>GroupCategory</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>GroupScope</PropertyName></TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>if ($_.IsDirect) { 'Yes' } else { 'No' }</ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem><PropertyName>Description</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
   </ViewDefinitions>
 </Configuration>
