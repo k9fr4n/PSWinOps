@@ -1,5 +1,4 @@
 ﻿#Requires -Version 5.1
-#Requires -Modules ActiveDirectory
 
 function Search-ADObject {
     <#
