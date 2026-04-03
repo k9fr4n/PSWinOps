@@ -143,7 +143,9 @@ function Get-ClusterHealth {
                     $quorumInfo = Get-ClusterQuorum -ErrorAction Stop
                     $data.QuorumType = $quorumInfo.QuorumType.ToString()
                     if ($quorumInfo.QuorumResource) {
-                        $resourceState = $quorumInfo.QuorumResource.State
+                        # Force .ToString() — in PS 7 with -SkipEditionCheck the State
+                        # property may be a deserialized enum that fails string comparison
+                        $resourceState = "$($quorumInfo.QuorumResource.State)"
                         $data.QuorumState = if ($resourceState -eq 'Online') { 'Normal' } else { 'Warning' }
                     }
                     else {
