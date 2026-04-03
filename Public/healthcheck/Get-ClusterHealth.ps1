@@ -142,8 +142,12 @@ function Get-ClusterHealth {
                     $data.ResourcesFailed = @($resourceList | Where-Object -FilterScript { $_.State -eq 'Failed' }).Count
 
                     $groupList = @(Get-ClusterGroup -ErrorAction Stop)
-                    $data.TotalGroups = $groupList.Count
-                    $data.GroupsOnline = @($groupList | Where-Object -FilterScript { $_.State -eq 'Online' }).Count
+                    # Exclude system groups that are normally Offline (e.g. 'Available Storage'
+                    # on clusters without shared disks, 'Cluster Group' placeholder).
+                    $systemGroups = @('Available Storage')
+                    $userGroups = @($groupList | Where-Object -FilterScript { $_.Name -notin $systemGroups })
+                    $data.TotalGroups = $userGroups.Count
+                    $data.GroupsOnline = @($userGroups | Where-Object -FilterScript { "$($_.State)" -eq 'Online' }).Count
 
                     $quorumInfo = Get-ClusterQuorum -ErrorAction Stop
                     $data.QuorumType = $quorumInfo.QuorumType.ToString()
