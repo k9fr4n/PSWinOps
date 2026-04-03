@@ -112,7 +112,11 @@ function Get-ClusterHealth {
             # 3. Query cluster only if service is running and module is available
             if ($data.ServiceStatus -eq 'Running' -and $data.ModuleAvailable) {
                 try {
-                    Import-Module -Name 'FailoverClusters' -ErrorAction Stop
+                    # -SkipEditionCheck: load natively in PS 7 instead of WinPSCompatSession
+                    # -WarningAction SilentlyContinue: suppress WinPSCompat warning if fallback
+                    $importParams = @{ Name = 'FailoverClusters'; ErrorAction = 'Stop'; WarningAction = 'SilentlyContinue' }
+                    if ($PSVersionTable.PSEdition -eq 'Core') { $importParams['SkipEditionCheck'] = $true }
+                    Import-Module @importParams
 
                     $cluster = Get-Cluster -ErrorAction Stop
                     $data.ClusterName = $cluster.Name
