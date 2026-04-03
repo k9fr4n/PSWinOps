@@ -193,7 +193,7 @@ function Get-ADStaleAccount {
             }
 
             # Output sorted by DaysSinceLogon descending (nulls first = never logged in)
-            $allResults | Sort-Object -Property @{Expression = 'DaysSinceLogon'; Descending = $true; NullsFirst = $true }
+            $allResults | Sort-Object -Property @{Expression = { if ($null -eq $_.DaysSinceLogon) { [int]::MaxValue } else { $_.DaysSinceLogon } }; Descending = $true }
         }
         catch {
             Write-Error -Message "[$($MyInvocation.MyCommand)] Search failed: $_"

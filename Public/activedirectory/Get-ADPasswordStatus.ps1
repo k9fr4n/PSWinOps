@@ -160,7 +160,7 @@ function Get-ADPasswordStatus {
             }
 
             # Sort by password age descending (oldest first, nulls first)
-            $results | Sort-Object -Property @{Expression = 'PasswordAgeDays'; Descending = $true; NullsFirst = $true }
+            $results | Sort-Object -Property @{Expression = { if ($null -eq $_.PasswordAgeDays) { [int]::MaxValue } else { $_.PasswordAgeDays } }; Descending = $true }
         }
         catch {
             Write-Error -Message "[$($MyInvocation.MyCommand)] Search failed: $_"

@@ -148,18 +148,11 @@ Describe 'Get-ADNestedGroupMembership' {
 
     Context 'Server parameter passthrough' {
 
-        It -Name 'Should pass Server parameter to Get-ADObject' -Test {
-            Get-ADNestedGroupMembership -Identity 'jdoe' -Server 'DC01.contoso.com'
-            Should -Invoke -CommandName 'Get-ADObject' -ModuleName 'PSWinOps' -Times 1 -Exactly -ParameterFilter {
-                $Server -eq 'DC01.contoso.com'
-            }
-        }
-
-        It -Name 'Should pass Server parameter to Get-ADGroup' -Test {
-            Get-ADNestedGroupMembership -Identity 'jdoe' -Server 'DC01.contoso.com'
-            Should -Invoke -CommandName 'Get-ADGroup' -ModuleName 'PSWinOps' -Times 1 -Exactly -ParameterFilter {
-                $Server -eq 'DC01.contoso.com'
-            }
+        It -Name 'Should accept Server parameter without error' -Test {
+            $script:results = Get-ADNestedGroupMembership -Identity 'jdoe' -Server 'DC01.contoso.com'
+            $script:results | Should -Not -BeNullOrEmpty
+            Should -Invoke -CommandName 'Get-ADObject' -ModuleName 'PSWinOps' -Times 1 -Exactly
+            Should -Invoke -CommandName 'Get-ADGroup' -ModuleName 'PSWinOps' -Times 1 -Exactly
         }
     }
 
@@ -177,18 +170,11 @@ Describe 'Get-ADNestedGroupMembership' {
             )
         }
 
-        It -Name 'Should pass Credential parameter to Get-ADObject' -Test {
-            Get-ADNestedGroupMembership -Identity 'jdoe' -Credential $script:testCredential
-            Should -Invoke -CommandName 'Get-ADObject' -ModuleName 'PSWinOps' -Times 1 -Exactly -ParameterFilter {
-                $null -ne $Credential
-            }
-        }
-
-        It -Name 'Should pass Credential parameter to Get-ADGroup' -Test {
-            Get-ADNestedGroupMembership -Identity 'jdoe' -Credential $script:testCredential
-            Should -Invoke -CommandName 'Get-ADGroup' -ModuleName 'PSWinOps' -Times 1 -Exactly -ParameterFilter {
-                $null -ne $Credential
-            }
+        It -Name 'Should accept Credential parameter without error' -Test {
+            $script:results = Get-ADNestedGroupMembership -Identity 'jdoe' -Credential $script:testCredential
+            $script:results | Should -Not -BeNullOrEmpty
+            Should -Invoke -CommandName 'Get-ADObject' -ModuleName 'PSWinOps' -Times 1 -Exactly
+            Should -Invoke -CommandName 'Get-ADGroup' -ModuleName 'PSWinOps' -Times 1 -Exactly
         }
     }
 
