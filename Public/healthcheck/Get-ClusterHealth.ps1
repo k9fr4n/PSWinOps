@@ -101,8 +101,11 @@ function Get-ClusterHealth {
                 Write-Verbose -Message "ClusSvc service not found: $_"
             }
 
-            # 2. Check FailoverClusters module availability
-            if (Get-Module -Name 'FailoverClusters' -ListAvailable -ErrorAction SilentlyContinue) {
+            # 2. Check FailoverClusters availability — use Get-Command instead of
+            # Get-Module -ListAvailable because on PS 7 the module may be loaded
+            # from the Windows PS 5.1 path which is not in $env:PSModulePath
+            if ((Get-Command -Name 'Get-Cluster' -ErrorAction SilentlyContinue) -or
+                (Get-Module -Name 'FailoverClusters' -ListAvailable -ErrorAction SilentlyContinue)) {
                 $data.ModuleAvailable = $true
             }
 
