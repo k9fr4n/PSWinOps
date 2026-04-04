@@ -85,6 +85,7 @@
         'Export-NetworkConfig',
         'Get-ADComputerDetail',
         'Get-ADComputerInventory',
+        'Get-ADDomainInfo',
         'Get-AdDomainControllerHealth',
         'Get-ADFSHealth',
         'Get-ADGroupInventory',
