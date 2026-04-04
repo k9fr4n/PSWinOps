@@ -51,6 +51,7 @@ if (Test-Path -Path $publicPath) {
 
 $script:ADUserCompleter = {
     param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
+    $null = $commandName, $parameterName, $commandAst
     try {
         $splat = @{
             Filter      = "SamAccountName -like '$wordToComplete*'"
@@ -73,11 +74,14 @@ $script:ADUserCompleter = {
                 )
             }
     }
-    catch { <# AD module absent or not domain-joined — return nothing #> }
+    catch {
+        Write-Verbose -Message "AD user completer unavailable: $_"
+    }
 }
 
 $script:ADComputerCompleter = {
     param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
+    $null = $commandName, $parameterName, $commandAst
     try {
         $splat = @{
             Filter      = "Name -like '$wordToComplete*'"
@@ -98,11 +102,14 @@ $script:ADComputerCompleter = {
                 )
             }
     }
-    catch { <# AD module absent or not domain-joined — return nothing #> }
+    catch {
+        Write-Verbose -Message "AD computer completer unavailable: $_"
+    }
 }
 
 $script:ADGroupCompleter = {
     param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
+    $null = $commandName, $parameterName, $commandAst
     try {
         $splat = @{
             Filter      = "Name -like '$wordToComplete*'"
@@ -123,7 +130,9 @@ $script:ADGroupCompleter = {
                 )
             }
     }
-    catch { <# AD module absent or not domain-joined — return nothing #> }
+    catch {
+        Write-Verbose -Message "AD group completer unavailable: $_"
+    }
 }
 
 # Register user completers
