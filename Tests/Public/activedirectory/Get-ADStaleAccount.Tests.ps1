@@ -43,6 +43,15 @@ Describe 'Get-ADStaleAccount' {
                 Description       = 'Never logged in'
                 DistinguishedName = 'CN=Never Logged,OU=Users,DC=contoso,DC=com'
             }
+            [PSCustomObject]@{
+                Name              = 'Recent User'
+                SamAccountName    = 'recentuser'
+                Enabled           = $true
+                LastLogonDate     = (Get-Date).AddDays(-5)
+                WhenCreated       = [datetime]::Parse('2024-01-10')
+                Description       = 'Active user'
+                DistinguishedName = 'CN=Recent User,OU=Users,DC=contoso,DC=com'
+            }
         )
 
         $script:fakeStaleComputers = @(
@@ -82,6 +91,27 @@ Describe 'Get-ADStaleAccount' {
             Get-ADStaleAccount -DaysInactive 90
             Should -Invoke -CommandName 'Get-ADUser' -ModuleName 'PSWinOps' -Times 1 -Exactly
             Should -Invoke -CommandName 'Get-ADComputer' -ModuleName 'PSWinOps' -Times 1 -Exactly
+        }
+    }
+
+    Context 'Default DaysInactive and filtering' {
+        It -Name 'Should not prompt when DaysInactive is omitted (defaults to 90)' -Test {
+            { Get-ADStaleAccount } | Should -Not -Throw
+        }
+
+        It -Name 'Should exclude recently active accounts' -Test {
+            $script:results = Get-ADStaleAccount -DaysInactive 90
+            $script:results.SamAccountName | Should -Not -Contain 'recentuser'
+        }
+
+        It -Name 'Should include never-logged-in accounts' -Test {
+            $script:results = Get-ADStaleAccount -DaysInactive 90
+            $script:results.SamAccountName | Should -Contain 'neverlogged'
+        }
+
+        It -Name 'Should include accounts older than threshold' -Test {
+            $script:results = Get-ADStaleAccount -DaysInactive 90
+            $script:results.SamAccountName | Should -Contain 'olduser'
         }
     }
 
