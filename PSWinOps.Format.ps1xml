@@ -2495,6 +2495,41 @@
     </View>
 
     <!-- ============================================================ -->
+    <!-- PSWinOps.ADSiteTopology                                      -->
+    <!-- Used by: Get-ADSiteTopology                                  -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.ADSiteTopology</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.ADSiteTopology</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>SiteName</Label><Width>25</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Subnets</Label><Width>6</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Links</Label><Width>6</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>DCs</Label><Width>4</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>SubnetList</Label><Width>35</Width></TableColumnHeader>
+          <TableColumnHeader><Label>SiteLinkList</Label><Width>25</Width></TableColumnHeader>
+          <TableColumnHeader><Label>DomainControllers</Label><Width>35</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>SiteName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>SubnetCount</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>SiteLinkCount</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>DCCount</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Subnets</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>SiteLinks</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>DomainControllers</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
     <!-- PSWinOps.ADDomainInfo                                        -->
     <!-- Used by: Get-ADDomainInfo                                    -->
     <!-- ============================================================ -->

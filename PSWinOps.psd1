@@ -95,6 +95,7 @@
         'Get-ADPasswordStatus',
         'Get-ADPrivilegedAccount',
         'Get-ADReplicationStatus',
+        'Get-ADSiteTopology',
         'Get-ADStaleAccount',
         'Get-ADStaleComputer',
         'Get-ADUserDetail',
