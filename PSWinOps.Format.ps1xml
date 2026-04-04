@@ -2620,21 +2620,25 @@
       </ViewSelectedBy>
       <TableControl>
         <TableHeaders>
-          <TableColumnHeader><Label>GroupName</Label><Width>24</Width></TableColumnHeader>
-          <TableColumnHeader><Label>MemberName</Label><Width>24</Width></TableColumnHeader>
           <TableColumnHeader><Label>SamAccountName</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>MemberName</Label><Width>24</Width></TableColumnHeader>
+          <TableColumnHeader><Label>GroupName</Label><Width>24</Width></TableColumnHeader>
           <TableColumnHeader><Label>Type</Label><Width>10</Width></TableColumnHeader>
           <TableColumnHeader><Label>Enabled</Label><Width>7</Width></TableColumnHeader>
+          <TableColumnHeader><Label>LastLogonDate</Label><Width>20</Width></TableColumnHeader>
         </TableHeaders>
         <TableRowEntries>
           <TableRowEntry>
             <TableColumnItems>
-              <TableColumnItem><PropertyName>GroupName</PropertyName></TableColumnItem>
-              <TableColumnItem><PropertyName>MemberName</PropertyName></TableColumnItem>
               <TableColumnItem><PropertyName>SamAccountName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>MemberName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>GroupName</PropertyName></TableColumnItem>
               <TableColumnItem><PropertyName>ObjectClass</PropertyName></TableColumnItem>
               <TableColumnItem>
                 <ScriptBlock>if ($null -ne $_.Enabled) { $_.Enabled } else { '' }</ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>if ($_.LastLogonDate) { $_.LastLogonDate.ToString('yyyy-MM-dd HH:mm') } else { '' }</ScriptBlock>
               </TableColumnItem>
             </TableColumnItems>
           </TableRowEntry>
