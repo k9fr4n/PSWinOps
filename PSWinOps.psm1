@@ -137,6 +137,7 @@ $script:ADGroupCompleter = {
 
 # Register user completers
 $userFunctions = @(
+    'Disable-ADUserAccount'
     'Enable-ADUserAccount'
     'Get-ADNestedGroupMembership'
     'Get-ADUserDetail'

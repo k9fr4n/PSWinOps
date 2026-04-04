@@ -78,6 +78,7 @@
         'Clear-Arp',
         'Connect-RdpSession',
         'ConvertFrom-MisencodedString',
+        'Disable-ADUserAccount',
         'Disconnect-RdpSession',
         'Edit-HostsFile',
         'Enable-ADUserAccount',

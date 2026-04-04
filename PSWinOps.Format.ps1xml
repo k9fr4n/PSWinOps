@@ -3006,6 +3006,36 @@
     </View>
 
     <!-- ============================================================ -->
+    <!-- PSWinOps.ADAccountDisableResult                              -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.ADAccountDisableResult</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.ADAccountDisableResult</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>Identity</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>UserName</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Success</Label><Width>8</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Message</Label><Width>40</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Timestamp</Label><Width>28</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>Identity</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>UserName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Success</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Message</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Timestamp</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
     <!-- PSWinOps.ADAccountEnableResult                               -->
     <!-- ============================================================ -->
     <View>
