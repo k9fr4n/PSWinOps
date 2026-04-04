@@ -2582,6 +2582,8 @@
           <TableColumnHeader><Label>NeverExp</Label><Width>8</Width></TableColumnHeader>
           <TableColumnHeader><Label>MustChg</Label><Width>7</Width></TableColumnHeader>
           <TableColumnHeader><Label>AgeDays</Label><Width>7</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>ExpiresIn</Label><Width>9</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Policy</Label><Width>25</Width></TableColumnHeader>
           <TableColumnHeader><Label>PasswordLastSet</Label><Width>22</Width></TableColumnHeader>
         </TableHeaders>
         <TableRowEntries>
@@ -2594,6 +2596,10 @@
               <TableColumnItem>
                 <ScriptBlock>if ($null -ne $_.PasswordAgeDays) { $_.PasswordAgeDays } else { 'N/A' }</ScriptBlock>
               </TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>if ($null -ne $_.DaysUntilExpiry) { $_.DaysUntilExpiry } else { 'N/A' }</ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem><PropertyName>PasswordPolicy</PropertyName></TableColumnItem>
               <TableColumnItem>
                 <ScriptBlock>if ($_.PasswordLastSet) { $_.PasswordLastSet.ToString('yyyy-MM-dd HH:mm:ss') } else { 'Never' }</ScriptBlock>
               </TableColumnItem>
