@@ -689,19 +689,21 @@ function Invoke-ADSecurityAudit {
             @{ Expression = 'SamAccountName' }
         )
 
-        # Summary
+        # Summary via Write-Information (capturable with 6> or -InformationAction)
         $criticalCount = @($findings | Where-Object Severity -eq 'Critical').Count
         $highCount = @($findings | Where-Object Severity -eq 'High').Count
         $mediumCount = @($findings | Where-Object Severity -eq 'Medium').Count
         $infoCount = @($findings | Where-Object Severity -eq 'Informational').Count
 
-        Write-Host "`n  AD Security Audit Summary" -ForegroundColor Cyan
-        Write-Host "  ========================" -ForegroundColor Cyan
-        Write-Host "  Total findings : $($findings.Count)" -ForegroundColor White
-        if ($criticalCount -gt 0) { Write-Host "  Critical       : $criticalCount" -ForegroundColor Red }
-        if ($highCount -gt 0) { Write-Host "  High           : $highCount" -ForegroundColor Yellow }
-        if ($mediumCount -gt 0) { Write-Host "  Medium         : $mediumCount" -ForegroundColor DarkYellow }
-        if ($infoCount -gt 0) { Write-Host "  Informational  : $infoCount" -ForegroundColor Gray }
-        Write-Host ""
+        $summary = [System.Text.StringBuilder]::new()
+        [void]$summary.AppendLine('')
+        [void]$summary.AppendLine('  AD Security Audit Summary')
+        [void]$summary.AppendLine('  ========================')
+        [void]$summary.AppendLine("  Total findings : $($findings.Count)")
+        if ($criticalCount -gt 0) { [void]$summary.AppendLine("  Critical       : $criticalCount") }
+        if ($highCount -gt 0) { [void]$summary.AppendLine("  High           : $highCount") }
+        if ($mediumCount -gt 0) { [void]$summary.AppendLine("  Medium         : $mediumCount") }
+        if ($infoCount -gt 0) { [void]$summary.AppendLine("  Informational  : $infoCount") }
+        Write-Information -MessageData $summary.ToString() -InformationAction Continue
     }
 }
