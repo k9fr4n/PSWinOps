@@ -95,6 +95,7 @@
         'Get-ADPrivilegedAccount',
         'Get-ADReplicationStatus',
         'Get-ADStaleAccount',
+        'Get-ADStaleComputer',
         'Get-ADUserDetail',
         'Get-ADUserGroupInventory',
         'Get-ADUserInventory',

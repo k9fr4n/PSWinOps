@@ -2495,6 +2495,47 @@
     </View>
 
     <!-- ============================================================ -->
+    <!-- PSWinOps.ADStaleComputer                                     -->
+    <!-- Used by: Get-ADStaleComputer                                 -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.ADStaleComputer</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.ADStaleComputer</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>Name</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Enabled</Label><Width>7</Width></TableColumnHeader>
+          <TableColumnHeader><Label>OperatingSystem</Label><Width>30</Width></TableColumnHeader>
+          <TableColumnHeader><Label>LastLogonDate</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Days</Label><Width>6</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>PwdAge</Label><Width>6</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>IPv4Address</Label><Width>15</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>Name</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Enabled</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>OperatingSystem</PropertyName></TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>if ($_.LastLogonDate) { $_.LastLogonDate.ToString('yyyy-MM-dd HH:mm') } else { 'Never' }</ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>if ($null -ne $_.DaysSinceLogon) { $_.DaysSinceLogon } else { 'N/A' }</ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>if ($null -ne $_.DaysSincePasswordSet) { $_.DaysSincePasswordSet } else { 'N/A' }</ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem><PropertyName>IPv4Address</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
     <!-- PSWinOps.ADStaleAccount                                      -->
     <!-- Used by: Get-ADStaleAccount                                  -->
     <!-- ============================================================ -->
