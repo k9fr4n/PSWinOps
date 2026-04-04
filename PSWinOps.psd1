@@ -12,7 +12,7 @@
     RootModule           = 'PSWinOps.psm1'
 
     # Version number of this module.
-    ModuleVersion        = '0.0.17'
+    ModuleVersion        = '0.0.18'
 
     # Supported PSEditions
     # Core is supported on Windows only; the module-level guard in PSWinOps.psm1 blocks
@@ -74,7 +74,7 @@
     # NestedModules = @()
 
     # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-    FunctionsToExport    = @(
+    FunctionsToExport = @(
         'Clear-Arp',
         'Connect-RdpSession',
         'ConvertFrom-MisencodedString',
@@ -188,13 +188,17 @@
             # Tags applied to this module. These help with module discovery in online galleries.
             Tags                       = @(
                 # General
-                'Windows', 'SysAdmin', 'Administration', 'Ops', 'WinOps', 'Utilities',
+                'Windows', 'WindowsServer', 'PowerShell', 'PSModule',
+                'SysAdmin', 'Administration', 'Ops', 'WinOps', 'Utilities',
                 'Monitoring', 'HealthCheck', 'Automation', 'Infrastructure',
+                # Active Directory
+                'ActiveDirectory', 'AD', 'RSAT', 'ADUser', 'ADComputer', 'ADGroup',
+                'ADReplication', 'AccountManagement', 'Inventory', 'Audit', 'Compliance',
                 # Network
                 'Network', 'DNS', 'ARP', 'TCP', 'Ping', 'Subnet', 'CIDR', 'SSL',
-                'NetStat', 'Traceroute', 'WinRM',
+                'NetStat', 'Traceroute', 'WinRM', 'Route', 'HostsFile', 'PublicIP',
                 # System
-                'Uptime', 'DiskSpace', 'PendingReboot', 'ScheduledTask',
+                'CIM', 'Uptime', 'DiskSpace', 'PendingReboot', 'ScheduledTask',
                 'InstalledSoftware', 'PageFile', 'EnvironmentVariable', 'Startup',
                 # RDP / Sessions
                 'RDP', 'RemoteDesktop', 'Sessions',
@@ -204,9 +208,10 @@
                 'Proxy', 'WinHTTP', 'WinINET',
                 # Security / Utils
                 'Security', 'Password', 'Encoding',
-                # Server Roles
-                'ActiveDirectory', 'DHCP', 'DFS', 'Cluster', 'HyperV',
-                'IIS', 'PrintServer', 'WSUS', 'ADFS', 'Exchange', 'CertificateAuthority'
+                # Server Roles / HealthCheck
+                'DHCP', 'DFS', 'Cluster', 'HyperV',
+                'IIS', 'PrintServer', 'WSUS', 'ADFS', 'Exchange', 'CertificateAuthority',
+                'RDS', 'FileServer', 'DNSServer'
             )
 
             # A URL to the license for this module.
