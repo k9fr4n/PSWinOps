@@ -2495,6 +2495,162 @@
     </View>
 
     <!-- ============================================================ -->
+    <!-- PSWinOps.ADSecurityFinding                                   -->
+    <!-- Used by: Invoke-ADSecurityAudit                              -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.ADSecurityFinding</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.ADSecurityFinding</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>Severity</Label><Width>12</Width></TableColumnHeader>
+          <TableColumnHeader><Label>CheckId</Label><Width>6</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Category</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Check</Label><Width>35</Width></TableColumnHeader>
+          <TableColumnHeader><Label>SamAccountName</Label><Width>22</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Detail</Label></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>Severity</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>CheckId</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Category</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Check</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>SamAccountName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Detail</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.ADSiteTopology                                      -->
+    <!-- Used by: Get-ADSiteTopology                                  -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.ADSiteTopology</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.ADSiteTopology</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>SiteName</Label><Width>25</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Subnets</Label><Width>6</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Links</Label><Width>6</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>DCs</Label><Width>4</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>SubnetList</Label><Width>35</Width></TableColumnHeader>
+          <TableColumnHeader><Label>SiteLinkList</Label><Width>25</Width></TableColumnHeader>
+          <TableColumnHeader><Label>DomainControllers</Label><Width>35</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>SiteName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>SubnetCount</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>SiteLinkCount</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>DCCount</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Subnets</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>SiteLinks</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>DomainControllers</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.ADDomainInfo                                        -->
+    <!-- Used by: Get-ADDomainInfo                                    -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.ADDomainInfo</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.ADDomainInfo</TypeName>
+      </ViewSelectedBy>
+      <ListControl>
+        <ListEntries>
+          <ListEntry>
+            <ListItems>
+              <ListItem><Label>Domain</Label><PropertyName>DomainName</PropertyName></ListItem>
+              <ListItem><Label>NetBIOS</Label><PropertyName>NetBIOSName</PropertyName></ListItem>
+              <ListItem><Label>Forest</Label><PropertyName>ForestName</PropertyName></ListItem>
+              <ListItem><Label>Domain Level</Label><PropertyName>DomainFunctionalLevel</PropertyName></ListItem>
+              <ListItem><Label>Forest Level</Label><PropertyName>ForestFunctionalLevel</PropertyName></ListItem>
+              <ListItem><Label>PDC Emulator</Label><PropertyName>PDCEmulator</PropertyName></ListItem>
+              <ListItem><Label>RID Master</Label><PropertyName>RIDMaster</PropertyName></ListItem>
+              <ListItem><Label>Infrastructure</Label><PropertyName>InfrastructureMaster</PropertyName></ListItem>
+              <ListItem><Label>Schema Master</Label><PropertyName>SchemaMaster</PropertyName></ListItem>
+              <ListItem><Label>Domain Naming</Label><PropertyName>DomainNamingMaster</PropertyName></ListItem>
+              <ListItem><Label>DC Count</Label><PropertyName>DomainControllerCount</PropertyName></ListItem>
+              <ListItem><Label>Sites</Label><PropertyName>Sites</PropertyName></ListItem>
+              <ListItem><Label>Enabled Users</Label><PropertyName>EnabledUsers</PropertyName></ListItem>
+              <ListItem><Label>Disabled Users</Label><PropertyName>DisabledUsers</PropertyName></ListItem>
+              <ListItem><Label>Total Users</Label><PropertyName>TotalUsers</PropertyName></ListItem>
+              <ListItem><Label>Enabled Computers</Label><PropertyName>EnabledComputers</PropertyName></ListItem>
+              <ListItem><Label>Disabled Computers</Label><PropertyName>DisabledComputers</PropertyName></ListItem>
+              <ListItem><Label>Total Computers</Label><PropertyName>TotalComputers</PropertyName></ListItem>
+              <ListItem><Label>Groups</Label><PropertyName>GroupCount</PropertyName></ListItem>
+              <ListItem><Label>OUs</Label><PropertyName>OUCount</PropertyName></ListItem>
+              <ListItem><Label>Min Password Length</Label><PropertyName>MinPasswordLength</PropertyName></ListItem>
+              <ListItem><Label>Max Password Age</Label><ScriptBlock>"$($_.MaxPasswordAgeDays) days"</ScriptBlock></ListItem>
+              <ListItem><Label>Password History</Label><PropertyName>PasswordHistoryCount</PropertyName></ListItem>
+              <ListItem><Label>Complexity</Label><PropertyName>ComplexityEnabled</PropertyName></ListItem>
+              <ListItem><Label>Lockout Threshold</Label><PropertyName>LockoutThreshold</PropertyName></ListItem>
+              <ListItem><Label>Lockout Duration</Label><ScriptBlock>"$($_.LockoutDurationMinutes) min"</ScriptBlock></ListItem>
+              <ListItem><Label>FGPP Count</Label><PropertyName>FineGrainedPolicyCount</PropertyName></ListItem>
+              <ListItem><Label>Recycle Bin</Label><PropertyName>RecycleBinEnabled</PropertyName></ListItem>
+            </ListItems>
+          </ListEntry>
+        </ListEntries>
+      </ListControl>
+    </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.ADStaleComputer                                     -->
+    <!-- Used by: Get-ADStaleComputer                                 -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.ADStaleComputer</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.ADStaleComputer</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>Name</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Enabled</Label><Width>7</Width></TableColumnHeader>
+          <TableColumnHeader><Label>OperatingSystem</Label><Width>30</Width></TableColumnHeader>
+          <TableColumnHeader><Label>LastLogonDate</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Days</Label><Width>6</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>PwdAge</Label><Width>6</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>IPv4Address</Label><Width>15</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>Name</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Enabled</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>OperatingSystem</PropertyName></TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>if ($_.LastLogonDate) { $_.LastLogonDate.ToString('yyyy-MM-dd HH:mm') } else { 'Never' }</ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>if ($null -ne $_.DaysSinceLogon) { $_.DaysSinceLogon } else { 'N/A' }</ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>if ($null -ne $_.DaysSincePasswordSet) { $_.DaysSincePasswordSet } else { 'N/A' }</ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem><PropertyName>IPv4Address</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
     <!-- PSWinOps.ADStaleAccount                                      -->
     <!-- Used by: Get-ADStaleAccount                                  -->
     <!-- ============================================================ -->
@@ -2582,6 +2738,8 @@
           <TableColumnHeader><Label>NeverExp</Label><Width>8</Width></TableColumnHeader>
           <TableColumnHeader><Label>MustChg</Label><Width>7</Width></TableColumnHeader>
           <TableColumnHeader><Label>AgeDays</Label><Width>7</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>ExpiresIn</Label><Width>9</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Policy</Label><Width>25</Width></TableColumnHeader>
           <TableColumnHeader><Label>PasswordLastSet</Label><Width>22</Width></TableColumnHeader>
         </TableHeaders>
         <TableRowEntries>
@@ -2594,6 +2752,10 @@
               <TableColumnItem>
                 <ScriptBlock>if ($null -ne $_.PasswordAgeDays) { $_.PasswordAgeDays } else { 'N/A' }</ScriptBlock>
               </TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>if ($null -ne $_.DaysUntilExpiry) { $_.DaysUntilExpiry } else { 'N/A' }</ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem><PropertyName>PasswordPolicy</PropertyName></TableColumnItem>
               <TableColumnItem>
                 <ScriptBlock>if ($_.PasswordLastSet) { $_.PasswordLastSet.ToString('yyyy-MM-dd HH:mm:ss') } else { 'Never' }</ScriptBlock>
               </TableColumnItem>
@@ -2614,21 +2776,25 @@
       </ViewSelectedBy>
       <TableControl>
         <TableHeaders>
-          <TableColumnHeader><Label>GroupName</Label><Width>24</Width></TableColumnHeader>
-          <TableColumnHeader><Label>MemberName</Label><Width>24</Width></TableColumnHeader>
           <TableColumnHeader><Label>SamAccountName</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>MemberName</Label><Width>24</Width></TableColumnHeader>
+          <TableColumnHeader><Label>GroupName</Label><Width>24</Width></TableColumnHeader>
           <TableColumnHeader><Label>Type</Label><Width>10</Width></TableColumnHeader>
           <TableColumnHeader><Label>Enabled</Label><Width>7</Width></TableColumnHeader>
+          <TableColumnHeader><Label>LastLogonDate</Label><Width>20</Width></TableColumnHeader>
         </TableHeaders>
         <TableRowEntries>
           <TableRowEntry>
             <TableColumnItems>
-              <TableColumnItem><PropertyName>GroupName</PropertyName></TableColumnItem>
-              <TableColumnItem><PropertyName>MemberName</PropertyName></TableColumnItem>
               <TableColumnItem><PropertyName>SamAccountName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>MemberName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>GroupName</PropertyName></TableColumnItem>
               <TableColumnItem><PropertyName>ObjectClass</PropertyName></TableColumnItem>
               <TableColumnItem>
                 <ScriptBlock>if ($null -ne $_.Enabled) { $_.Enabled } else { '' }</ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>if ($_.LastLogonDate) { $_.LastLogonDate.ToString('yyyy-MM-dd HH:mm') } else { '' }</ScriptBlock>
               </TableColumnItem>
             </TableColumnItems>
           </TableRowEntry>

@@ -3,16 +3,19 @@
 function Get-ADPasswordStatus {
     <#
     .SYNOPSIS
-        Audits password status of Active Directory user accounts
+        Audits password status of all Active Directory user accounts
 
     .DESCRIPTION
-        Scans Active Directory for user accounts with specific password conditions such as
-        expired passwords, passwords set to never expire, or accounts that must change
-        password at next logon. Results are sorted by password age in descending order.
+        Returns the password status of all enabled Active Directory user accounts including
+        password age, expiry date, applied password policy (Fine-Grained Password Policy or
+        Default Domain Policy), and problem flags. By default all enabled accounts are returned.
+        Use the -ProblemsOnly switch to filter to accounts with password concerns only
+        (expired, never expires, or must change at next logon).
 
-    .PARAMETER Status
-        One or more password status filters to apply. Valid values are Expired, NeverExpires,
-        MustChange, and All. Defaults to All. Multiple values can be combined.
+    .PARAMETER ProblemsOnly
+        When specified, returns only accounts with at least one password concern:
+        expired password, password set to never expire, or must change at next logon.
+        By default all enabled accounts are returned.
 
     .PARAMETER SearchBase
         The distinguished name of the OU to search within. If omitted, searches the entire domain.
@@ -26,42 +29,44 @@ function Get-ADPasswordStatus {
     .EXAMPLE
         Get-ADPasswordStatus
 
-        Returns all enabled users with any password status concern.
+        Returns password status for all enabled user accounts in the domain.
 
     .EXAMPLE
-        Get-ADPasswordStatus -Status 'NeverExpires' -Server 'dc01.contoso.com'
+        Get-ADPasswordStatus -ProblemsOnly -Server 'dc01.contoso.com'
 
-        Finds accounts with passwords set to never expire from a specific DC.
+        Returns only accounts with password concerns from a specific domain controller.
 
     .EXAMPLE
-        Get-ADPasswordStatus -Status 'Expired', 'MustChange' -SearchBase 'OU=Users,DC=contoso,DC=com'
+        Get-ADPasswordStatus -SearchBase 'OU=Users,DC=contoso,DC=com' | Where-Object DaysUntilExpiry -lt 14
 
-        Finds accounts with expired passwords or must-change flags in a specific OU.
+        Returns accounts in a specific OU whose passwords expire within 14 days.
 
     .OUTPUTS
         PSWinOps.ADPasswordStatus
-        Returns objects with account identity, password state flags, password age,
-        and last set date sorted by oldest password first.
+        Returns objects with account identity, password state flags, applied password
+        policy name, password age, expiry date, and days until expiry.
 
     .NOTES
         Author: Franck SALLET
-        Version: 1.0.0
-        Last Modified: 2026-04-03
+        Version: 2.0.0
+        Last Modified: 2026-04-04
         Requires: PowerShell 5.1+ / Windows only
-        Requires: ActiveDirectory module
+        Requires: ActiveDirectory module (RSAT)
 
     .LINK
         https://github.com/k9fr4n/PSWinOps
 
     .LINK
         https://learn.microsoft.com/en-us/powershell/module/activedirectory/get-aduser
+
+    .LINK
+        https://learn.microsoft.com/en-us/powershell/module/activedirectory/get-adfinegrainedpasswordpolicy
     #>
     [CmdletBinding()]
     [OutputType([PSCustomObject])]
     param(
         [Parameter()]
-        [ValidateSet('Expired', 'NeverExpires', 'MustChange', 'All')]
-        [string[]]$Status = 'All',
+        [switch]$ProblemsOnly,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
@@ -80,25 +85,48 @@ function Get-ADPasswordStatus {
         Write-Verbose -Message "[$($MyInvocation.MyCommand)] Starting"
 
         try {
-            Import-Module -Name 'ActiveDirectory' -ErrorAction Stop
+            Import-Module -Name 'ActiveDirectory' -ErrorAction Stop -Verbose:$false
         }
         catch {
-            throw "[$($MyInvocation.MyCommand)] Failed to import ActiveDirectory module: $_"
+            Write-Error -Message "[$($MyInvocation.MyCommand)] ActiveDirectory module is not available: $_"
+            return
         }
 
-        $adParams = @{}
+        $adSplat = @{}
         if ($PSBoundParameters.ContainsKey('Server')) {
-            $adParams['Server'] = $Server
+            $adSplat['Server'] = $Server
         }
         if ($PSBoundParameters.ContainsKey('Credential')) {
-            $adParams['Credential'] = $Credential
+            $adSplat['Credential'] = $Credential
         }
 
-        $searchBaseParam = @{}
-        if ($PSBoundParameters.ContainsKey('SearchBase')) {
-            $searchBaseParam['SearchBase'] = $SearchBase
+        # -----------------------------------------------------------------
+        # Pre-fetch password policies (1 query for default + 1 for all PSOs)
+        # -----------------------------------------------------------------
+        $defaultMaxAge = [TimeSpan]::Zero
+        try {
+            $defaultPolicy = Get-ADDefaultDomainPasswordPolicy -ErrorAction Stop @adSplat
+            $defaultMaxAge = $defaultPolicy.MaxPasswordAge
+            Write-Verbose -Message "[$($MyInvocation.MyCommand)] Default Domain Policy MaxPasswordAge: $defaultMaxAge"
+        }
+        catch {
+            Write-Warning -Message "[$($MyInvocation.MyCommand)] Could not retrieve Default Domain Password Policy: $_"
         }
 
+        $psoCache = @{}
+        try {
+            $fineGrainedPolicies = Get-ADFineGrainedPasswordPolicy -Filter * -ErrorAction Stop @adSplat
+            foreach ($pso in $fineGrainedPolicies) {
+                $psoCache[$pso.DistinguishedName] = $pso
+            }
+            Write-Verbose -Message "[$($MyInvocation.MyCommand)] Loaded $($psoCache.Count) Fine-Grained Password Policies"
+        }
+        catch {
+            Write-Verbose -Message "[$($MyInvocation.MyCommand)] No Fine-Grained Password Policies found or access denied: $_"
+        }
+    }
+
+    process {
         $adProperties = @(
             'PasswordLastSet'
             'PasswordExpired'
@@ -108,66 +136,112 @@ function Get-ADPasswordStatus {
             'Enabled'
             'Description'
             'DistinguishedName'
+            'msDS-ResultantPSO'
         )
-    }
 
-    process {
+        $searchSplat = @{
+            Filter      = "Enabled -eq `$true"
+            Properties  = $adProperties
+            ErrorAction = 'Stop'
+        }
+        if ($PSBoundParameters.ContainsKey('SearchBase')) {
+            $searchSplat['SearchBase'] = $SearchBase
+        }
+
         try {
-            Write-Verbose -Message "[$($MyInvocation.MyCommand)] Querying enabled users with password properties"
+            Write-Verbose -Message "[$($MyInvocation.MyCommand)] Querying enabled users"
+            $users = Get-ADUser @searchSplat @adSplat
+        }
+        catch {
+            Write-Error -Message "[$($MyInvocation.MyCommand)] Failed to query users: $_"
+            return
+        }
 
-            $users = Get-ADUser -Filter "Enabled -eq `$true" -Properties $adProperties @searchBaseParam @adParams -ErrorAction Stop
+        if (-not $users) {
+            Write-Warning -Message "[$($MyInvocation.MyCommand)] No enabled user accounts found"
+            return
+        }
 
-            $results = [System.Collections.Generic.List[object]]::new()
+        $now = Get-Date
+        $queryTimestamp = $now.ToString('o')
+        $results = [System.Collections.Generic.List[PSCustomObject]]::new()
 
-            foreach ($user in $users) {
-                $isExpired = $user.PasswordExpired
-                $neverExpires = $user.PasswordNeverExpires
-                $mustChange = ($null -eq $user.PasswordLastSet)
+        foreach ($user in $users) {
+            $isExpired = $user.PasswordExpired
+            $neverExpires = $user.PasswordNeverExpires
+            $mustChange = ($null -eq $user.PasswordLastSet)
 
-                # Apply status filter
-                $include = $false
-                if ('All' -in $Status) {
-                    $include = ($isExpired -or $neverExpires -or $mustChange)
-                }
-                else {
-                    if ('Expired' -in $Status -and $isExpired) { $include = $true }
-                    if ('NeverExpires' -in $Status -and $neverExpires) { $include = $true }
-                    if ('MustChange' -in $Status -and $mustChange) { $include = $true }
-                }
-
-                if ($include) {
-                    $passwordAge = if ($user.PasswordLastSet) {
-                        [math]::Round(((Get-Date) - $user.PasswordLastSet).TotalDays)
-                    }
-                    else { $null }
-
-                    $results.Add([PSCustomObject]@{
-                        PSTypeName           = 'PSWinOps.ADPasswordStatus'
-                        Name                 = $user.Name
-                        SamAccountName       = $user.SamAccountName
-                        Enabled              = $user.Enabled
-                        PasswordExpired      = $isExpired
-                        PasswordNeverExpires = $neverExpires
-                        MustChangePassword   = $mustChange
-                        PasswordNotRequired  = $user.PasswordNotRequired
-                        PasswordLastSet      = $user.PasswordLastSet
-                        PasswordAgeDays      = $passwordAge
-                        Description          = $user.Description
-                        DistinguishedName    = $user.DistinguishedName
-                        Timestamp            = Get-Date -Format 'o'
-                    })
+            if ($ProblemsOnly) {
+                if (-not ($isExpired -or $neverExpires -or $mustChange)) {
+                    continue
                 }
             }
 
-            # Sort by password age descending (oldest first, nulls first)
-            $results | Sort-Object -Property @{Expression = { if ($null -eq $_.PasswordAgeDays) { [int]::MaxValue } else { $_.PasswordAgeDays } }; Descending = $true }
-        }
-        catch {
-            Write-Error -Message "[$($MyInvocation.MyCommand)] Search failed: $_"
-        }
-    }
+            # Resolve applied password policy
+            $policyName = 'Default Domain Policy'
+            $maxAge = $defaultMaxAge
+            $psoDN = $user.'msDS-ResultantPSO'
 
-    end {
-        Write-Verbose -Message "[$($MyInvocation.MyCommand)] Completed — found $($results.Count) account(s)"
+            if ($psoDN -and $psoCache.ContainsKey($psoDN)) {
+                $appliedPSO = $psoCache[$psoDN]
+                $policyName = $appliedPSO.Name
+                $maxAge = $appliedPSO.MaxPasswordAge
+            }
+            elseif ($psoDN) {
+                # PSO exists but was not in cache (permission issue) — extract name from DN
+                $policyName = ($psoDN -split ',')[0] -replace '^CN='
+            }
+
+            # Calculate password age
+            $passwordAge = $null
+            if ($user.PasswordLastSet) {
+                $passwordAge = [math]::Round(($now - $user.PasswordLastSet).TotalDays)
+            }
+
+            # Calculate expiry date and days until expiry
+            $expiresOn = $null
+            $daysUntilExpiry = $null
+
+            if ($user.PasswordLastSet -and -not $neverExpires -and $maxAge -and $maxAge -gt [TimeSpan]::Zero) {
+                $expiresOn = $user.PasswordLastSet + $maxAge
+                $daysUntilExpiry = [math]::Round(($expiresOn - $now).TotalDays)
+            }
+
+            $maxAgeDays = $null
+            if ($maxAge -and $maxAge -gt [TimeSpan]::Zero) {
+                $maxAgeDays = [math]::Round($maxAge.TotalDays)
+            }
+
+            $entry = [PSCustomObject]@{
+                PSTypeName           = 'PSWinOps.ADPasswordStatus'
+                Name                 = $user.Name
+                SamAccountName       = $user.SamAccountName
+                Enabled              = $user.Enabled
+                PasswordExpired      = $isExpired
+                PasswordNeverExpires = $neverExpires
+                MustChangePassword   = $mustChange
+                PasswordNotRequired  = $user.PasswordNotRequired
+                PasswordLastSet      = $user.PasswordLastSet
+                PasswordAgeDays      = $passwordAge
+                PasswordPolicy       = $policyName
+                MaxPasswordAgeDays   = $maxAgeDays
+                PasswordExpiresOn    = $expiresOn
+                DaysUntilExpiry      = $daysUntilExpiry
+                Description          = $user.Description
+                DistinguishedName    = $user.DistinguishedName
+                Timestamp            = $queryTimestamp
+            }
+
+            $results.Add($entry)
+        }
+
+        $results | Sort-Object -Property @{
+            Expression = {
+                if ($null -eq $_.PasswordAgeDays) { [int]::MaxValue } else { $_.PasswordAgeDays }
+            }
+            Descending = $true
+        }
+
+        Write-Verbose -Message "[$($MyInvocation.MyCommand)] Completed - $($results.Count) account(s) returned"
     }
 }

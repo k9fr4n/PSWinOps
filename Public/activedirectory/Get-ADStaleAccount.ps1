@@ -12,7 +12,8 @@ function Get-ADStaleAccount {
 
     .PARAMETER DaysInactive
         The number of days of inactivity to use as the threshold. Accounts with a last
-        logon date older than this value will be returned. Valid range is 1 to 3650.
+        logon date older than this value will be returned. Defaults to 90 days.
+        Valid range is 1 to 3650.
 
     .PARAMETER AccountType
         The type of accounts to search for. Valid values are User, Computer, or Both.
@@ -32,9 +33,9 @@ function Get-ADStaleAccount {
         Specifies the credentials to use for the Active Directory query.
 
     .EXAMPLE
-        Get-ADStaleAccount -DaysInactive 90
+        Get-ADStaleAccount
 
-        Finds all enabled user and computer accounts inactive for more than 90 days.
+        Finds all enabled user and computer accounts inactive for more than 90 days (default).
 
     .EXAMPLE
         Get-ADStaleAccount -DaysInactive 180 -AccountType User -Server 'dc01.contoso.com'
@@ -67,9 +68,9 @@ function Get-ADStaleAccount {
     [CmdletBinding()]
     [OutputType([PSCustomObject])]
     param(
-        [Parameter(Mandatory = $true)]
+        [Parameter()]
         [ValidateRange(1, 3650)]
-        [int]$DaysInactive,
+        [int]$DaysInactive = 90,
 
         [Parameter()]
         [ValidateSet('User', 'Computer', 'Both')]
@@ -126,20 +127,21 @@ function Get-ADStaleAccount {
             if ($AccountType -in @('User', 'Both')) {
                 Write-Verbose -Message "[$($MyInvocation.MyCommand)] Searching stale user accounts (inactive > $DaysInactive days)"
 
-                $userFilter = if ($IncludeDisabled) {
-                    "LastLogonDate -lt '$cutoffDate' -or -not LastLogonDate -like '*'"
-                }
-                else {
-                    "(LastLogonDate -lt '$cutoffDate' -or -not LastLogonDate -like '*') -and Enabled -eq `$true"
-                }
+                # Retrieve all enabled (or all) users with LastLogonDate, then filter locally.
+                # AD string filters with dates are locale-dependent and unreliable.
+                $userFilter = if ($IncludeDisabled) { '*' } else { "Enabled -eq `$true" }
 
-                $staleUsers = Get-ADUser -Filter $userFilter -Properties $adProperties @searchBaseParam @adParams -ErrorAction Stop
+                $users = Get-ADUser -Filter $userFilter -Properties $adProperties @searchBaseParam @adParams -ErrorAction Stop
 
-                foreach ($user in $staleUsers) {
+                foreach ($user in $users) {
                     $daysSinceLogon = if ($user.LastLogonDate) {
                         [math]::Round(((Get-Date) - $user.LastLogonDate).TotalDays)
                     }
                     else { $null }
+
+                    # Include only accounts that are stale (older than cutoff) or have never logged in
+                    $isStale = ($null -eq $user.LastLogonDate) -or ($user.LastLogonDate -lt $cutoffDate)
+                    if (-not $isStale) { continue }
 
                     $allResults.Add([PSCustomObject]@{
                         PSTypeName        = 'PSWinOps.ADStaleAccount'
@@ -161,20 +163,18 @@ function Get-ADStaleAccount {
             if ($AccountType -in @('Computer', 'Both')) {
                 Write-Verbose -Message "[$($MyInvocation.MyCommand)] Searching stale computer accounts (inactive > $DaysInactive days)"
 
-                $computerFilter = if ($IncludeDisabled) {
-                    "LastLogonDate -lt '$cutoffDate' -or -not LastLogonDate -like '*'"
-                }
-                else {
-                    "(LastLogonDate -lt '$cutoffDate' -or -not LastLogonDate -like '*') -and Enabled -eq `$true"
-                }
+                $computerFilter = if ($IncludeDisabled) { '*' } else { "Enabled -eq `$true" }
 
-                $staleComputers = Get-ADComputer -Filter $computerFilter -Properties $adProperties @searchBaseParam @adParams -ErrorAction Stop
+                $computers = Get-ADComputer -Filter $computerFilter -Properties $adProperties @searchBaseParam @adParams -ErrorAction Stop
 
-                foreach ($computer in $staleComputers) {
+                foreach ($computer in $computers) {
                     $daysSinceLogon = if ($computer.LastLogonDate) {
                         [math]::Round(((Get-Date) - $computer.LastLogonDate).TotalDays)
                     }
                     else { $null }
+
+                    $isStale = ($null -eq $computer.LastLogonDate) -or ($computer.LastLogonDate -lt $cutoffDate)
+                    if (-not $isStale) { continue }
 
                     $allResults.Add([PSCustomObject]@{
                         PSTypeName        = 'PSWinOps.ADStaleAccount'
