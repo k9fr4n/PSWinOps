@@ -42,4 +42,107 @@ if (Test-Path -Path $publicPath) {
     }
 }
 
+# ============================================================
+# Argument completers for Active Directory Identity parameters
+# ============================================================
+# Each completer queries AD live, respects Server/Credential already
+# typed on the command line, limits to 20 results, and silently
+# returns nothing when the AD module is unavailable.
+
+$script:ADUserCompleter = {
+    param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
+    try {
+        $splat = @{
+            Filter      = "SamAccountName -like '$wordToComplete*'"
+            Properties  = @('DisplayName')
+            ErrorAction = 'Stop'
+        }
+        if ($fakeBoundParameters.ContainsKey('Server'))     { $splat['Server']     = $fakeBoundParameters['Server'] }
+        if ($fakeBoundParameters.ContainsKey('Credential')) { $splat['Credential'] = $fakeBoundParameters['Credential'] }
+
+        Get-ADUser @splat |
+            Sort-Object -Property 'SamAccountName' |
+            Select-Object -First 20 |
+            ForEach-Object {
+                $toolTip = if ($_.DisplayName) { "$($_.SamAccountName) ($($_.DisplayName))" } else { $_.SamAccountName }
+                [System.Management.Automation.CompletionResult]::new(
+                    $_.SamAccountName,
+                    $_.SamAccountName,
+                    [System.Management.Automation.CompletionResultType]::ParameterValue,
+                    $toolTip
+                )
+            }
+    }
+    catch { <# AD module absent or not domain-joined — return nothing #> }
+}
+
+$script:ADComputerCompleter = {
+    param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
+    try {
+        $splat = @{
+            Filter      = "Name -like '$wordToComplete*'"
+            ErrorAction = 'Stop'
+        }
+        if ($fakeBoundParameters.ContainsKey('Server'))     { $splat['Server']     = $fakeBoundParameters['Server'] }
+        if ($fakeBoundParameters.ContainsKey('Credential')) { $splat['Credential'] = $fakeBoundParameters['Credential'] }
+
+        Get-ADComputer @splat |
+            Sort-Object -Property 'Name' |
+            Select-Object -First 20 |
+            ForEach-Object {
+                [System.Management.Automation.CompletionResult]::new(
+                    $_.Name,
+                    $_.Name,
+                    [System.Management.Automation.CompletionResultType]::ParameterValue,
+                    "$($_.Name) ($($_.DistinguishedName))"
+                )
+            }
+    }
+    catch { <# AD module absent or not domain-joined — return nothing #> }
+}
+
+$script:ADGroupCompleter = {
+    param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
+    try {
+        $splat = @{
+            Filter      = "Name -like '$wordToComplete*'"
+            ErrorAction = 'Stop'
+        }
+        if ($fakeBoundParameters.ContainsKey('Server'))     { $splat['Server']     = $fakeBoundParameters['Server'] }
+        if ($fakeBoundParameters.ContainsKey('Credential')) { $splat['Credential'] = $fakeBoundParameters['Credential'] }
+
+        Get-ADGroup @splat |
+            Sort-Object -Property 'Name' |
+            Select-Object -First 20 |
+            ForEach-Object {
+                [System.Management.Automation.CompletionResult]::new(
+                    $_.Name,
+                    $_.Name,
+                    [System.Management.Automation.CompletionResultType]::ParameterValue,
+                    "$($_.Name) ($($_.GroupScope)/$($_.GroupCategory))"
+                )
+            }
+    }
+    catch { <# AD module absent or not domain-joined — return nothing #> }
+}
+
+# Register user completers
+$userFunctions = @(
+    'Enable-ADUserAccount'
+    'Get-ADNestedGroupMembership'
+    'Get-ADUserDetail'
+    'Get-ADUserGroupInventory'
+    'Reset-ADUserPassword'
+    'Unlock-ADUserAccount'
+)
+foreach ($fn in $userFunctions) {
+    Register-ArgumentCompleter -CommandName $fn -ParameterName 'Identity' -ScriptBlock $script:ADUserCompleter
+}
+
+# Register computer completer
+Register-ArgumentCompleter -CommandName 'Get-ADComputerDetail' -ParameterName 'Identity' -ScriptBlock $script:ADComputerCompleter
+
+# Register group completer
+Register-ArgumentCompleter -CommandName 'Get-ADGroupMembership' -ParameterName 'Identity' -ScriptBlock $script:ADGroupCompleter
+
 Write-Verbose "[$($MyInvocation.MyCommand)] PSWinOps module loaded successfully"
