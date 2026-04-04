@@ -93,6 +93,7 @@
         'Get-ADNestedGroupMembership',
         'Get-ADPasswordStatus',
         'Get-ADPrivilegedAccount',
+        'Get-ADReplicationStatus',
         'Get-ADStaleAccount',
         'Get-ADUserDetail',
         'Get-ADUserGroupInventory',

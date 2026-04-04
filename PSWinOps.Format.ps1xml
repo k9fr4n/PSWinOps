@@ -3006,6 +3006,42 @@
     </View>
 
     <!-- ============================================================ -->
+    <!-- PSWinOps.ADReplicationStatus                                 -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.ADReplicationStatus</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.ADReplicationStatus</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>Server</Label><Width>22</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Partner</Label><Width>22</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Partition</Label><Width>18</Width></TableColumnHeader>
+          <TableColumnHeader><Label>LastAttempt</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>LastSuccess</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Result</Label><Width>7</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Fails</Label><Width>6</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Status</Label><Width>10</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>Server</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Partner</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Partition</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>LastAttempt</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>LastSuccess</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>LastResult</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>ConsecutiveFailures</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Status</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
     <!-- PSWinOps.ADAccountDisableResult                              -->
     <!-- ============================================================ -->
     <View>
