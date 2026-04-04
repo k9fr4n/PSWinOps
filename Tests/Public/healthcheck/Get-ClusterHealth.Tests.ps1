@@ -93,8 +93,29 @@ Describe 'Get-ClusterHealth' {
     Context 'RoleUnavailable - FailoverClusters module not available' {
 
         BeforeAll {
-            Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith { return $script:mockServiceRunning }
-            Mock -CommandName 'Get-Module' -ModuleName 'PSWinOps' -MockWith { return $null }
+            # Mock Invoke-RemoteOrLocal to return data indicating the module is not available
+            # This avoids the issue where global Get-Cluster stub makes Get-Command succeed
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                @{
+                    ServiceStatus   = 'Running'
+                    ModuleAvailable = $false
+                    ClusterName     = 'N/A'
+                    NodeName        = 'N/A'
+                    NodeState       = 'N/A'
+                    TotalNodes      = 0
+                    NodesUp         = 0
+                    NodesDown       = 0
+                    NodesPaused     = 0
+                    TotalResources  = 0
+                    ResourcesOnline = 0
+                    ResourcesFailed = 0
+                    TotalGroups     = 0
+                    GroupsOnline    = 0
+                    QuorumType      = 'N/A'
+                    QuorumState     = 'N/A'
+                    QueryError      = $null
+                }
+            }
             $script:results = Get-ClusterHealth
         }
 

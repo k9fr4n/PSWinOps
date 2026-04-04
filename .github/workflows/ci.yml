@@ -81,6 +81,7 @@ jobs:
       matrix:
         suite:
           - "Private"
+          - "Public/activedirectory"
           - "Public/healthcheck"
           - "Public/network"
           - "Public/ntp"
