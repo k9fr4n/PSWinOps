@@ -2495,6 +2495,39 @@
     </View>
 
     <!-- ============================================================ -->
+    <!-- PSWinOps.ADSecurityFinding                                   -->
+    <!-- Used by: Invoke-ADSecurityAudit                              -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.ADSecurityFinding</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.ADSecurityFinding</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>Severity</Label><Width>12</Width></TableColumnHeader>
+          <TableColumnHeader><Label>CheckId</Label><Width>6</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Category</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Check</Label><Width>35</Width></TableColumnHeader>
+          <TableColumnHeader><Label>SamAccountName</Label><Width>22</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Detail</Label></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>Severity</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>CheckId</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Category</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Check</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>SamAccountName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Detail</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
     <!-- PSWinOps.ADSiteTopology                                      -->
     <!-- Used by: Get-ADSiteTopology                                  -->
     <!-- ============================================================ -->

@@ -86,6 +86,7 @@
         'Get-ADComputerDetail',
         'Get-ADComputerInventory',
         'Get-ADDomainInfo',
+        'Invoke-ADSecurityAudit',
         'Get-AdDomainControllerHealth',
         'Get-ADFSHealth',
         'Get-ADGroupInventory',
