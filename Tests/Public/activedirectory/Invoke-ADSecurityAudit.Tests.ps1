@@ -6,30 +6,43 @@ param()
 BeforeAll {
     $script:modulePath = Split-Path -Path (Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent) -Parent
 
-    $adCmdlets = @(
-        'Get-ADUser', 'Get-ADComputer', 'Get-ADDomain', 'Get-ADForest',
-        'Get-ADDomainController', 'Get-ADGroupMember', 'Get-ADTrust',
-        'Get-ADDefaultDomainPasswordPolicy', 'Get-ADFineGrainedPasswordPolicy',
-        'Get-ADOptionalFeature'
-    )
-    foreach ($cmdlet in $adCmdlets) {
+    # Stubs with parameters so Pester ParameterFilter can bind $Filter, $Identity, etc.
+    $adStubs = @{
+        'Get-ADUser'                        = { param($Filter, $Identity, $Properties, $SearchBase, $Server, $Credential, $ErrorAction) }
+        'Get-ADComputer'                    = { param($Filter, $Properties, $SearchBase, $Server, $Credential, $ErrorAction) }
+        'Get-ADDomain'                      = { param($Server, $Credential) }
+        'Get-ADForest'                      = { param($Server, $Credential) }
+        'Get-ADDomainController'            = { param($Filter, $Server, $Credential) }
+        'Get-ADGroupMember'                 = { param($Identity, $Recursive, $Server, $Credential, $ErrorAction) }
+        'Get-ADTrust'                       = { param($Filter, $Properties, $Server, $Credential, $ErrorAction) }
+        'Get-ADDefaultDomainPasswordPolicy' = { param($Server, $Credential) }
+        'Get-ADFineGrainedPasswordPolicy'   = { param($Filter, $Server, $Credential) }
+        'Get-ADOptionalFeature'             = { param($Filter, $Server, $Credential) }
+    }
+    foreach ($cmdlet in $adStubs.Keys) {
         if (-not (Get-Command -Name $cmdlet -ErrorAction SilentlyContinue)) {
-            New-Item -Path "function:global:$cmdlet" -Value { } -Force | Out-Null
+            New-Item -Path "function:global:$cmdlet" -Value $adStubs[$cmdlet] -Force | Out-Null
         }
     }
 
     Import-Module -Name (Join-Path -Path $script:modulePath -ChildPath 'PSWinOps.psd1') -Force
 
     & (Get-Module -Name 'PSWinOps') {
-        $adCmdlets = @(
-            'Get-ADUser', 'Get-ADComputer', 'Get-ADDomain', 'Get-ADForest',
-            'Get-ADDomainController', 'Get-ADGroupMember', 'Get-ADTrust',
-            'Get-ADDefaultDomainPasswordPolicy', 'Get-ADFineGrainedPasswordPolicy',
-            'Get-ADOptionalFeature'
-        )
-        foreach ($cmdlet in $adCmdlets) {
+        $adStubs = @{
+            'Get-ADUser'                        = { param($Filter, $Identity, $Properties, $SearchBase, $Server, $Credential, $ErrorAction) }
+            'Get-ADComputer'                    = { param($Filter, $Properties, $SearchBase, $Server, $Credential, $ErrorAction) }
+            'Get-ADDomain'                      = { param($Server, $Credential) }
+            'Get-ADForest'                      = { param($Server, $Credential) }
+            'Get-ADDomainController'            = { param($Filter, $Server, $Credential) }
+            'Get-ADGroupMember'                 = { param($Identity, $Recursive, $Server, $Credential, $ErrorAction) }
+            'Get-ADTrust'                       = { param($Filter, $Properties, $Server, $Credential, $ErrorAction) }
+            'Get-ADDefaultDomainPasswordPolicy' = { param($Server, $Credential) }
+            'Get-ADFineGrainedPasswordPolicy'   = { param($Filter, $Server, $Credential) }
+            'Get-ADOptionalFeature'             = { param($Filter, $Server, $Credential) }
+        }
+        foreach ($cmdlet in $adStubs.Keys) {
             if (-not (Get-Command -Name $cmdlet -ErrorAction SilentlyContinue)) {
-                New-Item -Path "function:script:$cmdlet" -Value { } -Force | Out-Null
+                New-Item -Path "function:script:$cmdlet" -Value $adStubs[$cmdlet] -Force | Out-Null
             }
         }
     }
