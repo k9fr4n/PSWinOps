@@ -92,7 +92,7 @@ Describe -Name 'Invoke-ADSecurityAudit' -Fixture {
 
         # ---- Mock vulnerable computer ----
         $script:vulnerableComputer = [PSCustomObject]@{
-            SamAccountName                              = 'OLD-SRV01
+            SamAccountName                              = "OLD-SRV01$"
             Name                                        = 'OLD-SRV01'
             Enabled                                     = $true
             OperatingSystem                             = 'Windows Server 2008 R2 Standard'
@@ -110,7 +110,7 @@ Describe -Name 'Invoke-ADSecurityAudit' -Fixture {
 
         # ---- Mock clean computer ----
         $script:cleanComputer = [PSCustomObject]@{
-            SamAccountName                              = 'SRV-APP01
+            SamAccountName                              = "SRV-APP01$"
             Name                                        = 'SRV-APP01'
             Enabled                                     = $true
             OperatingSystem                             = 'Windows Server 2022 Datacenter'

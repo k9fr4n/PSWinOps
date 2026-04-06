@@ -191,18 +191,20 @@ Describe -Name 'Get-ADDomainInfo' -Fixture {
 
         BeforeAll {
             # Override mocks with specific counts
+            # Filter strings are: "Enabled -eq $true" and "Enabled -eq $false"
+            # Match on '\$true' vs '\$false' to avoid overlap
             Mock -CommandName 'Get-ADUser' -ModuleName 'PSWinOps' -MockWith {
                 return @(1..100)
-            } -ParameterFilter { $Filter -match 'true' }
+            } -ParameterFilter { $Filter -match '\$true' }
             Mock -CommandName 'Get-ADUser' -ModuleName 'PSWinOps' -MockWith {
                 return @(1..20)
-            } -ParameterFilter { $Filter -match 'false' }
+            } -ParameterFilter { $Filter -match '\$false' }
             Mock -CommandName 'Get-ADComputer' -ModuleName 'PSWinOps' -MockWith {
                 return @(1..40)
-            } -ParameterFilter { $Filter -match 'true' }
+            } -ParameterFilter { $Filter -match '\$true' }
             Mock -CommandName 'Get-ADComputer' -ModuleName 'PSWinOps' -MockWith {
                 return @(1..5)
-            } -ParameterFilter { $Filter -match 'false' }
+            } -ParameterFilter { $Filter -match '\$false' }
 
             $script:result = Get-ADDomainInfo
         }

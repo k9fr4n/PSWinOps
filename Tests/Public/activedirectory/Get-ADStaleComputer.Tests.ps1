@@ -32,8 +32,7 @@ Describe -Name 'Get-ADStaleComputer' -Fixture {
 
         $script:mockStaleComputer = [PSCustomObject]@{
             Name                   = 'OLD-SRV01'
-            SamAccountName         = 'OLD-SRV01
-            Enabled                = $true
+            SamAccountName         = "OLD-SRV01$"
             OperatingSystem        = 'Windows Server 2012 R2 Standard'
             OperatingSystemVersion = '6.3 (9600)'
             IPv4Address            = '10.0.1.50'
@@ -46,7 +45,7 @@ Describe -Name 'Get-ADStaleComputer' -Fixture {
 
         $script:mockNeverLoggedComputer = [PSCustomObject]@{
             Name                   = 'GHOST-PC01'
-            SamAccountName         = 'GHOST-PC01
+            SamAccountName         = "GHOST-PC01$"
             Enabled                = $true
             OperatingSystem        = $null
             OperatingSystemVersion = $null
@@ -60,7 +59,7 @@ Describe -Name 'Get-ADStaleComputer' -Fixture {
 
         $script:mockRecentComputer = [PSCustomObject]@{
             Name                   = 'ACTIVE-DC01'
-            SamAccountName         = 'ACTIVE-DC01
+            SamAccountName         = "ACTIVE-DC01$"
             Enabled                = $true
             OperatingSystem        = 'Windows Server 2022 Datacenter'
             OperatingSystemVersion = '10.0 (20348)'
@@ -235,3 +234,4 @@ Describe -Name 'Get-ADStaleComputer' -Fixture {
         }
     }
 }
+
