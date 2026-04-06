@@ -140,7 +140,13 @@ Describe -Name 'Invoke-ADSecurityAudit' -Fixture {
         }
 
         # ---- Standard mocks ----
+        # Single smart mock: branches on $args to detect -Identity 'krbtgt' calls
+        # ParameterFilter does not work with stub functions (no param binding)
         Mock -CommandName 'Get-ADUser' -ModuleName 'PSWinOps' -MockWith {
+            $argsStr = "$args"
+            if ($argsStr -match 'krbtgt') {
+                return [PSCustomObject]@{ PasswordLastSet = (Get-Date).AddDays(-400) }
+            }
             return @($script:vulnerableUser, $script:cleanUser)
         }
         Mock -CommandName 'Get-ADComputer' -ModuleName 'PSWinOps' -MockWith {
@@ -197,11 +203,6 @@ Describe -Name 'Invoke-ADSecurityAudit' -Fixture {
         Mock -CommandName 'Get-ADOptionalFeature' -ModuleName 'PSWinOps' -MockWith { $null }
         Mock -CommandName 'Get-ADTrust' -ModuleName 'PSWinOps' -MockWith { @() }
 
-        Mock -CommandName 'Get-ADUser' -ModuleName 'PSWinOps' -ParameterFilter {
-            $Identity -eq 'krbtgt'
-        } -MockWith {
-            [PSCustomObject]@{ PasswordLastSet = (Get-Date).AddDays(-400) }
-        }
     }
 
     Context -Name 'Full audit returns findings for vulnerable environment' -Fixture {
@@ -409,12 +410,11 @@ Describe -Name 'Invoke-ADSecurityAudit' -Fixture {
 
         BeforeAll {
             Mock -CommandName 'Get-ADUser' -ModuleName 'PSWinOps' -MockWith {
+                $argsStr = "$args"
+                if ($argsStr -match 'krbtgt') {
+                    return [PSCustomObject]@{ PasswordLastSet = (Get-Date).AddDays(-30) }
+                }
                 return @($script:cleanUser)
-            }
-            Mock -CommandName 'Get-ADUser' -ModuleName 'PSWinOps' -ParameterFilter {
-                $Identity -eq 'krbtgt'
-            } -MockWith {
-                [PSCustomObject]@{ PasswordLastSet = (Get-Date).AddDays(-30) }
             }
             Mock -CommandName 'Get-ADComputer' -ModuleName 'PSWinOps' -MockWith {
                 return @($script:cleanComputer)
