@@ -100,7 +100,7 @@ function Show-SystemMonitor {
 
         # Pad a string (which may contain ANSI escapes) to a target visual width.
         # Uses a non-approved verb intentionally scoped as a private helper — not exported.
-        function Pad-Line {
+        function ConvertTo-PaddedLine {
             param([string]$Text, [int]$TargetWidth)
             $visual = Get-VisualWidth -Text $Text
             $needed = $TargetWidth - $visual
@@ -270,7 +270,7 @@ function Show-SystemMonitor {
 
                     if ($i + 1 -lt $cpuCores.Count) {
                         # FIX: pad using visual width so ANSI sequences do not skew alignment
-                        $leftPadded  = Pad-Line -Text $leftCol -TargetWidth $coreColVisualWidth
+                        $leftPadded  = ConvertTo-PaddedLine -Text $leftCol -TargetWidth $coreColVisualWidth
                         $pct2        = [int]$cpuCores[$i + 1].PercentProcessorTime
                         $bar2        = Format-Bar -Percent $pct2 -Width $coreBarWidth
                         $coreLabel2  = '{0,3}' -f $cpuCores[$i + 1].Name
@@ -319,7 +319,7 @@ function Show-SystemMonitor {
                 [void]$frame.Append("$esc[H")
 
                 foreach ($line in $lines) {
-                    $padded = Pad-Line -Text $line -TargetWidth $width
+                    $padded = ConvertTo-PaddedLine -Text $line -TargetWidth $width
                     [void]$frame.AppendLine($padded)
                 }
 
