@@ -1,10 +1,11 @@
-# PowerShell files must use CRLF line endings for PS 5.1 compatibility
-*.ps1     text eol=crlf
-*.psm1    text eol=crlf
-*.psd1    text eol=crlf
-*.ps1xml  text eol=crlf
+# PowerShell files: normalize to LF in repo, checkout as native line endings.
+# CI workflow forces CRLF via 'git config --global core.autocrlf true' for PS 5.1.
+*.ps1     text
+*.psm1    text
+*.psd1    text
+*.ps1xml  text
 
 # Other text files
-*.md      text eol=lf
-*.yml     text eol=lf
-*.yaml    text eol=lf
+*.md      text
+*.yml     text
+*.yaml    text
