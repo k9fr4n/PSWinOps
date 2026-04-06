@@ -12,7 +12,7 @@
     RootModule           = 'PSWinOps.psm1'
 
     # Version number of this module.
-    ModuleVersion        = '0.0.18'
+    ModuleVersion        = '0.0.19'
 
     # Supported PSEditions
     # Core is supported on Windows only; the module-level guard in PSWinOps.psm1 blocks
@@ -86,6 +86,7 @@
         'Get-ADComputerDetail',
         'Get-ADComputerInventory',
         'Get-AdDomainControllerHealth',
+        'Get-ADDomainInfo',
         'Get-ADFSHealth',
         'Get-ADGroupInventory',
         'Get-ADGroupMembership',
@@ -94,7 +95,9 @@
         'Get-ADPasswordStatus',
         'Get-ADPrivilegedAccount',
         'Get-ADReplicationStatus',
+        'Get-ADSiteTopology',
         'Get-ADStaleAccount',
+        'Get-ADStaleComputer',
         'Get-ADUserDetail',
         'Get-ADUserGroupInventory',
         'Get-ADUserInventory',
@@ -138,6 +141,7 @@
         'Get-SubnetInfo',
         'Get-SystemSummary',
         'Get-WSUSHealth',
+        'Invoke-ADSecurityAudit',
         'Measure-NetworkLatency',
         'New-NetworkRoute',
         'New-RandomPassword',
@@ -151,8 +155,9 @@
         'Set-NTPClient',
         'Set-PageFile',
         'Set-ProxyConfiguration',
-        'Start-NetworkStatisticMonitor',
-        'Start-PingMonitor',
+        'Show-NetworkStatisticMonitor',
+        'Show-PingMonitor',
+        'Show-SystemMonitor',
         'Sync-NTPTime',
         'Test-DNSResolution',
         'Test-PortConnectivity',

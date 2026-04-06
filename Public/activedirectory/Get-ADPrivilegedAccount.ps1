@@ -15,8 +15,10 @@ function Get-ADPrivilegedAccount {
         privileged groups: Domain Admins, Enterprise Admins, Schema Admins, Administrators,
         Account Operators, Server Operators, Backup Operators, and Print Operators.
 
-    .PARAMETER Recursive
-        When specified, includes nested group members transitively.
+    .PARAMETER DirectOnly
+        When specified, returns only direct group members without recursing into nested
+        groups. By default, all nested members are enumerated recursively to ensure
+        complete coverage of privileged access.
 
     .PARAMETER Server
         Specifies the Active Directory Domain Services instance to connect to.
@@ -35,9 +37,9 @@ function Get-ADPrivilegedAccount {
         Audits specific groups from a targeted domain controller.
 
     .EXAMPLE
-        Get-ADPrivilegedAccount -Recursive -GroupName 'Domain Admins'
+        Get-ADPrivilegedAccount -DirectOnly -GroupName 'Domain Admins'
 
-        Lists all direct and nested members of Domain Admins.
+        Lists only direct members of Domain Admins without recursing nested groups.
 
     .OUTPUTS
         PSWinOps.ADPrivilegedAccount
@@ -74,7 +76,7 @@ function Get-ADPrivilegedAccount {
         ),
 
         [Parameter()]
-        [switch]$Recursive,
+        [switch]$DirectOnly,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
@@ -117,7 +119,7 @@ function Get-ADPrivilegedAccount {
                     Identity    = $groupIdentity
                     ErrorAction = 'Stop'
                 }
-                if ($Recursive) {
+                if (-not $DirectOnly) {
                     $memberParams['Recursive'] = $true
                 }
 

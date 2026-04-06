@@ -20,6 +20,9 @@ jobs:
   validate:
     runs-on: windows-latest
     steps:
+      - name: Configure git line endings
+        run: git config --global core.autocrlf true
+
       - uses: actions/checkout@v4.2.2
 
       - name: Validate Module Manifest
@@ -37,6 +40,9 @@ jobs:
   lint:
     runs-on: windows-latest
     steps:
+      - name: Configure git line endings
+        run: git config --global core.autocrlf true
+
       - uses: actions/checkout@v4.2.2
 
       - name: Cache PowerShell modules
@@ -91,6 +97,9 @@ jobs:
           - "Public/utils"
 
     steps:
+      - name: Configure git line endings
+        run: git config --global core.autocrlf true
+
       - uses: actions/checkout@v4.2.2
 
       - name: Cache PowerShell modules
@@ -176,6 +185,9 @@ jobs:
       checks: write # Required for Codecov status checks
 
     steps:
+      - name: Configure git line endings
+        run: git config --global core.autocrlf true
+
       - uses: actions/checkout@v4.2.2
 
       - name: Cache PowerShell modules

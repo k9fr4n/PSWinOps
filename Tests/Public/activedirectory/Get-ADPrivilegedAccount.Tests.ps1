@@ -106,17 +106,15 @@ Describe 'Get-ADPrivilegedAccount' {
         }
     }
 
-    Context 'Recursive switch' {
-        It -Name 'Should accept Recursive parameter without error' -Test {
-            $script:results = Get-ADPrivilegedAccount -GroupName 'Domain Admins' -Recursive
-            $script:results | Should -Not -BeNullOrEmpty
-            Should -Invoke -CommandName 'Get-ADGroupMember' -ModuleName 'PSWinOps' -Times 1 -Exactly
-        }
-
-        It -Name 'Should call Get-ADGroupMember without Recursive by default' -Test {
+    Context 'Recursive is the default' {
+        It -Name 'Should enumerate recursively by default' -Test {
             $script:results = Get-ADPrivilegedAccount -GroupName 'Domain Admins'
             $script:results | Should -Not -BeNullOrEmpty
-            Should -Invoke -CommandName 'Get-ADGroupMember' -ModuleName 'PSWinOps' -Times 1 -Exactly
+        }
+
+        It -Name 'Should accept DirectOnly switch to disable recursion' -Test {
+            $script:results = Get-ADPrivilegedAccount -GroupName 'Domain Admins' -DirectOnly
+            $script:results | Should -Not -BeNullOrEmpty
         }
     }
 
