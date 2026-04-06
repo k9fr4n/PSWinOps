@@ -189,11 +189,17 @@ function Show-SystemMonitor {
                     }
                 }
 
-                $sortedProcs = switch ($sortMode) {
-                    'CPU'    { $procList | Sort-Object -Property 'CPU' -Descending }
-                    'Memory' { $procList | Sort-Object -Property 'MemMB' -Descending }
-                    'PID'    { $procList | Sort-Object -Property 'PID' }
-                    'Name'   { $procList | Sort-Object -Property 'Name' }
+                if ($sortMode -eq 'Memory') {
+                    $sortedProcs = $procList | Sort-Object -Property 'MemMB' -Descending
+                }
+                elseif ($sortMode -eq 'PID') {
+                    $sortedProcs = $procList | Sort-Object -Property 'PID'
+                }
+                elseif ($sortMode -eq 'Name') {
+                    $sortedProcs = $procList | Sort-Object -Property 'Name'
+                }
+                else {
+                    $sortedProcs = $procList | Sort-Object -Property 'CPU' -Descending
                 }
                 $topProcs = @($sortedProcs | Select-Object -First $ProcessCount)
 
@@ -309,20 +315,20 @@ function Show-SystemMonitor {
                     if ([Console]::KeyAvailable) {
                         $key = [Console]::ReadKey($true)
 
-                        switch ($key.Key) {
-                            'Q'      { $running = $false; break }
-                            'Escape' { $running = $false; break }
-                            'C'      { $sortMode = 'CPU' }
-                            'M'      { $sortMode = 'Memory' }
-                            'P'      { $sortMode = 'PID' }
-                            'N'      { $sortMode = 'Name' }
-                        }
-
-                        # Ctrl+C
-                        if ($key.Key -eq 'C' -and $key.Modifiers -band [ConsoleModifiers]::Control) {
+                        # Ctrl+C check first
+                        if ($key.Key -eq 'C' -and ($key.Modifiers -band [ConsoleModifiers]::Control)) {
                             $running = $false
                             break
                         }
+
+                        if ($key.Key -eq 'Q' -or $key.Key -eq 'Escape') {
+                            $running = $false
+                            break
+                        }
+                        elseif ($key.Key -eq 'C') { $sortMode = 'CPU' }
+                        elseif ($key.Key -eq 'M') { $sortMode = 'Memory' }
+                        elseif ($key.Key -eq 'P') { $sortMode = 'PID' }
+                        elseif ($key.Key -eq 'N') { $sortMode = 'Name' }
 
                         if (-not $running) { break }
                     }

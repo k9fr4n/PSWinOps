@@ -1,0 +1,10 @@
+# PowerShell files must use CRLF line endings for PS 5.1 compatibility
+*.ps1     text eol=crlf
+*.psm1    text eol=crlf
+*.psd1    text eol=crlf
+*.ps1xml  text eol=crlf
+
+# Other text files
+*.md      text eol=lf
+*.yml     text eol=lf
+*.yaml    text eol=lf
