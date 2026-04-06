@@ -1,6 +1,6 @@
 ﻿#Requires -Version 5.1
 
-function Start-PingMonitor {
+function Show-PingMonitor {
     <#
         .SYNOPSIS
             Displays a real-time multi-host ping monitoring dashboard
@@ -29,17 +29,17 @@ function Start-PingMonitor {
             console is undesirable.
 
         .EXAMPLE
-            Start-PingMonitor -ComputerName 'SRV01', 'SRV02', 'SRV03', 'gateway'
+            Show-PingMonitor -ComputerName 'SRV01', 'SRV02', 'SRV03', 'gateway'
 
             Monitors 4 hosts with a live dashboard. Press Ctrl+C to stop.
 
         .EXAMPLE
-            Start-PingMonitor -ComputerName (Get-Content servers.txt) -RefreshInterval 5
+            Show-PingMonitor -ComputerName (Get-Content servers.txt) -RefreshInterval 5
 
             Monitors hosts from a file with 5-second refresh.
 
         .EXAMPLE
-            Start-PingMonitor -ComputerName '8.8.8.8', '1.1.1.1', 'gateway.local' -PingTimeoutMs 1000
+            Show-PingMonitor -ComputerName '8.8.8.8', '1.1.1.1', 'gateway.local' -PingTimeoutMs 1000
 
             Monitors with a 1-second ping timeout.
 
@@ -57,7 +57,7 @@ function Start-PingMonitor {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWriteHost', '',
         Justification = 'Write-Host is intentional for interactive console dashboard display')]
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '',
-        Justification = 'Start-PingMonitor is a read-only monitoring loop, it does not change system state')]
+        Justification = 'Show-PingMonitor is a read-only monitoring loop, it does not change system state')]
     [CmdletBinding()]
     [OutputType([void])]
     param (

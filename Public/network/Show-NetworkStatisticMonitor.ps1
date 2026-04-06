@@ -1,6 +1,6 @@
 ﻿#Requires -Version 5.1
 
-function Start-NetworkStatisticMonitor {
+function Show-NetworkStatisticMonitor {
     <#
         .SYNOPSIS
             Monitors network connections in real time with auto-refresh display
@@ -53,18 +53,18 @@ function Start-NetworkStatisticMonitor {
             console is undesirable.
 
         .EXAMPLE
-            Start-NetworkStatisticMonitor
+            Show-NetworkStatisticMonitor
 
             Starts real-time monitoring of all network connections on the local machine,
             refreshing every 2 seconds. Press Ctrl+C to stop.
 
         .EXAMPLE
-            Start-NetworkStatisticMonitor -Protocol TCP -State Established -RefreshInterval 5
+            Show-NetworkStatisticMonitor -Protocol TCP -State Established -RefreshInterval 5
 
             Monitors only established TCP connections with a 5-second refresh interval.
 
         .EXAMPLE
-            Start-NetworkStatisticMonitor -ComputerName 'SRV01', 'SRV02' -Protocol TCP
+            Show-NetworkStatisticMonitor -ComputerName 'SRV01', 'SRV02' -Protocol TCP
 
             Monitors TCP connections on two remote servers in real time.
 
