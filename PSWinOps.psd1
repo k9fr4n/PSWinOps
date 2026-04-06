@@ -155,6 +155,7 @@
         'Set-NTPClient',
         'Set-PageFile',
         'Set-ProxyConfiguration',
+        'Show-SystemMonitor',
         'Start-NetworkStatisticMonitor',
         'Start-PingMonitor',
         'Sync-NTPTime',
