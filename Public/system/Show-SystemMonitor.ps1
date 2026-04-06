@@ -209,23 +209,33 @@ function Show-SystemMonitor {
                 $frame = [System.Text.StringBuilder]::new(4096)
 
                 # ---- Header ----
-                $header = "  ${bold}${cyan}Show-SystemMonitor${reset} ${dim}-${reset} ${white}$($env:COMPUTERNAME)${reset} ${dim}|${reset} Up: ${white}$uptimeStr${reset} ${dim}|${reset} $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') ${dim}|${reset} Procs: ${white}$($processes.Count)${reset}"
+                $timeStr = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
+                $procCount = $processes.Count
+                $separator = [string]::new([char]0x2500, $width - 4)
+                $header = "  ${bold}${cyan}Show-SystemMonitor${reset} ${dim}-${reset} ${white}$env:COMPUTERNAME${reset} ${dim}|${reset} Up: ${white}${uptimeStr}${reset} ${dim}|${reset} ${timeStr} ${dim}|${reset} Procs: ${white}${procCount}${reset}"
                 [void]$frame.AppendLine($header)
-                [void]$frame.AppendLine("  ${dim}$([string]::new([char]0x2500, $width - 4))${reset}")
+                [void]$frame.AppendLine("  ${dim}${separator}${reset}")
 
                 # ---- Summary bars (CPU / Mem / Swap) ----
                 $barWidth = [math]::Min(40, $width - 30)
 
                 $cpuBar = Format-Bar -Percent $totalCpuPercent -Width $barWidth
-                $cpuLine = "  ${bold}CPU${reset}  [${cpuBar}] $('{0,5:N1}' -f $totalCpuPercent)%    Cores: ${white}$coreCount${reset}"
+                $cpuPctStr = '{0,5:N1}' -f $totalCpuPercent
+                $cpuLine = "  ${bold}CPU${reset}  [${cpuBar}] ${cpuPctStr}%    Cores: ${white}$coreCount${reset}"
                 [void]$frame.AppendLine($cpuLine)
 
                 $memBar = Format-Bar -Percent $memPercent -Width $barWidth
-                $memLine = "  ${bold}Mem${reset}  [${memBar}] $('{0,5:N1}' -f $memPercent)%    $(Format-Size $usedMemKB) / $(Format-Size $totalMemKB)"
+                $memPctStr = '{0,5:N1}' -f $memPercent
+                $memUsedStr = Format-Size $usedMemKB
+                $memTotalStr = Format-Size $totalMemKB
+                $memLine = "  ${bold}Mem${reset}  [${memBar}] ${memPctStr}%    ${memUsedStr} / ${memTotalStr}"
                 [void]$frame.AppendLine($memLine)
 
                 $pageBar = Format-Bar -Percent $pagePercent -Width $barWidth
-                $pageLine = "  ${bold}Swp${reset}  [${pageBar}] $('{0,5:N1}' -f $pagePercent)%    $(Format-Size $usedPageKB) / $(Format-Size $totalPageKB)"
+                $pagePctStr = '{0,5:N1}' -f $pagePercent
+                $pageUsedStr = Format-Size $usedPageKB
+                $pageTotalStr = Format-Size $totalPageKB
+                $pageLine = "  ${bold}Swp${reset}  [${pageBar}] ${pagePctStr}%    ${pageUsedStr} / ${pageTotalStr}"
                 [void]$frame.AppendLine($pageLine)
                 [void]$frame.AppendLine('')
 
@@ -240,23 +250,27 @@ function Show-SystemMonitor {
                     $pct = [int]$cpuCores[$i].PercentProcessorTime
                     $bar = Format-Bar -Percent $pct -Width $coreBarWidth
                     $coreLabel = '{0,3}' -f $cpuCores[$i].Name
-                    $line += "${dim}$coreLabel${reset} [${bar}] $('{0,3}' -f $pct)%"
+                    $pctStr = '{0,3}' -f $pct
+                    $line += "${dim}${coreLabel}${reset} [${bar}] ${pctStr}%"
 
                     # Right column (if exists)
                     if ($i + 1 -lt $cpuCores.Count) {
                         $padding = $colWidth - ($coreLabel.Length + $coreBarWidth + 8)
                         if ($padding -lt 2) { $padding = 2 }
-                        $line += "$([string]::new(' ', $padding))"
+                        $padStr = [string]::new(' ', $padding)
+                        $line += $padStr
                         $pct2 = [int]$cpuCores[$i + 1].PercentProcessorTime
                         $bar2 = Format-Bar -Percent $pct2 -Width $coreBarWidth
                         $coreLabel2 = '{0,3}' -f $cpuCores[$i + 1].Name
-                        $line += "${dim}$coreLabel2${reset} [${bar2}] $('{0,3}' -f $pct2)%"
+                        $pct2Str = '{0,3}' -f $pct2
+                        $line += "${dim}${coreLabel2}${reset} [${bar2}] ${pct2Str}%"
                     }
 
                     [void]$frame.AppendLine($line)
                 }
 
-                [void]$frame.AppendLine("  ${dim}$([string]::new([char]0x2500, $width - 4))${reset}")
+                $coreSep = [string]::new([char]0x2500, $width - 4)
+                [void]$frame.AppendLine("  ${dim}${coreSep}${reset}")
 
                 # ---- Process table header ----
                 $pidH = if ($sortMode -eq 'PID') { "${underline}PID${reset}" } else { 'PID' }
@@ -264,7 +278,7 @@ function Show-SystemMonitor {
                 $memH = if ($sortMode -eq 'Memory') { "${underline}MEM(MB)${reset}" } else { 'MEM(MB)' }
                 $nameH = if ($sortMode -eq 'Name') { "${underline}Name${reset}" } else { 'Name' }
 
-                $procHeader = "  ${bold}$(' ' * 2)$pidH$(' ' * 3)$cpuH$(' ' * 3)$memH   $nameH${reset}"
+                $procHeader = "  ${bold}  ${pidH}   ${cpuH}   ${memH}   ${nameH}${reset}"
                 [void]$frame.AppendLine($procHeader)
 
                 # ---- Process rows ----
@@ -274,13 +288,17 @@ function Show-SystemMonitor {
                 for ($i = 0; $i -lt $displayCount; $i++) {
                     $p = $topProcs[$i]
                     $cpuColor = Get-ColorCode -Percent ([math]::Min(100, $p.CPU * 2))
-                    $procLine = '  {0,7} {1}{2,7:N1}{3} {4,9:N1}   {5}' -f $p.PID, $cpuColor, $p.CPU, $reset, $p.MemMB, $p.Name
+                    $pidStr = '{0,7}' -f $p.PID
+                    $cpuStr = '{0,7:N1}' -f $p.CPU
+                    $memStr = '{0,9:N1}' -f $p.MemMB
+                    $procLine = "  ${pidStr} ${cpuColor}${cpuStr}${reset} ${memStr}   $($p.Name)"
                     [void]$frame.AppendLine($procLine)
                 }
 
                 # ---- Footer ----
+                $footerSep = [string]::new([char]0x2500, $width - 4)
                 [void]$frame.AppendLine('')
-                [void]$frame.AppendLine("  ${dim}$([string]::new([char]0x2500, $width - 4))${reset}")
+                [void]$frame.AppendLine("  ${dim}${footerSep}${reset}")
 
                 $footer = "  ${bold}[Q]${reset}uit  ${bold}[C]${reset}PU sort  ${bold}[M]${reset}em sort  ${bold}[P]${reset}ID sort  ${bold}[N]${reset}ame sort  ${dim}|${reset}  Refresh: ${white}${RefreshInterval}s${reset}  ${dim}|${reset}  Sort: ${white}$sortMode${reset}"
                 [void]$frame.AppendLine($footer)
