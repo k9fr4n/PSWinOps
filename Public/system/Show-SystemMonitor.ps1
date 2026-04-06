@@ -55,7 +55,10 @@ function Show-SystemMonitor {
         https://learn.microsoft.com/en-us/powershell/module/cimcmdlets/get-ciminstance
     #>
     [CmdletBinding()]
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWriteHost', '')]
+    # Variables defined in begin{} are used in process{} via string interpolation "${var}"
+    # and [Console] method calls — PSScriptAnalyzer cannot track cross-block or interpolation usage
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '')]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '')]
     param(
         [Parameter()]
         [ValidateRange(1, 60)]
