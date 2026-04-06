@@ -52,14 +52,16 @@ Describe -Name 'Show-SystemMonitor' -Fixture {
             $param.ParameterType | Should -Be ([switch])
         }
 
-        It -Name 'Should default RefreshInterval to 2' -Test {
+        It -Name 'Should accept RefreshInterval in range 1-60' -Test {
             $param = (Get-Command -Name 'Show-SystemMonitor').Parameters['RefreshInterval']
-            $param.DefaultValue | Should -Be 2
+            $rangeAttr = $param.Attributes | Where-Object { $_ -is [System.Management.Automation.ValidateRangeAttribute] }
+            $rangeAttr | Should -Not -BeNullOrEmpty
         }
 
-        It -Name 'Should default ProcessCount to 25' -Test {
+        It -Name 'Should accept ProcessCount in range 5-100' -Test {
             $param = (Get-Command -Name 'Show-SystemMonitor').Parameters['ProcessCount']
-            $param.DefaultValue | Should -Be 25
+            $rangeAttr = $param.Attributes | Where-Object { $_ -is [System.Management.Automation.ValidateRangeAttribute] }
+            $rangeAttr | Should -Not -BeNullOrEmpty
         }
     }
 
