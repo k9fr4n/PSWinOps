@@ -135,13 +135,16 @@ function Invoke-ADSecurityAudit {
             'Description', 'DistinguishedName'
         )
 
-        $computerProps = @(
+        $computerPropsBase = @(
             'SamAccountName', 'Name', 'Enabled', 'OperatingSystem', 'OperatingSystemVersion',
             'TrustedForDelegation', 'TrustedToAuthForDelegation',
             'msDS-AllowedToDelegateTo', 'msDS-AllowedToActOnBehalfOfOtherIdentity',
-            'ms-Mcs-AdmPwdExpirationTime',
             'LastLogonDate', 'PasswordLastSet', 'Description', 'DistinguishedName'
         )
+
+        # LAPS attribute names to try (Windows LAPS then legacy LAPS)
+        $lapsAttributes = @('msLAPS-PasswordExpirationTime', 'ms-Mcs-AdmPwdExpirationTime')
+        $lapsAttribute = $null
 
         try {
             $allUsers = @(Get-ADUser -Filter "Enabled -eq `$true" -Properties $userProps -ErrorAction Stop @adSplat)
@@ -152,13 +155,34 @@ function Invoke-ADSecurityAudit {
             $allUsers = @()
         }
 
-        try {
-            $allComputers = @(Get-ADComputer -Filter "Enabled -eq `$true" -Properties $computerProps -ErrorAction Stop @adSplat)
-            Write-Verbose -Message "[$($MyInvocation.MyCommand)] Fetched $($allComputers.Count) enabled computers"
+        # Try computer query with LAPS attributes, fallback without if schema doesn't have them
+        $allComputers = @()
+        $computerQuerySuccess = $false
+
+        foreach ($lapsAttr in $lapsAttributes) {
+            if ($computerQuerySuccess) { break }
+            try {
+                $propsWithLaps = $computerPropsBase + @($lapsAttr)
+                $allComputers = @(Get-ADComputer -Filter "Enabled -eq `$true" -Properties $propsWithLaps -ErrorAction Stop @adSplat)
+                $lapsAttribute = $lapsAttr
+                $computerQuerySuccess = $true
+                Write-Verbose -Message "[$($MyInvocation.MyCommand)] Fetched $($allComputers.Count) computers (LAPS attribute: $lapsAttr)"
+            }
+            catch {
+                Write-Verbose -Message "[$($MyInvocation.MyCommand)] LAPS attribute '$lapsAttr' not available, trying next"
+            }
         }
-        catch {
-            Write-Error -Message "[$($MyInvocation.MyCommand)] Failed to query computers: $_"
-            $allComputers = @()
+
+        if (-not $computerQuerySuccess) {
+            try {
+                $allComputers = @(Get-ADComputer -Filter "Enabled -eq `$true" -Properties $computerPropsBase -ErrorAction Stop @adSplat)
+                $computerQuerySuccess = $true
+                Write-Verbose -Message "[$($MyInvocation.MyCommand)] Fetched $($allComputers.Count) computers (no LAPS attributes in schema)"
+            }
+            catch {
+                Write-Error -Message "[$($MyInvocation.MyCommand)] Failed to query computers: $_"
+                $allComputers = @()
+            }
         }
 
         # Domain controllers list (to exclude from delegation checks)
@@ -442,26 +466,45 @@ function Invoke-ADSecurityAudit {
             }
             catch { Write-Verbose -Message "[$($MyInvocation.MyCommand)] AN-09 skipped: $_" }
 
-            # AN-10: Password Never Expires (enabled, non-AdminCount accounts)
+            # AN-10: Password Never Expires (non-admin, non-service accounts)
+            # Service accounts (SPN set or svc-/svc_ prefix) are expected to have this flag
+            # and are reported separately as AN-05 (Kerberoastable) if they have SPNs
             foreach ($user in $allUsers) {
                 if ($user.PasswordNeverExpires -and $user.AdminCount -ne 1) {
+                    $isServiceAccount = $user.ServicePrincipalName.Count -gt 0 -or
+                        $user.SamAccountName -match '^svc[-_]'
+                    if ($isServiceAccount) { continue }
+
                     Add-Finding -Category 'Anomaly' -CheckId 'AN-10' `
                         -Check 'Password Never Expires' -Severity 'Medium' `
                         -SamAccountName $user.SamAccountName -ObjectType 'User' `
-                        -Detail 'Password is set to never expire on a non-privileged account' `
+                        -Detail 'Password is set to never expire on a standard user account' `
                         -Recommendation 'Remove PasswordNeverExpires flag. Use FGPP if a longer expiry is needed.'
                 }
             }
 
             # AN-11: Very old passwords (>365 days)
+            # Service accounts with old passwords are a higher risk (often have elevated access)
             foreach ($user in $allUsers) {
                 if ($user.PasswordLastSet -and $user.PasswordLastSet -lt $now.AddDays(-365)) {
                     $age = [math]::Round(($now - $user.PasswordLastSet).TotalDays)
-                    Add-Finding -Category 'Anomaly' -CheckId 'AN-11' `
-                        -Check 'Very Old Password' -Severity 'Medium' `
-                        -SamAccountName $user.SamAccountName -ObjectType 'User' `
-                        -Detail "Password is $age days old (>365 days). Risk of compromise through credential stuffing." `
-                        -Recommendation 'Force a password change on this account'
+                    $isServiceAccount = $user.ServicePrincipalName.Count -gt 0 -or
+                        $user.SamAccountName -match '^svc[-_]'
+
+                    if ($isServiceAccount) {
+                        Add-Finding -Category 'Anomaly' -CheckId 'AN-11' `
+                            -Check 'Service Account Old Password' -Severity 'High' `
+                            -SamAccountName $user.SamAccountName -ObjectType 'User' `
+                            -Detail "Service account password is $age days old (>365 days). Migrate to gMSA for automatic rotation." `
+                            -Recommendation 'Migrate to gMSA or rotate password. Apply a FGPP with shorter max age.'
+                    }
+                    else {
+                        Add-Finding -Category 'Anomaly' -CheckId 'AN-11' `
+                            -Check 'Very Old Password' -Severity 'Medium' `
+                            -SamAccountName $user.SamAccountName -ObjectType 'User' `
+                            -Detail "Password is $age days old (>365 days). Risk of compromise through credential stuffing." `
+                            -Recommendation 'Force a password change on this account'
+                    }
                 }
             }
 
@@ -501,17 +544,29 @@ function Invoke-ADSecurityAudit {
 
             # CF-02: LAPS deployment
             try {
-                $lapsComputers = @($allComputers | Where-Object { $_.'ms-Mcs-AdmPwdExpirationTime' })
                 $nonDCComputers = @($allComputers | Where-Object { $_.Name.ToUpper() -notin $dcNames })
-                if ($nonDCComputers.Count -gt 0) {
-                    $lapsCoverage = [math]::Round(($lapsComputers.Count / $nonDCComputers.Count) * 100)
-                    if ($lapsCoverage -lt 80) {
-                        $missing = $nonDCComputers.Count - $lapsComputers.Count
+                if ($null -eq $lapsAttribute) {
+                    # No LAPS schema extension found at all
+                    if ($nonDCComputers.Count -gt 0) {
                         Add-Finding -Category 'Configuration' -CheckId 'CF-02' `
-                            -Check 'LAPS Coverage Insufficient' -Severity 'High' `
+                            -Check 'LAPS Not Deployed' -Severity 'High' `
                             -SamAccountName 'N/A' -ObjectType 'Configuration' `
-                            -Detail "LAPS covers $lapsCoverage% of computers ($($lapsComputers.Count)/$($nonDCComputers.Count)). $missing computers unprotected." `
-                            -Recommendation 'Deploy LAPS to all servers and workstations via GPO'
+                            -Detail "LAPS schema extension not found. No computers have local admin password management. $($nonDCComputers.Count) computers unprotected." `
+                            -Recommendation 'Install Windows LAPS or legacy LAPS and deploy via GPO'
+                    }
+                }
+                else {
+                    $lapsComputers = @($allComputers | Where-Object { $_.$lapsAttribute })
+                    if ($nonDCComputers.Count -gt 0) {
+                        $lapsCoverage = [math]::Round(($lapsComputers.Count / $nonDCComputers.Count) * 100)
+                        if ($lapsCoverage -lt 80) {
+                            $missing = $nonDCComputers.Count - $lapsComputers.Count
+                            Add-Finding -Category 'Configuration' -CheckId 'CF-02' `
+                                -Check 'LAPS Coverage Insufficient' -Severity 'High' `
+                                -SamAccountName 'N/A' -ObjectType 'Configuration' `
+                                -Detail "LAPS covers $lapsCoverage% of computers ($($lapsComputers.Count)/$($nonDCComputers.Count)). $missing computers unprotected." `
+                                -Recommendation 'Extend LAPS GPO coverage to all servers and workstations'
+                        }
                     }
                 }
             }
