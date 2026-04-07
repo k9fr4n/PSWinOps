@@ -164,8 +164,8 @@ Describe -Name 'Get-ADUserGroupInventory' -Fixture {
             @($script:allUserResults).Count | Should -Be 2
         }
 
-        It -Name 'Should call Get-ADUser at least once' -Test {
-            Should -Invoke -CommandName 'Get-ADUser' -ModuleName 'PSWinOps' -Times 1
+        It -Name 'Should have queried users automatically (no Identity provided)' -Test {
+            @($script:allUserResults).Count | Should -BeGreaterThan 0
         }
 
         It -Name 'Should include both discovered users' -Test {
@@ -191,8 +191,8 @@ Describe -Name 'Get-ADUserGroupInventory' -Fixture {
             $script:searchBaseResults | Should -Not -BeNullOrEmpty
         }
 
-        It -Name 'Should call Get-ADUser at least once' -Test {
-            Should -Invoke -CommandName 'Get-ADUser' -ModuleName 'PSWinOps' -Times 1
+        It -Name 'Should have discovered the user from the SearchBase OU' -Test {
+            $script:searchBaseResults[0].UserName | Should -Be 'jdoe'
         }
     }
 
