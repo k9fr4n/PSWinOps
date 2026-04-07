@@ -77,7 +77,7 @@ Describe 'Get-ExchangeServerHealth' {
                 CertificatesExpiringSoon = 0
                 CertificatesExpired      = 0
             }
-            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $script:mockNoSnapin }
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith { return $script:mockNoSnapin }
             $script:result = Get-ExchangeServerHealth -ComputerName 'EX01'
         }
 
@@ -97,7 +97,7 @@ Describe 'Get-ExchangeServerHealth' {
     Context 'Healthy - All checks pass' {
 
         BeforeAll {
-            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $script:mockHealthyData }
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith { return $script:mockHealthyData }
             $script:result = Get-ExchangeServerHealth -ComputerName 'EX01'
         }
 
@@ -143,7 +143,7 @@ Describe 'Get-ExchangeServerHealth' {
         BeforeAll {
             $script:mockTransportStopped = $script:mockHealthyData.Clone()
             $script:mockTransportStopped.TransportStatus = 'Stopped'
-            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $script:mockTransportStopped }
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith { return $script:mockTransportStopped }
             $script:result = Get-ExchangeServerHealth -ComputerName 'EX01'
         }
 
@@ -161,7 +161,7 @@ Describe 'Get-ExchangeServerHealth' {
         BeforeAll {
             $script:mockISStopped = $script:mockHealthyData.Clone()
             $script:mockISStopped.InformationStoreStatus = 'Stopped'
-            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $script:mockISStopped }
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith { return $script:mockISStopped }
             $script:result = Get-ExchangeServerHealth -ComputerName 'EX01'
         }
 
@@ -180,7 +180,7 @@ Describe 'Get-ExchangeServerHealth' {
             $script:mockDBDismounted = $script:mockHealthyData.Clone()
             $script:mockDBDismounted.MountedDatabases = 3
             $script:mockDBDismounted.DismountedDatabases = 1
-            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $script:mockDBDismounted }
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith { return $script:mockDBDismounted }
             $script:result = Get-ExchangeServerHealth -ComputerName 'EX01'
         }
 
@@ -199,7 +199,7 @@ Describe 'Get-ExchangeServerHealth' {
             $script:mockQueueCritical = $script:mockHealthyData.Clone()
             $script:mockQueueCritical.HighestQueueLength = 600
             $script:mockQueueCritical.TotalQueueMessages = 850
-            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $script:mockQueueCritical }
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith { return $script:mockQueueCritical }
             $script:result = Get-ExchangeServerHealth -ComputerName 'EX01'
         }
 
@@ -218,7 +218,7 @@ Describe 'Get-ExchangeServerHealth' {
             $script:mockQueueWarn = $script:mockHealthyData.Clone()
             $script:mockQueueWarn.HighestQueueLength = 150
             $script:mockQueueWarn.TotalQueueMessages = 200
-            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $script:mockQueueWarn }
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith { return $script:mockQueueWarn }
             $script:result = Get-ExchangeServerHealth -ComputerName 'EX01'
         }
 
@@ -237,7 +237,7 @@ Describe 'Get-ExchangeServerHealth' {
             $script:mockDAGUnhealthy = $script:mockHealthyData.Clone()
             $script:mockDAGUnhealthy.DAGCopiesHealthy = 6
             $script:mockDAGUnhealthy.DAGCopiesUnhealthy = 2
-            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $script:mockDAGUnhealthy }
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith { return $script:mockDAGUnhealthy }
             $script:result = Get-ExchangeServerHealth -ComputerName 'EX01'
         }
 
@@ -255,7 +255,7 @@ Describe 'Get-ExchangeServerHealth' {
         BeforeAll {
             $script:mockCertExpiring = $script:mockHealthyData.Clone()
             $script:mockCertExpiring.CertificatesExpiringSoon = 1
-            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $script:mockCertExpiring }
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith { return $script:mockCertExpiring }
             $script:result = Get-ExchangeServerHealth -ComputerName 'EX01'
         }
 
@@ -273,7 +273,7 @@ Describe 'Get-ExchangeServerHealth' {
         BeforeAll {
             $script:mockCertExpired = $script:mockHealthyData.Clone()
             $script:mockCertExpired.CertificatesExpired = 1
-            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $script:mockCertExpired }
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith { return $script:mockCertExpired }
             $script:result = Get-ExchangeServerHealth -ComputerName 'EX01'
         }
 
@@ -291,7 +291,7 @@ Describe 'Get-ExchangeServerHealth' {
         BeforeAll {
             $script:mockADTopStopped = $script:mockHealthyData.Clone()
             $script:mockADTopStopped.ADTopologyStatus = 'Stopped'
-            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $script:mockADTopStopped }
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith { return $script:mockADTopStopped }
             $script:result = Get-ExchangeServerHealth -ComputerName 'EX01'
         }
 
@@ -304,10 +304,58 @@ Describe 'Get-ExchangeServerHealth' {
         }
     }
 
+    Context 'Degraded - ServiceHost stopped' {
+
+        BeforeAll {
+            $script:mockSvcHostStopped = $script:mockHealthyData.Clone()
+            $script:mockSvcHostStopped.ServiceHostStatus = 'Stopped'
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith { return $script:mockSvcHostStopped }
+            $script:result = Get-ExchangeServerHealth -ComputerName 'EX01'
+        }
+
+        It -Name 'Should return Degraded overall health' -Test {
+            $script:result.OverallHealth | Should -Be 'Degraded'
+        }
+
+        It -Name 'Should report Stopped ServiceHost status' -Test {
+            $script:result.ServiceHostStatus | Should -Be 'Stopped'
+        }
+
+        It -Name 'Should keep other services as Running' -Test {
+            $script:result.TransportStatus | Should -Be 'Running'
+            $script:result.InformationStoreStatus | Should -Be 'Running'
+            $script:result.ADTopologyStatus | Should -Be 'Running'
+        }
+    }
+
+    Context 'Local execution path' {
+
+        BeforeAll {
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith { return $script:mockHealthyData }
+            $script:result = Get-ExchangeServerHealth -ComputerName $env:COMPUTERNAME
+        }
+
+        It -Name 'Should return result for local machine' -Test {
+            $script:result | Should -Not -BeNullOrEmpty
+        }
+
+        It -Name 'Should uppercase the local computer name' -Test {
+            $script:result.ComputerName | Should -Be $env:COMPUTERNAME.ToUpper()
+        }
+
+        It -Name 'Should return Healthy status for healthy local machine' -Test {
+            $script:result.OverallHealth | Should -Be 'Healthy'
+        }
+
+        It -Name 'Should have PSTypeName on local result' -Test {
+            $script:result.PSObject.TypeNames[0] | Should -Be 'PSWinOps.ExchangeServerHealth'
+        }
+    }
+
     Context 'Remote single machine' {
 
         BeforeAll {
-            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $script:mockHealthyData }
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith { return $script:mockHealthyData }
             $script:result = Get-ExchangeServerHealth -ComputerName 'EX01'
         }
 
@@ -323,7 +371,7 @@ Describe 'Get-ExchangeServerHealth' {
     Context 'Pipeline multiple machines' {
 
         BeforeAll {
-            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $script:mockHealthyData }
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith { return $script:mockHealthyData }
             $script:results = @('EX01', 'EX02') | Get-ExchangeServerHealth
         }
 
@@ -340,7 +388,7 @@ Describe 'Get-ExchangeServerHealth' {
     Context 'Per-machine failure' {
 
         BeforeAll {
-            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { throw 'Connection failed' }
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith { throw 'Connection failed' }
         }
 
         It -Name 'Should write error for unreachable host' -Test {
@@ -351,6 +399,33 @@ Describe 'Get-ExchangeServerHealth' {
         It -Name 'Should return null when errors are silenced' -Test {
             $failResult = Get-ExchangeServerHealth -ComputerName 'BADHOST' -ErrorAction SilentlyContinue
             $failResult | Should -BeNullOrEmpty
+        }
+    }
+
+    Context 'Mixed success and failure across multiple machines' {
+
+        BeforeAll {
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith { return $script:mockHealthyData }
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -ParameterFilter {
+                $ComputerName -eq 'BADHOST'
+            } -MockWith { throw 'Connection refused' }
+            $script:mixedResults = Get-ExchangeServerHealth -ComputerName 'EX01', 'BADHOST', 'EX02' -ErrorAction SilentlyContinue
+        }
+
+        It -Name 'Should return results only for reachable machines' -Test {
+            @($script:mixedResults).Count | Should -Be 2
+        }
+
+        It -Name 'Should include EX01 in results' -Test {
+            $script:mixedResults[0].ComputerName | Should -Be 'EX01'
+        }
+
+        It -Name 'Should include EX02 in results' -Test {
+            $script:mixedResults[1].ComputerName | Should -Be 'EX02'
+        }
+
+        It -Name 'Should continue processing after failure on BADHOST' -Test {
+            $script:mixedResults[1].OverallHealth | Should -Be 'Healthy'
         }
     }
 
@@ -378,7 +453,7 @@ Describe 'Get-ExchangeServerHealth' {
         BeforeAll {
             $script:mockCustomQueue = $script:mockHealthyData.Clone()
             $script:mockCustomQueue.HighestQueueLength = 60
-            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $script:mockCustomQueue }
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith { return $script:mockCustomQueue }
         }
 
         It -Name 'Should report Degraded with custom warning threshold of 50' -Test {
@@ -389,6 +464,11 @@ Describe 'Get-ExchangeServerHealth' {
         It -Name 'Should report Healthy with default threshold of 100' -Test {
             $result = Get-ExchangeServerHealth -ComputerName 'EX01'
             $result.OverallHealth | Should -Be 'Healthy'
+        }
+
+        It -Name 'Should report Critical with custom critical threshold of 50' -Test {
+            $result = Get-ExchangeServerHealth -ComputerName 'EX01' -QueueCriticalThreshold 50
+            $result.OverallHealth | Should -Be 'Critical'
         }
     }
 }
