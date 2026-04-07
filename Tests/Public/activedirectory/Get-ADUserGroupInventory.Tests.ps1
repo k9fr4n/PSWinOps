@@ -11,20 +11,32 @@ BeforeAll {
     $script:modulePath = Split-Path -Path (Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent) -Parent
 
     if (-not (Get-Command -Name 'Get-ADUser' -ErrorAction SilentlyContinue)) {
-        function global:Get-ADUser { }
+        function global:Get-ADUser {
+            [CmdletBinding()]
+            param($Identity, $Filter, $Properties, $SearchBase, $Server, $Credential)
+        }
     }
     if (-not (Get-Command -Name 'Get-ADGroup' -ErrorAction SilentlyContinue)) {
-        function global:Get-ADGroup { }
+        function global:Get-ADGroup {
+            [CmdletBinding()]
+            param($LDAPFilter, $Filter, $Properties, $Server, $Credential)
+        }
     }
 
     Import-Module -Name (Join-Path -Path $script:modulePath -ChildPath 'PSWinOps.psd1') -Force
 
     & (Get-Module -Name 'PSWinOps') {
         if (-not (Get-Command -Name 'Get-ADUser' -ErrorAction SilentlyContinue)) {
-            function script:Get-ADUser { }
+            function script:Get-ADUser {
+                [CmdletBinding()]
+                param($Identity, $Filter, $Properties, $SearchBase, $Server, $Credential)
+            }
         }
         if (-not (Get-Command -Name 'Get-ADGroup' -ErrorAction SilentlyContinue)) {
-            function script:Get-ADGroup { }
+            function script:Get-ADGroup {
+                [CmdletBinding()]
+                param($LDAPFilter, $Filter, $Properties, $Server, $Credential)
+            }
         }
     }
 }
