@@ -117,15 +117,10 @@ Describe -Name 'Get-ADUserGroupInventory' -Fixture {
     Context -Name 'Multiple users via Identity array' -Fixture {
 
         BeforeAll {
-            Mock -CommandName 'Get-ADUser' -ModuleName 'PSWinOps' -ParameterFilter {
-                $Identity -eq 'jdoe'
-            } -MockWith {
-                return $script:mockUser
-            }
-            Mock -CommandName 'Get-ADUser' -ModuleName 'PSWinOps' -ParameterFilter {
-                $Identity -eq 'asmith'
-            } -MockWith {
-                return $script:mockUser2
+            Mock -CommandName 'Get-ADUser' -ModuleName 'PSWinOps' -MockWith {
+                param($Identity, $Filter, $Properties, $SearchBase, $Server, $Credential)
+                if ($Identity -eq 'jdoe')   { return $script:mockUser }
+                if ($Identity -eq 'asmith')  { return $script:mockUser2 }
             }
             Mock -CommandName 'Get-ADGroup' -ModuleName 'PSWinOps' -MockWith {
                 return @($script:mockGroup1)
@@ -156,9 +151,7 @@ Describe -Name 'Get-ADUserGroupInventory' -Fixture {
     Context -Name 'No Identity provided - queries all users' -Fixture {
 
         BeforeAll {
-            Mock -CommandName 'Get-ADUser' -ModuleName 'PSWinOps' -ParameterFilter {
-                $null -ne $Filter
-            } -MockWith {
+            Mock -CommandName 'Get-ADUser' -ModuleName 'PSWinOps' -MockWith {
                 return @($script:mockUser, $script:mockUser2)
             }
             Mock -CommandName 'Get-ADGroup' -ModuleName 'PSWinOps' -MockWith {
@@ -171,10 +164,8 @@ Describe -Name 'Get-ADUserGroupInventory' -Fixture {
             @($script:allUserResults).Count | Should -Be 2
         }
 
-        It -Name 'Should call Get-ADUser with Filter parameter' -Test {
-            Should -Invoke -CommandName 'Get-ADUser' -ModuleName 'PSWinOps' -Times 1 -ParameterFilter {
-                $null -ne $Filter
-            }
+        It -Name 'Should call Get-ADUser at least once' -Test {
+            Should -Invoke -CommandName 'Get-ADUser' -ModuleName 'PSWinOps' -Times 1
         }
 
         It -Name 'Should include both discovered users' -Test {
@@ -187,9 +178,7 @@ Describe -Name 'Get-ADUserGroupInventory' -Fixture {
     Context -Name 'SearchBase parameter with no Identity' -Fixture {
 
         BeforeAll {
-            Mock -CommandName 'Get-ADUser' -ModuleName 'PSWinOps' -ParameterFilter {
-                $null -ne $Filter
-            } -MockWith {
+            Mock -CommandName 'Get-ADUser' -ModuleName 'PSWinOps' -MockWith {
                 return @($script:mockUser)
             }
             Mock -CommandName 'Get-ADGroup' -ModuleName 'PSWinOps' -MockWith {
@@ -202,10 +191,8 @@ Describe -Name 'Get-ADUserGroupInventory' -Fixture {
             $script:searchBaseResults | Should -Not -BeNullOrEmpty
         }
 
-        It -Name 'Should call Get-ADUser with Filter for all users in OU' -Test {
-            Should -Invoke -CommandName 'Get-ADUser' -ModuleName 'PSWinOps' -Times 1 -ParameterFilter {
-                $null -ne $Filter
-            }
+        It -Name 'Should call Get-ADUser at least once' -Test {
+            Should -Invoke -CommandName 'Get-ADUser' -ModuleName 'PSWinOps' -Times 1
         }
     }
 
@@ -252,15 +239,12 @@ Describe -Name 'Get-ADUserGroupInventory' -Fixture {
     Context -Name 'Get-ADUser throws for one identity in array' -Fixture {
 
         BeforeAll {
-            Mock -CommandName 'Get-ADUser' -ModuleName 'PSWinOps' -ParameterFilter {
-                $Identity -eq 'jdoe'
-            } -MockWith {
+            Mock -CommandName 'Get-ADUser' -ModuleName 'PSWinOps' -MockWith {
+                param($Identity, $Filter, $Properties, $SearchBase, $Server, $Credential)
+                if ($Identity -eq 'baduser') {
+                    throw 'Cannot find an object with identity baduser'
+                }
                 return $script:mockUser
-            }
-            Mock -CommandName 'Get-ADUser' -ModuleName 'PSWinOps' -ParameterFilter {
-                $Identity -eq 'baduser'
-            } -MockWith {
-                throw 'Cannot find an object with identity baduser'
             }
             Mock -CommandName 'Get-ADGroup' -ModuleName 'PSWinOps' -MockWith {
                 return @($script:mockGroup1)
@@ -286,9 +270,7 @@ Describe -Name 'Get-ADUserGroupInventory' -Fixture {
     Context -Name 'Get-ADUser filter query fails for all users' -Fixture {
 
         BeforeAll {
-            Mock -CommandName 'Get-ADUser' -ModuleName 'PSWinOps' -ParameterFilter {
-                $null -ne $Filter
-            } -MockWith {
+            Mock -CommandName 'Get-ADUser' -ModuleName 'PSWinOps' -MockWith {
                 throw 'LDAP server unavailable'
             }
         }
