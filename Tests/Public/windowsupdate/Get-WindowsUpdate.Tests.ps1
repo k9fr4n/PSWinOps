@@ -7,56 +7,92 @@ BeforeAll {
 
     $script:mockUpdates = @(
         [PSCustomObject]@{
-            Title          = '2026-03 Cumulative Update for Windows Server 2022 (KB5034441)'
-            KBArticle      = 'KB5034441'
-            Classification = 'Security Updates'
-            Products       = @('Windows Server 2022', 'Microsoft Server Operating System-24H2')
-            IsDownloaded   = $false
-            IsHidden       = $false
-            IsMandatory    = $true
-            RebootRequired = $true
-            MaxSizeBytes   = 47316992
-            UpdateId       = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'
-            RevisionNumber = 201
+            Title           = '2026-03 Cumulative Update for Windows Server 2022 (KB5034441)'
+            KBArticle       = 'KB5034441'
+            KBArticleIDs    = @('5034441')
+            Classification  = 'Security Updates'
+            Products        = @('Windows Server 2022', 'Microsoft Server Operating System-24H2')
+            Description     = 'A cumulative security update for Windows Server 2022'
+            ReleaseNotes    = 'https://support.microsoft.com/kb/5034441'
+            MsrcSeverity    = 'Critical'
+            CveIDs          = @('CVE-2026-1234', 'CVE-2026-5678')
+            IsDownloaded    = $false
+            IsHidden        = $false
+            IsInstalled     = $false
+            IsMandatory     = $true
+            IsUninstallable = $true
+            EulaAccepted    = $true
+            Deadline        = [datetime]'2026-04-15'
+            RebootRequired  = $true
+            MaxSizeBytes    = 47316992
+            UpdateId        = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'
+            RevisionNumber  = 201
         },
         [PSCustomObject]@{
-            Title          = '2026-03 Security Update for .NET Framework (KB5035432)'
-            KBArticle      = 'KB5035432'
-            Classification = 'Critical Updates'
-            Products       = @('Windows Server 2022')
-            IsDownloaded   = $true
-            IsHidden       = $false
-            IsMandatory    = $false
-            RebootRequired = $false
-            MaxSizeBytes   = 12582912
-            UpdateId       = 'b2c3d4e5-f6a7-8901-bcde-f12345678901'
-            RevisionNumber = 100
+            Title           = '2026-03 Security Update for .NET Framework (KB5035432)'
+            KBArticle       = 'KB5035432'
+            KBArticleIDs    = @('5035432')
+            Classification  = 'Critical Updates'
+            Products        = @('Windows Server 2022')
+            Description     = 'A critical security update for .NET Framework'
+            ReleaseNotes    = ''
+            MsrcSeverity    = 'Important'
+            CveIDs          = @('CVE-2026-9012')
+            IsDownloaded    = $true
+            IsHidden        = $false
+            IsInstalled     = $false
+            IsMandatory     = $false
+            IsUninstallable = $false
+            EulaAccepted    = $false
+            Deadline        = $null
+            RebootRequired  = $false
+            MaxSizeBytes    = 12582912
+            UpdateId        = 'b2c3d4e5-f6a7-8901-bcde-f12345678901'
+            RevisionNumber  = 100
         },
         [PSCustomObject]@{
-            Title          = 'Windows Malicious Software Removal Tool - March 2026'
-            KBArticle      = ''
-            Classification = 'Update Rollups'
-            Products       = @('Windows Server 2022')
-            IsDownloaded   = $false
-            IsHidden       = $false
-            IsMandatory    = $false
-            RebootRequired = $false
-            MaxSizeBytes   = 5242880
-            UpdateId       = 'c3d4e5f6-a7b8-9012-cdef-123456789012'
-            RevisionNumber = 50
+            Title           = 'Windows Malicious Software Removal Tool - March 2026'
+            KBArticle       = ''
+            KBArticleIDs    = @()
+            Classification  = 'Update Rollups'
+            Products        = @('Windows Server 2022')
+            Description     = 'This tool checks your computer for infection'
+            ReleaseNotes    = ''
+            MsrcSeverity    = ''
+            CveIDs          = @()
+            IsDownloaded    = $false
+            IsHidden        = $false
+            IsInstalled     = $false
+            IsMandatory     = $false
+            IsUninstallable = $false
+            EulaAccepted    = $true
+            Deadline        = $null
+            RebootRequired  = $false
+            MaxSizeBytes    = 5242880
+            UpdateId        = 'c3d4e5f6-a7b8-9012-cdef-123456789012'
+            RevisionNumber  = 50
         },
         [PSCustomObject]@{
-            Title          = 'Definition Update for Windows Defender (KB2267602)'
-            KBArticle      = 'KB2267602'
-            Classification = 'Definition Updates'
-            Products       = @('Windows Defender')
-            IsDownloaded   = $true
-            IsHidden       = $false
-            IsMandatory    = $false
-            RebootRequired = $false
-            MaxSizeBytes   = 2097152
-            UpdateId       = 'd4e5f6a7-b8c9-0123-defa-234567890123'
-            RevisionNumber = 1
+            Title           = 'Definition Update for Windows Defender (KB2267602)'
+            KBArticle       = 'KB2267602'
+            KBArticleIDs    = @('2267602')
+            Classification  = 'Definition Updates'
+            Products        = @('Windows Defender')
+            Description     = 'Definition update for Windows Defender Antivirus'
+            ReleaseNotes    = ''
+            MsrcSeverity    = ''
+            CveIDs          = @()
+            IsDownloaded    = $true
+            IsHidden        = $false
+            IsInstalled     = $false
+            IsMandatory     = $false
+            IsUninstallable = $false
+            EulaAccepted    = $true
+            Deadline        = $null
+            RebootRequired  = $false
+            MaxSizeBytes    = 2097152
+            UpdateId        = 'd4e5f6a7-b8c9-0123-defa-234567890123'
+            RevisionNumber  = 1
         }
     )
 }
@@ -157,6 +193,37 @@ Describe 'Get-WindowsUpdate' {
 
         It -Name 'Should return nothing when product matches none' -Test {
             $filtered = Get-WindowsUpdate -Product 'Microsoft Office'
+            $filtered | Should -BeNullOrEmpty
+        }
+    }
+
+    Context 'KBArticleID filter' {
+
+        BeforeAll {
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                return $script:mockUpdates
+            }
+        }
+
+        It -Name 'Should filter by single KB with prefix' -Test {
+            $filtered = Get-WindowsUpdate -KBArticleID 'KB5034441'
+            @($filtered).Count | Should -Be 1
+            $filtered.KBArticle | Should -Be 'KB5034441'
+        }
+
+        It -Name 'Should filter by single KB without prefix' -Test {
+            $filtered = Get-WindowsUpdate -KBArticleID '5034441'
+            @($filtered).Count | Should -Be 1
+            $filtered.KBArticle | Should -Be 'KB5034441'
+        }
+
+        It -Name 'Should filter by multiple KBs' -Test {
+            $filtered = Get-WindowsUpdate -KBArticleID 'KB5034441', 'KB2267602'
+            @($filtered).Count | Should -Be 2
+        }
+
+        It -Name 'Should return nothing when KB matches none' -Test {
+            $filtered = Get-WindowsUpdate -KBArticleID 'KB9999999'
             $filtered | Should -BeNullOrEmpty
         }
     }
@@ -355,6 +422,10 @@ Describe 'Get-WindowsUpdate' {
             { Get-WindowsUpdate -Product '' } | Should -Throw
         }
 
+        It -Name 'Should throw when KBArticleID is empty string' -Test {
+            { Get-WindowsUpdate -KBArticleID '' } | Should -Throw
+        }
+
         It -Name 'Should have Source parameter with ValidateSet' -Test {
             $paramMeta = (Get-Command -Name 'Get-WindowsUpdate').Parameters['Source']
             $paramMeta | Should -Not -BeNullOrEmpty
@@ -378,7 +449,9 @@ Describe 'Get-WindowsUpdate' {
         It -Name 'Should have all expected properties' -Test {
             $expectedProperties = @(
                 'ComputerName', 'Title', 'KBArticle', 'Classification', 'Products',
-                'IsDownloaded', 'IsHidden', 'IsMandatory', 'RebootRequired',
+                'Description', 'ReleaseNotes', 'MsrcSeverity', 'CveIDs',
+                'IsDownloaded', 'IsHidden', 'IsInstalled', 'IsMandatory',
+                'IsUninstallable', 'EulaAccepted', 'Deadline', 'RebootRequired',
                 'SizeMB', 'UpdateId', 'RevisionNumber', 'Timestamp'
             )
             foreach ($prop in $expectedProperties) {
@@ -389,6 +462,35 @@ Describe 'Get-WindowsUpdate' {
         It -Name 'Should return Products as array' -Test {
             $script:result.Products | Should -BeOfType [string]
             @($script:result.Products).Count | Should -BeGreaterOrEqual 1
+        }
+
+        It -Name 'Should return CveIDs as array' -Test {
+            @($script:result.CveIDs).Count | Should -Be 2
+            $script:result.CveIDs | Should -Contain 'CVE-2026-1234'
+        }
+
+        It -Name 'Should preserve MsrcSeverity' -Test {
+            $script:result.MsrcSeverity | Should -Be 'Critical'
+        }
+
+        It -Name 'Should preserve Description' -Test {
+            $script:result.Description | Should -Be 'A cumulative security update for Windows Server 2022'
+        }
+
+        It -Name 'Should preserve Deadline' -Test {
+            $script:result.Deadline | Should -Be ([datetime]'2026-04-15')
+        }
+
+        It -Name 'Should preserve EulaAccepted' -Test {
+            $script:result.EulaAccepted | Should -BeTrue
+        }
+
+        It -Name 'Should preserve IsUninstallable' -Test {
+            $script:result.IsUninstallable | Should -BeTrue
+        }
+
+        It -Name 'Should preserve IsInstalled' -Test {
+            $script:result.IsInstalled | Should -BeFalse
         }
 
         It -Name 'Should preserve UpdateId GUID' -Test {

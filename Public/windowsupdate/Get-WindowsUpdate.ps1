@@ -7,10 +7,11 @@ function Get-WindowsUpdate {
         .DESCRIPTION
             Scans for available (not yet installed) Windows Updates using the COM API
             (Microsoft.Update.Session). Returns each pending update with its classification,
-            product categories, download status, size, and reboot requirement.
-            By default all classifications and products are returned. Use the Classification
-            and Product parameters to filter results. Hidden updates are excluded unless
-            the IncludeHidden switch is specified.
+            product categories, download status, size, reboot requirement, MSRC severity,
+            CVE identifiers, EULA status, and more.
+            By default all classifications and products are returned. Use the Classification,
+            Product, and KBArticleID parameters to filter results. Hidden updates are excluded
+            unless the IncludeHidden switch is specified.
             The Source parameter controls which update service is queried: the machine's
             configured source (Default), Microsoft Update (full catalog), or Windows Update
             (bypassing WSUS).
@@ -34,6 +35,11 @@ function Get-WindowsUpdate {
             Common values: 'Windows Server 2022', 'Windows 11', 'Microsoft Office',
             'Windows Defender'. When not specified, all products are returned.
 
+        .PARAMETER KBArticleID
+            Optional filter to return only updates matching the specified KB article IDs.
+            Accepts one or more KB identifiers with or without the 'KB' prefix
+            (e.g., 'KB5034441' or '5034441'). When not specified, all updates are returned.
+
         .PARAMETER Source
             Specifies the update service to query. Valid values are:
             - Default: Uses the machine's configured source (WSUS, WUFB, or Windows Update).
@@ -51,24 +57,25 @@ function Get-WindowsUpdate {
             Lists all available updates on the local computer using the configured source.
 
         .EXAMPLE
-            Get-WindowsUpdate -ComputerName 'SRV01' -Source MicrosoftUpdate -Classification 'Security Updates'
+            Get-WindowsUpdate -ComputerName 'SRV01' -KBArticleID 'KB5034441'
 
-            Lists security updates from the full Microsoft Update catalog on SRV01.
+            Checks if a specific KB is available on SRV01.
 
         .EXAMPLE
-            'SRV01', 'SRV02' | Get-WindowsUpdate -Source WindowsUpdate | Where-Object { -not $_.IsDownloaded }
+            'SRV01', 'SRV02' | Get-WindowsUpdate -Source MicrosoftUpdate -Classification 'Security Updates'
 
-            Bypasses WSUS and queries Windows Update directly on SRV01 and SRV02, filtering for not-yet-downloaded updates.
+            Lists security updates from the full Microsoft Update catalog on SRV01 and SRV02.
 
         .OUTPUTS
             PSWinOps.WindowsUpdate
             Returns objects with ComputerName, Title, KBArticle, Classification, Products,
-            IsDownloaded, IsHidden, IsMandatory, RebootRequired, SizeMB, UpdateId,
-            RevisionNumber, and Timestamp properties.
+            IsDownloaded, IsHidden, IsInstalled, IsMandatory, IsUninstallable, RebootRequired,
+            MsrcSeverity, Description, ReleaseNotes, CveIDs, EulaAccepted, Deadline,
+            SizeMB, UpdateId, RevisionNumber, and Timestamp properties.
 
         .NOTES
             Author: Franck SALLET
-            Version: 1.0.0
+            Version: 1.1.0
             Last Modified: 2026-04-08
             Requires: PowerShell 5.1+ / Windows only
             Requires: Windows Update service must be accessible on target machines
@@ -99,6 +106,10 @@ function Get-WindowsUpdate {
 
         [Parameter(Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
+        [string[]]$KBArticleID,
+
+        [Parameter(Mandatory = $false)]
+        [ValidateNotNullOrEmpty()]
         [string[]]$Classification,
 
         [Parameter(Mandatory = $false)]
@@ -111,6 +122,14 @@ function Get-WindowsUpdate {
 
     begin {
         Write-Verbose -Message "[$($MyInvocation.MyCommand)] Starting"
+
+        # Normalize KBArticleID — strip 'KB' prefix for consistent matching
+        $normalizedKBIds = $null
+        if ($KBArticleID) {
+            $normalizedKBIds = $KBArticleID | ForEach-Object -Process {
+                $_ -replace '^KB', ''
+            }
+        }
 
         $wuScriptBlock = {
             param(
@@ -167,18 +186,41 @@ function Get-WindowsUpdate {
                         $kbArticle = "KB$($update.KBArticleIDs.Item(0))"
                     }
 
+                    $cveIds = @()
+                    if ($update.CveIDs) {
+                        foreach ($cve in $update.CveIDs) {
+                            $cveIds += [string]$cve
+                        }
+                    }
+
+                    $allKBs = @()
+                    if ($update.KBArticleIDs.Count -gt 0) {
+                        foreach ($kb in $update.KBArticleIDs) {
+                            $allKBs += [string]$kb
+                        }
+                    }
+
                     $entries.Add([PSCustomObject]@{
-                        Title          = [string]$update.Title
-                        KBArticle      = $kbArticle
-                        Classification = [string]$classification
-                        Products       = @($products)
-                        IsDownloaded   = [bool]$update.IsDownloaded
-                        IsHidden       = [bool]$update.IsHidden
-                        IsMandatory    = [bool]$update.IsMandatory
-                        RebootRequired = ($update.RebootBehavior -ne 0)
-                        MaxSizeBytes   = [long]$update.MaxDownloadSize
-                        UpdateId       = [string]$update.Identity.UpdateID
-                        RevisionNumber = [int]$update.Identity.RevisionNumber
+                        Title           = [string]$update.Title
+                        KBArticle       = $kbArticle
+                        KBArticleIDs    = $allKBs
+                        Classification  = [string]$classification
+                        Products        = @($products)
+                        Description     = [string]$update.Description
+                        ReleaseNotes    = [string]$update.ReleaseNotes
+                        MsrcSeverity    = [string]$update.MsrcSeverity
+                        CveIDs          = $cveIds
+                        IsDownloaded    = [bool]$update.IsDownloaded
+                        IsHidden        = [bool]$update.IsHidden
+                        IsInstalled     = [bool]$update.IsInstalled
+                        IsMandatory     = [bool]$update.IsMandatory
+                        IsUninstallable = [bool]$update.IsUninstallable
+                        EulaAccepted    = [bool]$update.EulaAccepted
+                        Deadline        = $update.Deadline
+                        RebootRequired  = ($update.RebootBehavior -ne 0)
+                        MaxSizeBytes    = [long]$update.MaxDownloadSize
+                        UpdateId        = [string]$update.Identity.UpdateID
+                        RevisionNumber  = [int]$update.Identity.RevisionNumber
                     })
                 }
 
@@ -212,6 +254,15 @@ function Get-WindowsUpdate {
                     continue
                 }
 
+                # Filter by KBArticleID if specified
+                if ($normalizedKBIds) {
+                    $rawEntries = @($rawEntries | Where-Object -FilterScript {
+                        $entryKBs = $_.KBArticleIDs
+                        $null -ne ($normalizedKBIds | Where-Object -FilterScript { $_ -in $entryKBs } |
+                            Select-Object -First 1)
+                    })
+                }
+
                 # Filter by Classification if specified
                 if ($Classification) {
                     $rawEntries = @($rawEntries | Where-Object -FilterScript {
@@ -230,20 +281,28 @@ function Get-WindowsUpdate {
 
                 foreach ($entry in $rawEntries) {
                     [PSCustomObject]@{
-                        PSTypeName     = 'PSWinOps.WindowsUpdate'
-                        ComputerName   = $computer
-                        Title          = $entry.Title
-                        KBArticle      = $entry.KBArticle
-                        Classification = $entry.Classification
-                        Products       = $entry.Products
-                        IsDownloaded   = $entry.IsDownloaded
-                        IsHidden       = $entry.IsHidden
-                        IsMandatory    = $entry.IsMandatory
-                        RebootRequired = $entry.RebootRequired
-                        SizeMB         = [math]::Round($entry.MaxSizeBytes / 1MB, 2)
-                        UpdateId       = $entry.UpdateId
-                        RevisionNumber = $entry.RevisionNumber
-                        Timestamp      = Get-Date -Format 'o'
+                        PSTypeName      = 'PSWinOps.WindowsUpdate'
+                        ComputerName    = $computer
+                        Title           = $entry.Title
+                        KBArticle       = $entry.KBArticle
+                        Classification  = $entry.Classification
+                        Products        = $entry.Products
+                        Description     = $entry.Description
+                        ReleaseNotes    = $entry.ReleaseNotes
+                        MsrcSeverity    = $entry.MsrcSeverity
+                        CveIDs          = $entry.CveIDs
+                        IsDownloaded    = $entry.IsDownloaded
+                        IsHidden        = $entry.IsHidden
+                        IsInstalled     = $entry.IsInstalled
+                        IsMandatory     = $entry.IsMandatory
+                        IsUninstallable = $entry.IsUninstallable
+                        EulaAccepted    = $entry.EulaAccepted
+                        Deadline        = $entry.Deadline
+                        RebootRequired  = $entry.RebootRequired
+                        SizeMB          = [math]::Round($entry.MaxSizeBytes / 1MB, 2)
+                        UpdateId        = $entry.UpdateId
+                        RevisionNumber  = $entry.RevisionNumber
+                        Timestamp       = Get-Date -Format 'o'
                     }
                 }
             }
