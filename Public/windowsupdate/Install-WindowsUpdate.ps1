@@ -217,22 +217,26 @@ function Install-WindowsUpdate {
                 if ($IncludeHidden) { $getParams['IncludeHidden'] = $true }
                 if ($PSBoundParameters.ContainsKey('Credential')) { $getParams['Credential'] = $Credential }
 
-                Write-Verbose -Message "[$($MyInvocation.MyCommand)] Scanning for available updates on '$computer'"
+                $activityLabel = "Install-WindowsUpdate — $computer"
+
+                # Step 1: Scan
+                Write-Progress -Activity $activityLabel -Status 'Scanning for available updates...' -PercentComplete 0
                 $updates = @(Get-WindowsUpdate @getParams)
+                Write-Progress -Activity $activityLabel -Status 'Scan complete' -PercentComplete 0
 
                 if ($updates.Count -eq 0) {
+                    Write-Progress -Activity $activityLabel -Completed
                     Write-Verbose -Message "[$($MyInvocation.MyCommand)] No updates to install on '$computer'"
                     continue
                 }
 
                 $totalUpdates = $updates.Count
                 $totalSizeMB = ($updates | Measure-Object -Property 'SizeMB' -Sum).Sum
-                Write-Verbose -Message "[$($MyInvocation.MyCommand)] Found $totalUpdates update(s) to install on '$computer' ($([math]::Round($totalSizeMB, 1)) MB total)"
+                Write-Host "[$($MyInvocation.MyCommand)] $computer — $totalUpdates update(s) to install ($([math]::Round($totalSizeMB, 1)) MB)" -ForegroundColor Cyan
 
                 # Step 2: Install each update with progress
                 $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
                 $rebootNeeded = $false
-                $activityLabel = "Installing Windows Updates on '$computer'"
 
                 for ($i = 0; $i -lt $totalUpdates; $i++) {
                     $update = $updates[$i]
@@ -246,8 +250,8 @@ function Install-WindowsUpdate {
 
                     $progressParams = @{
                         Activity         = $activityLabel
-                        Status           = "($($i + 1)/$totalUpdates) $($update.Title)$kbLabel"
-                        CurrentOperation = "$($update.SizeMB) MB — downloading + installing"
+                        Status           = "($($i + 1)/$totalUpdates) Downloading + installing..."
+                        CurrentOperation = "$($update.Title)$kbLabel [$($update.SizeMB) MB]"
                         PercentComplete  = $percentComplete
                     }
                     if ($etaSeconds -ge 0) {
@@ -319,7 +323,8 @@ function Install-WindowsUpdate {
 
                 Write-Progress -Activity $activityLabel -Completed
                 $stopwatch.Stop()
-                Write-Verbose -Message "[$($MyInvocation.MyCommand)] Installation completed on '$computer' in $($stopwatch.Elapsed.TotalSeconds.ToString('F1'))s"
+                $elapsed = $stopwatch.Elapsed
+                Write-Host "[$($MyInvocation.MyCommand)] $computer — Done in $($elapsed.ToString('mm\:ss'))" -ForegroundColor Green
 
                 # Handle reboot
                 if ($rebootNeeded) {

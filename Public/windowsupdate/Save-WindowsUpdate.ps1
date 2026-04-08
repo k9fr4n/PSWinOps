@@ -207,22 +207,26 @@ function Save-WindowsUpdate {
                 if ($IncludeHidden) { $getParams['IncludeHidden'] = $true }
                 if ($PSBoundParameters.ContainsKey('Credential')) { $getParams['Credential'] = $Credential }
 
-                Write-Verbose -Message "[$($MyInvocation.MyCommand)] Scanning for available updates on '$computer'"
+                $activityLabel = "Save-WindowsUpdate — $computer"
+
+                # Step 1: Scan
+                Write-Progress -Activity $activityLabel -Status 'Scanning for available updates...' -PercentComplete 0
                 $updates = @(Get-WindowsUpdate @getParams)
+                Write-Progress -Activity $activityLabel -Status 'Scan complete' -PercentComplete 0
 
                 if ($updates.Count -eq 0) {
+                    Write-Progress -Activity $activityLabel -Completed
                     Write-Verbose -Message "[$($MyInvocation.MyCommand)] No updates to download on '$computer'"
                     continue
                 }
 
                 $totalUpdates = $updates.Count
                 $totalSizeMB = ($updates | Measure-Object -Property 'SizeMB' -Sum).Sum
-                Write-Verbose -Message "[$($MyInvocation.MyCommand)] Found $totalUpdates update(s) to download on '$computer' ($([math]::Round($totalSizeMB, 1)) MB total)"
+                Write-Host "[$($MyInvocation.MyCommand)] $computer — $totalUpdates update(s) to download ($([math]::Round($totalSizeMB, 1)) MB)" -ForegroundColor Cyan
 
                 # Step 2: Download each update with progress
                 $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
                 $downloadedSizeMB = 0
-                $activityLabel = "Downloading Windows Updates on '$computer'"
 
                 for ($i = 0; $i -lt $totalUpdates; $i++) {
                     $update = $updates[$i]
@@ -241,12 +245,13 @@ function Save-WindowsUpdate {
                     $remainingMB = $totalSizeMB - $downloadedSizeMB
                     $etaSeconds = if ($speedMBps -gt 0) { [int]($remainingMB / $speedMBps) } else { -1 }
 
-                    $speedLabel = if ($speedMBps -gt 0) { "$([math]::Round($speedMBps, 1)) MB/s" } else { 'calculating...' }
+                    $speedLabel = if ($speedMBps -gt 0) { "$([math]::Round($speedMBps, 1)) MB/s" } else { 'starting...' }
+                    $downloadedLabel = "$([math]::Round($downloadedSizeMB, 1))/$([math]::Round($totalSizeMB, 1)) MB"
 
                     $progressParams = @{
                         Activity         = $activityLabel
-                        Status           = "($($i + 1)/$totalUpdates) $($update.Title)$kbLabel"
-                        CurrentOperation = "$($update.SizeMB) MB — $speedLabel"
+                        Status           = "($($i + 1)/$totalUpdates) $downloadedLabel — $speedLabel"
+                        CurrentOperation = "$($update.Title)$kbLabel"
                         PercentComplete  = $percentComplete
                     }
                     if ($etaSeconds -ge 0) {
@@ -319,7 +324,14 @@ function Save-WindowsUpdate {
 
                 Write-Progress -Activity $activityLabel -Completed
                 $stopwatch.Stop()
-                Write-Verbose -Message "[$($MyInvocation.MyCommand)] Download completed on '$computer' in $($stopwatch.Elapsed.TotalSeconds.ToString('F1'))s"
+                $elapsed = $stopwatch.Elapsed
+                $avgSpeed = if ($elapsed.TotalSeconds -gt 0 -and $downloadedSizeMB -gt 0) {
+                    "$([math]::Round($downloadedSizeMB / $elapsed.TotalSeconds, 1)) MB/s"
+                }
+                else {
+                    'N/A'
+                }
+                Write-Host "[$($MyInvocation.MyCommand)] $computer — Done in $($elapsed.ToString('mm\:ss')) ($avgSpeed)" -ForegroundColor Green
             }
             catch {
                 Write-Error -Message "[$($MyInvocation.MyCommand)] Failed on '${computer}': $_"
