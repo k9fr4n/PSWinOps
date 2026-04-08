@@ -128,7 +128,7 @@ function Get-ADComputerInventory {
         return
     }
 
-    $queryTimestamp = Get-Date -Format 'o'
+    $queryTimestamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
     $resultList = [System.Collections.Generic.List[PSCustomObject]]::new()
 
     foreach ($computer in $adComputerList) {

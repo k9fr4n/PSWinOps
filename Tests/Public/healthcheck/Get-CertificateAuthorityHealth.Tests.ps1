@@ -255,7 +255,7 @@ Describe 'Get-CertificateAuthorityHealth' {
         }
 
         It 'Should have PSTypeName PSWinOps.CertificateAuthorityHealth' { $script:typeResult.PSObject.TypeNames[0] | Should -Be 'PSWinOps.CertificateAuthorityHealth' }
-        It 'Should have Timestamp matching ISO 8601' { $script:typeResult.Timestamp | Should -Match '^\d{4}-\d{2}-\d{2}T' }
+        It 'Should have Timestamp matching ISO 8601' { $script:typeResult.Timestamp | Should -Match '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$' }
     }
 
     Context 'Local - certutil parsing all checks pass' {

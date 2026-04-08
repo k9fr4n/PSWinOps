@@ -121,7 +121,7 @@ function Get-ADLockedAccount {
                         LastBadPasswordAttempt = $userDetail.LastBadPasswordAttempt
                         Description            = $userDetail.Description
                         DistinguishedName      = $userDetail.DistinguishedName
-                        Timestamp              = Get-Date -Format 'o'
+                        Timestamp              = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                     })
                 }
                 catch {

@@ -151,7 +151,7 @@ function Get-RdpSessionHistory {
                             IPAddress    = $eventData.Address
                             Action       = $eventActionMap[[int]$eventEntry.Id]
                             EventID      = $eventEntry.Id
-                            Timestamp    = Get-Date -Format 'o'
+                            Timestamp    = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                         }
                     } catch {
                         Write-Warning "[$($MyInvocation.MyCommand)] Failed to parse event ID $($eventEntry.Id) on $computer - $_"

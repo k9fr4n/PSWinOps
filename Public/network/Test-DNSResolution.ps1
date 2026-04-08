@@ -172,7 +172,7 @@ function Test-DNSResolution {
                         } else {
                             $null
                         }
-                        Timestamp    = Get-Date -Format 'o'
+                        Timestamp    = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                     }
 
                     Write-Verbose "[$($MyInvocation.MyCommand)] '$dnsName' via $serverLabel — Success=$hasRecords, Records=$($records.Count), ${elapsedMs}ms"
@@ -191,7 +191,7 @@ function Test-DNSResolution {
                         Success      = $false
                         Consistent   = $null
                         ErrorMessage = $_.Exception.Message
-                        Timestamp    = Get-Date -Format 'o'
+                        Timestamp    = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                     }
                     $allResults.Add($resultObj)
                 }

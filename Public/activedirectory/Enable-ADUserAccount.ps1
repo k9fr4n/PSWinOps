@@ -89,7 +89,7 @@ function Enable-ADUserAccount {
             $adSplat['Credential'] = $Credential
         }
 
-        $timestamp = Get-Date -Format 'o'
+        $timestamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
     }
 
     process {

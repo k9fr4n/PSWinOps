@@ -185,7 +185,7 @@ function Get-FileServerHealth {
                     QuotasNearLimit    = [int]$data.QuotasNearLimit
                     MinShareDiskFreeGB = if ($null -ne $data.MinShareDiskFreeGB) { [decimal]$data.MinShareDiskFreeGB } else { $null }
                     OverallHealth      = $overallHealth
-                    Timestamp          = Get-Date -Format 'o'
+                    Timestamp          = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                 }
             }
             catch {

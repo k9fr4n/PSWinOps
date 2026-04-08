@@ -156,7 +156,7 @@ Describe 'Get-ADGroupMembership' {
 
         It -Name 'Should have ISO 8601 Timestamp' -Test {
             $result = Get-ADGroupMembership -Identity 'TestGroup'
-            $result[0].Timestamp | Should -Match '^\d{4}-\d{2}-\d{2}T'
+            $result[0].Timestamp | Should -Match '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$'
         }
 
         It -Name 'Should sort output by ObjectClass then MemberName' -Test {

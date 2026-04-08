@@ -216,7 +216,7 @@ Describe -Name 'Get-ADGroupInventory' -Fixture {
         }
 
         It -Name 'Should have Timestamp in ISO 8601 format' -Test {
-            $script:result[0].Timestamp | Should -Match '^\d{4}-\d{2}-\d{2}T'
+            $script:result[0].Timestamp | Should -Match '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$'
         }
 
         It -Name 'Should extract OrganizationalUnit from DN' -Test {

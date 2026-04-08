@@ -110,7 +110,7 @@ function Trace-NetworkRoute {
 
                 $pingSender = New-Object System.Net.NetworkInformation.Ping
                 $buffer = [byte[]]::new(32)
-                $timestamp = Get-Date -Format 'o'
+                $timestamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                 $reachedTarget = $false
 
                 for ($ttl = 1; $ttl -le $MaxHops; $ttl++) {

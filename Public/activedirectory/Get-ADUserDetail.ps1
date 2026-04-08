@@ -147,7 +147,7 @@ function Get-ADUserDetail {
                     MemberOfCount          = if ($user.MemberOf) { @($user.MemberOf).Count } else { 0 }
                     OrganizationalUnit     = ($user.DistinguishedName -replace '^CN=[^,]+,')
                     DistinguishedName      = $user.DistinguishedName
-                    Timestamp              = Get-Date -Format 'o'
+                    Timestamp              = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                 }
             }
             catch {

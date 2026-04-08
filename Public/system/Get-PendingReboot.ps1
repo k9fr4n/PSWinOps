@@ -129,7 +129,7 @@ function Get-PendingReboot {
                     PendingFileRename       = [bool]$checkResult['PendingFileRename']
                     PendingComputerRename   = [bool]$checkResult['PendingComputerRename']
                     CCMClientSDK            = $checkResult['CCMClientSDK']
-                    Timestamp               = (Get-Date -Format 'o')
+                    Timestamp               = (Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
                 }
             } catch {
                 Write-Error "[$($MyInvocation.MyCommand)] Failed to check pending reboot on '$computer': $_"

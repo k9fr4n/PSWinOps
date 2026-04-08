@@ -70,7 +70,7 @@ Describe 'Test-WinRM' {
         It 'Should include Timestamp in ISO 8601 format' {
             $result = Test-WinRM -ComputerName 'SRV01'
             $result | ForEach-Object {
-                $_.Timestamp | Should -Match '^\d{4}-\d{2}-\d{2}T'
+                $_.Timestamp | Should -Match '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$'
             }
         }
 

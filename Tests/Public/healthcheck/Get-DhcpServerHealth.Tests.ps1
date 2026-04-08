@@ -471,6 +471,6 @@ Describe 'Get-DhcpServerHealth' {
         }
 
         It 'Should have PSTypeName PSWinOps.DhcpServerHealth' { $script:typeResult.PSObject.TypeNames[0] | Should -Be 'PSWinOps.DhcpServerHealth' }
-        It 'Should have Timestamp matching ISO 8601' { $script:typeResult.Timestamp | Should -Match '^\d{4}-\d{2}-\d{2}T' }
+        It 'Should have Timestamp matching ISO 8601' { $script:typeResult.Timestamp | Should -Match '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$' }
     }
 }

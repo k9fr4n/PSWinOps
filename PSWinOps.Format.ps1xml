@@ -3267,5 +3267,113 @@
       </TableControl>
     </View>
 
+    <!-- ============================================================ -->
+    <!-- PSWinOps.WindowsUpdate                                       -->
+    <!-- Used by: Get-WindowsUpdate                                   -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.WindowsUpdate</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.WindowsUpdate</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>ComputerName</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>KB</Label><Width>12</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Classification</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Downloaded</Label><Width>11</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Size(MB)</Label><Width>10</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Reboot</Label><Width>7</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Title</Label></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>KBArticle</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Classification</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>IsDownloaded</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>SizeMB</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>RebootRequired</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Title</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.WindowsUpdateConfiguration                          -->
+    <!-- Used by: Get-WindowsUpdateConfiguration                      -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.WindowsUpdateConfiguration</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.WindowsUpdateConfiguration</TypeName>
+      </ViewSelectedBy>
+      <ListControl>
+        <ListEntries>
+          <ListEntry>
+            <ListItems>
+              <ListItem><Label>ComputerName</Label><PropertyName>ComputerName</PropertyName></ListItem>
+              <ListItem><Label>UpdateSource</Label><PropertyName>UpdateSource</PropertyName></ListItem>
+              <ListItem><Label>WUServerUrl</Label><PropertyName>WUServerUrl</PropertyName></ListItem>
+              <ListItem><Label>WUStatusServerUrl</Label><PropertyName>WUStatusServerUrl</PropertyName></ListItem>
+              <ListItem><Label>UseWUServer</Label><PropertyName>UseWUServer</PropertyName></ListItem>
+              <ListItem><Label>AutoUpdateEnabled</Label><PropertyName>AutoUpdateEnabled</PropertyName></ListItem>
+              <ListItem><Label>AutoUpdateOption</Label><PropertyName>AutoUpdateOption</PropertyName></ListItem>
+              <ListItem><Label>ScheduledInstallDay</Label><PropertyName>ScheduledInstallDay</PropertyName></ListItem>
+              <ListItem><Label>ScheduledInstallTime</Label><PropertyName>ScheduledInstallTime</PropertyName></ListItem>
+              <ListItem><Label>NoAutoRebootWithLoggedOnUsers</Label><PropertyName>NoAutoRebootWithLoggedOnUsers</PropertyName></ListItem>
+              <ListItem><Label>DeferFeatureUpdatesDays</Label><PropertyName>DeferFeatureUpdatesDays</PropertyName></ListItem>
+              <ListItem><Label>DeferQualityUpdatesDays</Label><PropertyName>DeferQualityUpdatesDays</PropertyName></ListItem>
+              <ListItem><Label>BranchReadinessLevel</Label><PropertyName>BranchReadinessLevel</PropertyName></ListItem>
+              <ListItem><Label>TargetGroup</Label><PropertyName>TargetGroup</PropertyName></ListItem>
+              <ListItem><Label>TargetGroupEnabled</Label><PropertyName>TargetGroupEnabled</PropertyName></ListItem>
+              <ListItem><Label>IsGPOConfigured</Label><PropertyName>IsGPOConfigured</PropertyName></ListItem>
+              <ListItem><Label>Timestamp</Label><PropertyName>Timestamp</PropertyName></ListItem>
+            </ListItems>
+          </ListEntry>
+        </ListEntries>
+      </ListControl>
+    </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.WindowsUpdateHistory                                -->
+    <!-- Used by: Get-WindowsUpdateHistory                            -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.WindowsUpdateHistory</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.WindowsUpdateHistory</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>ComputerName</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Date</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>KB</Label><Width>12</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Operation</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Result</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Title</Label></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>
+                  if ($_.Date) { $_.Date.ToString('yyyy-MM-dd HH:mm:ss') } else { '' }
+                </ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem><PropertyName>KBArticle</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Operation</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Result</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Title</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
   </ViewDefinitions>
 </Configuration>

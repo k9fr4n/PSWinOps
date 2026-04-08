@@ -253,7 +253,7 @@ function Resolve-MACVendor {
                         'Unknown'
                     }
                     Source     = $source
-                    Timestamp  = Get-Date -Format 'o'
+                    Timestamp  = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                 }
             } catch {
                 Write-Error "[$($MyInvocation.MyCommand)] Failed to resolve '$mac': $_"

@@ -160,7 +160,7 @@ Describe 'Get-StartupProgram' {
             $script:tsResults = Get-StartupProgram -ComputerName 'SRV01'
         }
         It -Name 'Should have Timestamp matching ISO 8601 pattern' -Test {
-            $script:tsResults | ForEach-Object { $_.Timestamp | Should -Match '^\d{4}-\d{2}-\d{2}T' }
+            $script:tsResults | ForEach-Object { $_.Timestamp | Should -Match '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$' }
         }
     }
 

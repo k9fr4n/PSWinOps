@@ -210,7 +210,7 @@ Describe 'Set-NetworkRoute' {
             }
             $script:tsResult = Set-NetworkRoute -ComputerName 'SRV01' -DestinationPrefix '10.10.0.0/16' -InterfaceAlias 'Ethernet' -RouteMetric 50 -Confirm:$false
         }
-        It 'Should have Timestamp matching ISO 8601 pattern' { $script:tsResult.Timestamp | Should -Match '^\d{4}-\d{2}-\d{2}T' }
+        It 'Should have Timestamp matching ISO 8601 pattern' { $script:tsResult.Timestamp | Should -Match '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$' }
     }
 
     Context 'InterfaceIndex path' {

@@ -145,7 +145,7 @@ function Get-ADStaleComputer {
         }
 
         $now = Get-Date
-        $queryTimestamp = $now.ToString('o')
+        $queryTimestamp = $now.ToString('yyyy-MM-dd HH:mm:ss')
         $results = [System.Collections.Generic.List[PSCustomObject]]::new()
 
         foreach ($computer in $computers) {

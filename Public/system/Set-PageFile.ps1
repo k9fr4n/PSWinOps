@@ -209,7 +209,7 @@ function Set-PageFile {
                             EnsureCompleteDump  = $false
                             RestartRequired     = $true
                             Status              = 'RestoredAutoManaged'
-                            Timestamp           = Get-Date -Format 'o'
+                            Timestamp           = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                         }
                     }
                     continue
@@ -338,7 +338,7 @@ function Set-PageFile {
                         EnsureCompleteDump  = $EnsureCompleteDump.IsPresent
                         RestartRequired     = $true
                         Status              = 'Configured'
-                        Timestamp           = Get-Date -Format 'o'
+                        Timestamp           = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                     }
                 }
             } catch [System.UnauthorizedAccessException] {

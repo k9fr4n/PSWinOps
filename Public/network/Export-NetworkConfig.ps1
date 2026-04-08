@@ -210,7 +210,7 @@ function Export-NetworkConfig {
     process {
         foreach ($targetComputer in $ComputerName) {
             try {
-                $timestamp = Get-Date -Format 'o'
+                $timestamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
 
                 Write-Verbose "[$($MyInvocation.MyCommand)] Collecting network config from '$targetComputer'"
 

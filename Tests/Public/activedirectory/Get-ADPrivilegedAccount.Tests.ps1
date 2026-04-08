@@ -165,7 +165,7 @@ Describe 'Get-ADPrivilegedAccount' {
 
         It -Name 'Should have ISO 8601 Timestamp' -Test {
             $script:results = Get-ADPrivilegedAccount -GroupName 'Domain Admins'
-            $script:results[0].Timestamp | Should -Match '^\d{4}-\d{2}-\d{2}T'
+            $script:results[0].Timestamp | Should -Match '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$'
         }
     }
 }

@@ -188,7 +188,7 @@ function Get-SubnetInfo {
                     TotalHosts       = [long]$totalHosts
                     UsableHosts      = [long]$usableHosts
                     CIDR             = '{0}/{1}' -f (ConvertFrom-UInt32 -Value $networkInt).ToString(), $parsedPrefix
-                    Timestamp        = Get-Date -Format 'o'
+                    Timestamp        = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                 }
             } catch {
                 Write-Error "[$($MyInvocation.MyCommand)] Failed to calculate subnet info for '$ip': $_"

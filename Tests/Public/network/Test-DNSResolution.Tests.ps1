@@ -44,7 +44,7 @@ Describe 'Test-DNSResolution' {
         It 'Should include Timestamp in ISO 8601 format' {
             $result = Test-DNSResolution -Name 'srv01.corp.local' -DnsServer '10.0.0.1'
             $result.Timestamp | Should -Not -BeNullOrEmpty
-            $result.Timestamp | Should -Match '^\d{4}-\d{2}-\d{2}T'
+            $result.Timestamp | Should -Match '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$'
         }
 
         It 'Should include all expected properties' {

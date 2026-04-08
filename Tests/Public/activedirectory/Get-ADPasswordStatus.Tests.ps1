@@ -350,7 +350,7 @@ Describe -Name 'Get-ADPasswordStatus' -Fixture {
         }
 
         It -Name 'Should have ISO 8601 Timestamp' -Test {
-            $script:result[0].Timestamp | Should -Match '^\d{4}-\d{2}-\d{2}T'
+            $script:result[0].Timestamp | Should -Match '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$'
         }
     }
 }

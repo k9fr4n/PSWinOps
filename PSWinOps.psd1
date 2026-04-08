@@ -140,6 +140,12 @@
         'Get-StartupProgram',
         'Get-SubnetInfo',
         'Get-SystemSummary',
+        'Clear-WindowsUpdateCache',
+        'Get-WindowsUpdate',
+        'Get-WindowsUpdateConfiguration',
+        'Get-WindowsUpdateHistory',
+        'Hide-WindowsUpdate',
+        'Install-WindowsUpdate',
         'Get-WSUSHealth',
         'Invoke-ADSecurityAudit',
         'Measure-NetworkLatency',
@@ -150,7 +156,9 @@
         'Remove-RdpSession',
         'Reset-ADUserPassword',
         'Resolve-MACVendor',
+        'Save-WindowsUpdate',
         'Search-ADObject',
+        'Show-WindowsUpdate',
         'Set-NetworkRoute',
         'Set-NTPClient',
         'Set-PageFile',
@@ -164,6 +172,7 @@
         'Test-ProxyConnection',
         'Test-WinRM',
         'Trace-NetworkRoute',
+        'Uninstall-WindowsUpdate',
         'Unlock-ADUserAccount'
     )
 
@@ -174,7 +183,7 @@
     # VariablesToExport = @()
 
     # Aliases to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no aliases to export.
-    AliasesToExport      = @()
+    AliasesToExport      = @('Download-WindowsUpdate')
 
     # DSC resources to export from this module
     # DscResourcesToExport = @()
@@ -313,26 +322,6 @@
             # Flag to indicate whether the module requires explicit user acceptance for install/update/save
             # RequireLicenseAcceptance = $false
 
-            # External dependent modules of this module
-            # These are OPTIONAL runtime dependencies for specific healthcheck functions.
-            # The module imports successfully without them; individual functions return
-            # RoleUnavailable status when their RSAT/feature module is absent.
-            ExternalModuleDependencies = @(
-                'ActiveDirectory',          # Get-AdDomainControllerHealth
-                'DhcpServer',               # Get-DhcpServerHealth
-                'DnsServer',                # Get-DnsServerHealth
-                'FailoverClusters',         # Get-ClusterHealth
-                'DFSN',                     # Get-DfsNamespaceHealth
-                'DFSR',                     # Get-DfsReplicationHealth
-                'RemoteDesktopServices',    # Get-RDSHealth
-                'WebAdministration',        # Get-IISHealth
-                'UpdateServices',           # Get-WSUSHealth
-                'Hyper-V',                  # Get-HyperVHostHealth
-                'PrintManagement',          # Get-PrintServerHealth
-                'ADCSAdministration',       # Get-CertificateAuthorityHealth
-                'ADFS',                     # Get-ADFSHealth
-                'ScheduledTasks'            # Get-ScheduledTaskDetail
-            )
 
         } # End of PSData hashtable
 

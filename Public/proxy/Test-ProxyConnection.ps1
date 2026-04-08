@@ -151,7 +151,7 @@ function Test-ProxyConnection {
             Success      = $success
             ResponseTime = $responseTime
             ErrorMessage = $errorMessage
-            Timestamp    = (Get-Date -Format 'o')
+            Timestamp    = (Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
         }
     }
 

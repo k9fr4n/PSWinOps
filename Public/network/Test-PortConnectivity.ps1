@@ -103,7 +103,7 @@ function Test-PortConnectivity {
                             Protocol       = 'TCP'
                             Open           = $true
                             ResponseTimeMs = [math]::Round($stopwatch.Elapsed.TotalMilliseconds, 1)
-                            Timestamp      = Get-Date -Format 'o'
+                            Timestamp      = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                         }
                     } else {
                         [PSCustomObject]@{
@@ -113,7 +113,7 @@ function Test-PortConnectivity {
                             Protocol       = 'TCP'
                             Open           = $false
                             ResponseTimeMs = $null
-                            Timestamp      = Get-Date -Format 'o'
+                            Timestamp      = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                         }
                     }
                 } catch {
@@ -124,7 +124,7 @@ function Test-PortConnectivity {
                         Protocol       = 'TCP'
                         Open           = $false
                         ResponseTimeMs = $null
-                        Timestamp      = Get-Date -Format 'o'
+                        Timestamp      = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                     }
                 } finally {
                     if ($tcpClient) {

@@ -179,7 +179,7 @@ function New-NetworkRoute {
     process {
         foreach ($targetComputer in $ComputerName) {
             try {
-                $timestamp = Get-Date -Format 'o'
+                $timestamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                 $shouldProcessTarget = "Route $DestinationPrefix via $NextHop on '$targetComputer'"
 
                 Write-Verbose "[$($MyInvocation.MyCommand)] Creating route on '$targetComputer'"

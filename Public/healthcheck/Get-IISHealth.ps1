@@ -324,7 +324,7 @@ function Get-IISHealth {
                         AppPoolName   = $entry.AppPoolName
                         AppPoolState  = $entry.AppPoolState
                         OverallHealth = $healthStatus
-                        Timestamp     = Get-Date -Format 'o'
+                        Timestamp     = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                     }
                 }
             }

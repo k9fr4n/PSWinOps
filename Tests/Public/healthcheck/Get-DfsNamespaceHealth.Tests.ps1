@@ -232,7 +232,7 @@ Describe 'Get-DfsNamespaceHealth' {
             Mock -CommandName 'Get-DfsnRootTarget' -ModuleName 'PSWinOps' -MockWith { return @($script:mockDfsnTarget) }
             $script:typeResult = Get-DfsNamespaceHealth
         }
-        It -Name 'Should have Timestamp matching ISO 8601' -Test { (@($script:typeResult))[0].Timestamp | Should -Match '^\d{4}-\d{2}-\d{2}T' }
+        It -Name 'Should have Timestamp matching ISO 8601' -Test { (@($script:typeResult))[0].Timestamp | Should -Match '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$' }
     }
 
     Context 'Verbose output' {

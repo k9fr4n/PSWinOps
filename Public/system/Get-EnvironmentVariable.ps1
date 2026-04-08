@@ -179,7 +179,7 @@ function Get-EnvironmentVariable {
                             Name         = $_.Name
                             Value        = $_.Value
                             Scope        = $_.Scope
-                            Timestamp    = Get-Date -Format 'o'
+                            Timestamp    = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                         }
                     }
             }

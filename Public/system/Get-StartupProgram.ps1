@@ -184,7 +184,7 @@ function Get-StartupProgram {
                         Location     = $entry.Location
                         Scope        = $entry.Scope
                         Source       = $entry.Source
-                        Timestamp    = Get-Date -Format 'o'
+                        Timestamp    = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                     }
                 }
             }

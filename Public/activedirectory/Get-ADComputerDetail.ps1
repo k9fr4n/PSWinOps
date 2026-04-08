@@ -128,7 +128,7 @@ function Get-ADComputerDetail {
                     SPNCount               = if ($computer.ServicePrincipalNames) { @($computer.ServicePrincipalNames).Count } else { 0 }
                     OrganizationalUnit     = ($computer.DistinguishedName -replace '^CN=[^,]+,')
                     DistinguishedName      = $computer.DistinguishedName
-                    Timestamp              = Get-Date -Format 'o'
+                    Timestamp              = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                 }
             }
             catch {

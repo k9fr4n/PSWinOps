@@ -95,6 +95,7 @@ jobs:
           - "Public/rdp"
           - "Public/system"
           - "Public/utils"
+          - "Public/windowsupdate"
 
     steps:
       - name: Configure git line endings
@@ -178,7 +179,7 @@ jobs:
   coverage:
     needs: test
     runs-on: windows-latest
-    if: always() # Run even if some tests failed — you still want the coverage comment
+    if: success()
     permissions:
       contents: read
       pull-requests: write # Required for Codecov to post PR comments

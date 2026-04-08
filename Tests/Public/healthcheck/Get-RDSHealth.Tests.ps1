@@ -357,7 +357,7 @@ Describe 'Get-RDSHealth' {
         It 'Should have LicensingMode' { $script:propResult.LicensingMode | Should -Be 'PerUser' }
         It 'Should have RDModuleAvailable' { $script:propResult.RDModuleAvailable | Should -BeTrue }
         It 'Should have SessionEnvStatus' { $script:propResult.SessionEnvStatus | Should -Be 'Running' }
-        It 'Should have Timestamp' { $script:propResult.Timestamp | Should -Match '^\d{4}-\d{2}-\d{2}T' }
+        It 'Should have Timestamp' { $script:propResult.Timestamp | Should -Match '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$' }
     }
 
     Context 'Parameter validation' {

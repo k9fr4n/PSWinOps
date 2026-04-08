@@ -187,7 +187,7 @@ function Test-WinRM {
                         ExecutionOK    = $execOK
                         WSManVersion   = $wsmanVersion
                         ErrorMessage   = $errorMessage
-                        Timestamp      = Get-Date -Format 'o'
+                        Timestamp      = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                     }
                 } catch {
                     Write-Error "[$($MyInvocation.MyCommand)] Failed on '$targetComputer' ($proto): $_"

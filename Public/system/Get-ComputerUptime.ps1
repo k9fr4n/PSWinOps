@@ -96,7 +96,7 @@ function Get-ComputerUptime {
                     Uptime        = $uptime
                     UptimeDays    = [math]::Round($uptime.TotalDays, 4)
                     UptimeDisplay = $uptimeDisplay
-                    Timestamp     = Get-Date -Format 'o'
+                    Timestamp     = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                 }
             } catch {
                 Write-Error "[$($MyInvocation.MyCommand)] Failed to query '${machine}': $_"

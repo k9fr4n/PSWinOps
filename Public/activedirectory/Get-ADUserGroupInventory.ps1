@@ -101,7 +101,7 @@ function Get-ADUserGroupInventory {
 
         $userList = [System.Collections.Generic.List[object]]::new()
         $identityProvided = $false
-        $timestamp = Get-Date -Format 'o'
+        $timestamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
     }
 
     process {

@@ -147,7 +147,7 @@ function Disconnect-RdpSession {
                     SessionID    = $session
                     Action       = 'Disconnect'
                     Success      = $success
-                    Timestamp    = Get-Date -Format 'o'
+                    Timestamp    = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                 }
             }
         }

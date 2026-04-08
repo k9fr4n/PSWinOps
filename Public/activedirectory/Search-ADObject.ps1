@@ -152,7 +152,7 @@ function Search-ADObject {
                     }
                 }
 
-                $outputProps['Timestamp'] = Get-Date -Format 'o'
+                $outputProps['Timestamp'] = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
 
                 [PSCustomObject]$outputProps
             }

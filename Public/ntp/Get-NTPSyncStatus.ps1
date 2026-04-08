@@ -213,7 +213,7 @@ function Get-NTPSyncStatus {
                     LastSyncTime  = $lastSyncValue
                     LeapIndicator = $leapValue
                     PollInterval  = $pollValue
-                    Timestamp     = (Get-Date -Format 'o')
+                    Timestamp     = (Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
                 }
 
                 Write-Verbose "[$($MyInvocation.MyCommand)] '$targetComputer' - Synced: $isSynced, Source: $sourceValue, Offset: ${offsetMs}ms"

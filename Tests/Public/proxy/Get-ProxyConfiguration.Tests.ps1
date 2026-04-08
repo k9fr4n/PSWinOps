@@ -103,7 +103,7 @@ Describe 'Get-ProxyConfiguration' {
 
             $result = Get-ProxyConfiguration
             $result.Timestamp | Should -Not -BeNullOrEmpty
-            $result.Timestamp | Should -Match '^\d{4}-\d{2}-\d{2}T'
+            $result.Timestamp | Should -Match '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$'
         }
     }
 
