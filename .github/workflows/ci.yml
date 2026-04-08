@@ -95,6 +95,7 @@ jobs:
           - "Public/rdp"
           - "Public/system"
           - "Public/utils"
+          - "Public/windowsupdate"
 
     steps:
       - name: Configure git line endings
@@ -208,7 +209,7 @@ jobs:
         run: |
           $config = New-PesterConfiguration
           $config.Run.Path                  = '.\Tests'
-          $config.Output.Verbosity          = 'None'
+          $config.Output.Verbosity          = 'Detailed'
           $config.CodeCoverage.Enabled      = $true
           $config.CodeCoverage.Path         = @(
               '.\PSWinOps.psm1',
