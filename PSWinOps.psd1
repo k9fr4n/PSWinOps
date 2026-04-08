@@ -140,6 +140,7 @@
         'Get-StartupProgram',
         'Get-SubnetInfo',
         'Get-SystemSummary',
+        'Get-WindowsUpdateConfiguration',
         'Get-WindowsUpdateHistory',
         'Get-WSUSHealth',
         'Invoke-ADSecurityAudit',
