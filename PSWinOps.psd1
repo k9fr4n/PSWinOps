@@ -140,6 +140,7 @@
         'Get-StartupProgram',
         'Get-SubnetInfo',
         'Get-SystemSummary',
+        'Clear-WindowsUpdateCache',
         'Get-WindowsUpdate',
         'Get-WindowsUpdateConfiguration',
         'Get-WindowsUpdateHistory',
