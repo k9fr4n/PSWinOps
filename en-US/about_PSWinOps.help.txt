@@ -3,15 +3,17 @@ TOPIC
 
 SHORT DESCRIPTION
     PSWinOps is a Windows-only PowerShell module for system
-    administration, health checks, network diagnostics, NTP
-    management, RDP session management, and more.
+    administration, Active Directory management, health
+    checks, network diagnostics, NTP management, RDP
+    session management, and more.
 
 LONG DESCRIPTION
     PSWinOps is a comprehensive toolbox designed for Windows
     system administrators running PowerShell 5.1 or later.
     It provides a curated collection of functions organized
-    into seven functional domains, covering everything from
-    service health monitoring to network troubleshooting,
+    into eight functional domains, covering everything from
+    Active Directory inventory and security auditing,
+    service health monitoring, network troubleshooting,
     NTP synchronization, proxy management, RDP session
     control, and general system information gathering.
 
@@ -27,9 +29,38 @@ LONG DESCRIPTION
     Requires    : PowerShell 5.1+ / Windows only
 
 FUNCTION DOMAINS
-    PSWinOps organizes its functions into seven domains.
+    PSWinOps organizes its functions into eight domains.
 
-  healthcheck (15 functions)
+  activedirectory (21 functions)
+    Functions for Active Directory inventory, user and
+    computer management, group membership analysis,
+    replication monitoring, and security auditing.
+    Requires the ActiveDirectory RSAT module.
+
+      Disable-ADUserAccount
+      Enable-ADUserAccount
+      Get-ADComputerDetail
+      Get-ADComputerInventory
+      Get-ADDomainInfo
+      Get-ADGroupInventory
+      Get-ADGroupMembership
+      Get-ADLockedAccount
+      Get-ADNestedGroupMembership
+      Get-ADPasswordStatus
+      Get-ADPrivilegedAccount
+      Get-ADReplicationStatus
+      Get-ADSiteTopology
+      Get-ADStaleAccount
+      Get-ADStaleComputer
+      Get-ADUserDetail
+      Get-ADUserGroupInventory
+      Get-ADUserInventory
+      Invoke-ADSecurityAudit
+      Reset-ADUserPassword
+      Search-ADObject
+      Unlock-ADUserAccount
+
+  healthcheck (16 functions)
     Functions that evaluate the health of Windows roles and
     services. Each returns an OverallHealth property (see
     the OVERALLHEALTH VALUES section below).
@@ -42,6 +73,7 @@ FUNCTION DOMAINS
       Get-DfsReplicationHealth
       Get-DhcpServerHealth
       Get-DnsServerHealth
+      Get-ExchangeServerHealth
       Get-FileServerHealth
       Get-HyperVHostHealth
       Get-IISHealth
@@ -50,9 +82,9 @@ FUNCTION DOMAINS
       Get-ServiceHealth
       Get-WSUSHealth
 
-  network (25 functions)
-    Functions for network diagnostics, discovery, and
-    certificate inspection.
+  network (24 functions)
+    Functions for network diagnostics, discovery,
+    certificate inspection, and real-time monitoring.
 
       Clear-Arp
       Edit-HostsFile
@@ -72,8 +104,8 @@ FUNCTION DOMAINS
       Remove-NetworkRoute
       Resolve-MACVendor
       Set-NetworkRoute
-      Start-NetworkStatisticMonitor
-      Start-PingMonitor
+      Show-NetworkStatisticMonitor
+      Show-PingMonitor
       Test-DNSResolution
       Test-PortConnectivity
       Test-WinRM
@@ -109,8 +141,9 @@ FUNCTION DOMAINS
       Get-RdpSessionLock
       Remove-RdpSession
 
-  system (10 functions)
-    Functions for general system information and state.
+  system (11 functions)
+    Functions for general system information, state, and
+    real-time monitoring.
 
       Get-ComputerUptime
       Get-DiskSpace
@@ -122,6 +155,7 @@ FUNCTION DOMAINS
       Get-StartupProgram
       Get-SystemSummary
       Set-PageFile
+      Show-SystemMonitor
 
   utils (2 functions)
     Pure utility functions that do not follow the standard
@@ -150,7 +184,7 @@ OUTPUT CONVENTIONS
     each PSWinOps type.
 
 OVERALLHEALTH VALUES
-    The 15 health check functions return an OverallHealth
+    The 16 health check functions return an OverallHealth
     property. Its value is one of the following strings,
     formally defined by the [PSWinOpsHealthStatus] enum:
 
@@ -215,13 +249,35 @@ REMOTE EXECUTION PATTERN
     in the pipeline continue to be processed.
 
 PSWINOPS TYPE REGISTRY
-    The following 51 PSTypeName values are defined by the
+    The following 74 PSTypeName values are defined by the
     module. Each corresponds to the output of one or more
     public functions.
 
       PSWinOps.ActiveRdpSession
+      PSWinOps.ADAccountDisableResult
+      PSWinOps.ADAccountEnableResult
+      PSWinOps.ADAccountUnlockResult
+      PSWinOps.ADComputerDetail
+      PSWinOps.ADComputerInventory
       PSWinOps.AdDomainControllerHealth
+      PSWinOps.ADDomainInfo
       PSWinOps.ADFSHealth
+      PSWinOps.ADGroupInventory
+      PSWinOps.ADGroupMember
+      PSWinOps.ADLockedAccount
+      PSWinOps.ADNestedGroupMembership
+      PSWinOps.ADPasswordResetResult
+      PSWinOps.ADPasswordStatus
+      PSWinOps.ADPrivilegedAccount
+      PSWinOps.ADReplicationStatus
+      PSWinOps.ADSearchResult
+      PSWinOps.ADSecurityFinding
+      PSWinOps.ADSiteTopology
+      PSWinOps.ADStaleAccount
+      PSWinOps.ADStaleComputer
+      PSWinOps.ADUserDetail
+      PSWinOps.ADUserGroupInventory
+      PSWinOps.ADUserInventory
       PSWinOps.ArpEntry
       PSWinOps.CertificateAuthorityHealth
       PSWinOps.ClusterHealth
@@ -233,6 +289,7 @@ PSWINOPS TYPE REGISTRY
       PSWinOps.DnsResolution
       PSWinOps.DnsServerHealth
       PSWinOps.EnvironmentVariable
+      PSWinOps.ExchangeServerHealth
       PSWinOps.FileServerHealth
       PSWinOps.HyperVHostHealth
       PSWinOps.IISHealth
@@ -276,7 +333,9 @@ SEE ALSO
     Get-Help Get-ServiceHealth
     Get-Help Get-RdpSession
     Get-Help Get-NTPConfiguration
+    Get-Help Get-ADUserDetail
+    Get-Help Get-ExchangeServerHealth
 
 KEYWORDS
-    PSWinOps, Windows, Administration, HealthCheck,
-    Network, NTP, RDP, System
+    PSWinOps, Windows, Administration, ActiveDirectory,
+    HealthCheck, Network, NTP, RDP, System

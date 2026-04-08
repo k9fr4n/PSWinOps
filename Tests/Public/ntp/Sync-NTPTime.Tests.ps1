@@ -153,6 +153,80 @@ Describe -Name 'Sync-NTPTime' -Fixture {
         }
     }
 
+    Context -Name 'When remote restart fails' -Fixture {
+
+        BeforeAll {
+            Mock -CommandName 'Test-IsAdministrator' -ModuleName 'PSWinOps' -MockWith { return $true }
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
+                throw 'Service restart failed: access denied'
+            }
+        }
+
+        It -Name 'Should write error when remote restart fails' -Test {
+            { Sync-NTPTime -ComputerName 'REMOTE-SRV01' -RestartService -ErrorAction Stop } |
+                Should -Throw -ExpectedMessage '*REMOTE-SRV01*'
+        }
+
+        It -Name 'Should return no result when restart throws' -Test {
+            $result = Sync-NTPTime -ComputerName 'REMOTE-SRV01' -RestartService -ErrorAction SilentlyContinue
+            $result | Should -BeNullOrEmpty
+        }
+    }
+
+    Context -Name 'When local restart fails' -Fixture {
+
+        BeforeAll {
+            Mock -CommandName 'Test-IsAdministrator' -ModuleName 'PSWinOps' -MockWith { return $true }
+            Mock -CommandName 'Restart-Service' -ModuleName 'PSWinOps' -MockWith {
+                throw 'Cannot restart w32time: service locked'
+            }
+        }
+
+        It -Name 'Should write error when local Restart-Service fails' -Test {
+            { Sync-NTPTime -RestartService -ErrorAction Stop } |
+                Should -Throw -ExpectedMessage "*$env:COMPUTERNAME*"
+        }
+
+        It -Name 'Should return no result when local restart throws' -Test {
+            $result = Sync-NTPTime -RestartService -ErrorAction SilentlyContinue
+            $result | Should -BeNullOrEmpty
+        }
+    }
+
+    Context -Name 'When multiple machines with RestartService and partial failure' -Fixture {
+
+        BeforeAll {
+            Mock -CommandName 'Test-IsAdministrator' -ModuleName 'PSWinOps' -MockWith { return $true }
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith {
+                return $script:successOutput
+            }
+            Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -ParameterFilter {
+                $ComputerName -eq 'BADSERVER'
+            } -MockWith {
+                throw 'Connection refused'
+            }
+        }
+
+        It -Name 'Should continue processing after one machine fails restart' -Test {
+            $result = Sync-NTPTime -ComputerName 'SRV01', 'BADSERVER', 'SRV02' -RestartService -ErrorAction SilentlyContinue
+            @($result).Count | Should -Be 2
+        }
+
+        It -Name 'Should return success for machines that did not fail' -Test {
+            $result = Sync-NTPTime -ComputerName 'SRV01', 'BADSERVER', 'SRV02' -RestartService -ErrorAction SilentlyContinue
+            $result[0].ComputerName | Should -Be 'SRV01'
+            $result[0].Success | Should -BeTrue
+            $result[1].ComputerName | Should -Be 'SRV02'
+            $result[1].Success | Should -BeTrue
+        }
+
+        It -Name 'Should write error for BADSERVER' -Test {
+            $null = Sync-NTPTime -ComputerName 'SRV01', 'BADSERVER', 'SRV02' -RestartService -ErrorVariable syncError -ErrorAction SilentlyContinue
+            $syncError | Should -Not -BeNullOrEmpty
+            "$syncError" | Should -Match 'BADSERVER'
+        }
+    }
+
     Context -Name 'When remote w32tm resync fails (non-zero exit code)' -Fixture {
 
         BeforeAll {

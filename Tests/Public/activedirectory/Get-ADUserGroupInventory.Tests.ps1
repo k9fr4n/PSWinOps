@@ -11,20 +11,32 @@ BeforeAll {
     $script:modulePath = Split-Path -Path (Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent) -Parent
 
     if (-not (Get-Command -Name 'Get-ADUser' -ErrorAction SilentlyContinue)) {
-        function global:Get-ADUser { }
+        function global:Get-ADUser {
+            [CmdletBinding()]
+            param($Identity, $Filter, $Properties, $SearchBase, $Server, $Credential)
+        }
     }
     if (-not (Get-Command -Name 'Get-ADGroup' -ErrorAction SilentlyContinue)) {
-        function global:Get-ADGroup { }
+        function global:Get-ADGroup {
+            [CmdletBinding()]
+            param($LDAPFilter, $Filter, $Properties, $Server, $Credential)
+        }
     }
 
     Import-Module -Name (Join-Path -Path $script:modulePath -ChildPath 'PSWinOps.psd1') -Force
 
     & (Get-Module -Name 'PSWinOps') {
         if (-not (Get-Command -Name 'Get-ADUser' -ErrorAction SilentlyContinue)) {
-            function script:Get-ADUser { }
+            function script:Get-ADUser {
+                [CmdletBinding()]
+                param($Identity, $Filter, $Properties, $SearchBase, $Server, $Credential)
+            }
         }
         if (-not (Get-Command -Name 'Get-ADGroup' -ErrorAction SilentlyContinue)) {
-            function script:Get-ADGroup { }
+            function script:Get-ADGroup {
+                [CmdletBinding()]
+                param($LDAPFilter, $Filter, $Properties, $Server, $Credential)
+            }
         }
     }
 }
@@ -99,6 +111,178 @@ Describe -Name 'Get-ADUserGroupInventory' -Fixture {
 
         It -Name 'Should have correct UserName value' -Test {
             $script:results[0].UserName | Should -Be 'jdoe'
+        }
+    }
+
+    Context -Name 'Multiple users via Identity array' -Fixture {
+
+        BeforeAll {
+            Mock -CommandName 'Get-ADUser' -ModuleName 'PSWinOps' -MockWith {
+                param($Identity, $Filter, $Properties, $SearchBase, $Server, $Credential)
+                if ($Identity -eq 'jdoe')   { return $script:mockUser }
+                if ($Identity -eq 'asmith')  { return $script:mockUser2 }
+            }
+            Mock -CommandName 'Get-ADGroup' -ModuleName 'PSWinOps' -MockWith {
+                return @($script:mockGroup1)
+            }
+            $script:multiResults = Get-ADUserGroupInventory -Identity 'jdoe', 'asmith'
+        }
+
+        It -Name 'Should return entries for both users' -Test {
+            @($script:multiResults).Count | Should -Be 2
+        }
+
+        It -Name 'Should include jdoe in results' -Test {
+            $userNames = $script:multiResults | Select-Object -ExpandProperty 'UserName'
+            $userNames | Should -Contain 'jdoe'
+        }
+
+        It -Name 'Should include asmith in results' -Test {
+            $userNames = $script:multiResults | Select-Object -ExpandProperty 'UserName'
+            $userNames | Should -Contain 'asmith'
+        }
+
+        It -Name 'Should return results sorted by UserName then GroupName' -Test {
+            $script:multiResults[0].UserName | Should -Be 'asmith'
+            $script:multiResults[1].UserName | Should -Be 'jdoe'
+        }
+    }
+
+    Context -Name 'No Identity provided - queries all users' -Fixture {
+
+        BeforeAll {
+            Mock -CommandName 'Get-ADUser' -ModuleName 'PSWinOps' -MockWith {
+                return @($script:mockUser, $script:mockUser2)
+            }
+            Mock -CommandName 'Get-ADGroup' -ModuleName 'PSWinOps' -MockWith {
+                return @($script:mockGroup1)
+            }
+            $script:allUserResults = Get-ADUserGroupInventory
+        }
+
+        It -Name 'Should return entries for discovered users' -Test {
+            @($script:allUserResults).Count | Should -Be 2
+        }
+
+        It -Name 'Should have queried users automatically (no Identity provided)' -Test {
+            @($script:allUserResults).Count | Should -BeGreaterThan 0
+        }
+
+        It -Name 'Should include both discovered users' -Test {
+            $userNames = $script:allUserResults | Select-Object -ExpandProperty 'UserName' -Unique
+            $userNames | Should -Contain 'jdoe'
+            $userNames | Should -Contain 'asmith'
+        }
+    }
+
+    Context -Name 'SearchBase parameter with no Identity' -Fixture {
+
+        BeforeAll {
+            Mock -CommandName 'Get-ADUser' -ModuleName 'PSWinOps' -MockWith {
+                return @($script:mockUser)
+            }
+            Mock -CommandName 'Get-ADGroup' -ModuleName 'PSWinOps' -MockWith {
+                return @($script:mockGroup1)
+            }
+            $script:searchBaseResults = Get-ADUserGroupInventory -SearchBase 'OU=Users,DC=contoso,DC=com'
+        }
+
+        It -Name 'Should return results scoped to SearchBase' -Test {
+            $script:searchBaseResults | Should -Not -BeNullOrEmpty
+        }
+
+        It -Name 'Should have discovered the user from the SearchBase OU' -Test {
+            $script:searchBaseResults[0].UserName | Should -Be 'jdoe'
+        }
+    }
+
+    Context -Name 'Import-Module ActiveDirectory fails' -Fixture {
+
+        BeforeAll {
+            Mock -CommandName 'Import-Module' -ModuleName 'PSWinOps' -MockWith {
+                throw 'ActiveDirectory module not found'
+            }
+        }
+
+        It -Name 'Should write error when ActiveDirectory module is unavailable' -Test {
+            Get-ADUserGroupInventory -Identity 'jdoe' -ErrorVariable 'capturedError' -ErrorAction SilentlyContinue
+            $capturedError | Should -Not -BeNullOrEmpty
+        }
+
+        It -Name 'Should return no results when module is unavailable' -Test {
+            $noModResult = Get-ADUserGroupInventory -Identity 'jdoe' -ErrorAction SilentlyContinue
+            $noModResult | Should -BeNullOrEmpty
+        }
+    }
+
+    Context -Name 'No groups found for a user' -Fixture {
+
+        BeforeAll {
+            Mock -CommandName 'Get-ADUser' -ModuleName 'PSWinOps' -MockWith {
+                return $script:mockUser
+            }
+            Mock -CommandName 'Get-ADGroup' -ModuleName 'PSWinOps' -MockWith {
+                return $null
+            }
+        }
+
+        It -Name 'Should return empty when user has no groups' -Test {
+            $noGroupResult = Get-ADUserGroupInventory -Identity 'jdoe'
+            $noGroupResult | Should -BeNullOrEmpty
+        }
+
+        It -Name 'Should not throw when no groups are found' -Test {
+            { Get-ADUserGroupInventory -Identity 'jdoe' } | Should -Not -Throw
+        }
+    }
+
+    Context -Name 'Get-ADUser throws for one identity in array' -Fixture {
+
+        BeforeAll {
+            Mock -CommandName 'Get-ADUser' -ModuleName 'PSWinOps' -MockWith {
+                param($Identity, $Filter, $Properties, $SearchBase, $Server, $Credential)
+                if ($Identity -eq 'baduser') {
+                    throw 'Cannot find an object with identity baduser'
+                }
+                return $script:mockUser
+            }
+            Mock -CommandName 'Get-ADGroup' -ModuleName 'PSWinOps' -MockWith {
+                return @($script:mockGroup1)
+            }
+        }
+
+        It -Name 'Should not throw a terminating error' -Test {
+            { Get-ADUserGroupInventory -Identity 'jdoe', 'baduser' -WarningAction SilentlyContinue } | Should -Not -Throw
+        }
+
+        It -Name 'Should write a warning for the failing user' -Test {
+            Get-ADUserGroupInventory -Identity 'jdoe', 'baduser' -WarningVariable 'capturedWarn' -WarningAction SilentlyContinue | Out-Null
+            $capturedWarn | Should -Not -BeNullOrEmpty
+        }
+
+        It -Name 'Should still return results for the successful user' -Test {
+            $partialResult = Get-ADUserGroupInventory -Identity 'jdoe', 'baduser' -WarningAction SilentlyContinue
+            $partialResult | Should -Not -BeNullOrEmpty
+            $partialResult[0].UserName | Should -Be 'jdoe'
+        }
+    }
+
+    Context -Name 'Get-ADUser filter query fails for all users' -Fixture {
+
+        BeforeAll {
+            Mock -CommandName 'Get-ADUser' -ModuleName 'PSWinOps' -MockWith {
+                throw 'LDAP server unavailable'
+            }
+        }
+
+        It -Name 'Should write error when all-user query fails' -Test {
+            Get-ADUserGroupInventory -ErrorVariable 'capturedError' -ErrorAction SilentlyContinue
+            $capturedError | Should -Not -BeNullOrEmpty
+        }
+
+        It -Name 'Should return empty when all-user query fails' -Test {
+            $filterFailResult = Get-ADUserGroupInventory -ErrorAction SilentlyContinue
+            $filterFailResult | Should -BeNullOrEmpty
         }
     }
 
