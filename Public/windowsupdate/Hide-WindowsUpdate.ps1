@@ -146,8 +146,7 @@ function Hide-WindowsUpdate {
                         Title     = $processedKB[$kb].Title
                         Result    = $processedKB[$kb].Result
                     }
-                }
-                else {
+                } else {
                     [PSCustomObject]@{
                         KBArticle = "KB$kb"
                         Title     = $null
@@ -188,8 +187,7 @@ function Hide-WindowsUpdate {
                         Timestamp    = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                     }
                 }
-            }
-            catch {
+            } catch {
                 Write-Error -Message "[$($MyInvocation.MyCommand)] Failed on '${computer}': $_"
             }
         }

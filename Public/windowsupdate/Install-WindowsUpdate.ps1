@@ -192,8 +192,7 @@ function Install-WindowsUpdate {
                     HResult        = [int]$installResult.HResult
                     RebootRequired = [bool]$installResult.RebootRequired
                 }
-            }
-            catch {
+            } catch {
                 throw "Failed to install update '$UpdateIdToInstall': $_"
             }
         }
@@ -210,12 +209,24 @@ function Install-WindowsUpdate {
             try {
                 # Step 1: Scan for available updates using Get-WindowsUpdate
                 $getParams = @{ ComputerName = $computer }
-                if ($MicrosoftUpdate) { $getParams['MicrosoftUpdate'] = $true }
-                if ($KBArticleID) { $getParams['KBArticleID'] = $KBArticleID }
-                if ($Classification) { $getParams['Classification'] = $Classification }
-                if ($Product) { $getParams['Product'] = $Product }
-                if ($IncludeHidden) { $getParams['IncludeHidden'] = $true }
-                if ($PSBoundParameters.ContainsKey('Credential')) { $getParams['Credential'] = $Credential }
+                if ($MicrosoftUpdate) {
+                    $getParams['MicrosoftUpdate'] = $true
+                }
+                if ($KBArticleID) {
+                    $getParams['KBArticleID'] = $KBArticleID
+                }
+                if ($Classification) {
+                    $getParams['Classification'] = $Classification
+                }
+                if ($Product) {
+                    $getParams['Product'] = $Product
+                }
+                if ($IncludeHidden) {
+                    $getParams['IncludeHidden'] = $true
+                }
+                if ($PSBoundParameters.ContainsKey('Credential')) {
+                    $getParams['Credential'] = $Credential
+                }
 
                 $activityLabel = "Install-WindowsUpdate — $computer"
 
@@ -240,13 +251,25 @@ function Install-WindowsUpdate {
 
                 for ($i = 0; $i -lt $totalUpdates; $i++) {
                     $update = $updates[$i]
-                    $kbLabel = if ($update.KBArticle) { " ($($update.KBArticle))" } else { '' }
+                    $kbLabel = if ($update.KBArticle) {
+                        " ($($update.KBArticle))"
+                    } else {
+                        ''
+                    }
 
                     # Progress
                     $percentComplete = [math]::Min([math]::Floor($i / $totalUpdates * 100), 99)
                     $elapsedSec = $stopwatch.Elapsed.TotalSeconds
-                    $avgPerUpdate = if ($i -gt 0) { $elapsedSec / $i } else { 0 }
-                    $etaSeconds = if ($avgPerUpdate -gt 0) { [int](($totalUpdates - $i) * $avgPerUpdate) } else { -1 }
+                    $avgPerUpdate = if ($i -gt 0) {
+                        $elapsedSec / $i
+                    } else {
+                        0
+                    }
+                    $etaSeconds = if ($avgPerUpdate -gt 0) {
+                        [int](($totalUpdates - $i) * $avgPerUpdate)
+                    } else {
+                        -1
+                    }
 
                     $progressParams = @{
                         Activity         = $activityLabel
@@ -275,8 +298,7 @@ function Install-WindowsUpdate {
 
                             $resultString = if ($resultCodeMap.ContainsKey($instResult.ResultCode)) {
                                 $resultCodeMap[$instResult.ResultCode]
-                            }
-                            else {
+                            } else {
                                 'Unknown'
                             }
 
@@ -286,36 +308,34 @@ function Install-WindowsUpdate {
 
                             $hResultHex = if ($instResult.HResult -ne 0) {
                                 '0x{0:X8}' -f $instResult.HResult
-                            }
-                            else {
+                            } else {
                                 '0x00000000'
                             }
 
                             [PSCustomObject]@{
-                                PSTypeName      = 'PSWinOps.WindowsUpdateInstallResult'
-                                ComputerName    = $computer
-                                Title           = $update.Title
-                                KBArticle       = $update.KBArticle
-                                SizeMB          = $update.SizeMB
-                                Result          = $resultString
-                                HResult         = $hResultHex
-                                RebootRequired  = $instResult.RebootRequired
-                                Timestamp       = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
+                                PSTypeName     = 'PSWinOps.WindowsUpdateInstallResult'
+                                ComputerName   = $computer
+                                Title          = $update.Title
+                                KBArticle      = $update.KBArticle
+                                SizeMB         = $update.SizeMB
+                                Result         = $resultString
+                                HResult        = $hResultHex
+                                RebootRequired = $instResult.RebootRequired
+                                Timestamp      = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                             }
-                        }
-                        catch {
+                        } catch {
                             Write-Error -Message "[$($MyInvocation.MyCommand)] Failed to install '$($update.Title)' on '${computer}': $_"
 
                             [PSCustomObject]@{
-                                PSTypeName      = 'PSWinOps.WindowsUpdateInstallResult'
-                                ComputerName    = $computer
-                                Title           = $update.Title
-                                KBArticle       = $update.KBArticle
-                                SizeMB          = $update.SizeMB
-                                Result          = 'Failed'
-                                HResult         = 'Error'
-                                RebootRequired  = $false
-                                Timestamp       = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
+                                PSTypeName     = 'PSWinOps.WindowsUpdateInstallResult'
+                                ComputerName   = $computer
+                                Title          = $update.Title
+                                KBArticle      = $update.KBArticle
+                                SizeMB         = $update.SizeMB
+                                Result         = 'Failed'
+                                HResult        = 'Error'
+                                RebootRequired = $false
+                                Timestamp      = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                             }
                         }
                     }
@@ -340,13 +360,11 @@ function Install-WindowsUpdate {
                             }
                             Invoke-RemoteOrLocal @rebootParams
                         }
-                    }
-                    else {
+                    } else {
                         Write-Warning -Message "[$($MyInvocation.MyCommand)] '$computer' requires a reboot to complete update installation. Use -AutoReboot or restart manually."
                     }
                 }
-            }
-            catch {
+            } catch {
                 Write-Error -Message "[$($MyInvocation.MyCommand)] Failed on '${computer}': $_"
             }
         }

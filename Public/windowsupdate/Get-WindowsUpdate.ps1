@@ -118,7 +118,11 @@ function Get-WindowsUpdate {
     )
 
     begin {
-        $sourceLabel = if ($MicrosoftUpdate) { 'Microsoft Update' } else { 'Default (machine config)' }
+        $sourceLabel = if ($MicrosoftUpdate) {
+            'Microsoft Update'
+        } else {
+            'Default (machine config)'
+        }
         Write-Verbose -Message "[$($MyInvocation.MyCommand)] Starting — Source: $sourceLabel"
 
         # Normalize KBArticleID — strip 'KB' prefix for consistent matching
@@ -159,8 +163,7 @@ function Get-WindowsUpdate {
                     $configuredSource = 'WSUS'
                     $configuredUrl = $wuReg.WUServer
                     $configuredTargetGroup = $wuReg.TargetGroup
-                }
-                elseif ($wuReg.DeferFeatureUpdates -eq 1 -or $wuReg.DeferQualityUpdates -eq 1) {
+                } elseif ($wuReg.DeferFeatureUpdates -eq 1 -or $wuReg.DeferQualityUpdates -eq 1) {
                     $configuredSource = 'WUFB'
                 }
 
@@ -210,8 +213,7 @@ function Get-WindowsUpdate {
                             if ($null -eq $classification) {
                                 $classification = $category.Name
                             }
-                        }
-                        else {
+                        } else {
                             $products.Add($category.Name)
                         }
                     }
@@ -236,35 +238,34 @@ function Get-WindowsUpdate {
                     }
 
                     $entries.Add([PSCustomObject]@{
-                        Title           = [string]$update.Title
-                        KBArticle       = $kbArticle
-                        KBArticleIDs    = $allKBs
-                        Classification  = [string]$classification
-                        Products        = @($products)
-                        Description     = [string]$update.Description
-                        ReleaseNotes    = [string]$update.ReleaseNotes
-                        MsrcSeverity    = [string]$update.MsrcSeverity
-                        CveIDs          = $cveIds
-                        IsDownloaded    = [bool]$update.IsDownloaded
-                        IsHidden        = [bool]$update.IsHidden
-                        IsInstalled     = [bool]$update.IsInstalled
-                        IsMandatory     = [bool]$update.IsMandatory
-                        IsUninstallable = [bool]$update.IsUninstallable
-                        EulaAccepted    = [bool]$update.EulaAccepted
-                        Deadline        = $update.Deadline
-                        RebootRequired  = ($update.RebootBehavior -ne 0)
-                        MaxSizeBytes    = [long]$update.MaxDownloadSize
-                        UpdateId        = [string]$update.Identity.UpdateID
-                        RevisionNumber  = [int]$update.Identity.RevisionNumber
-                    })
+                            Title           = [string]$update.Title
+                            KBArticle       = $kbArticle
+                            KBArticleIDs    = $allKBs
+                            Classification  = [string]$classification
+                            Products        = @($products)
+                            Description     = [string]$update.Description
+                            ReleaseNotes    = [string]$update.ReleaseNotes
+                            MsrcSeverity    = [string]$update.MsrcSeverity
+                            CveIDs          = $cveIds
+                            IsDownloaded    = [bool]$update.IsDownloaded
+                            IsHidden        = [bool]$update.IsHidden
+                            IsInstalled     = [bool]$update.IsInstalled
+                            IsMandatory     = [bool]$update.IsMandatory
+                            IsUninstallable = [bool]$update.IsUninstallable
+                            EulaAccepted    = [bool]$update.EulaAccepted
+                            Deadline        = $update.Deadline
+                            RebootRequired  = ($update.RebootBehavior -ne 0)
+                            MaxSizeBytes    = [long]$update.MaxDownloadSize
+                            UpdateId        = [string]$update.Identity.UpdateID
+                            RevisionNumber  = [int]$update.Identity.RevisionNumber
+                        })
                 }
 
                 return [PSCustomObject]@{
                     Metadata = $metadata
                     Entries  = $entries
                 }
-            }
-            catch {
+            } catch {
                 throw "Failed to search for Windows Updates: $_"
             }
         }
@@ -304,8 +305,7 @@ function Get-WindowsUpdate {
 
                 if ($metadata.EffectiveSource -ne $metadata.ConfiguredSource) {
                     Write-Verbose -Message "[$($MyInvocation.MyCommand)] '$computer' configured: $configInfo — Overriding to: $($metadata.EffectiveSource)"
-                }
-                else {
+                } else {
                     Write-Verbose -Message "[$($MyInvocation.MyCommand)] '$computer' source: $configInfo"
                 }
 
@@ -319,68 +319,67 @@ function Get-WindowsUpdate {
                 # Filter by KBArticleID if specified
                 if ($normalizedKBIds) {
                     $rawEntries = @($rawEntries | Where-Object -FilterScript {
-                        $entryKBs = $_.KBArticleIDs
-                        $null -ne ($normalizedKBIds | Where-Object -FilterScript { $_ -in $entryKBs } |
-                            Select-Object -First 1)
-                    })
-                }
+                            $entryKBs = $_.KBArticleIDs
+                            $null -ne ($normalizedKBIds | Where-Object -FilterScript { $_ -in $entryKBs } |
+                                    Select-Object -First 1)
+                            })
+                    }
 
-                # Filter by Classification if specified
-                if ($Classification) {
-                    $rawEntries = @($rawEntries | Where-Object -FilterScript {
-                        $_.Classification -in $Classification
-                    })
-                }
+                    # Filter by Classification if specified
+                    if ($Classification) {
+                        $rawEntries = @($rawEntries | Where-Object -FilterScript {
+                                $_.Classification -in $Classification
+                            })
+                    }
 
-                # Filter by Product if specified
-                if ($Product) {
-                    $rawEntries = @($rawEntries | Where-Object -FilterScript {
-                        $entryProducts = $_.Products
-                        $null -ne ($Product | Where-Object -FilterScript { $_ -in $entryProducts } |
-                            Select-Object -First 1)
-                    })
-                }
+                    # Filter by Product if specified
+                    if ($Product) {
+                        $rawEntries = @($rawEntries | Where-Object -FilterScript {
+                                $entryProducts = $_.Products
+                                $null -ne ($Product | Where-Object -FilterScript { $_ -in $entryProducts } |
+                                        Select-Object -First 1)
+                                })
+                        }
 
-                $filteredCount = @($rawEntries).Count
-                if ($filteredCount -ne $totalFound) {
-                    Write-Verbose -Message "[$($MyInvocation.MyCommand)] After filtering: $filteredCount of $totalFound update(s) match criteria on '$computer'"
-                }
+                        $filteredCount = @($rawEntries).Count
+                        if ($filteredCount -ne $totalFound) {
+                            Write-Verbose -Message "[$($MyInvocation.MyCommand)] After filtering: $filteredCount of $totalFound update(s) match criteria on '$computer'"
+                        }
 
-                foreach ($entry in $rawEntries) {
-                    [PSCustomObject]@{
-                        PSTypeName      = 'PSWinOps.WindowsUpdate'
-                        ComputerName    = $computer
-                        Title           = $entry.Title
-                        KBArticle       = $entry.KBArticle
-                        Classification  = $entry.Classification
-                        Products        = $entry.Products
-                        Description     = $entry.Description
-                        ReleaseNotes    = $entry.ReleaseNotes
-                        MsrcSeverity    = $entry.MsrcSeverity
-                        CveIDs          = $entry.CveIDs
-                        IsDownloaded    = $entry.IsDownloaded
-                        IsHidden        = $entry.IsHidden
-                        IsInstalled     = $entry.IsInstalled
-                        IsMandatory     = $entry.IsMandatory
-                        IsUninstallable = $entry.IsUninstallable
-                        EulaAccepted    = $entry.EulaAccepted
-                        Deadline        = $entry.Deadline
-                        RebootRequired  = $entry.RebootRequired
-                        SizeMB          = [math]::Round($entry.MaxSizeBytes / 1MB, 2)
-                        UpdateId        = $entry.UpdateId
-                        RevisionNumber  = $entry.RevisionNumber
-                        Timestamp       = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
+                        foreach ($entry in $rawEntries) {
+                            [PSCustomObject]@{
+                                PSTypeName      = 'PSWinOps.WindowsUpdate'
+                                ComputerName    = $computer
+                                Title           = $entry.Title
+                                KBArticle       = $entry.KBArticle
+                                Classification  = $entry.Classification
+                                Products        = $entry.Products
+                                Description     = $entry.Description
+                                ReleaseNotes    = $entry.ReleaseNotes
+                                MsrcSeverity    = $entry.MsrcSeverity
+                                CveIDs          = $entry.CveIDs
+                                IsDownloaded    = $entry.IsDownloaded
+                                IsHidden        = $entry.IsHidden
+                                IsInstalled     = $entry.IsInstalled
+                                IsMandatory     = $entry.IsMandatory
+                                IsUninstallable = $entry.IsUninstallable
+                                EulaAccepted    = $entry.EulaAccepted
+                                Deadline        = $entry.Deadline
+                                RebootRequired  = $entry.RebootRequired
+                                SizeMB          = [math]::Round($entry.MaxSizeBytes / 1MB, 2)
+                                UpdateId        = $entry.UpdateId
+                                RevisionNumber  = $entry.RevisionNumber
+                                Timestamp       = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
+                            }
+                        }
+                    } catch {
+                        Write-Error -Message "[$($MyInvocation.MyCommand)] Failed to retrieve updates from ${computer}: $_"
+                        continue
                     }
                 }
             }
-            catch {
-                Write-Error -Message "[$($MyInvocation.MyCommand)] Failed to retrieve updates from ${computer}: $_"
-                continue
+
+            end {
+                Write-Verbose -Message "[$($MyInvocation.MyCommand)] Completed"
             }
         }
-    }
-
-    end {
-        Write-Verbose -Message "[$($MyInvocation.MyCommand)] Completed"
-    }
-}

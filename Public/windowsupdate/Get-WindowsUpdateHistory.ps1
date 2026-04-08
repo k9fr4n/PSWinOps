@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 function Get-WindowsUpdateHistory {
     <#
         .SYNOPSIS
@@ -129,38 +129,35 @@ function Get-WindowsUpdateHistory {
                                     if ($null -eq $classification) {
                                         $classification = [string]$category.Name
                                     }
-                                }
-                                else {
+                                } else {
                                     $products.Add([string]$category.Name)
                                 }
                             }
                         }
-                    }
-                    catch {
+                    } catch {
                         Write-Verbose -Message "Could not retrieve categories for '$($entry.Title)': $_"
                     }
 
                     $entries.Add([PSCustomObject]@{
-                        Title               = [string]$entry.Title
-                        Operation           = [int]$entry.Operation
-                        ResultCode          = [int]$entry.ResultCode
-                        HResult             = [int]$entry.HResult
-                        Classification      = $classification
-                        Products            = @($products)
-                        ClientApplicationID = [string]$entry.ClientApplicationID
-                        ServerSelection     = [int]$entry.ServerSelection
-                        ServiceID           = [string]$entry.ServiceID
-                        Date                = [datetime]$entry.Date
-                        Description         = [string]$entry.Description
-                        SupportUrl          = [string]$entry.SupportUrl
-                        UpdateId            = [string]$entry.UpdateIdentity.UpdateID
-                        RevisionNumber      = [int]$entry.UpdateIdentity.RevisionNumber
-                    })
+                            Title               = [string]$entry.Title
+                            Operation           = [int]$entry.Operation
+                            ResultCode          = [int]$entry.ResultCode
+                            HResult             = [int]$entry.HResult
+                            Classification      = $classification
+                            Products            = @($products)
+                            ClientApplicationID = [string]$entry.ClientApplicationID
+                            ServerSelection     = [int]$entry.ServerSelection
+                            ServiceID           = [string]$entry.ServiceID
+                            Date                = [datetime]$entry.Date
+                            Description         = [string]$entry.Description
+                            SupportUrl          = [string]$entry.SupportUrl
+                            UpdateId            = [string]$entry.UpdateIdentity.UpdateID
+                            RevisionNumber      = [int]$entry.UpdateIdentity.RevisionNumber
+                        })
                 }
 
                 return $entries
-            }
-            catch {
+            } catch {
                 throw "Failed to query Windows Update history: $_"
             }
         }
@@ -192,34 +189,34 @@ function Get-WindowsUpdateHistory {
 
                 foreach ($entry in $sortedEntries) {
                     $kbMatch = [regex]::Match($entry.Title, 'KB\d+')
-                    $kbArticle = if ($kbMatch.Success) { $kbMatch.Value } else { '' }
+                    $kbArticle = if ($kbMatch.Success) {
+                        $kbMatch.Value
+                    } else {
+                        ''
+                    }
 
                     $operationString = if ($operationMap.ContainsKey($entry.Operation)) {
                         $operationMap[$entry.Operation]
-                    }
-                    else {
+                    } else {
                         'Unknown'
                     }
 
                     $resultString = if ($resultCodeMap.ContainsKey($entry.ResultCode)) {
                         $resultCodeMap[$entry.ResultCode]
-                    }
-                    else {
+                    } else {
                         'Unknown'
                     }
 
                     $serverSelectionString = if ($serverSelectionMap.ContainsKey($entry.ServerSelection)) {
                         $serverSelectionMap[$entry.ServerSelection]
-                    }
-                    else {
+                    } else {
                         'Unknown'
                     }
 
                     # Format HResult as hex for readability (e.g. 0x80070005)
                     $hResultHex = if ($entry.HResult -ne 0) {
                         '0x{0:X8}' -f $entry.HResult
-                    }
-                    else {
+                    } else {
                         '0x00000000'
                     }
 
@@ -244,8 +241,7 @@ function Get-WindowsUpdateHistory {
                         Timestamp           = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                     }
                 }
-            }
-            catch {
+            } catch {
                 Write-Error -Message "[$($MyInvocation.MyCommand)] Failed to retrieve update history from ${computer}: $_"
                 continue
             }

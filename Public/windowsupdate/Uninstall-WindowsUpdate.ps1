@@ -112,8 +112,7 @@ function Uninstall-WindowsUpdate {
                 $installed = $null
                 try {
                     $installed = Get-HotFix -Id $kbId -ErrorAction SilentlyContinue
-                }
-                catch {
+                } catch {
                     $installed = $null
                 }
 
@@ -128,7 +127,11 @@ function Uninstall-WindowsUpdate {
                 }
 
                 # Build wusa.exe arguments
-                $restartFlag = if ($UseForceRestart) { '/forcerestart' } else { '/norestart' }
+                $restartFlag = if ($UseForceRestart) {
+                    '/forcerestart'
+                } else {
+                    '/norestart'
+                }
 
                 try {
                     $process = Start-Process -FilePath 'wusa.exe' `
@@ -136,8 +139,7 @@ function Uninstall-WindowsUpdate {
                         -Wait -PassThru -NoNewWindow -ErrorAction Stop
 
                     $exitCode = $process.ExitCode
-                }
-                catch {
+                } catch {
                     [PSCustomObject]@{
                         KBArticle      = $kbId
                         Result         = 'Failed'
@@ -148,11 +150,21 @@ function Uninstall-WindowsUpdate {
                 }
 
                 $result = switch ($exitCode) {
-                    0       { 'Succeeded' }
-                    3010    { 'SucceededRebootRequired' }
-                    1641    { 'SucceededRebootRequired' }
-                    2359303 { 'NotUninstallable' }
-                    default { 'Failed' }
+                    0 {
+                        'Succeeded'
+                    }
+                    3010 {
+                        'SucceededRebootRequired'
+                    }
+                    1641 {
+                        'SucceededRebootRequired'
+                    }
+                    2359303 {
+                        'NotUninstallable'
+                    }
+                    default {
+                        'Failed'
+                    }
                 }
 
                 $rebootNeeded = ($exitCode -eq 3010) -or ($exitCode -eq 1641)
@@ -209,8 +221,7 @@ function Uninstall-WindowsUpdate {
                 if ($rebootNeeded) {
                     Write-Warning -Message "[$($MyInvocation.MyCommand)] '$computer' requires a reboot to complete uninstallation"
                 }
-            }
-            catch {
+            } catch {
                 Write-Error -Message "[$($MyInvocation.MyCommand)] Failed on '${computer}': $_"
             }
         }

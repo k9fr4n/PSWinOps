@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 function Get-WindowsUpdateConfiguration {
     <#
         .SYNOPSIS
@@ -104,24 +104,24 @@ function Get-WindowsUpdateConfiguration {
             $auProps = Get-ItemProperty -Path $auPath -ErrorAction SilentlyContinue
 
             [PSCustomObject]@{
-                IsGPOConfigured                = $gpoConfigured
-                WUServer                       = $wuProps.WUServer
-                WUStatusServer                 = $wuProps.WUStatusServer
-                TargetGroup                    = $wuProps.TargetGroup
-                TargetGroupEnabled             = $wuProps.TargetGroupEnabled
-                DeferFeatureUpdates            = $wuProps.DeferFeatureUpdates
+                IsGPOConfigured                 = $gpoConfigured
+                WUServer                        = $wuProps.WUServer
+                WUStatusServer                  = $wuProps.WUStatusServer
+                TargetGroup                     = $wuProps.TargetGroup
+                TargetGroupEnabled              = $wuProps.TargetGroupEnabled
+                DeferFeatureUpdates             = $wuProps.DeferFeatureUpdates
                 DeferFeatureUpdatesPeriodInDays = $wuProps.DeferFeatureUpdatesPeriodInDays
-                DeferQualityUpdates            = $wuProps.DeferQualityUpdates
+                DeferQualityUpdates             = $wuProps.DeferQualityUpdates
                 DeferQualityUpdatesPeriodInDays = $wuProps.DeferQualityUpdatesPeriodInDays
-                BranchReadinessLevel           = $wuProps.BranchReadinessLevel
-                PauseFeatureUpdatesStartTime   = $wuProps.PauseFeatureUpdatesStartTime
-                PauseQualityUpdatesStartTime   = $wuProps.PauseQualityUpdatesStartTime
-                UseWUServer                    = $auProps.UseWUServer
-                NoAutoUpdate                   = $auProps.NoAutoUpdate
-                AUOptions                      = $auProps.AUOptions
-                ScheduledInstallDay            = $auProps.ScheduledInstallDay
-                ScheduledInstallTime           = $auProps.ScheduledInstallTime
-                NoAutoRebootWithLoggedOnUsers  = $auProps.NoAutoRebootWithLoggedOnUsers
+                BranchReadinessLevel            = $wuProps.BranchReadinessLevel
+                PauseFeatureUpdatesStartTime    = $wuProps.PauseFeatureUpdatesStartTime
+                PauseQualityUpdatesStartTime    = $wuProps.PauseQualityUpdatesStartTime
+                UseWUServer                     = $auProps.UseWUServer
+                NoAutoUpdate                    = $auProps.NoAutoUpdate
+                AUOptions                       = $auProps.AUOptions
+                ScheduledInstallDay             = $auProps.ScheduledInstallDay
+                ScheduledInstallTime            = $auProps.ScheduledInstallTime
+                NoAutoRebootWithLoggedOnUsers   = $auProps.NoAutoRebootWithLoggedOnUsers
             }
         }
     }
@@ -146,11 +146,9 @@ function Get-WindowsUpdateConfiguration {
                 $updateSource = 'Unknown'
                 if ($rawData.UseWUServer -eq 1 -and -not [string]::IsNullOrEmpty($rawData.WUServer)) {
                     $updateSource = 'WSUS'
-                }
-                elseif ($rawData.DeferFeatureUpdates -eq 1 -or $rawData.DeferQualityUpdates -eq 1) {
+                } elseif ($rawData.DeferFeatureUpdates -eq 1 -or $rawData.DeferQualityUpdates -eq 1) {
                     $updateSource = 'WUFB'
-                }
-                elseif ($rawData.IsGPOConfigured -eq $false) {
+                } elseif ($rawData.IsGPOConfigured -eq $false) {
                     $updateSource = 'WindowsUpdate'
                 }
 
@@ -194,8 +192,7 @@ function Get-WindowsUpdateConfiguration {
                     IsGPOConfigured               = $rawData.IsGPOConfigured
                     Timestamp                     = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                 }
-            }
-            catch {
+            } catch {
                 Write-Error -Message "[$($MyInvocation.MyCommand)] Failed to retrieve Windows Update configuration from ${computer}: $_"
                 continue
             }

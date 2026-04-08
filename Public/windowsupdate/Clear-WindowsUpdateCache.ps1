@@ -96,14 +96,18 @@ function Clear-WindowsUpdateCache {
                 $items = Get-ChildItem -Path $downloadPath -Recurse -Force -ErrorAction SilentlyContinue
                 $totalFiles = @($items | Where-Object -FilterScript { -not $_.PSIsContainer }).Count
                 $totalSize = ($items | Measure-Object -Property 'Length' -Sum -ErrorAction SilentlyContinue).Sum
-                if ($null -eq $totalSize) { $totalSize = 0 }
+                if ($null -eq $totalSize) {
+                    $totalSize = 0
+                }
             }
 
             if ($ClearDataStore -and (Test-Path -Path $dataStorePath -PathType Container)) {
                 $dsItems = Get-ChildItem -Path $dataStorePath -Recurse -Force -ErrorAction SilentlyContinue
                 $dsFileCount = @($dsItems | Where-Object -FilterScript { -not $_.PSIsContainer }).Count
                 $dsSize = ($dsItems | Measure-Object -Property 'Length' -Sum -ErrorAction SilentlyContinue).Sum
-                if ($null -eq $dsSize) { $dsSize = 0 }
+                if ($null -eq $dsSize) {
+                    $dsSize = 0
+                }
                 $totalFiles += $dsFileCount
                 $totalSize += $dsSize
             }
@@ -119,8 +123,7 @@ function Clear-WindowsUpdateCache {
                         Stop-Service -Name $svcName -Force -ErrorAction Stop
                         $stoppedServices.Add($svcName)
                     }
-                }
-                catch {
+                } catch {
                     Write-Warning "Could not stop service '$svcName': $_"
                 }
             }
@@ -135,8 +138,7 @@ function Clear-WindowsUpdateCache {
                 try {
                     Get-ChildItem -Path $downloadPath -Force -ErrorAction Stop |
                         Remove-Item -Recurse -Force -ErrorAction Stop
-                }
-                catch {
+                } catch {
                     $errors.Add("Download folder: $_")
                 }
             }
@@ -146,8 +148,7 @@ function Clear-WindowsUpdateCache {
                 try {
                     Get-ChildItem -Path $dataStorePath -Force -ErrorAction Stop |
                         Remove-Item -Recurse -Force -ErrorAction Stop
-                }
-                catch {
+                } catch {
                     $errors.Add("DataStore folder: $_")
                 }
             }
@@ -156,16 +157,14 @@ function Clear-WindowsUpdateCache {
             foreach ($svcName in $stoppedServices) {
                 try {
                     Start-Service -Name $svcName -ErrorAction Stop
-                }
-                catch {
+                } catch {
                     $errors.Add("Failed to restart service '$svcName': $_")
                 }
             }
 
             $result = if ($errors.Count -eq 0) {
                 'Succeeded'
-            }
-            else {
+            } else {
                 'PartialSuccess'
             }
 
@@ -186,8 +185,7 @@ function Clear-WindowsUpdateCache {
 
             $targetDesc = if ($IncludeDataStore) {
                 "Clear Windows Update cache + DataStore on '$computer'"
-            }
-            else {
+            } else {
                 "Clear Windows Update download cache on '$computer'"
             }
 
@@ -218,17 +216,16 @@ function Clear-WindowsUpdateCache {
                 Write-Verbose -Message "[$($MyInvocation.MyCommand)] '$computer' — Freed $sizeFreedMB MB ($($clearResult.FileCount) files)"
 
                 [PSCustomObject]@{
-                    PSTypeName        = 'PSWinOps.WindowsUpdateCacheResult'
-                    ComputerName      = $computer
-                    CachePath         = $clearResult.CachePath
-                    FileCount         = $clearResult.FileCount
-                    SizeFreedMB       = $sizeFreedMB
-                    DataStoreCleared  = $clearResult.DataStoreCleared
-                    Result            = $clearResult.Result
-                    Timestamp         = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
+                    PSTypeName       = 'PSWinOps.WindowsUpdateCacheResult'
+                    ComputerName     = $computer
+                    CachePath        = $clearResult.CachePath
+                    FileCount        = $clearResult.FileCount
+                    SizeFreedMB      = $sizeFreedMB
+                    DataStoreCleared = $clearResult.DataStoreCleared
+                    Result           = $clearResult.Result
+                    Timestamp        = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                 }
-            }
-            catch {
+            } catch {
                 Write-Error -Message "[$($MyInvocation.MyCommand)] Failed on '${computer}': $_"
             }
         }

@@ -129,8 +129,7 @@ function Show-WindowsUpdate {
                         Title     = $foundKBs[$kb]
                         Result    = 'Shown'
                     }
-                }
-                else {
+                } else {
                     [PSCustomObject]@{
                         KBArticle = "KB$kb"
                         Title     = $null
@@ -171,8 +170,7 @@ function Show-WindowsUpdate {
                         Timestamp    = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                     }
                 }
-            }
-            catch {
+            } catch {
                 Write-Error -Message "[$($MyInvocation.MyCommand)] Failed on '${computer}': $_"
             }
         }

@@ -164,8 +164,8 @@ function Save-WindowsUpdate {
 
                 if ($update.IsDownloaded) {
                     return [PSCustomObject]@{
-                        ResultCode = 2
-                        HResult    = 0
+                        ResultCode        = 2
+                        HResult           = 0
                         AlreadyDownloaded = $true
                     }
                 }
@@ -186,8 +186,7 @@ function Save-WindowsUpdate {
                     HResult           = [int]$downloadResult.HResult
                     AlreadyDownloaded = $false
                 }
-            }
-            catch {
+            } catch {
                 throw "Failed to download update '$UpdateIdToDownload': $_"
             }
         }
@@ -200,12 +199,24 @@ function Save-WindowsUpdate {
             try {
                 # Step 1: Scan for available updates using Get-WindowsUpdate
                 $getParams = @{ ComputerName = $computer }
-                if ($MicrosoftUpdate) { $getParams['MicrosoftUpdate'] = $true }
-                if ($KBArticleID) { $getParams['KBArticleID'] = $KBArticleID }
-                if ($Classification) { $getParams['Classification'] = $Classification }
-                if ($Product) { $getParams['Product'] = $Product }
-                if ($IncludeHidden) { $getParams['IncludeHidden'] = $true }
-                if ($PSBoundParameters.ContainsKey('Credential')) { $getParams['Credential'] = $Credential }
+                if ($MicrosoftUpdate) {
+                    $getParams['MicrosoftUpdate'] = $true
+                }
+                if ($KBArticleID) {
+                    $getParams['KBArticleID'] = $KBArticleID
+                }
+                if ($Classification) {
+                    $getParams['Classification'] = $Classification
+                }
+                if ($Product) {
+                    $getParams['Product'] = $Product
+                }
+                if ($IncludeHidden) {
+                    $getParams['IncludeHidden'] = $true
+                }
+                if ($PSBoundParameters.ContainsKey('Credential')) {
+                    $getParams['Credential'] = $Credential
+                }
 
                 $activityLabel = "Save-WindowsUpdate — $computer"
 
@@ -230,22 +241,37 @@ function Save-WindowsUpdate {
 
                 for ($i = 0; $i -lt $totalUpdates; $i++) {
                     $update = $updates[$i]
-                    $kbLabel = if ($update.KBArticle) { " ($($update.KBArticle))" } else { '' }
+                    $kbLabel = if ($update.KBArticle) {
+                        " ($($update.KBArticle))"
+                    } else {
+                        ''
+                    }
 
                     # Calculate progress
                     $percentComplete = if ($totalSizeMB -gt 0) {
                         [math]::Min([math]::Floor($downloadedSizeMB / $totalSizeMB * 100), 99)
-                    }
-                    else {
+                    } else {
                         [math]::Min([math]::Floor($i / $totalUpdates * 100), 99)
                     }
 
                     $elapsedSec = $stopwatch.Elapsed.TotalSeconds
-                    $speedMBps = if ($elapsedSec -gt 0 -and $downloadedSizeMB -gt 0) { $downloadedSizeMB / $elapsedSec } else { 0 }
+                    $speedMBps = if ($elapsedSec -gt 0 -and $downloadedSizeMB -gt 0) {
+                        $downloadedSizeMB / $elapsedSec
+                    } else {
+                        0
+                    }
                     $remainingMB = $totalSizeMB - $downloadedSizeMB
-                    $etaSeconds = if ($speedMBps -gt 0) { [int]($remainingMB / $speedMBps) } else { -1 }
+                    $etaSeconds = if ($speedMBps -gt 0) {
+                        [int]($remainingMB / $speedMBps)
+                    } else {
+                        -1
+                    }
 
-                    $speedLabel = if ($speedMBps -gt 0) { "$([math]::Round($speedMBps, 1)) MB/s" } else { 'starting...' }
+                    $speedLabel = if ($speedMBps -gt 0) {
+                        "$([math]::Round($speedMBps, 1)) MB/s"
+                    } else {
+                        'starting...'
+                    }
                     $downloadedLabel = "$([math]::Round($downloadedSizeMB, 1))/$([math]::Round($totalSizeMB, 1)) MB"
 
                     $progressParams = @{
@@ -275,8 +301,7 @@ function Save-WindowsUpdate {
 
                             $resultString = if ($resultCodeMap.ContainsKey($dlResult.ResultCode)) {
                                 $resultCodeMap[$dlResult.ResultCode]
-                            }
-                            else {
+                            } else {
                                 'Unknown'
                             }
 
@@ -287,8 +312,7 @@ function Save-WindowsUpdate {
 
                             $hResultHex = if ($dlResult.HResult -ne 0) {
                                 '0x{0:X8}' -f $dlResult.HResult
-                            }
-                            else {
+                            } else {
                                 '0x00000000'
                             }
 
@@ -302,8 +326,7 @@ function Save-WindowsUpdate {
                                 HResult      = $hResultHex
                                 Timestamp    = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                             }
-                        }
-                        catch {
+                        } catch {
                             Write-Error -Message "[$($MyInvocation.MyCommand)] Failed to download '$($update.Title)' on '${computer}': $_"
 
                             [PSCustomObject]@{
@@ -327,13 +350,11 @@ function Save-WindowsUpdate {
                 $elapsed = $stopwatch.Elapsed
                 $avgSpeed = if ($elapsed.TotalSeconds -gt 0 -and $downloadedSizeMB -gt 0) {
                     "$([math]::Round($downloadedSizeMB / $elapsed.TotalSeconds, 1)) MB/s"
-                }
-                else {
+                } else {
                     'N/A'
                 }
                 Write-Information -MessageData "[$($MyInvocation.MyCommand)] $computer — Done in $($elapsed.ToString('mm\:ss')) ($avgSpeed)" -InformationAction Continue
-            }
-            catch {
+            } catch {
                 Write-Error -Message "[$($MyInvocation.MyCommand)] Failed on '${computer}': $_"
             }
         }
