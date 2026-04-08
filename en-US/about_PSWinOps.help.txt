@@ -159,11 +159,12 @@ FUNCTION DOMAINS
       Set-PageFile
       Show-SystemMonitor
 
-  windowsupdate (2 functions)
+  windowsupdate (3 functions)
     Functions for querying and managing Windows Update
     on local or remote machines via the COM API and
     registry.
 
+      Get-WindowsUpdate
       Get-WindowsUpdateConfiguration
       Get-WindowsUpdateHistory
 
@@ -259,7 +260,7 @@ REMOTE EXECUTION PATTERN
     in the pipeline continue to be processed.
 
 PSWINOPS TYPE REGISTRY
-    The following 76 PSTypeName values are defined by the
+    The following 77 PSTypeName values are defined by the
     module. Each corresponds to the output of one or more
     public functions.
 
@@ -335,6 +336,7 @@ PSWINOPS TYPE REGISTRY
       PSWinOps.SubnetInfo
       PSWinOps.SystemSummary
       PSWinOps.TraceRouteHop
+      PSWinOps.WindowsUpdate
       PSWinOps.WindowsUpdateConfiguration
       PSWinOps.WindowsUpdateHistory
       PSWinOps.WinRMTestResult

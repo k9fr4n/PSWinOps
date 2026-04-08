@@ -3268,6 +3268,41 @@
     </View>
 
     <!-- ============================================================ -->
+    <!-- PSWinOps.WindowsUpdate                                       -->
+    <!-- Used by: Get-WindowsUpdate                                   -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.WindowsUpdate</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.WindowsUpdate</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>ComputerName</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>KB</Label><Width>12</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Classification</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Downloaded</Label><Width>11</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Size(MB)</Label><Width>10</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Reboot</Label><Width>7</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Title</Label></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>KBArticle</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Classification</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>IsDownloaded</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>SizeMB</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>RebootRequired</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Title</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
     <!-- PSWinOps.WindowsUpdateConfiguration                          -->
     <!-- Used by: Get-WindowsUpdateConfiguration                      -->
     <!-- ============================================================ -->
