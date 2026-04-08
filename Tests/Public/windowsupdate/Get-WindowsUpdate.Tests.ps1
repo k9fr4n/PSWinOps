@@ -181,6 +181,40 @@ Describe 'Get-WindowsUpdate' {
         }
     }
 
+    Context 'Source parameter' {
+
+        BeforeAll {
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                return $script:mockUpdates
+            }
+        }
+
+        It -Name 'Should pass Default source by default' -Test {
+            Get-WindowsUpdate
+            Should -Invoke -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -ParameterFilter {
+                $ArgumentList[1] -eq 'Default'
+            }
+        }
+
+        It -Name 'Should pass MicrosoftUpdate source when specified' -Test {
+            Get-WindowsUpdate -Source MicrosoftUpdate
+            Should -Invoke -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -ParameterFilter {
+                $ArgumentList[1] -eq 'MicrosoftUpdate'
+            }
+        }
+
+        It -Name 'Should pass WindowsUpdate source when specified' -Test {
+            Get-WindowsUpdate -Source WindowsUpdate
+            Should -Invoke -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -ParameterFilter {
+                $ArgumentList[1] -eq 'WindowsUpdate'
+            }
+        }
+
+        It -Name 'Should throw for invalid Source value' -Test {
+            { Get-WindowsUpdate -Source 'InvalidSource' } | Should -Throw
+        }
+    }
+
     Context 'IncludeHidden switch' {
 
         BeforeAll {
@@ -317,6 +351,15 @@ Describe 'Get-WindowsUpdate' {
 
         It -Name 'Should throw when Product is empty string' -Test {
             { Get-WindowsUpdate -Product '' } | Should -Throw
+        }
+
+        It -Name 'Should have Source parameter with ValidateSet' -Test {
+            $paramMeta = (Get-Command -Name 'Get-WindowsUpdate').Parameters['Source']
+            $paramMeta | Should -Not -BeNullOrEmpty
+            $validateSet = $paramMeta.Attributes | Where-Object { $_ -is [System.Management.Automation.ValidateSetAttribute] }
+            $validateSet.ValidValues | Should -Contain 'Default'
+            $validateSet.ValidValues | Should -Contain 'MicrosoftUpdate'
+            $validateSet.ValidValues | Should -Contain 'WindowsUpdate'
         }
     }
 

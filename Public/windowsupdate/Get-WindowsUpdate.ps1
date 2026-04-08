@@ -11,6 +11,9 @@ function Get-WindowsUpdate {
             By default all classifications and products are returned. Use the Classification
             and Product parameters to filter results. Hidden updates are excluded unless
             the IncludeHidden switch is specified.
+            The Source parameter controls which update service is queried: the machine's
+            configured source (Default), Microsoft Update (full catalog), or Windows Update
+            (bypassing WSUS).
 
         .PARAMETER ComputerName
             One or more computer names to query. Defaults to the local computer.
@@ -31,6 +34,13 @@ function Get-WindowsUpdate {
             Common values: 'Windows Server 2022', 'Windows 11', 'Microsoft Office',
             'Windows Defender'. When not specified, all products are returned.
 
+        .PARAMETER Source
+            Specifies the update service to query. Valid values are:
+            - Default: Uses the machine's configured source (WSUS, WUFB, or Windows Update).
+            - MicrosoftUpdate: Queries the full Microsoft Update catalog (all products).
+            - WindowsUpdate: Queries Windows Update directly, bypassing WSUS if configured.
+            Defaults to 'Default'.
+
         .PARAMETER IncludeHidden
             When specified, includes updates that have been hidden (declined).
             By default hidden updates are excluded from results.
@@ -38,17 +48,17 @@ function Get-WindowsUpdate {
         .EXAMPLE
             Get-WindowsUpdate
 
-            Lists all available updates on the local computer.
+            Lists all available updates on the local computer using the configured source.
 
         .EXAMPLE
-            Get-WindowsUpdate -ComputerName 'SRV01' -Classification 'Security Updates'
+            Get-WindowsUpdate -ComputerName 'SRV01' -Source MicrosoftUpdate -Classification 'Security Updates'
 
-            Lists only security updates available on SRV01.
+            Lists security updates from the full Microsoft Update catalog on SRV01.
 
         .EXAMPLE
-            'SRV01', 'SRV02' | Get-WindowsUpdate -Product 'Windows Server 2022' | Where-Object { -not $_.IsDownloaded }
+            'SRV01', 'SRV02' | Get-WindowsUpdate -Source WindowsUpdate | Where-Object { -not $_.IsDownloaded }
 
-            Lists Windows Server 2022 updates that have not yet been downloaded on SRV01 and SRV02.
+            Bypasses WSUS and queries Windows Update directly on SRV01 and SRV02, filtering for not-yet-downloaded updates.
 
         .OUTPUTS
             PSWinOps.WindowsUpdate
@@ -84,6 +94,10 @@ function Get-WindowsUpdate {
         $Credential,
 
         [Parameter(Mandatory = $false)]
+        [ValidateSet('Default', 'MicrosoftUpdate', 'WindowsUpdate')]
+        [string]$Source = 'Default',
+
+        [Parameter(Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
         [string[]]$Classification,
 
@@ -100,12 +114,26 @@ function Get-WindowsUpdate {
 
         $wuScriptBlock = {
             param(
-                [bool]$SearchHidden
+                [bool]$SearchHidden,
+                [string]$UpdateSource
             )
 
             try {
                 $session = New-Object -ComObject 'Microsoft.Update.Session'
                 $searcher = $session.CreateUpdateSearcher()
+
+                switch ($UpdateSource) {
+                    'MicrosoftUpdate' {
+                        $serviceManager = New-Object -ComObject 'Microsoft.Update.ServiceManager'
+                        $serviceManager.ClientApplicationID = 'PSWinOps'
+                        $service = $serviceManager.AddService2('7971f918-a847-4430-9279-4a52d1efe18d', 7, '')
+                        $searcher.ServerSelection = 3
+                        $searcher.ServiceID = $service.ServiceID
+                    }
+                    'WindowsUpdate' {
+                        $searcher.ServerSelection = 2
+                    }
+                }
 
                 $criteria = 'IsInstalled=0'
                 if (-not $SearchHidden) {
@@ -170,7 +198,7 @@ function Get-WindowsUpdate {
                 $invokeParams = @{
                     ComputerName = $computer
                     ScriptBlock  = $wuScriptBlock
-                    ArgumentList = @([bool]$IncludeHidden)
+                    ArgumentList = @([bool]$IncludeHidden, $Source)
                 }
 
                 if ($PSBoundParameters.ContainsKey('Credential')) {
