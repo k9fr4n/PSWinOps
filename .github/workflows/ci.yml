@@ -179,7 +179,7 @@ jobs:
   coverage:
     needs: test
     runs-on: windows-latest
-    if: always() # Run even if some tests failed — you still want the coverage comment
+    if: success()
     permissions:
       contents: read
       pull-requests: write # Required for Codecov to post PR comments
@@ -209,7 +209,7 @@ jobs:
         run: |
           $config = New-PesterConfiguration
           $config.Run.Path                  = '.\Tests'
-          $config.Output.Verbosity          = 'Detailed'
+          $config.Output.Verbosity          = 'None'
           $config.CodeCoverage.Enabled      = $true
           $config.CodeCoverage.Path         = @(
               '.\PSWinOps.psm1',
