@@ -331,15 +331,6 @@ Describe 'Get-WindowsUpdateConfiguration' {
 
     Context 'AUOptions mapping completeness' {
 
-        BeforeEach {
-            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
-                $data = $script:mockDefaultData.PSObject.Copy()
-                $data.IsGPOConfigured = $true
-                $data.AUOptions = $auOption
-                return $data
-            }
-        }
-
         It -Name 'Should map AUOptions <AUOption> to <Expected>' -TestCases @(
             @{ AUOption = 1; Expected = 'Disabled' }
             @{ AUOption = 2; Expected = 'NotifyDownload' }
@@ -348,22 +339,19 @@ Describe 'Get-WindowsUpdateConfiguration' {
             @{ AUOption = 5; Expected = 'AllowLocalAdmin' }
         ) -Test {
             param($AUOption, $Expected)
-            $auOption = $AUOption
+            $mockValue = $AUOption
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                $data = $script:mockDefaultData.PSObject.Copy()
+                $data.IsGPOConfigured = $true
+                $data.AUOptions = $mockValue
+                return $data
+            }
             $result = Get-WindowsUpdateConfiguration
             $result.AutoUpdateOption | Should -Be $Expected
         }
     }
 
     Context 'ScheduledInstallDay mapping completeness' {
-
-        BeforeEach {
-            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
-                $data = $script:mockDefaultData.PSObject.Copy()
-                $data.IsGPOConfigured = $true
-                $data.ScheduledInstallDay = $dayValue
-                return $data
-            }
-        }
 
         It -Name 'Should map ScheduledInstallDay <DayValue> to <Expected>' -TestCases @(
             @{ DayValue = 0; Expected = 'EveryDay' }
@@ -376,7 +364,13 @@ Describe 'Get-WindowsUpdateConfiguration' {
             @{ DayValue = 7; Expected = 'Saturday' }
         ) -Test {
             param($DayValue, $Expected)
-            $dayValue = $DayValue
+            $mockValue = $DayValue
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                $data = $script:mockDefaultData.PSObject.Copy()
+                $data.IsGPOConfigured = $true
+                $data.ScheduledInstallDay = $mockValue
+                return $data
+            }
             $result = Get-WindowsUpdateConfiguration
             $result.ScheduledInstallDay | Should -Be $Expected
         }
@@ -384,23 +378,20 @@ Describe 'Get-WindowsUpdateConfiguration' {
 
     Context 'BranchReadinessLevel mapping' {
 
-        BeforeEach {
-            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
-                $data = $script:mockDefaultData.PSObject.Copy()
-                $data.IsGPOConfigured = $true
-                $data.DeferFeatureUpdates = 1
-                $data.BranchReadinessLevel = $branchLevel
-                return $data
-            }
-        }
-
         It -Name 'Should map BranchReadinessLevel <Level> to <Expected>' -TestCases @(
             @{ Level = 16; Expected = 'SemiAnnualPreview' }
             @{ Level = 32; Expected = 'SemiAnnual' }
             @{ Level = 64; Expected = 'LongTermServicing' }
         ) -Test {
             param($Level, $Expected)
-            $branchLevel = $Level
+            $mockValue = $Level
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                $data = $script:mockDefaultData.PSObject.Copy()
+                $data.IsGPOConfigured = $true
+                $data.DeferFeatureUpdates = 1
+                $data.BranchReadinessLevel = $mockValue
+                return $data
+            }
             $result = Get-WindowsUpdateConfiguration
             $result.BranchReadinessLevel | Should -Be $Expected
         }
