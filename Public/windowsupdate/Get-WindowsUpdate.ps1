@@ -12,9 +12,9 @@ function Get-WindowsUpdate {
             By default all classifications and products are returned. Use the Classification,
             Product, and KBArticleID parameters to filter results. Hidden updates are excluded
             unless the IncludeHidden switch is specified.
-            The Source parameter controls which update service is queried: the machine's
-            configured source (Default), Microsoft Update (full catalog), or Windows Update
-            (bypassing WSUS).
+            By default, the machine's configured update source is used (WSUS, WUFB, or
+            Windows Update). Use the MicrosoftUpdate switch to query the full Microsoft
+            Update catalog instead.
 
         .PARAMETER ComputerName
             One or more computer names to query. Defaults to the local computer.
@@ -40,12 +40,10 @@ function Get-WindowsUpdate {
             Accepts one or more KB identifiers with or without the 'KB' prefix
             (e.g., 'KB5034441' or '5034441'). When not specified, all updates are returned.
 
-        .PARAMETER Source
-            Specifies the update service to query. Valid values are:
-            - Default: Uses the machine's configured source (WSUS, WUFB, or Windows Update).
-            - MicrosoftUpdate: Queries the full Microsoft Update catalog (all products).
-            - WindowsUpdate: Queries Windows Update directly, bypassing WSUS if configured.
-            Defaults to 'Default'.
+        .PARAMETER MicrosoftUpdate
+            When specified, queries the full Microsoft Update catalog instead of the
+            machine's configured source (WSUS, WUFB, or Windows Update). This provides
+            access to all Microsoft products including Office, SQL Server, etc.
 
         .PARAMETER IncludeHidden
             When specified, includes updates that have been hidden (declined).
@@ -62,7 +60,7 @@ function Get-WindowsUpdate {
             Checks if a specific KB is available on SRV01.
 
         .EXAMPLE
-            'SRV01', 'SRV02' | Get-WindowsUpdate -Source MicrosoftUpdate -Classification 'Security Updates'
+            'SRV01', 'SRV02' | Get-WindowsUpdate -MicrosoftUpdate -Classification 'Security Updates'
 
             Lists security updates from the full Microsoft Update catalog on SRV01 and SRV02.
 
@@ -101,8 +99,7 @@ function Get-WindowsUpdate {
         $Credential,
 
         [Parameter(Mandatory = $false)]
-        [ValidateSet('Default', 'MicrosoftUpdate', 'WindowsUpdate')]
-        [string]$Source = 'Default',
+        [switch]$MicrosoftUpdate,
 
         [Parameter(Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
@@ -121,7 +118,8 @@ function Get-WindowsUpdate {
     )
 
     begin {
-        Write-Verbose -Message "[$($MyInvocation.MyCommand)] Starting — Source: $Source"
+        $sourceLabel = if ($MicrosoftUpdate) { 'Microsoft Update' } else { 'Default (machine config)' }
+        Write-Verbose -Message "[$($MyInvocation.MyCommand)] Starting — Source: $sourceLabel"
 
         # Normalize KBArticleID — strip 'KB' prefix for consistent matching
         $normalizedKBIds = $null
@@ -144,7 +142,7 @@ function Get-WindowsUpdate {
         $wuScriptBlock = {
             param(
                 [bool]$SearchHidden,
-                [string]$UpdateSource
+                [bool]$UseMicrosoftUpdate
             )
 
             try {
@@ -170,19 +168,13 @@ function Get-WindowsUpdate {
                 $searcher = $session.CreateUpdateSearcher()
 
                 $effectiveSource = $configuredSource
-                switch ($UpdateSource) {
-                    'MicrosoftUpdate' {
-                        $serviceManager = New-Object -ComObject 'Microsoft.Update.ServiceManager'
-                        $serviceManager.ClientApplicationID = 'PSWinOps'
-                        $service = $serviceManager.AddService2('7971f918-a847-4430-9279-4a52d1efe18d', 7, '')
-                        $searcher.ServerSelection = 3
-                        $searcher.ServiceID = $service.ServiceID
-                        $effectiveSource = 'Microsoft Update'
-                    }
-                    'WindowsUpdate' {
-                        $searcher.ServerSelection = 2
-                        $effectiveSource = 'Windows Update'
-                    }
+                if ($UseMicrosoftUpdate) {
+                    $serviceManager = New-Object -ComObject 'Microsoft.Update.ServiceManager'
+                    $serviceManager.ClientApplicationID = 'PSWinOps'
+                    $service = $serviceManager.AddService2('7971f918-a847-4430-9279-4a52d1efe18d', 7, '')
+                    $searcher.ServerSelection = 3
+                    $searcher.ServiceID = $service.ServiceID
+                    $effectiveSource = 'Microsoft Update'
                 }
 
                 $criteria = 'IsInstalled=0'
@@ -280,13 +272,13 @@ function Get-WindowsUpdate {
 
     process {
         foreach ($computer in $ComputerName) {
-            Write-Verbose -Message "[$($MyInvocation.MyCommand)] Scanning '$computer' (Source: $Source, Criteria: IsInstalled=0$(if (-not $IncludeHidden) { ' AND IsHidden=0' }))"
+            Write-Verbose -Message "[$($MyInvocation.MyCommand)] Scanning '$computer' (Source: $sourceLabel, Criteria: IsInstalled=0$(if (-not $IncludeHidden) { ' AND IsHidden=0' }))"
 
             try {
                 $invokeParams = @{
                     ComputerName = $computer
                     ScriptBlock  = $wuScriptBlock
-                    ArgumentList = @([bool]$IncludeHidden, $Source)
+                    ArgumentList = @([bool]$IncludeHidden, [bool]$MicrosoftUpdate)
                 }
 
                 if ($PSBoundParameters.ContainsKey('Credential')) {

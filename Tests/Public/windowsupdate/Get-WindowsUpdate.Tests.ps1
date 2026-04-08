@@ -267,7 +267,7 @@ Describe 'Get-WindowsUpdate' {
         }
     }
 
-    Context 'Source parameter' {
+    Context 'MicrosoftUpdate switch' {
 
         BeforeAll {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
@@ -275,29 +275,18 @@ Describe 'Get-WindowsUpdate' {
             }
         }
 
-        It -Name 'Should pass Default source by default' -Test {
+        It -Name 'Should pass $false by default (use machine config)' -Test {
             Get-WindowsUpdate
             Should -Invoke -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -ParameterFilter {
-                $ArgumentList[1] -eq 'Default'
+                $ArgumentList[1] -eq $false
             }
         }
 
-        It -Name 'Should pass MicrosoftUpdate source when specified' -Test {
-            Get-WindowsUpdate -Source MicrosoftUpdate
+        It -Name 'Should pass $true when MicrosoftUpdate is specified' -Test {
+            Get-WindowsUpdate -MicrosoftUpdate
             Should -Invoke -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -ParameterFilter {
-                $ArgumentList[1] -eq 'MicrosoftUpdate'
+                $ArgumentList[1] -eq $true
             }
-        }
-
-        It -Name 'Should pass WindowsUpdate source when specified' -Test {
-            Get-WindowsUpdate -Source WindowsUpdate
-            Should -Invoke -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -ParameterFilter {
-                $ArgumentList[1] -eq 'WindowsUpdate'
-            }
-        }
-
-        It -Name 'Should throw for invalid Source value' -Test {
-            { Get-WindowsUpdate -Source 'InvalidSource' } | Should -Throw
         }
     }
 
@@ -452,13 +441,10 @@ Describe 'Get-WindowsUpdate' {
             { Get-WindowsUpdate -KBArticleID '' } | Should -Throw
         }
 
-        It -Name 'Should have Source parameter with ValidateSet' -Test {
-            $paramMeta = (Get-Command -Name 'Get-WindowsUpdate').Parameters['Source']
+        It -Name 'Should have MicrosoftUpdate switch parameter' -Test {
+            $paramMeta = (Get-Command -Name 'Get-WindowsUpdate').Parameters['MicrosoftUpdate']
             $paramMeta | Should -Not -BeNullOrEmpty
-            $validateSet = $paramMeta.Attributes | Where-Object { $_ -is [System.Management.Automation.ValidateSetAttribute] }
-            $validateSet.ValidValues | Should -Contain 'Default'
-            $validateSet.ValidValues | Should -Contain 'MicrosoftUpdate'
-            $validateSet.ValidValues | Should -Contain 'WindowsUpdate'
+            $paramMeta.ParameterType | Should -Be ([switch])
         }
     }
 
