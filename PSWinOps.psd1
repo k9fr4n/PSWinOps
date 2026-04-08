@@ -12,7 +12,7 @@
     RootModule           = 'PSWinOps.psm1'
 
     # Version number of this module.
-    ModuleVersion        = '0.0.19'
+    ModuleVersion        = '0.0.20'
 
     # Supported PSEditions
     # Core is supported on Windows only; the module-level guard in PSWinOps.psm1 blocks
@@ -74,8 +74,9 @@
     # NestedModules = @()
 
     # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-    FunctionsToExport = @(
+    FunctionsToExport    = @(
         'Clear-Arp',
+        'Clear-WindowsUpdateCache',
         'Connect-RdpSession',
         'ConvertFrom-MisencodedString',
         'Disable-ADUserAccount',
@@ -140,13 +141,12 @@
         'Get-StartupProgram',
         'Get-SubnetInfo',
         'Get-SystemSummary',
-        'Clear-WindowsUpdateCache',
         'Get-WindowsUpdate',
         'Get-WindowsUpdateConfiguration',
         'Get-WindowsUpdateHistory',
+        'Get-WSUSHealth',
         'Hide-WindowsUpdate',
         'Install-WindowsUpdate',
-        'Get-WSUSHealth',
         'Invoke-ADSecurityAudit',
         'Measure-NetworkLatency',
         'New-NetworkRoute',
@@ -158,7 +158,6 @@
         'Resolve-MACVendor',
         'Save-WindowsUpdate',
         'Search-ADObject',
-        'Show-WindowsUpdate',
         'Set-NetworkRoute',
         'Set-NTPClient',
         'Set-PageFile',
@@ -166,6 +165,7 @@
         'Show-NetworkStatisticMonitor',
         'Show-PingMonitor',
         'Show-SystemMonitor',
+        'Show-WindowsUpdate',
         'Sync-NTPTime',
         'Test-DNSResolution',
         'Test-PortConnectivity',
@@ -200,7 +200,7 @@
         PSData = @{
 
             # Tags applied to this module. These help with module discovery in online galleries.
-            Tags                       = @(
+            Tags         = @(
                 # General
                 'Windows', 'WindowsServer', 'PowerShell', 'PSModule',
                 'SysAdmin', 'Administration', 'Ops', 'WinOps', 'Utilities',
@@ -232,13 +232,13 @@
             # LicenseUri = ''
 
             # A URL to the main website for this project.
-            ProjectUri                 = 'https://github.com/k9fr4n/PSWinOps'
+            ProjectUri   = 'https://github.com/k9fr4n/PSWinOps'
 
             # A URL to an icon representing this module.
             # IconUri = ''
 
             # ReleaseNotes of this module
-            ReleaseNotes               = '## 0.0.17 - 2026-04-02
+            ReleaseNotes = '## 0.0.17 - 2026-04-02
 - refactor: Invoke-RemoteOrLocal rewrite (#30)
 - refactor: move OverallHealth computation to process{} block (#31)
 - fix: misc cleanup — synopsis, #Requires, module-scoped local names (#32)
