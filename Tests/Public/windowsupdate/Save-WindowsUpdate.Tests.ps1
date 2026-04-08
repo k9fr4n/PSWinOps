@@ -138,7 +138,7 @@ Describe -Name 'Save-WindowsUpdate' -Tag 'Unit' -Fixture {
         }
 
         It -Name 'Should have Timestamp' -Test {
-            $script:result.Timestamp | Should -Match '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}
+            $script:result.Timestamp | Should -Match "^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$"
         }
     }
 
@@ -343,7 +343,7 @@ Describe -Name 'Save-WindowsUpdate' -Tag 'Unit' -Fixture {
 
         It -Name 'Should continue processing after per-machine failure' -Test {
             $results = 'BADHOST', $env:COMPUTERNAME | Save-WindowsUpdate -ErrorAction SilentlyContinue
-            # Should not throw — errors are written, not thrown
+            # Should not throw -- errors are written, not thrown
         }
 
         It -Name 'Should write error for failed machine with ErrorAction Stop' -Test {

@@ -97,7 +97,7 @@ Describe -Name 'Clear-WindowsUpdateCache' -Tag 'Unit' -Fixture {
         }
 
         It -Name 'Should have Timestamp' -Test {
-            $script:result.Timestamp | Should -Match '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}
+            $script:result.Timestamp | Should -Match "^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$"
         }
     }
 
