@@ -223,8 +223,8 @@ function Get-WindowsUpdate {
                 if ($Product) {
                     $rawEntries = @($rawEntries | Where-Object -FilterScript {
                         $entryProducts = $_.Products
-                        ($Product | Where-Object -FilterScript { $_ -in $entryProducts } |
-                            Select-Object -First 1) -ne $null
+                        $null -ne ($Product | Where-Object -FilterScript { $_ -in $entryProducts } |
+                            Select-Object -First 1)
                     })
                 }
 
