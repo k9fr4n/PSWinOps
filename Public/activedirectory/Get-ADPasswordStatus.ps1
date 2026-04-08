@@ -163,7 +163,7 @@ function Get-ADPasswordStatus {
         }
 
         $now = Get-Date
-        $queryTimestamp = $now.ToString('o')
+        $queryTimestamp = $now.ToString('yyyy-MM-dd HH:mm:ss')
         $results = [System.Collections.Generic.List[PSCustomObject]]::new()
 
         foreach ($user in $users) {
