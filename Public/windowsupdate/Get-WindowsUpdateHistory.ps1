@@ -137,7 +137,7 @@ function Get-WindowsUpdateHistory {
                         }
                     }
                     catch {
-                        # Categories may not be available for all entries
+                        Write-Verbose -Message "Could not retrieve categories for '$($entry.Title)': $_"
                     }
 
                     $entries.Add([PSCustomObject]@{
