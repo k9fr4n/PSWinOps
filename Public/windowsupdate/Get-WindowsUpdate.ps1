@@ -121,7 +121,7 @@ function Get-WindowsUpdate {
     )
 
     begin {
-        Write-Verbose -Message "[$($MyInvocation.MyCommand)] Starting"
+        Write-Verbose -Message "[$($MyInvocation.MyCommand)] Starting — Source: $Source"
 
         # Normalize KBArticleID — strip 'KB' prefix for consistent matching
         $normalizedKBIds = $null
@@ -129,6 +129,16 @@ function Get-WindowsUpdate {
             $normalizedKBIds = $KBArticleID | ForEach-Object -Process {
                 $_ -replace '^KB', ''
             }
+            Write-Verbose -Message "[$($MyInvocation.MyCommand)] KB filter: $($KBArticleID -join ', ')"
+        }
+        if ($Classification) {
+            Write-Verbose -Message "[$($MyInvocation.MyCommand)] Classification filter: $($Classification -join ', ')"
+        }
+        if ($Product) {
+            Write-Verbose -Message "[$($MyInvocation.MyCommand)] Product filter: $($Product -join ', ')"
+        }
+        if ($IncludeHidden) {
+            Write-Verbose -Message "[$($MyInvocation.MyCommand)] Including hidden updates"
         }
 
         $wuScriptBlock = {
@@ -234,7 +244,7 @@ function Get-WindowsUpdate {
 
     process {
         foreach ($computer in $ComputerName) {
-            Write-Verbose -Message "[$($MyInvocation.MyCommand)] Scanning for updates on $computer"
+            Write-Verbose -Message "[$($MyInvocation.MyCommand)] Scanning '$computer' (Source: $Source, Criteria: IsInstalled=0$(if (-not $IncludeHidden) { ' AND IsHidden=0' }))"
 
             try {
                 $invokeParams = @{
@@ -247,10 +257,14 @@ function Get-WindowsUpdate {
                     $invokeParams['Credential'] = $Credential
                 }
 
+                $scanTimer = [System.Diagnostics.Stopwatch]::StartNew()
                 $rawEntries = Invoke-RemoteOrLocal @invokeParams
+                $scanTimer.Stop()
 
-                if (-not $rawEntries -or @($rawEntries).Count -eq 0) {
-                    Write-Verbose -Message "[$($MyInvocation.MyCommand)] No available updates found on $computer"
+                $totalFound = @($rawEntries).Count
+                Write-Verbose -Message "[$($MyInvocation.MyCommand)] Scan completed on '$computer' in $($scanTimer.Elapsed.TotalSeconds.ToString('F1'))s — $totalFound update(s) found"
+
+                if (-not $rawEntries -or $totalFound -eq 0) {
                     continue
                 }
 
@@ -277,6 +291,11 @@ function Get-WindowsUpdate {
                         $null -ne ($Product | Where-Object -FilterScript { $_ -in $entryProducts } |
                             Select-Object -First 1)
                     })
+                }
+
+                $filteredCount = @($rawEntries).Count
+                if ($filteredCount -ne $totalFound) {
+                    Write-Verbose -Message "[$($MyInvocation.MyCommand)] After filtering: $filteredCount of $totalFound update(s) match criteria on '$computer'"
                 }
 
                 foreach ($entry in $rawEntries) {
