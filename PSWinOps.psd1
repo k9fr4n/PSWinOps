@@ -318,26 +318,6 @@
             # Flag to indicate whether the module requires explicit user acceptance for install/update/save
             # RequireLicenseAcceptance = $false
 
-            # External dependent modules of this module
-            # These are OPTIONAL runtime dependencies for specific healthcheck functions.
-            # The module imports successfully without them; individual functions return
-            # RoleUnavailable status when their RSAT/feature module is absent.
-            ExternalModuleDependencies = @(
-                'ActiveDirectory',          # Get-AdDomainControllerHealth
-                'DhcpServer',               # Get-DhcpServerHealth
-                'DnsServer',                # Get-DnsServerHealth
-                'FailoverClusters',         # Get-ClusterHealth
-                'DFSN',                     # Get-DfsNamespaceHealth
-                'DFSR',                     # Get-DfsReplicationHealth
-                'RemoteDesktopServices',    # Get-RDSHealth
-                'WebAdministration',        # Get-IISHealth
-                'UpdateServices',           # Get-WSUSHealth
-                'Hyper-V',                  # Get-HyperVHostHealth
-                'PrintManagement',          # Get-PrintServerHealth
-                'ADCSAdministration',       # Get-CertificateAuthorityHealth
-                'ADFS',                     # Get-ADFSHealth
-                'ScheduledTasks'            # Get-ScheduledTaskDetail
-            )
 
         } # End of PSData hashtable
 
