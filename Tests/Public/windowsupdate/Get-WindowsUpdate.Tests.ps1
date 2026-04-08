@@ -5,6 +5,22 @@ BeforeAll {
     $script:modulePath = Split-Path -Path (Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent) -Parent
     Import-Module -Name (Join-Path -Path $script:modulePath -ChildPath 'PSWinOps.psd1') -Force
 
+    $script:mockMetadata = [PSCustomObject]@{
+        ConfiguredSource = 'WSUS'
+        ConfiguredUrl    = 'https://wsus.corp.local:8531'
+        TargetGroup      = 'Servers-Prod'
+        EffectiveSource  = 'WSUS'
+        TotalCount       = 4
+    }
+
+    $script:mockMetadataSingle = [PSCustomObject]@{
+        ConfiguredSource = 'WSUS'
+        ConfiguredUrl    = 'https://wsus.corp.local:8531'
+        TargetGroup      = 'Servers-Prod'
+        EffectiveSource  = 'WSUS'
+        TotalCount       = 1
+    }
+
     $script:mockUpdates = @(
         [PSCustomObject]@{
             Title           = '2026-03 Cumulative Update for Windows Server 2022 (KB5034441)'
@@ -103,7 +119,10 @@ Describe 'Get-WindowsUpdate' {
 
         BeforeAll {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
-                return $script:mockUpdates
+                return [PSCustomObject]@{
+                    Metadata = $script:mockMetadata
+                    Entries  = $script:mockUpdates
+                }
             }
 
             $script:results = Get-WindowsUpdate
@@ -145,7 +164,7 @@ Describe 'Get-WindowsUpdate' {
 
         BeforeAll {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
-                return $script:mockUpdates
+                return [PSCustomObject]@{ Metadata = $script:mockMetadata; Entries = $script:mockUpdates }
             }
         }
 
@@ -170,7 +189,7 @@ Describe 'Get-WindowsUpdate' {
 
         BeforeAll {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
-                return $script:mockUpdates
+                return [PSCustomObject]@{ Metadata = $script:mockMetadata; Entries = $script:mockUpdates }
             }
         }
 
@@ -201,7 +220,7 @@ Describe 'Get-WindowsUpdate' {
 
         BeforeAll {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
-                return $script:mockUpdates
+                return [PSCustomObject]@{ Metadata = $script:mockMetadata; Entries = $script:mockUpdates }
             }
         }
 
@@ -232,7 +251,7 @@ Describe 'Get-WindowsUpdate' {
 
         BeforeAll {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
-                return $script:mockUpdates
+                return [PSCustomObject]@{ Metadata = $script:mockMetadata; Entries = $script:mockUpdates }
             }
         }
 
@@ -252,7 +271,7 @@ Describe 'Get-WindowsUpdate' {
 
         BeforeAll {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
-                return $script:mockUpdates
+                return [PSCustomObject]@{ Metadata = $script:mockMetadata; Entries = $script:mockUpdates }
             }
         }
 
@@ -286,7 +305,7 @@ Describe 'Get-WindowsUpdate' {
 
         BeforeAll {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
-                return $script:mockUpdates
+                return [PSCustomObject]@{ Metadata = $script:mockMetadata; Entries = $script:mockUpdates }
             }
         }
 
@@ -309,7 +328,7 @@ Describe 'Get-WindowsUpdate' {
 
         BeforeAll {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
-                return @($script:mockUpdates[0])
+                return [PSCustomObject]@{ Metadata = $script:mockMetadataSingle; Entries = @($script:mockUpdates[0]) }
             }
 
             $script:result = Get-WindowsUpdate -ComputerName 'SRV01'
@@ -331,7 +350,7 @@ Describe 'Get-WindowsUpdate' {
 
         BeforeAll {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
-                return @($script:mockUpdates[0])
+                return [PSCustomObject]@{ Metadata = $script:mockMetadataSingle; Entries = @($script:mockUpdates[0]) }
             }
 
             $script:results = 'SRV01', 'SRV02' | Get-WindowsUpdate
@@ -355,8 +374,15 @@ Describe 'Get-WindowsUpdate' {
     Context 'Empty results' {
 
         BeforeAll {
+            $emptyMeta = [PSCustomObject]@{
+                ConfiguredSource = 'Windows Update'
+                ConfiguredUrl    = $null
+                TargetGroup      = $null
+                EffectiveSource  = 'Windows Update'
+                TotalCount       = 0
+            }
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
-                return @()
+                return [PSCustomObject]@{ Metadata = $emptyMeta; Entries = @() }
             }
         }
 
@@ -440,7 +466,7 @@ Describe 'Get-WindowsUpdate' {
 
         BeforeAll {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
-                return @($script:mockUpdates[0])
+                return [PSCustomObject]@{ Metadata = $script:mockMetadataSingle; Entries = @($script:mockUpdates[0]) }
             }
 
             $script:result = Get-WindowsUpdate

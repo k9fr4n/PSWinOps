@@ -148,9 +148,28 @@ function Get-WindowsUpdate {
             )
 
             try {
+                # Detect machine's configured update source from registry
+                $wuRegPath = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate'
+                $auRegPath = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU'
+                $wuReg = Get-ItemProperty -Path $wuRegPath -ErrorAction SilentlyContinue
+                $auReg = Get-ItemProperty -Path $auRegPath -ErrorAction SilentlyContinue
+
+                $configuredSource = 'Windows Update'
+                $configuredUrl = $null
+                $configuredTargetGroup = $null
+                if ($auReg.UseWUServer -eq 1 -and -not [string]::IsNullOrEmpty($wuReg.WUServer)) {
+                    $configuredSource = 'WSUS'
+                    $configuredUrl = $wuReg.WUServer
+                    $configuredTargetGroup = $wuReg.TargetGroup
+                }
+                elseif ($wuReg.DeferFeatureUpdates -eq 1 -or $wuReg.DeferQualityUpdates -eq 1) {
+                    $configuredSource = 'WUFB'
+                }
+
                 $session = New-Object -ComObject 'Microsoft.Update.Session'
                 $searcher = $session.CreateUpdateSearcher()
 
+                $effectiveSource = $configuredSource
                 switch ($UpdateSource) {
                     'MicrosoftUpdate' {
                         $serviceManager = New-Object -ComObject 'Microsoft.Update.ServiceManager'
@@ -158,9 +177,11 @@ function Get-WindowsUpdate {
                         $service = $serviceManager.AddService2('7971f918-a847-4430-9279-4a52d1efe18d', 7, '')
                         $searcher.ServerSelection = 3
                         $searcher.ServiceID = $service.ServiceID
+                        $effectiveSource = 'Microsoft Update'
                     }
                     'WindowsUpdate' {
                         $searcher.ServerSelection = 2
+                        $effectiveSource = 'Windows Update'
                     }
                 }
 
@@ -171,8 +192,20 @@ function Get-WindowsUpdate {
 
                 $searchResult = $searcher.Search($criteria)
 
+                # Build metadata object for verbose output
+                $metadata = [PSCustomObject]@{
+                    ConfiguredSource = $configuredSource
+                    ConfiguredUrl    = $configuredUrl
+                    TargetGroup      = $configuredTargetGroup
+                    EffectiveSource  = $effectiveSource
+                    TotalCount       = $searchResult.Updates.Count
+                }
+
                 if ($searchResult.Updates.Count -eq 0) {
-                    return @()
+                    return [PSCustomObject]@{
+                        Metadata = $metadata
+                        Entries  = @()
+                    }
                 }
 
                 $entries = [System.Collections.Generic.List[object]]::new()
@@ -234,7 +267,10 @@ function Get-WindowsUpdate {
                     })
                 }
 
-                return $entries
+                return [PSCustomObject]@{
+                    Metadata = $metadata
+                    Entries  = $entries
+                }
             }
             catch {
                 throw "Failed to search for Windows Updates: $_"
@@ -258,13 +294,33 @@ function Get-WindowsUpdate {
                 }
 
                 $scanTimer = [System.Diagnostics.Stopwatch]::StartNew()
-                $rawEntries = Invoke-RemoteOrLocal @invokeParams
+                $scanResult = Invoke-RemoteOrLocal @invokeParams
                 $scanTimer.Stop()
 
-                $totalFound = @($rawEntries).Count
+                # Unpack metadata and entries
+                $metadata = $scanResult.Metadata
+                $rawEntries = $scanResult.Entries
+
+                # Build verbose source info
+                $configInfo = $metadata.ConfiguredSource
+                if ($metadata.ConfiguredUrl) {
+                    $configInfo += " ($($metadata.ConfiguredUrl))"
+                }
+                if ($metadata.TargetGroup) {
+                    $configInfo += " [Group: $($metadata.TargetGroup)]"
+                }
+
+                if ($metadata.EffectiveSource -ne $metadata.ConfiguredSource) {
+                    Write-Verbose -Message "[$($MyInvocation.MyCommand)] '$computer' configured: $configInfo — Overriding to: $($metadata.EffectiveSource)"
+                }
+                else {
+                    Write-Verbose -Message "[$($MyInvocation.MyCommand)] '$computer' source: $configInfo"
+                }
+
+                $totalFound = $metadata.TotalCount
                 Write-Verbose -Message "[$($MyInvocation.MyCommand)] Scan completed on '$computer' in $($scanTimer.Elapsed.TotalSeconds.ToString('F1'))s — $totalFound update(s) found"
 
-                if (-not $rawEntries -or $totalFound -eq 0) {
+                if ($totalFound -eq 0) {
                     continue
                 }
 
