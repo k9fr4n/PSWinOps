@@ -269,6 +269,7 @@ Describe 'Get-WindowsUpdateConfiguration' {
         }
 
         It -Name 'Should call Invoke-RemoteOrLocal with correct ComputerName' -Test {
+            Get-WindowsUpdateConfiguration -ComputerName 'SRV01'
             Should -Invoke -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -ParameterFilter {
                 $ComputerName -eq 'SRV01'
             }
@@ -295,6 +296,7 @@ Describe 'Get-WindowsUpdateConfiguration' {
         }
 
         It -Name 'Should call Invoke-RemoteOrLocal once per machine' -Test {
+            'SRV01', 'SRV02' | Get-WindowsUpdateConfiguration
             Should -Invoke -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -Times 2 -Exactly
         }
     }
