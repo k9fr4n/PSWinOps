@@ -7,40 +7,68 @@ BeforeAll {
 
     $script:mockHistoryEntries = @(
         [PSCustomObject]@{
-            Title          = '2026-03 Cumulative Update for Windows Server 2022 (KB5034441)'
-            Operation      = 1
-            ResultCode     = 2
-            Date           = [datetime]'2026-03-15 10:30:00'
-            Description    = 'A security update for Windows Server 2022'
-            SupportUrl     = 'https://support.microsoft.com/kb/5034441'
-            UpdateIdentity = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'
+            Title               = '2026-03 Cumulative Update for Windows Server 2022 (KB5034441)'
+            Operation           = 1
+            ResultCode          = 2
+            HResult             = 0
+            Classification      = 'Security Updates'
+            Products            = @('Windows Server 2022')
+            ClientApplicationID = 'AutomaticUpdates'
+            ServerSelection     = 1
+            ServiceID           = '3da21691-e39d-4da6-8a4b-b43877bcb1b7'
+            Date                = [datetime]'2026-03-15 10:30:00'
+            Description         = 'A security update for Windows Server 2022'
+            SupportUrl          = 'https://support.microsoft.com/kb/5034441'
+            UpdateId            = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'
+            RevisionNumber      = 201
         },
         [PSCustomObject]@{
-            Title          = '2026-02 Security Update for Windows Server 2022 (KB5035432)'
-            Operation      = 1
-            ResultCode     = 4
-            Date           = [datetime]'2026-02-20 14:15:00'
-            Description    = 'A critical security update'
-            SupportUrl     = 'https://support.microsoft.com/kb/5035432'
-            UpdateIdentity = 'b2c3d4e5-f6a7-8901-bcde-f12345678901'
+            Title               = '2026-02 Security Update for Windows Server 2022 (KB5035432)'
+            Operation           = 1
+            ResultCode          = 4
+            HResult             = -2145124329
+            Classification      = 'Critical Updates'
+            Products            = @('Windows Server 2022')
+            ClientApplicationID = 'UpdateOrchestrator'
+            ServerSelection     = 1
+            ServiceID           = '3da21691-e39d-4da6-8a4b-b43877bcb1b7'
+            Date                = [datetime]'2026-02-20 14:15:00'
+            Description         = 'A critical security update'
+            SupportUrl          = 'https://support.microsoft.com/kb/5035432'
+            UpdateId            = 'b2c3d4e5-f6a7-8901-bcde-f12345678901'
+            RevisionNumber      = 100
         },
         [PSCustomObject]@{
-            Title          = 'Malicious Software Removal Tool - March 2026'
-            Operation      = 1
-            ResultCode     = 2
-            Date           = [datetime]'2026-03-10 08:00:00'
-            Description    = 'This tool checks for malicious software'
-            SupportUrl     = ''
-            UpdateIdentity = 'c3d4e5f6-a7b8-9012-cdef-123456789012'
+            Title               = 'Malicious Software Removal Tool - March 2026'
+            Operation           = 1
+            ResultCode          = 2
+            HResult             = 0
+            Classification      = 'Update Rollups'
+            Products            = @('Windows Server 2022')
+            ClientApplicationID = 'AutomaticUpdates'
+            ServerSelection     = 2
+            ServiceID           = '9482f4b4-e343-43b6-b170-9a65bc822c77'
+            Date                = [datetime]'2026-03-10 08:00:00'
+            Description         = 'This tool checks for malicious software'
+            SupportUrl          = ''
+            UpdateId            = 'c3d4e5f6-a7b8-9012-cdef-123456789012'
+            RevisionNumber      = 50
         },
         [PSCustomObject]@{
-            Title          = 'Update for Windows Defender Antivirus (KB2267602)'
-            Operation      = 2
-            ResultCode     = 2
-            Date           = [datetime]'2026-03-01 06:00:00'
-            Description    = 'Definition update for Windows Defender'
-            SupportUrl     = ''
-            UpdateIdentity = 'd4e5f6a7-b8c9-0123-defa-234567890123'
+            Title               = 'Update for Windows Defender Antivirus (KB2267602)'
+            Operation           = 2
+            ResultCode          = 2
+            HResult             = 0
+            Classification      = 'Definition Updates'
+            Products            = @('Windows Defender')
+            ClientApplicationID = 'wusa'
+            ServerSelection     = 2
+            ServiceID           = '9482f4b4-e343-43b6-b170-9a65bc822c77'
+            Date                = [datetime]'2026-03-01 06:00:00'
+            Description         = 'Definition update for Windows Defender'
+            SupportUrl          = ''
+            UpdateId            = 'd4e5f6a7-b8c9-0123-defa-234567890123'
+            RevisionNumber      = 1
         }
     )
 }
@@ -151,16 +179,28 @@ Describe 'Get-WindowsUpdateHistory' {
             $failedEntry.Result | Should -Be 'Failed'
         }
 
+        It -Name 'Should show HResult in hex for failed update' -Test {
+            $failedEntry = $script:results | Where-Object -Property 'Title' -Like '*KB5035432*'
+            $failedEntry.HResult | Should -Be '0x80240017'
+        }
+
         It -Name 'Should map unknown ResultCode to Unknown' -Test {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
                 return @([PSCustomObject]@{
-                    Title          = 'Unknown Update'
-                    Operation      = 99
-                    ResultCode     = 99
-                    Date           = [datetime]'2026-01-01'
-                    Description    = ''
-                    SupportUrl     = ''
-                    UpdateIdentity = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'
+                    Title               = 'Unknown Update'
+                    Operation           = 99
+                    ResultCode          = 99
+                    HResult             = 0
+                    Classification      = $null
+                    Products            = @()
+                    ClientApplicationID = ''
+                    ServerSelection     = 0
+                    ServiceID           = ''
+                    Date                = [datetime]'2026-01-01'
+                    Description         = ''
+                    SupportUrl          = ''
+                    UpdateId            = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'
+                    RevisionNumber      = 1
                 })
             }
 
@@ -329,8 +369,10 @@ Describe 'Get-WindowsUpdateHistory' {
 
         It -Name 'Should have all expected properties' -Test {
             $expectedProperties = @(
-                'ComputerName', 'Title', 'KBArticle', 'Operation', 'Result',
-                'Date', 'Description', 'SupportUrl', 'UpdateIdentity', 'Timestamp'
+                'ComputerName', 'Title', 'KBArticle', 'Operation', 'Result', 'HResult',
+                'Classification', 'Products', 'ClientApplicationID', 'ServerSelection',
+                'ServiceID', 'Date', 'Description', 'SupportUrl', 'UpdateId',
+                'RevisionNumber', 'Timestamp'
             )
             foreach ($prop in $expectedProperties) {
                 $script:singleResult.PSObject.Properties.Name | Should -Contain $prop
@@ -341,12 +383,36 @@ Describe 'Get-WindowsUpdateHistory' {
             $script:singleResult.Date | Should -BeOfType [datetime]
         }
 
-        It -Name 'Should preserve UpdateIdentity GUID' -Test {
-            $script:singleResult.UpdateIdentity | Should -Be 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'
+        It -Name 'Should preserve UpdateId GUID' -Test {
+            $script:singleResult.UpdateId | Should -Be 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'
         }
 
         It -Name 'Should preserve SupportUrl' -Test {
             $script:singleResult.SupportUrl | Should -Be 'https://support.microsoft.com/kb/5034441'
+        }
+
+        It -Name 'Should set Classification' -Test {
+            $script:singleResult.Classification | Should -Be 'Security Updates'
+        }
+
+        It -Name 'Should set ClientApplicationID' -Test {
+            $script:singleResult.ClientApplicationID | Should -Be 'AutomaticUpdates'
+        }
+
+        It -Name 'Should map ServerSelection to WSUS' -Test {
+            $script:singleResult.ServerSelection | Should -Be 'WSUS'
+        }
+
+        It -Name 'Should format HResult as hex' -Test {
+            $script:singleResult.HResult | Should -Be '0x00000000'
+        }
+
+        It -Name 'Should set RevisionNumber' -Test {
+            $script:singleResult.RevisionNumber | Should -Be 201
+        }
+
+        It -Name 'Should return Products as array' -Test {
+            @($script:singleResult.Products).Count | Should -BeGreaterOrEqual 1
         }
     }
 }

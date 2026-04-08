@@ -7,7 +7,8 @@ function Get-WindowsUpdateHistory {
         .DESCRIPTION
             Queries the Windows Update Agent COM API (Microsoft.Update.Session) to retrieve
             the installation history of Windows Updates. Results include update title, KB article,
-            operation type, result status, date, description, and support URL.
+            operation type, result status, classification, products, client application, HResult
+            error code, update source, date, description, and support URL.
             Output is sorted by date descending (most recent first) and limited by MaxResults.
 
         .PARAMETER ComputerName
@@ -39,12 +40,13 @@ function Get-WindowsUpdateHistory {
 
         .OUTPUTS
             PSWinOps.WindowsUpdateHistory
-            Returns objects with ComputerName, Title, KBArticle, Operation, Result, Date,
-            Description, SupportUrl, UpdateIdentity, and Timestamp properties.
+            Returns objects with ComputerName, Title, KBArticle, Operation, Result, HResult,
+            Classification, Products, ClientApplicationID, ServerSelection, ServiceID, Date,
+            Description, SupportUrl, UpdateId, RevisionNumber, and Timestamp properties.
 
         .NOTES
             Author: Franck SALLET
-            Version: 1.0.0
+            Version: 1.1.0
             Last Modified: 2026-04-08
             Requires: PowerShell 5.1+ / Windows only
             Requires: Windows Update service must be accessible on target machines
@@ -91,6 +93,13 @@ function Get-WindowsUpdateHistory {
             2 = 'Uninstallation'
         }
 
+        $serverSelectionMap = @{
+            0 = 'Default'
+            1 = 'WSUS'
+            2 = 'WindowsUpdate'
+            3 = 'Other'
+        }
+
         $wuScriptBlock = {
             param(
                 [int]$Limit
@@ -110,14 +119,42 @@ function Get-WindowsUpdateHistory {
 
                 $entries = [System.Collections.Generic.List[object]]::new()
                 foreach ($entry in $history) {
+                    $classification = $null
+                    $products = [System.Collections.Generic.List[string]]::new()
+
+                    try {
+                        if ($entry.Categories) {
+                            foreach ($category in $entry.Categories) {
+                                if ($category.Type -eq 'UpdateClassification') {
+                                    if ($null -eq $classification) {
+                                        $classification = [string]$category.Name
+                                    }
+                                }
+                                else {
+                                    $products.Add([string]$category.Name)
+                                }
+                            }
+                        }
+                    }
+                    catch {
+                        # Categories may not be available for all entries
+                    }
+
                     $entries.Add([PSCustomObject]@{
-                        Title          = [string]$entry.Title
-                        Operation      = [int]$entry.Operation
-                        ResultCode     = [int]$entry.ResultCode
-                        Date           = [datetime]$entry.Date
-                        Description    = [string]$entry.Description
-                        SupportUrl     = [string]$entry.SupportUrl
-                        UpdateIdentity = [string]$entry.UpdateIdentity.UpdateID
+                        Title               = [string]$entry.Title
+                        Operation           = [int]$entry.Operation
+                        ResultCode          = [int]$entry.ResultCode
+                        HResult             = [int]$entry.HResult
+                        Classification      = $classification
+                        Products            = @($products)
+                        ClientApplicationID = [string]$entry.ClientApplicationID
+                        ServerSelection     = [int]$entry.ServerSelection
+                        ServiceID           = [string]$entry.ServiceID
+                        Date                = [datetime]$entry.Date
+                        Description         = [string]$entry.Description
+                        SupportUrl          = [string]$entry.SupportUrl
+                        UpdateId            = [string]$entry.UpdateIdentity.UpdateID
+                        RevisionNumber      = [int]$entry.UpdateIdentity.RevisionNumber
                     })
                 }
 
@@ -171,18 +208,40 @@ function Get-WindowsUpdateHistory {
                         'Unknown'
                     }
 
+                    $serverSelectionString = if ($serverSelectionMap.ContainsKey($entry.ServerSelection)) {
+                        $serverSelectionMap[$entry.ServerSelection]
+                    }
+                    else {
+                        'Unknown'
+                    }
+
+                    # Format HResult as hex for readability (e.g. 0x80070005)
+                    $hResultHex = if ($entry.HResult -ne 0) {
+                        '0x{0:X8}' -f $entry.HResult
+                    }
+                    else {
+                        '0x00000000'
+                    }
+
                     [PSCustomObject]@{
-                        PSTypeName     = 'PSWinOps.WindowsUpdateHistory'
-                        ComputerName   = $computer
-                        Title          = $entry.Title
-                        KBArticle      = $kbArticle
-                        Operation      = $operationString
-                        Result         = $resultString
-                        Date           = $entry.Date
-                        Description    = $entry.Description
-                        SupportUrl     = $entry.SupportUrl
-                        UpdateIdentity = $entry.UpdateIdentity
-                        Timestamp      = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
+                        PSTypeName          = 'PSWinOps.WindowsUpdateHistory'
+                        ComputerName        = $computer
+                        Title               = $entry.Title
+                        KBArticle           = $kbArticle
+                        Operation           = $operationString
+                        Result              = $resultString
+                        HResult             = $hResultHex
+                        Classification      = $entry.Classification
+                        Products            = $entry.Products
+                        ClientApplicationID = $entry.ClientApplicationID
+                        ServerSelection     = $serverSelectionString
+                        ServiceID           = $entry.ServiceID
+                        Date                = $entry.Date
+                        Description         = $entry.Description
+                        SupportUrl          = $entry.SupportUrl
+                        UpdateId            = $entry.UpdateId
+                        RevisionNumber      = $entry.RevisionNumber
+                        Timestamp           = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                     }
                 }
             }
