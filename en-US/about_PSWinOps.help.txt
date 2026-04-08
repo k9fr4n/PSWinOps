@@ -5,17 +5,19 @@ SHORT DESCRIPTION
     PSWinOps is a Windows-only PowerShell module for system
     administration, Active Directory management, health
     checks, network diagnostics, NTP management, RDP
-    session management, and more.
+    session management, Windows Update management,
+    and more.
 
 LONG DESCRIPTION
     PSWinOps is a comprehensive toolbox designed for Windows
     system administrators running PowerShell 5.1 or later.
     It provides a curated collection of functions organized
-    into eight functional domains, covering everything from
+    into nine functional domains, covering everything from
     Active Directory inventory and security auditing,
     service health monitoring, network troubleshooting,
     NTP synchronization, proxy management, RDP session
-    control, and general system information gathering.
+    control, Windows Update management, and general
+    system information gathering.
 
     The module follows PowerShell best practices: every
     public function returns strongly-typed [PSCustomObject]
@@ -29,7 +31,7 @@ LONG DESCRIPTION
     Requires    : PowerShell 5.1+ / Windows only
 
 FUNCTION DOMAINS
-    PSWinOps organizes its functions into eight domains.
+    PSWinOps organizes its functions into nine domains.
 
   activedirectory (21 functions)
     Functions for Active Directory inventory, user and
@@ -157,6 +159,12 @@ FUNCTION DOMAINS
       Set-PageFile
       Show-SystemMonitor
 
+  windowsupdate (1 function)
+    Functions for querying and managing Windows Update
+    on local or remote machines via the COM API.
+
+      Get-WindowsUpdateHistory
+
   utils (2 functions)
     Pure utility functions that do not follow the standard
     ComputerName/Timestamp output convention.
@@ -249,7 +257,7 @@ REMOTE EXECUTION PATTERN
     in the pipeline continue to be processed.
 
 PSWINOPS TYPE REGISTRY
-    The following 74 PSTypeName values are defined by the
+    The following 75 PSTypeName values are defined by the
     module. Each corresponds to the output of one or more
     public functions.
 
@@ -325,6 +333,7 @@ PSWINOPS TYPE REGISTRY
       PSWinOps.SubnetInfo
       PSWinOps.SystemSummary
       PSWinOps.TraceRouteHop
+      PSWinOps.WindowsUpdateHistory
       PSWinOps.WinRMTestResult
       PSWinOps.WSUSHealth
 
@@ -338,4 +347,4 @@ SEE ALSO
 
 KEYWORDS
     PSWinOps, Windows, Administration, ActiveDirectory,
-    HealthCheck, Network, NTP, RDP, System
+    HealthCheck, Network, NTP, RDP, System, WindowsUpdate

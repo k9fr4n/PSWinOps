@@ -3267,5 +3267,42 @@
       </TableControl>
     </View>
 
+    <!-- ============================================================ -->
+    <!-- PSWinOps.WindowsUpdateHistory                                -->
+    <!-- Used by: Get-WindowsUpdateHistory                            -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.WindowsUpdateHistory</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.WindowsUpdateHistory</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>ComputerName</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Date</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>KB</Label><Width>12</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Operation</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Result</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Title</Label></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>
+                  if ($_.Date) { $_.Date.ToString('yyyy-MM-dd HH:mm:ss') } else { '' }
+                </ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem><PropertyName>KBArticle</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Operation</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Result</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Title</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
   </ViewDefinitions>
 </Configuration>
