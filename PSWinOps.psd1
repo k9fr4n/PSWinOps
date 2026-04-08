@@ -143,6 +143,7 @@
         'Get-WindowsUpdate',
         'Get-WindowsUpdateConfiguration',
         'Get-WindowsUpdateHistory',
+        'Hide-WindowsUpdate',
         'Install-WindowsUpdate',
         'Get-WSUSHealth',
         'Invoke-ADSecurityAudit',
@@ -156,6 +157,7 @@
         'Resolve-MACVendor',
         'Save-WindowsUpdate',
         'Search-ADObject',
+        'Show-WindowsUpdate',
         'Set-NetworkRoute',
         'Set-NTPClient',
         'Set-PageFile',
@@ -169,6 +171,7 @@
         'Test-ProxyConnection',
         'Test-WinRM',
         'Trace-NetworkRoute',
+        'Uninstall-WindowsUpdate',
         'Unlock-ADUserAccount'
     )
 
