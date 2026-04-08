@@ -223,12 +223,27 @@ Describe 'Get-WindowsUpdateConfiguration' {
     Context 'AutoUpdate disabled' {
 
         BeforeAll {
-            $mockDisabled = $script:mockDefaultData.PSObject.Copy()
-            $mockDisabled.IsGPOConfigured = $true
-            $mockDisabled.NoAutoUpdate = 1
-
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
-                return $mockDisabled
+                return [PSCustomObject]@{
+                    IsGPOConfigured                = $true
+                    WUServer                       = $null
+                    WUStatusServer                 = $null
+                    TargetGroup                    = $null
+                    TargetGroupEnabled             = $null
+                    DeferFeatureUpdates            = $null
+                    DeferFeatureUpdatesPeriodInDays = $null
+                    DeferQualityUpdates            = $null
+                    DeferQualityUpdatesPeriodInDays = $null
+                    BranchReadinessLevel           = $null
+                    PauseFeatureUpdatesStartTime   = $null
+                    PauseQualityUpdatesStartTime   = $null
+                    UseWUServer                    = $null
+                    NoAutoUpdate                   = 1
+                    AUOptions                      = $null
+                    ScheduledInstallDay            = $null
+                    ScheduledInstallTime           = $null
+                    NoAutoRebootWithLoggedOnUsers  = $null
+                }
             }
 
             $script:result = Get-WindowsUpdateConfiguration
@@ -339,12 +354,19 @@ Describe 'Get-WindowsUpdateConfiguration' {
             @{ AUOption = 5; Expected = 'AllowLocalAdmin' }
         ) -Test {
             param($AUOption, $Expected)
-            $mockValue = $AUOption
+            $mockAU = $AUOption
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
-                $data = $script:mockDefaultData.PSObject.Copy()
-                $data.IsGPOConfigured = $true
-                $data.AUOptions = $mockValue
-                return $data
+                return [PSCustomObject]@{
+                    IsGPOConfigured = $true; WUServer = $null; WUStatusServer = $null
+                    TargetGroup = $null; TargetGroupEnabled = $null
+                    DeferFeatureUpdates = $null; DeferFeatureUpdatesPeriodInDays = $null
+                    DeferQualityUpdates = $null; DeferQualityUpdatesPeriodInDays = $null
+                    BranchReadinessLevel = $null; PauseFeatureUpdatesStartTime = $null
+                    PauseQualityUpdatesStartTime = $null; UseWUServer = $null
+                    NoAutoUpdate = $null; AUOptions = $mockAU
+                    ScheduledInstallDay = $null; ScheduledInstallTime = $null
+                    NoAutoRebootWithLoggedOnUsers = $null
+                }
             }
             $result = Get-WindowsUpdateConfiguration
             $result.AutoUpdateOption | Should -Be $Expected
@@ -364,12 +386,19 @@ Describe 'Get-WindowsUpdateConfiguration' {
             @{ DayValue = 7; Expected = 'Saturday' }
         ) -Test {
             param($DayValue, $Expected)
-            $mockValue = $DayValue
+            $mockDay = $DayValue
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
-                $data = $script:mockDefaultData.PSObject.Copy()
-                $data.IsGPOConfigured = $true
-                $data.ScheduledInstallDay = $mockValue
-                return $data
+                return [PSCustomObject]@{
+                    IsGPOConfigured = $true; WUServer = $null; WUStatusServer = $null
+                    TargetGroup = $null; TargetGroupEnabled = $null
+                    DeferFeatureUpdates = $null; DeferFeatureUpdatesPeriodInDays = $null
+                    DeferQualityUpdates = $null; DeferQualityUpdatesPeriodInDays = $null
+                    BranchReadinessLevel = $null; PauseFeatureUpdatesStartTime = $null
+                    PauseQualityUpdatesStartTime = $null; UseWUServer = $null
+                    NoAutoUpdate = $null; AUOptions = $null
+                    ScheduledInstallDay = $mockDay; ScheduledInstallTime = $null
+                    NoAutoRebootWithLoggedOnUsers = $null
+                }
             }
             $result = Get-WindowsUpdateConfiguration
             $result.ScheduledInstallDay | Should -Be $Expected
@@ -384,13 +413,19 @@ Describe 'Get-WindowsUpdateConfiguration' {
             @{ Level = 64; Expected = 'LongTermServicing' }
         ) -Test {
             param($Level, $Expected)
-            $mockValue = $Level
+            $mockBranch = $Level
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
-                $data = $script:mockDefaultData.PSObject.Copy()
-                $data.IsGPOConfigured = $true
-                $data.DeferFeatureUpdates = 1
-                $data.BranchReadinessLevel = $mockValue
-                return $data
+                return [PSCustomObject]@{
+                    IsGPOConfigured = $true; WUServer = $null; WUStatusServer = $null
+                    TargetGroup = $null; TargetGroupEnabled = $null
+                    DeferFeatureUpdates = 1; DeferFeatureUpdatesPeriodInDays = $null
+                    DeferQualityUpdates = $null; DeferQualityUpdatesPeriodInDays = $null
+                    BranchReadinessLevel = $mockBranch; PauseFeatureUpdatesStartTime = $null
+                    PauseQualityUpdatesStartTime = $null; UseWUServer = $null
+                    NoAutoUpdate = $null; AUOptions = $null
+                    ScheduledInstallDay = $null; ScheduledInstallTime = $null
+                    NoAutoRebootWithLoggedOnUsers = $null
+                }
             }
             $result = Get-WindowsUpdateConfiguration
             $result.BranchReadinessLevel | Should -Be $Expected
