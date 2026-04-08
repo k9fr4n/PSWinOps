@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 function Save-WindowsUpdate {
     <#
         .SYNOPSIS
@@ -222,7 +222,7 @@ function Save-WindowsUpdate {
 
                 $totalUpdates = $updates.Count
                 $totalSizeMB = ($updates | Measure-Object -Property 'SizeMB' -Sum).Sum
-                Write-Host "[$($MyInvocation.MyCommand)] $computer — $totalUpdates update(s) to download ($([math]::Round($totalSizeMB, 1)) MB)" -ForegroundColor Cyan
+                Write-Information -MessageData "[$($MyInvocation.MyCommand)] $computer — $totalUpdates update(s) to download ($([math]::Round($totalSizeMB, 1)) MB)" -InformationAction Continue
 
                 # Step 2: Download each update with progress
                 $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
@@ -331,7 +331,7 @@ function Save-WindowsUpdate {
                 else {
                     'N/A'
                 }
-                Write-Host "[$($MyInvocation.MyCommand)] $computer — Done in $($elapsed.ToString('mm\:ss')) ($avgSpeed)" -ForegroundColor Green
+                Write-Information -MessageData "[$($MyInvocation.MyCommand)] $computer — Done in $($elapsed.ToString('mm\:ss')) ($avgSpeed)" -InformationAction Continue
             }
             catch {
                 Write-Error -Message "[$($MyInvocation.MyCommand)] Failed on '${computer}': $_"

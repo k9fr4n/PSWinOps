@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 function Install-WindowsUpdate {
     <#
         .SYNOPSIS
@@ -232,7 +232,7 @@ function Install-WindowsUpdate {
 
                 $totalUpdates = $updates.Count
                 $totalSizeMB = ($updates | Measure-Object -Property 'SizeMB' -Sum).Sum
-                Write-Host "[$($MyInvocation.MyCommand)] $computer — $totalUpdates update(s) to install ($([math]::Round($totalSizeMB, 1)) MB)" -ForegroundColor Cyan
+                Write-Information -MessageData "[$($MyInvocation.MyCommand)] $computer — $totalUpdates update(s) to install ($([math]::Round($totalSizeMB, 1)) MB)" -InformationAction Continue
 
                 # Step 2: Install each update with progress
                 $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
@@ -324,7 +324,7 @@ function Install-WindowsUpdate {
                 Write-Progress -Activity $activityLabel -Completed
                 $stopwatch.Stop()
                 $elapsed = $stopwatch.Elapsed
-                Write-Host "[$($MyInvocation.MyCommand)] $computer — Done in $($elapsed.ToString('mm\:ss'))" -ForegroundColor Green
+                Write-Information -MessageData "[$($MyInvocation.MyCommand)] $computer — Done in $($elapsed.ToString('mm\:ss'))" -InformationAction Continue
 
                 # Handle reboot
                 if ($rebootNeeded) {
