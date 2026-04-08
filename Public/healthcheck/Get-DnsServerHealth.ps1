@@ -166,7 +166,7 @@ function Get-DnsServerHealth {
                     RootHintsCount = [int]$result.RootHintsCount
                     SelfResolution = [bool]$result.SelfResolution
                     OverallHealth  = $healthStatus
-                    Timestamp      = Get-Date -Format 'o'
+                    Timestamp      = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                 }
             }
             catch {

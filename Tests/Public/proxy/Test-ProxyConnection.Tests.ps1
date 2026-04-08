@@ -86,7 +86,7 @@ Describe 'Test-ProxyConnection' {
 
         It 'Should return Timestamp in ISO 8601 format' {
             $result = Test-ProxyConnection
-            $result.Timestamp | Should -Match '^\d{4}-\d{2}-\d{2}T'
+            $result.Timestamp | Should -Match '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$'
         }
 
         It 'Should return ResponseTime as a number' {

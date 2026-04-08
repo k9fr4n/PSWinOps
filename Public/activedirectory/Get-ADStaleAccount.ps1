@@ -154,7 +154,7 @@ function Get-ADStaleAccount {
                         WhenCreated       = $user.WhenCreated
                         Description       = $user.Description
                         DistinguishedName = $user.DistinguishedName
-                        Timestamp         = Get-Date -Format 'o'
+                        Timestamp         = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                     })
                 }
             }
@@ -187,7 +187,7 @@ function Get-ADStaleAccount {
                         WhenCreated       = $computer.WhenCreated
                         Description       = $computer.Description
                         DistinguishedName = $computer.DistinguishedName
-                        Timestamp         = Get-Date -Format 'o'
+                        Timestamp         = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                     })
                 }
             }

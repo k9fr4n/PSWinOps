@@ -159,7 +159,7 @@ function Get-SSLCertificate {
                         KeyLength          = $cert2.PublicKey.Key.KeySize
                         SAN                = $san
                         Protocol           = $sslStream.SslProtocol
-                        Timestamp          = Get-Date -Format 'o'
+                        Timestamp          = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                     }
 
                     $cert2.Dispose()

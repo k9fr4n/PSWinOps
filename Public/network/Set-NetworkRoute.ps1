@@ -184,7 +184,7 @@ function Set-NetworkRoute {
     process {
         foreach ($targetComputer in $ComputerName) {
             try {
-                $timestamp = Get-Date -Format 'o'
+                $timestamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                 $shouldProcessTarget = "Route $DestinationPrefix on '$targetComputer' — set metric to $RouteMetric"
 
                 Write-Verbose "[$($MyInvocation.MyCommand)] Modifying route on '$targetComputer'"

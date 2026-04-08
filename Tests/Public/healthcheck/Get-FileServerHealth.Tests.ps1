@@ -130,7 +130,7 @@ Describe 'Get-FileServerHealth' {
         It -Name 'Should have FSRMAvailable property' -Test { $script:propResult.FSRMAvailable | Should -BeTrue }
         It -Name 'Should have TotalQuotas property' -Test { $script:propResult.TotalQuotas | Should -Be 8 }
         It -Name 'Should have MinShareDiskFreeGB property' -Test { $script:propResult.MinShareDiskFreeGB | Should -Be 50.0 }
-        It -Name 'Should have Timestamp in ISO 8601 format' -Test { $script:propResult.Timestamp | Should -Match '^\d{4}-\d{2}-\d{2}T' }
+        It -Name 'Should have Timestamp in ISO 8601 format' -Test { $script:propResult.Timestamp | Should -Match '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$' }
     }
 
     Context 'Verbose output' {
@@ -174,7 +174,7 @@ Describe 'Get-FileServerHealth' {
             Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $script:mockRemoteData.Clone() }
             $script:hpResult = Get-FileServerHealth -ComputerName 'FS01'
         }
-        It 'Should have Timestamp matching ISO 8601 pattern' { $script:hpResult.Timestamp | Should -Match '^\d{4}-\d{2}-\d{2}T' }
+        It 'Should have Timestamp matching ISO 8601 pattern' { $script:hpResult.Timestamp | Should -Match '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$' }
     }
 
     Context 'Error message content on failure' {

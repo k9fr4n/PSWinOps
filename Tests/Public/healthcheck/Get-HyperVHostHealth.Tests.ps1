@@ -302,7 +302,7 @@ Describe 'Get-HyperVHostHealth' {
             Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $script:mockRemoteData.Clone() }
             $script:typeResult = Get-HyperVHostHealth -ComputerName 'SRV01'
         }
-        It 'Should have Timestamp matching ISO 8601' { $script:typeResult.Timestamp | Should -Match '^\d{4}-\d{2}-\d{2}T' }
+        It 'Should have Timestamp matching ISO 8601' { $script:typeResult.Timestamp | Should -Match '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$' }
     }
 
     Context 'Parameter validation' {

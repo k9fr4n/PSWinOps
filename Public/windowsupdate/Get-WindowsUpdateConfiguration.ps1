@@ -192,7 +192,7 @@ function Get-WindowsUpdateConfiguration {
                     TargetGroup                   = $rawData.TargetGroup
                     TargetGroupEnabled            = ($rawData.TargetGroupEnabled -eq 1)
                     IsGPOConfigured               = $rawData.IsGPOConfigured
-                    Timestamp                     = Get-Date -Format 'o'
+                    Timestamp                     = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                 }
             }
             catch {

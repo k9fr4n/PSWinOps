@@ -182,7 +182,7 @@ function Get-WindowsUpdateHistory {
                         Description    = $entry.Description
                         SupportUrl     = $entry.SupportUrl
                         UpdateIdentity = $entry.UpdateIdentity
-                        Timestamp      = Get-Date -Format 'o'
+                        Timestamp      = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                     }
                 }
             }

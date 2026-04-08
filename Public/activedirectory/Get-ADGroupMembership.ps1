@@ -126,7 +126,7 @@ function Get-ADGroupMembership {
                             ObjectClass       = $member.ObjectClass
                             DistinguishedName = $member.DistinguishedName
                             IsDirect          = $isDirect
-                            Timestamp         = Get-Date -Format 'o'
+                            Timestamp         = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                         })
                     }
                 }
@@ -142,7 +142,7 @@ function Get-ADGroupMembership {
                             ObjectClass       = $member.ObjectClass
                             DistinguishedName = $member.DistinguishedName
                             IsDirect          = $true
-                            Timestamp         = Get-Date -Format 'o'
+                            Timestamp         = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                         })
                     }
                 }

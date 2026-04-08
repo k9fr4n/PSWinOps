@@ -246,7 +246,7 @@ function Get-ExchangeServerHealth {
                     CertificatesExpiringSoon = [int]$result.CertificatesExpiringSoon
                     CertificatesExpired      = [int]$result.CertificatesExpired
                     OverallHealth            = $healthStatus
-                    Timestamp                = Get-Date -Format 'o'
+                    Timestamp                = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                 }
             } catch {
                 Write-Error -Message "[$($MyInvocation.MyCommand)] Failed on '${machine}': $_"

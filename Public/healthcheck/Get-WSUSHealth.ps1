@@ -187,7 +187,7 @@ function Get-WSUSHealth {
                     ContentDirPath        = $data.ContentDirPath
                     ContentDirFreeSpaceGB = [decimal]$data.ContentDirFreeSpaceGB
                     OverallHealth         = $healthStatus
-                    Timestamp             = Get-Date -Format 'o'
+                    Timestamp             = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                 }
             }
             catch {

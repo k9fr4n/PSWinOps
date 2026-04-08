@@ -97,7 +97,7 @@ function Invoke-ADSecurityAudit {
 
         $runAll = -not $PSBoundParameters.ContainsKey('Category')
         $findings = [System.Collections.Generic.List[PSCustomObject]]::new()
-        $timestamp = Get-Date -Format 'o'
+        $timestamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
         $now = Get-Date
         $cutoffDate = $now.AddDays(-$StaleThresholdDays)
 

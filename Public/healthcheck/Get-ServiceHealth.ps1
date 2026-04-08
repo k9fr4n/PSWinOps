@@ -136,7 +136,7 @@ function Get-ServiceHealth {
                         Account      = $svc.StartName
                         ProcessId    = $svc.ProcessId
                         Status       = $status
-                        Timestamp    = Get-Date -Format 'o'
+                        Timestamp    = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                     }
                 }
             }

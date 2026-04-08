@@ -156,7 +156,7 @@ function Get-RdpSessionLock {
                             Action       = $lockActionMap[[int]$lockEvent.Id]
                             EventID      = $lockEvent.Id
                             UserSID      = $targetUserSid
-                            Timestamp    = Get-Date -Format 'o'
+                            Timestamp    = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                         }
 
                     } catch {

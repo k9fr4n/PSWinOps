@@ -138,7 +138,7 @@ function Get-SystemSummary {
                     DefaultGateway         = $gatewayList
                     DNSServers             = $dnsList
                     PSVersion              = $psVersionString
-                    Timestamp              = Get-Date -Format 'o'
+                    Timestamp              = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                 }
             } catch {
                 Write-Error "[$($MyInvocation.MyCommand)] Failed on '${machine}': $_"

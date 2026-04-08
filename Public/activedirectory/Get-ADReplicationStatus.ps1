@@ -83,7 +83,7 @@ function Get-ADReplicationStatus {
             $adSplat['Credential'] = $Credential
         }
 
-        $timestamp = Get-Date -Format 'o'
+        $timestamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
         $dcList = [System.Collections.Generic.List[string]]::new()
         $serverProvided = $false
     }

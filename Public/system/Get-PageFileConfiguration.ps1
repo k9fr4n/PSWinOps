@@ -121,7 +121,7 @@ function Get-PageFileConfiguration {
                             EnsureCompleteDump  = $false
                             RestartRequired     = $false
                             Status              = 'Current'
-                            Timestamp           = Get-Date -Format 'o'
+                            Timestamp           = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                         }
                     }
                 }
@@ -145,7 +145,7 @@ function Get-PageFileConfiguration {
                         EnsureCompleteDump  = $false
                         RestartRequired     = $false
                         Status              = 'Current'
-                        Timestamp           = Get-Date -Format 'o'
+                        Timestamp           = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                     }
                 }
                 else {

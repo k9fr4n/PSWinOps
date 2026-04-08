@@ -110,7 +110,7 @@ Describe -Name 'Get-NTPPeer' -Fixture {
 
         It -Name 'Should set Timestamp in ISO 8601 format' -Test {
             $result = Get-NTPPeer -ComputerName 'REMOTE01'
-            $result[0].Timestamp | Should -Match '^\d{4}-\d{2}-\d{2}T'
+            $result[0].Timestamp | Should -Match '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$'
         }
 
         It -Name 'Should have null PeerFlags for modern format' -Test {

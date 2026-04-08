@@ -153,7 +153,7 @@ Describe -Name 'Get-ComputerUptime' -Fixture {
 
         It -Name 'Should format Timestamp as ISO 8601' -Test {
             $result = Get-ComputerUptime
-            $result.Timestamp | Should -Match '^\d{4}-\d{2}-\d{2}T'
+            $result.Timestamp | Should -Match '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$'
         }
     }
 

@@ -369,7 +369,7 @@ function Get-WindowsUpdate {
                         SizeMB          = [math]::Round($entry.MaxSizeBytes / 1MB, 2)
                         UpdateId        = $entry.UpdateId
                         RevisionNumber  = $entry.RevisionNumber
-                        Timestamp       = Get-Date -Format 'o'
+                        Timestamp       = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                     }
                 }
             }

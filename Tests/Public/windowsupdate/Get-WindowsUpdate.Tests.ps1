@@ -150,7 +150,7 @@ Describe 'Get-WindowsUpdate' {
 
         It -Name 'Should include Timestamp in ISO 8601 format' -Test {
             foreach ($item in $script:results) {
-                $item.Timestamp | Should -Match '^\d{4}-\d{2}-\d{2}T'
+                $item.Timestamp | Should -Match '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$'
             }
         }
 

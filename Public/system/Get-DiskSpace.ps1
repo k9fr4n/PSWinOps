@@ -135,7 +135,7 @@ function Get-DiskSpace {
                         PercentFree  = $percentFree
                         PercentUsed  = $percentUsed
                         Status       = $status
-                        Timestamp    = Get-Date -Format 'o'
+                        Timestamp    = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                     }
                 }
             }

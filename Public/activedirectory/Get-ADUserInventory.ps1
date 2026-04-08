@@ -130,7 +130,7 @@ function Get-ADUserInventory {
         return
     }
 
-    $inventoryTimestamp = Get-Date -Format 'o'
+    $inventoryTimestamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
     $resultList = [System.Collections.Generic.List[PSCustomObject]]::new()
 
     foreach ($adUser in $adUserList) {

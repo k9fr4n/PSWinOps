@@ -138,7 +138,7 @@ Describe 'Get-ADLockedAccount' {
 
         It -Name 'Should have ISO 8601 Timestamp' -Test {
             $script:results = Get-ADLockedAccount
-            $script:results[0].Timestamp | Should -Match '^\d{4}-\d{2}-\d{2}T'
+            $script:results[0].Timestamp | Should -Match '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$'
         }
 
         It -Name 'Should sort by LockoutTime descending' -Test {

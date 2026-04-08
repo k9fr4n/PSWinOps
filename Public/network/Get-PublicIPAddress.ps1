@@ -134,7 +134,7 @@ function Get-PublicIPAddress {
                     IPv4Address  = $rawResult.IPv4Address
                     IPv6Address  = $rawResult.IPv6Address
                     Provider     = $rawResult.Provider
-                    Timestamp    = Get-Date -Format 'o'
+                    Timestamp    = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                 }
             } catch {
                 Write-Error "[$($MyInvocation.MyCommand)] Failed on '$targetComputer': $_"

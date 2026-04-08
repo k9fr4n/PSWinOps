@@ -207,7 +207,7 @@ function Get-RdpSession {
                         IdleTime         = $idleTime
                         LogonTime        = $logonTime
                         IsCurrentSession = $isCurrentSession
-                        Timestamp        = Get-Date -Format 'o'
+                        Timestamp        = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                     }
                 }
 

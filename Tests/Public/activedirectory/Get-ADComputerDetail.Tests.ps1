@@ -168,7 +168,7 @@ Describe 'Get-ADComputerDetail' {
 
         It -Name 'Should have ISO 8601 Timestamp' -Test {
             $result = Get-ADComputerDetail -Identity 'SRV01'
-            $result.Timestamp | Should -Match '^\d{4}-\d{2}-\d{2}T'
+            $result.Timestamp | Should -Match '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$'
         }
     }
 

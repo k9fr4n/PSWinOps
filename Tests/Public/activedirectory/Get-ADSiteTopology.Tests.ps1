@@ -240,7 +240,7 @@ Describe -Name 'Get-ADSiteTopology' -Fixture {
         }
 
         It -Name 'Should have ISO 8601 Timestamp' -Test {
-            $script:result.Timestamp | Should -Match '^\d{4}-\d{2}-\d{2}T'
+            $script:result.Timestamp | Should -Match '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$'
         }
     }
 }

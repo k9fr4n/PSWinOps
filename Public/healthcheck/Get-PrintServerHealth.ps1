@@ -164,7 +164,7 @@ function Get-PrintServerHealth {
                     ErroredPrintJobs = [int]$data.ErroredPrintJobs
                     TotalPorts       = [int]$data.TotalPorts
                     OverallHealth    = $healthStatus
-                    Timestamp        = Get-Date -Format 'o'
+                    Timestamp        = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                 }
             }
             catch {

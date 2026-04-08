@@ -140,7 +140,7 @@ function Get-ADSiteTopology {
             }
 
             # --- Build output per site ---
-            $timestamp = Get-Date -Format 'o'
+            $timestamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
 
             foreach ($site in $sites | Sort-Object -Property 'Name') {
                 $siteDN = $site.DistinguishedName

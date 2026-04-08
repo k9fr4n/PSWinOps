@@ -224,7 +224,7 @@ Describe 'New-NetworkRoute' {
             }
             $script:tsResult = New-NetworkRoute -ComputerName 'SRV01' -DestinationPrefix '10.10.0.0/16' -NextHop '192.168.1.1' -InterfaceAlias 'Ethernet' -Confirm:$false
         }
-        It 'Should have Timestamp matching ISO 8601 pattern' { $script:tsResult.Timestamp | Should -Match '^\d{4}-\d{2}-\d{2}T' }
+        It 'Should have Timestamp matching ISO 8601 pattern' { $script:tsResult.Timestamp | Should -Match '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$' }
     }
 
     Context 'InterfaceIndex path' {

@@ -77,7 +77,7 @@ Describe -Name 'Remove-RdpSession' -Fixture {
 
         It -Name 'Should include ISO 8601 Timestamp' -Test {
             $result = Remove-RdpSession -SessionID 2 -Confirm:$false
-            $result.Timestamp | Should -Match '^\d{4}-\d{2}-\d{2}T'
+            $result.Timestamp | Should -Match '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$'
         }
 
         It -Name 'Should invoke logoff via Invoke-Command' -Test {

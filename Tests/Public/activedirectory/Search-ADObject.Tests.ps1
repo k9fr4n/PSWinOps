@@ -122,7 +122,7 @@ Describe 'Search-ADObject' {
 
         It -Name 'Should have ISO 8601 Timestamp' -Test {
             $result = Search-ADObject -LDAPFilter '(objectClass=user)'
-            $result[0].Timestamp | Should -Match '^\d{4}-\d{2}-\d{2}T'
+            $result[0].Timestamp | Should -Match '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$'
         }
     }
 

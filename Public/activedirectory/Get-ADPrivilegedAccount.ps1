@@ -148,7 +148,7 @@ function Get-ADPrivilegedAccount {
                         Enabled           = $enabled
                         LastLogonDate     = $lastLogon
                         DistinguishedName = $member.DistinguishedName
-                        Timestamp         = Get-Date -Format 'o'
+                        Timestamp         = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                     })
                 }
             }

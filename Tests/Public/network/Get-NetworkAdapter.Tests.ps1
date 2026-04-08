@@ -179,7 +179,7 @@ Describe 'Get-NetworkAdapter' {
 
         It 'Should have Timestamp matching ISO 8601 pattern' {
             $script:tsResult = Get-NetworkAdapter
-            $script:tsResult.Timestamp | Should -Match '^\d{4}-\d{2}-\d{2}T'
+            $script:tsResult.Timestamp | Should -Match '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$'
         }
     }
 

@@ -202,7 +202,7 @@ Describe 'Get-ADNestedGroupMembership' {
 
         It -Name 'Should return ISO 8601 formatted Timestamp' -Test {
             $script:results = Get-ADNestedGroupMembership -Identity 'jdoe'
-            $script:results[0].Timestamp | Should -Match '^\d{4}-\d{2}-\d{2}T'
+            $script:results[0].Timestamp | Should -Match '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$'
         }
     }
 }

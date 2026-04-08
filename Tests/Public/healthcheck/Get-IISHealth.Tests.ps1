@@ -171,7 +171,7 @@ Describe 'Get-IISHealth' {
             Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $script:mockRemoteData.Clone() }
             $script:typeResult = Get-IISHealth -ComputerName 'SRV01'
         }
-        It -Name 'Should have Timestamp matching ISO 8601' -Test { $script:typeResult[0].Timestamp | Should -Match '^\d{4}-\d{2}-\d{2}T' }
+        It -Name 'Should have Timestamp matching ISO 8601' -Test { $script:typeResult[0].Timestamp | Should -Match '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$' }
     }
 
     Context 'Verbose output' {
@@ -280,7 +280,7 @@ Describe 'Get-IISHealth' {
             Mock -CommandName 'Invoke-Command' -ModuleName 'PSWinOps' -MockWith { return $script:mockRemoteData }
             $script:hpResult = Get-IISHealth -ComputerName 'SRV01'
         }
-        It 'Should have Timestamp matching ISO 8601 pattern' { $script:hpResult[0].Timestamp | Should -Match '^\d{4}-\d{2}-\d{2}T' }
+        It 'Should have Timestamp matching ISO 8601 pattern' { $script:hpResult[0].Timestamp | Should -Match '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$' }
     }
 
     Context 'Verbose output' {
