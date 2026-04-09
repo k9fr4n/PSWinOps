@@ -170,11 +170,11 @@ function Set-PageFile {
                             $ramBytes = $compSystem.TotalPhysicalMemory
                             $ramGB = [math]::Round($ramBytes / 1GB, 2)
 
-                            $compSystem | Set-CimInstance -Property @{ AutomaticManagedPagefile = $true } -ErrorAction Stop
+                            Set-CimInstance -Query "SELECT * FROM Win32_ComputerSystem" -Property @{ AutomaticManagedPagefile = $true } -ErrorAction Stop
 
                             $existingPageFiles = Get-CimInstance -ClassName 'Win32_PageFileSetting' -ErrorAction SilentlyContinue
                             if ($existingPageFiles) {
-                                $existingPageFiles | Remove-CimInstance -ErrorAction Stop
+                                Remove-CimInstance -Query "SELECT * FROM Win32_PageFileSetting" -ErrorAction Stop
                             }
 
                             Set-ItemProperty -Path $registryPath -Name 'PagingFiles' -Value '?:\pagefile.sys' -ErrorAction Stop
@@ -278,13 +278,13 @@ function Set-PageFile {
 
                 if ($PSCmdlet.ShouldProcess($targetComputer, $shouldMsg)) {
                     if ($isLocal) {
-                        # Disable auto-managed (pipe instance, not -Query)
-                        $compSystem | Set-CimInstance -Property @{ AutomaticManagedPagefile = $false } -ErrorAction Stop
+                        # Disable auto-managed
+                        Set-CimInstance -Query "SELECT * FROM Win32_ComputerSystem" -Property @{ AutomaticManagedPagefile = $false } -ErrorAction Stop
 
                         # Remove existing custom pagefiles
                         $existingPageFiles = Get-CimInstance -ClassName 'Win32_PageFileSetting' -ErrorAction SilentlyContinue
                         if ($existingPageFiles) {
-                            $existingPageFiles | Remove-CimInstance -ErrorAction Stop
+                            Remove-CimInstance -Query "SELECT * FROM Win32_PageFileSetting" -ErrorAction Stop
                         }
 
                         # Configure pagefile via registry (New-CimInstance on Win32_PageFileSetting
