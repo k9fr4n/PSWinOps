@@ -65,8 +65,25 @@ Describe 'Get-ClusterHealth' {
         )
 
         $script:mockQuorum = [PSCustomObject]@{
-            QuorumType     = 'NodeAndDiskMajority'
+            QuorumType     = 'NodeAndFileShareMajority'
+            QuorumResource = 'File Share Witness'
+        }
+
+        $script:mockQuorumNoWitness = [PSCustomObject]@{
+            QuorumType     = 'NodeMajority'
             QuorumResource = $null
+        }
+
+        $script:mockWitnessResource = [PSCustomObject]@{
+            Name         = 'File Share Witness'
+            State        = 'Online'
+            ResourceType = 'File Share Witness'
+        }
+
+        $script:mockWitnessResourceFailed = [PSCustomObject]@{
+            Name         = 'File Share Witness'
+            State        = 'Failed'
+            ResourceType = 'File Share Witness'
         }
 
         $script:mockRemoteData = @{
@@ -84,8 +101,11 @@ Describe 'Get-ClusterHealth' {
             ResourcesFailed = 0
             TotalGroups     = 2
             GroupsOnline    = 2
-            QuorumType      = 'NodeAndDiskMajority'
+            QuorumType      = 'NodeAndFileShareMajority'
             QuorumState     = 'Normal'
+            WitnessType     = 'FileShareWitness'
+            WitnessName     = 'File Share Witness'
+            WitnessState    = 'Online'
             QueryError      = $null
         }
     }
@@ -113,6 +133,9 @@ Describe 'Get-ClusterHealth' {
                     GroupsOnline    = 0
                     QuorumType      = 'N/A'
                     QuorumState     = 'N/A'
+                    WitnessType     = 'N/A'
+                    WitnessName     = 'N/A'
+                    WitnessState    = 'N/A'
                     QueryError      = $null
                 }
             }
@@ -132,7 +155,7 @@ Describe 'Get-ClusterHealth' {
         }
     }
 
-    Context 'Healthy cluster - all nodes up all resources online' {
+    Context 'Healthy cluster with file share witness online' {
 
         BeforeAll {
             Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith { return $script:mockServiceRunning }
@@ -141,6 +164,7 @@ Describe 'Get-ClusterHealth' {
             Mock -CommandName 'Get-Cluster' -ModuleName 'PSWinOps' -MockWith { return $script:mockCluster }
             Mock -CommandName 'Get-ClusterNode' -ModuleName 'PSWinOps' -MockWith { return $script:mockNodesAllUp }
             Mock -CommandName 'Get-ClusterResource' -ModuleName 'PSWinOps' -MockWith { return $script:mockResourcesAllOnline }
+            Mock -CommandName 'Get-ClusterResource' -ModuleName 'PSWinOps' -ParameterFilter { $Name -eq 'File Share Witness' } -MockWith { return $script:mockWitnessResource }
             Mock -CommandName 'Get-ClusterGroup' -ModuleName 'PSWinOps' -MockWith { return $script:mockGroupsAllOnline }
             Mock -CommandName 'Get-ClusterQuorum' -ModuleName 'PSWinOps' -MockWith { return $script:mockQuorum }
             $script:results = Get-ClusterHealth
@@ -148,6 +172,18 @@ Describe 'Get-ClusterHealth' {
 
         It -Name 'Should have OverallHealth Healthy' -Test {
             $script:results[0].OverallHealth | Should -Be 'Healthy'
+        }
+
+        It -Name 'Should have WitnessType FileShareWitness' -Test {
+            $script:results[0].WitnessType | Should -Be 'FileShareWitness'
+        }
+
+        It -Name 'Should have WitnessName File Share Witness' -Test {
+            $script:results[0].WitnessName | Should -Be 'File Share Witness'
+        }
+
+        It -Name 'Should have WitnessState Online' -Test {
+            $script:results[0].WitnessState | Should -Be 'Online'
         }
 
         It -Name 'Should have TotalNodes 2' -Test {
@@ -183,6 +219,69 @@ Describe 'Get-ClusterHealth' {
         }
     }
 
+    Context 'Healthy cluster with no witness' {
+
+        BeforeAll {
+            Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith { return $script:mockServiceRunning }
+            Mock -CommandName 'Get-Module' -ModuleName 'PSWinOps' -MockWith { return $script:mockClusterModule }
+            Mock -CommandName 'Import-Module' -ModuleName 'PSWinOps' -MockWith { }
+            Mock -CommandName 'Get-Cluster' -ModuleName 'PSWinOps' -MockWith { return $script:mockCluster }
+            Mock -CommandName 'Get-ClusterNode' -ModuleName 'PSWinOps' -MockWith { return $script:mockNodesAllUp }
+            Mock -CommandName 'Get-ClusterResource' -ModuleName 'PSWinOps' -MockWith { return $script:mockResourcesAllOnline }
+            Mock -CommandName 'Get-ClusterGroup' -ModuleName 'PSWinOps' -MockWith { return $script:mockGroupsAllOnline }
+            Mock -CommandName 'Get-ClusterQuorum' -ModuleName 'PSWinOps' -MockWith { return $script:mockQuorumNoWitness }
+            $script:results = Get-ClusterHealth
+        }
+
+        It -Name 'Should have OverallHealth Healthy' -Test {
+            $script:results[0].OverallHealth | Should -Be 'Healthy'
+        }
+
+        It -Name 'Should have WitnessType None' -Test {
+            $script:results[0].WitnessType | Should -Be 'None'
+        }
+
+        It -Name 'Should have WitnessName N/A' -Test {
+            $script:results[0].WitnessName | Should -Be 'N/A'
+        }
+
+        It -Name 'Should have WitnessState N/A' -Test {
+            $script:results[0].WitnessState | Should -Be 'N/A'
+        }
+
+        It -Name 'Should have QuorumType NodeMajority' -Test {
+            $script:results[0].QuorumType | Should -Be 'NodeMajority'
+        }
+    }
+
+    Context 'Degraded - witness failed' {
+
+        BeforeAll {
+            Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith { return $script:mockServiceRunning }
+            Mock -CommandName 'Get-Module' -ModuleName 'PSWinOps' -MockWith { return $script:mockClusterModule }
+            Mock -CommandName 'Import-Module' -ModuleName 'PSWinOps' -MockWith { }
+            Mock -CommandName 'Get-Cluster' -ModuleName 'PSWinOps' -MockWith { return $script:mockCluster }
+            Mock -CommandName 'Get-ClusterNode' -ModuleName 'PSWinOps' -MockWith { return $script:mockNodesAllUp }
+            Mock -CommandName 'Get-ClusterResource' -ModuleName 'PSWinOps' -MockWith { return $script:mockResourcesAllOnline }
+            Mock -CommandName 'Get-ClusterResource' -ModuleName 'PSWinOps' -ParameterFilter { $Name -eq 'File Share Witness' } -MockWith { return $script:mockWitnessResourceFailed }
+            Mock -CommandName 'Get-ClusterGroup' -ModuleName 'PSWinOps' -MockWith { return $script:mockGroupsAllOnline }
+            Mock -CommandName 'Get-ClusterQuorum' -ModuleName 'PSWinOps' -MockWith { return $script:mockQuorum }
+            $script:results = Get-ClusterHealth
+        }
+
+        It -Name 'Should have WitnessState Failed' -Test {
+            $script:results[0].WitnessState | Should -Be 'Failed'
+        }
+
+        It -Name 'Should have OverallHealth Degraded' -Test {
+            $script:results[0].OverallHealth | Should -Be 'Degraded'
+        }
+
+        It -Name 'Should have QuorumState Warning' -Test {
+            $script:results[0].QuorumState | Should -Be 'Warning'
+        }
+    }
+
     Context 'Critical - node down' {
 
         BeforeAll {
@@ -192,6 +291,7 @@ Describe 'Get-ClusterHealth' {
             Mock -CommandName 'Get-Cluster' -ModuleName 'PSWinOps' -MockWith { return $script:mockCluster }
             Mock -CommandName 'Get-ClusterNode' -ModuleName 'PSWinOps' -MockWith { return $script:mockNodesOneDown }
             Mock -CommandName 'Get-ClusterResource' -ModuleName 'PSWinOps' -MockWith { return $script:mockResourcesAllOnline }
+            Mock -CommandName 'Get-ClusterResource' -ModuleName 'PSWinOps' -ParameterFilter { $Name -eq 'File Share Witness' } -MockWith { return $script:mockWitnessResource }
             Mock -CommandName 'Get-ClusterGroup' -ModuleName 'PSWinOps' -MockWith { return $script:mockGroupsAllOnline }
             Mock -CommandName 'Get-ClusterQuorum' -ModuleName 'PSWinOps' -MockWith { return $script:mockQuorum }
             $script:results = Get-ClusterHealth
@@ -215,6 +315,7 @@ Describe 'Get-ClusterHealth' {
             Mock -CommandName 'Get-Cluster' -ModuleName 'PSWinOps' -MockWith { return $script:mockCluster }
             Mock -CommandName 'Get-ClusterNode' -ModuleName 'PSWinOps' -MockWith { return $script:mockNodesOnePaused }
             Mock -CommandName 'Get-ClusterResource' -ModuleName 'PSWinOps' -MockWith { return $script:mockResourcesAllOnline }
+            Mock -CommandName 'Get-ClusterResource' -ModuleName 'PSWinOps' -ParameterFilter { $Name -eq 'File Share Witness' } -MockWith { return $script:mockWitnessResource }
             Mock -CommandName 'Get-ClusterGroup' -ModuleName 'PSWinOps' -MockWith { return $script:mockGroupsAllOnline }
             Mock -CommandName 'Get-ClusterQuorum' -ModuleName 'PSWinOps' -MockWith { return $script:mockQuorum }
             $script:results = Get-ClusterHealth
@@ -238,6 +339,18 @@ Describe 'Get-ClusterHealth' {
 
         It -Name 'Should have ClusterName CLUSTER01' -Test {
             $script:results[0].ClusterName | Should -Be 'CLUSTER01'
+        }
+
+        It -Name 'Should have WitnessType FileShareWitness' -Test {
+            $script:results[0].WitnessType | Should -Be 'FileShareWitness'
+        }
+
+        It -Name 'Should have WitnessName File Share Witness' -Test {
+            $script:results[0].WitnessName | Should -Be 'File Share Witness'
+        }
+
+        It -Name 'Should have WitnessState Online' -Test {
+            $script:results[0].WitnessState | Should -Be 'Online'
         }
 
         It -Name 'Should return a result with Timestamp' -Test { $script:results.Timestamp | Should -Not -BeNullOrEmpty }

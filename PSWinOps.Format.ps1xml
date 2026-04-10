@@ -1750,6 +1750,7 @@
           <TableColumnHeader><Label>NodeState</Label><Width>10</Width></TableColumnHeader>
           <TableColumnHeader><Label>Nodes</Label><Width>7</Width><Alignment>Right</Alignment></TableColumnHeader>
           <TableColumnHeader><Label>Resources</Label><Width>10</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Witness</Label><Width>24</Width></TableColumnHeader>
           <TableColumnHeader><Label>Health</Label><Width>16</Width></TableColumnHeader>
         </TableHeaders>
         <TableRowEntries>
@@ -1761,6 +1762,7 @@
               <TableColumnItem><PropertyName>NodeState</PropertyName></TableColumnItem>
               <TableColumnItem><ScriptBlock>'{0}/{1}' -f $_.NodesUp, $_.TotalNodes</ScriptBlock></TableColumnItem>
               <TableColumnItem><ScriptBlock>'{0}/{1}' -f $_.ResourcesOnline, $_.TotalResources</ScriptBlock></TableColumnItem>
+              <TableColumnItem><ScriptBlock>if ($_.WitnessType -eq 'None') { 'None' } else { '{0} ({1})' -f $_.WitnessName, $_.WitnessState }</ScriptBlock></TableColumnItem>
               <TableColumnItem><PropertyName>OverallHealth</PropertyName></TableColumnItem>
             </TableColumnItems>
           </TableRowEntry>
@@ -1792,6 +1794,9 @@
               <ListItem><Label>Groups (Online/Total)</Label><ScriptBlock>'{0}/{1}' -f $_.GroupsOnline, $_.TotalGroups</ScriptBlock></ListItem>
               <ListItem><Label>QuorumType</Label><PropertyName>QuorumType</PropertyName></ListItem>
               <ListItem><Label>QuorumState</Label><PropertyName>QuorumState</PropertyName></ListItem>
+              <ListItem><Label>WitnessType</Label><PropertyName>WitnessType</PropertyName></ListItem>
+              <ListItem><Label>WitnessName</Label><PropertyName>WitnessName</PropertyName></ListItem>
+              <ListItem><Label>WitnessState</Label><PropertyName>WitnessState</PropertyName></ListItem>
               <ListItem><Label>OverallHealth</Label><PropertyName>OverallHealth</PropertyName></ListItem>
               <ListItem><Label>Timestamp</Label><PropertyName>Timestamp</PropertyName></ListItem>
             </ListItems>
