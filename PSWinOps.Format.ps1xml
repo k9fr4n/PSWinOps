@@ -3380,5 +3380,69 @@
       </TableControl>
     </View>
 
+    <!-- ============================================================ -->
+    <!-- PSWinOps.DiskCleanupInfo                                     -->
+    <!-- Used by: Get-DiskCleanupInfo                                 -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.DiskCleanupInfo</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.DiskCleanupInfo</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>ComputerName</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Category</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>FileCount</Label><Width>10</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>SizeMB</Label><Width>10</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Path</Label></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Category</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>FileCount</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>SizeMB</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Path</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.DiskCleanupResult                                   -->
+    <!-- Used by: Clear-DiskCleanup                                   -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.DiskCleanupResult</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.DiskCleanupResult</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>ComputerName</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Category</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Removed</Label><Width>8</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Skipped</Label><Width>8</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>RecoveredMB</Label><Width>12</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Errors</Label><Width>8</Width><Alignment>Right</Alignment></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Category</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>FilesRemoved</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>FilesSkipped</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>SpaceRecoveredMB</PropertyName></TableColumnItem>
+              <TableColumnItem><ScriptBlock>@($_.Errors).Count</ScriptBlock></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
   </ViewDefinitions>
 </Configuration>
