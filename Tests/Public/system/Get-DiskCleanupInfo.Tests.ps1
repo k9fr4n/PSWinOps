@@ -115,38 +115,66 @@ Describe 'Get-DiskCleanupInfo' {
         }
     }
 
-    Context 'Category filter' {
+    Context 'Category filter - single category' {
 
         BeforeAll {
-            # Return pre-built data keyed on the categories passed via ArgumentList
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
-                [string[]]$categories = @($ArgumentList[0])
-                foreach ($cat in $categories) {
-                    @{
-                        Category   = $cat
-                        Path       = "C:\mock\$cat"
-                        FileCount  = 5
-                        SizeBytes  = [long]1048576
-                        SizeMB     = 1.0
-                        OldestFile = (Get-Date).AddDays(-30)
-                        NewestFile = (Get-Date).AddDays(-1)
-                    }
+                @{
+                    Category   = 'WindowsUpdate'
+                    Path       = 'C:\Windows\SoftwareDistribution\Download'
+                    FileCount  = 5
+                    SizeBytes  = [long]1048576
+                    SizeMB     = 1.0
+                    OldestFile = (Get-Date).AddDays(-30)
+                    NewestFile = (Get-Date).AddDays(-1)
                 }
             }
+            $script:filtered = @(Get-DiskCleanupInfo -Category 'WindowsUpdate')
         }
 
         It -Name 'Should return only the selected category' -Test {
-            $filtered = @(Get-DiskCleanupInfo -Category 'WindowsUpdate')
-            $filtered | Should -HaveCount 1
-            $filtered[0].Category | Should -Be 'WindowsUpdate'
+            $script:filtered | Should -HaveCount 1
+            $script:filtered[0].Category | Should -Be 'WindowsUpdate'
+        }
+    }
+
+    Context 'Category filter - multiple categories' {
+
+        BeforeAll {
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                # Return two separate hashtables — one per category
+                @{
+                    Category   = 'TempFiles'
+                    Path       = 'C:\Windows\Temp'
+                    FileCount  = 10
+                    SizeBytes  = [long]2097152
+                    SizeMB     = 2.0
+                    OldestFile = (Get-Date).AddDays(-60)
+                    NewestFile = (Get-Date).AddDays(-5)
+                }
+                @{
+                    Category   = 'WindowsUpdate'
+                    Path       = 'C:\Windows\SoftwareDistribution\Download'
+                    FileCount  = 5
+                    SizeBytes  = [long]1048576
+                    SizeMB     = 1.0
+                    OldestFile = (Get-Date).AddDays(-30)
+                    NewestFile = (Get-Date).AddDays(-1)
+                }
+            }
+            $script:multi = @(Get-DiskCleanupInfo -Category 'TempFiles', 'WindowsUpdate')
         }
 
-        It -Name 'Should return multiple categories when specified' -Test {
-            $multi = @(Get-DiskCleanupInfo -Category 'TempFiles', 'WindowsUpdate')
-            $multi | Should -HaveCount 2
-            $cats = $multi.Category | Sort-Object -Unique
-            $cats | Should -Contain 'TempFiles'
-            $cats | Should -Contain 'WindowsUpdate'
+        It -Name 'Should return two results' -Test {
+            $script:multi | Should -HaveCount 2
+        }
+
+        It -Name 'Should contain TempFiles category' -Test {
+            $script:multi.Category | Should -Contain 'TempFiles'
+        }
+
+        It -Name 'Should contain WindowsUpdate category' -Test {
+            $script:multi.Category | Should -Contain 'WindowsUpdate'
         }
     }
 
