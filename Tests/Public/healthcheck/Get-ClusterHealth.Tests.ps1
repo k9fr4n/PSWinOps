@@ -8,7 +8,7 @@ BeforeAll {
     # Stub functions for cmdlets not available on CI runner
     function global:Get-Cluster { }
     function global:Get-ClusterNode { }
-    function global:Get-ClusterResource { }
+    function global:Get-ClusterResource { param($Name) }
     function global:Get-ClusterGroup { }
     function global:Get-ClusterQuorum { }
 
