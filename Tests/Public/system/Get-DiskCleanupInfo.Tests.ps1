@@ -120,7 +120,7 @@ Describe 'Get-DiskCleanupInfo' {
         BeforeAll {
             # Return pre-built data keyed on the categories passed via ArgumentList
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
-                $categories = $ArgumentList[0]
+                [string[]]$categories = @($ArgumentList[0])
                 foreach ($cat in $categories) {
                     @{
                         Category   = $cat
