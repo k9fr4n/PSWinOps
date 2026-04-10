@@ -1750,6 +1750,7 @@
           <TableColumnHeader><Label>NodeState</Label><Width>10</Width></TableColumnHeader>
           <TableColumnHeader><Label>Nodes</Label><Width>7</Width><Alignment>Right</Alignment></TableColumnHeader>
           <TableColumnHeader><Label>Resources</Label><Width>10</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Witness</Label><Width>24</Width></TableColumnHeader>
           <TableColumnHeader><Label>Health</Label><Width>16</Width></TableColumnHeader>
         </TableHeaders>
         <TableRowEntries>
@@ -1761,6 +1762,7 @@
               <TableColumnItem><PropertyName>NodeState</PropertyName></TableColumnItem>
               <TableColumnItem><ScriptBlock>'{0}/{1}' -f $_.NodesUp, $_.TotalNodes</ScriptBlock></TableColumnItem>
               <TableColumnItem><ScriptBlock>'{0}/{1}' -f $_.ResourcesOnline, $_.TotalResources</ScriptBlock></TableColumnItem>
+              <TableColumnItem><ScriptBlock>if ($_.WitnessType -eq 'None') { 'None' } else { '{0} ({1})' -f $_.WitnessName, $_.WitnessState }</ScriptBlock></TableColumnItem>
               <TableColumnItem><PropertyName>OverallHealth</PropertyName></TableColumnItem>
             </TableColumnItems>
           </TableRowEntry>
@@ -1792,6 +1794,9 @@
               <ListItem><Label>Groups (Online/Total)</Label><ScriptBlock>'{0}/{1}' -f $_.GroupsOnline, $_.TotalGroups</ScriptBlock></ListItem>
               <ListItem><Label>QuorumType</Label><PropertyName>QuorumType</PropertyName></ListItem>
               <ListItem><Label>QuorumState</Label><PropertyName>QuorumState</PropertyName></ListItem>
+              <ListItem><Label>WitnessType</Label><PropertyName>WitnessType</PropertyName></ListItem>
+              <ListItem><Label>WitnessName</Label><PropertyName>WitnessName</PropertyName></ListItem>
+              <ListItem><Label>WitnessState</Label><PropertyName>WitnessState</PropertyName></ListItem>
               <ListItem><Label>OverallHealth</Label><PropertyName>OverallHealth</PropertyName></ListItem>
               <ListItem><Label>Timestamp</Label><PropertyName>Timestamp</PropertyName></ListItem>
             </ListItems>
@@ -3369,6 +3374,259 @@
               <TableColumnItem><PropertyName>Operation</PropertyName></TableColumnItem>
               <TableColumnItem><PropertyName>Result</PropertyName></TableColumnItem>
               <TableColumnItem><PropertyName>Title</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.DiskCleanupInfo                                     -->
+    <!-- Used by: Get-DiskCleanupInfo                                 -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.DiskCleanupInfo</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.DiskCleanupInfo</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>ComputerName</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Category</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>FileCount</Label><Width>10</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>SizeMB</Label><Width>10</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Path</Label></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Category</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>FileCount</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>SizeMB</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Path</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.DiskCleanupResult                                   -->
+    <!-- Used by: Clear-DiskCleanup                                   -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.DiskCleanupResult</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.DiskCleanupResult</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>ComputerName</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Category</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Removed</Label><Width>8</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Skipped</Label><Width>8</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>RecoveredMB</Label><Width>12</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Errors</Label><Width>8</Width><Alignment>Right</Alignment></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Category</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>FilesRemoved</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>FilesSkipped</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>SpaceRecoveredMB</PropertyName></TableColumnItem>
+              <TableColumnItem><ScriptBlock>@($_.Errors).Count</ScriptBlock></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.ShadowCopy                                          -->
+    <!-- Used by: Get-ShadowCopy                                      -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.ShadowCopy</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.ShadowCopy</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Width>15</Width></TableColumnHeader>
+          <TableColumnHeader><Width>5</Width></TableColumnHeader>
+          <TableColumnHeader><Width>40</Width></TableColumnHeader>
+          <TableColumnHeader><Width>22</Width></TableColumnHeader>
+          <TableColumnHeader><Width>10</Width></TableColumnHeader>
+          <TableColumnHeader><Width>20</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>DriveLetter</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>ShadowCopyId</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>CreationTime</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>State</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Timestamp</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.ShadowCopyResult                                    -->
+    <!-- Used by: New-ShadowCopy                                      -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.ShadowCopyResult</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.ShadowCopyResult</TypeName>
+      </ViewSelectedBy>
+      <ListControl>
+        <ListEntries>
+          <ListEntry>
+            <ListItems>
+              <ListItem><PropertyName>ComputerName</PropertyName></ListItem>
+              <ListItem><PropertyName>DriveLetter</PropertyName></ListItem>
+              <ListItem><PropertyName>ShadowCopyId</PropertyName></ListItem>
+              <ListItem><PropertyName>CreationTime</PropertyName></ListItem>
+              <ListItem><PropertyName>Success</PropertyName></ListItem>
+              <ListItem><PropertyName>ReturnCode</PropertyName></ListItem>
+              <ListItem><PropertyName>ReturnMessage</PropertyName></ListItem>
+              <ListItem><PropertyName>Timestamp</PropertyName></ListItem>
+            </ListItems>
+          </ListEntry>
+        </ListEntries>
+      </ListControl>
+    </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.ShadowCopyRemoveResult                              -->
+    <!-- Used by: Remove-ShadowCopy                                   -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.ShadowCopyRemoveResult</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.ShadowCopyRemoveResult</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Width>15</Width></TableColumnHeader>
+          <TableColumnHeader><Width>40</Width></TableColumnHeader>
+          <TableColumnHeader><Width>5</Width></TableColumnHeader>
+          <TableColumnHeader><Width>8</Width></TableColumnHeader>
+          <TableColumnHeader><Width>30</Width></TableColumnHeader>
+          <TableColumnHeader><Width>20</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>ShadowCopyId</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>DriveLetter</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Removed</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>ErrorMessage</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Timestamp</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.ShadowCopyStorage                                   -->
+    <!-- Used by: Get-ShadowCopyStorage                               -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.ShadowCopyStorage</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.ShadowCopyStorage</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Width>15</Width></TableColumnHeader>
+          <TableColumnHeader><Width>5</Width></TableColumnHeader>
+          <TableColumnHeader><Width>12</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Width>14</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Width>12</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Width>10</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Width>6</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Width>20</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>DriveLetter</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>UsedSpaceMB</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>AllocatedSpaceMB</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>MaxSpaceMB</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>UsedPercent</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>SnapshotCount</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Timestamp</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.ShadowCopyStorageResult                             -->
+    <!-- Used by: Set-ShadowCopyStorage                               -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.ShadowCopyStorageResult</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.ShadowCopyStorageResult</TypeName>
+      </ViewSelectedBy>
+      <ListControl>
+        <ListEntries>
+          <ListEntry>
+            <ListItems>
+              <ListItem><PropertyName>ComputerName</PropertyName></ListItem>
+              <ListItem><PropertyName>DriveLetter</PropertyName></ListItem>
+              <ListItem><PropertyName>PreviousMaxSpaceMB</PropertyName></ListItem>
+              <ListItem><PropertyName>NewMaxSpaceMB</PropertyName></ListItem>
+              <ListItem><PropertyName>Success</PropertyName></ListItem>
+              <ListItem><PropertyName>Message</PropertyName></ListItem>
+              <ListItem><PropertyName>Timestamp</PropertyName></ListItem>
+            </ListItems>
+          </ListEntry>
+        </ListEntries>
+      </ListControl>
+    </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.ShadowCopyRestoreResult                             -->
+    <!-- Used by: Restore-ShadowCopyFile                              -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.ShadowCopyRestoreResult</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.ShadowCopyRestoreResult</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Width>15</Width></TableColumnHeader>
+          <TableColumnHeader><Width>8</Width></TableColumnHeader>
+          <TableColumnHeader><Width>30</Width></TableColumnHeader>
+          <TableColumnHeader><Width>30</Width></TableColumnHeader>
+          <TableColumnHeader><Width>10</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Width>25</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Restored</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>SourcePath</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>DestinationPath</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>SizeMB</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>ErrorMessage</PropertyName></TableColumnItem>
             </TableColumnItems>
           </TableRowEntry>
         </TableRowEntries>

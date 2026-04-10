@@ -95,6 +95,7 @@ jobs:
           - "Public/rdp"
           - "Public/system"
           - "Public/utils"
+          - "Public/vss"
           - "Public/windowsupdate"
 
     steps:

@@ -5,14 +5,14 @@ SHORT DESCRIPTION
     PSWinOps is a Windows-only PowerShell module for system
     administration, Active Directory management, health
     checks, network diagnostics, NTP management, RDP
-    session management, Windows Update management,
-    and more.
+    session management, VSS shadow copy management,
+    Windows Update management, and more.
 
 LONG DESCRIPTION
     PSWinOps is a comprehensive toolbox designed for Windows
     system administrators running PowerShell 5.1 or later.
     It provides a curated collection of functions organized
-    into nine functional domains, covering everything from
+    into ten functional domains, covering everything from
     Active Directory inventory and security auditing,
     service health monitoring, network troubleshooting,
     NTP synchronization, proxy management, RDP session
@@ -31,7 +31,7 @@ LONG DESCRIPTION
     Requires    : PowerShell 5.1+ / Windows only
 
 FUNCTION DOMAINS
-    PSWinOps organizes its functions into nine domains.
+    PSWinOps organizes its functions into ten domains.
 
   activedirectory (21 functions)
     Functions for Active Directory inventory, user and
@@ -143,11 +143,13 @@ FUNCTION DOMAINS
       Get-RdpSessionLock
       Remove-RdpSession
 
-  system (11 functions)
-    Functions for general system information, state, and
-    real-time monitoring.
+  system (13 functions)
+    Functions for general system information, state,
+    disk cleanup, and real-time monitoring.
 
+      Clear-DiskCleanup
       Get-ComputerUptime
+      Get-DiskCleanupInfo
       Get-DiskSpace
       Get-EnvironmentVariable
       Get-InstalledSoftware
@@ -174,6 +176,18 @@ FUNCTION DOMAINS
 
       ConvertFrom-MisencodedString
       New-RandomPassword
+
+  vss (6 functions)
+    Volume Shadow Copy Service management. Create, list,
+    remove shadow copies, inspect and configure storage
+    allocation, and restore individual files from snapshots.
+
+      Get-ShadowCopy
+      Get-ShadowCopyStorage
+      New-ShadowCopy
+      Remove-ShadowCopy
+      Restore-ShadowCopyFile
+      Set-ShadowCopyStorage
 
 OUTPUT CONVENTIONS
     All public functions (except pure utilities) return
@@ -260,7 +274,7 @@ REMOTE EXECUTION PATTERN
     in the pipeline continue to be processed.
 
 PSWINOPS TYPE REGISTRY
-    The following 77 PSTypeName values are defined by the
+    The following 85 PSTypeName values are defined by the
     module. Each corresponds to the output of one or more
     public functions.
 
@@ -296,6 +310,8 @@ PSWINOPS TYPE REGISTRY
       PSWinOps.DfsNamespaceHealth
       PSWinOps.DfsReplicationHealth
       PSWinOps.DhcpServerHealth
+      PSWinOps.DiskCleanupInfo
+      PSWinOps.DiskCleanupResult
       PSWinOps.DiskSpace
       PSWinOps.DnsResolution
       PSWinOps.DnsServerHealth
@@ -331,6 +347,12 @@ PSWINOPS TYPE REGISTRY
       PSWinOps.RDSHealth
       PSWinOps.ScheduledTaskDetail
       PSWinOps.ServiceHealth
+      PSWinOps.ShadowCopy
+      PSWinOps.ShadowCopyRemoveResult
+      PSWinOps.ShadowCopyRestoreResult
+      PSWinOps.ShadowCopyResult
+      PSWinOps.ShadowCopyStorage
+      PSWinOps.ShadowCopyStorageResult
       PSWinOps.SSLCertificate
       PSWinOps.StartupProgram
       PSWinOps.SubnetInfo
@@ -348,8 +370,10 @@ SEE ALSO
     Get-Help Get-RdpSession
     Get-Help Get-NTPConfiguration
     Get-Help Get-ADUserDetail
+    Get-Help Get-DiskCleanupInfo
     Get-Help Get-ExchangeServerHealth
+    Get-Help Get-ShadowCopy
 
 KEYWORDS
-    PSWinOps, Windows, Administration, ActiveDirectory,
-    HealthCheck, Network, NTP, RDP, System, WindowsUpdate
+    PSWinOps, Windows, Administration, ActiveDirectory, DiskCleanup,
+    HealthCheck, Network, NTP, RDP, System, VSS, WindowsUpdate

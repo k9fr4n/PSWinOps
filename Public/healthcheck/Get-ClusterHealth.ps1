@@ -7,7 +7,9 @@ function Get-ClusterHealth {
         .DESCRIPTION
             Queries the Failover Clustering service and cluster components to assess overall
             cluster health. Checks ClusSvc service status, node states, resource states,
-            group states, and quorum configuration on one or more machines.
+            group states, quorum configuration, and witness resource state on one or more
+            machines. Uses Get-ClusterQuorum to retrieve quorum type and witness identity,
+            then Get-ClusterResource to verify the witness resource state.
             Returns a typed PSWinOps.ClusterHealth object per machine with an OverallHealth
             assessment of Healthy, Degraded, Critical, or RoleUnavailable.
 
@@ -37,12 +39,13 @@ function Get-ClusterHealth {
         .OUTPUTS
             PSWinOps.ClusterHealth
             Returns one object per queried machine with cluster health properties
-            including ServiceStatus, NodeState, QuorumState, and OverallHealth.
+            including ServiceStatus, NodeState, QuorumState, WitnessType,
+            WitnessName, WitnessState, and OverallHealth.
 
         .NOTES
             Author: Franck SALLET
-            Version: 1.0.0
-            Last Modified: 2026-03-26
+            Version: 1.1.0
+            Last Modified: 2026-04-10
             Requires: PowerShell 5.1+ / Windows only
             Requires: Failover-Clustering feature
             Requires: Module FailoverClusters (RSAT-Clustering-PowerShell)
@@ -89,6 +92,9 @@ function Get-ClusterHealth {
                 GroupsOnline    = 0
                 QuorumType      = 'N/A'
                 QuorumState     = 'N/A'
+                WitnessType     = 'N/A'
+                WitnessName     = 'N/A'
+                WitnessState    = 'N/A'
                 QueryError      = $null
             }
 
@@ -151,21 +157,36 @@ function Get-ClusterHealth {
 
                     $quorumInfo = Get-ClusterQuorum -ErrorAction Stop
                     $data.QuorumType = $quorumInfo.QuorumType.ToString()
+
                     if ($quorumInfo.QuorumResource) {
                         # In PS 7, QuorumResource may be a bare string (resource name)
                         # instead of a ClusterResource object. Resolve via Get-ClusterResource.
                         $quorumResName = "$($quorumInfo.QuorumResource)"
-                        $quorumRes = Get-ClusterResource -Name $quorumResName -ErrorAction SilentlyContinue
-                        if ($quorumRes) {
-                            $resourceState = "$($quorumRes.State)"
-                            $data.QuorumState = if ($resourceState -eq 'Online') { 'Normal' } else { 'Warning' }
+                        $data.WitnessName = $quorumResName
+
+                        $witnessRes = Get-ClusterResource -Name $quorumResName -ErrorAction SilentlyContinue
+                        if ($witnessRes) {
+                            $data.WitnessState = "$($witnessRes.State)"
+                            $resourceType = "$($witnessRes.ResourceType)"
+                            $data.WitnessType = switch ($resourceType) {
+                                'File Share Witness' { 'FileShareWitness' }
+                                'Physical Disk'      { 'DiskWitness' }
+                                'Cloud Witness'      { 'CloudWitness' }
+                                default              { $resourceType }
+                            }
+                            $data.QuorumState = if ("$($witnessRes.State)" -eq 'Online') { 'Normal' } else { 'Warning' }
                         }
                         else {
-                            $data.QuorumState = 'Normal'
+                            $data.WitnessType  = 'Unknown'
+                            $data.WitnessState = 'Unknown'
+                            $data.QuorumState  = 'Warning'
                         }
                     }
                     else {
-                        $data.QuorumState = 'Normal'
+                        $data.WitnessType  = 'None'
+                        $data.WitnessName  = 'N/A'
+                        $data.WitnessState = 'N/A'
+                        $data.QuorumState  = 'Normal'
                     }
                 }
                 catch {
@@ -196,7 +217,8 @@ function Get-ClusterHealth {
                     $healthStatus = [PSWinOpsHealthStatus]::Critical
                 }
                 elseif ($clusterData.NodesPaused -gt 0 -or
-                        $clusterData.GroupsOnline -lt $clusterData.TotalGroups) {
+                        $clusterData.GroupsOnline -lt $clusterData.TotalGroups -or
+                        ($clusterData.WitnessState -ne 'N/A' -and $clusterData.WitnessState -ne 'Online')) {
                     $healthStatus = [PSWinOpsHealthStatus]::Degraded
                 }
                 else {
@@ -220,6 +242,9 @@ function Get-ClusterHealth {
                     GroupsOnline    = [int]$clusterData.GroupsOnline
                     QuorumType      = $clusterData.QuorumType
                     QuorumState     = $clusterData.QuorumState
+                    WitnessType     = $clusterData.WitnessType
+                    WitnessName     = $clusterData.WitnessName
+                    WitnessState    = $clusterData.WitnessState
                     OverallHealth   = $healthStatus
                     Timestamp       = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                 }
