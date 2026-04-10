@@ -391,4 +391,50 @@ Describe 'Get-ClusterHealth' {
             { Get-ClusterHealth -ComputerName $null } | Should -Throw
         }
     }
+
+    Context 'Witness resource not resolvable' {
+
+        BeforeAll {
+            Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith { return $script:mockServiceRunning }
+            Mock -CommandName 'Get-Module' -ModuleName 'PSWinOps' -MockWith { return $script:mockClusterModule }
+            Mock -CommandName 'Import-Module' -ModuleName 'PSWinOps' -MockWith { }
+            Mock -CommandName 'Get-Cluster' -ModuleName 'PSWinOps' -MockWith { return $script:mockCluster }
+            Mock -CommandName 'Get-ClusterNode' -ModuleName 'PSWinOps' -MockWith { return $script:mockNodesAllUp }
+            Mock -CommandName 'Get-ClusterResource' -ModuleName 'PSWinOps' -MockWith { return $script:mockResourcesAllOnline }
+            Mock -CommandName 'Get-ClusterResource' -ModuleName 'PSWinOps' -ParameterFilter { $Name -eq 'File Share Witness' } -MockWith { return $null }
+            Mock -CommandName 'Get-ClusterGroup' -ModuleName 'PSWinOps' -MockWith { return $script:mockGroupsAllOnline }
+            Mock -CommandName 'Get-ClusterQuorum' -ModuleName 'PSWinOps' -MockWith { return $script:mockQuorum }
+            $script:results = Get-ClusterHealth
+        }
+
+        It -Name 'Should have WitnessType Unknown' -Test {
+            $script:results[0].WitnessType | Should -Be 'Unknown'
+        }
+
+        It -Name 'Should have WitnessState Unknown' -Test {
+            $script:results[0].WitnessState | Should -Be 'Unknown'
+        }
+
+        It -Name 'Should have QuorumState Warning' -Test {
+            $script:results[0].QuorumState | Should -Be 'Warning'
+        }
+    }
+
+    Context 'ClusSvc service not found' {
+
+        BeforeAll {
+            Mock -CommandName 'Get-Service' -ModuleName 'PSWinOps' -MockWith { throw 'Service not found' }
+            Mock -CommandName 'Get-Module' -ModuleName 'PSWinOps' -MockWith { return $script:mockClusterModule }
+            Mock -CommandName 'Import-Module' -ModuleName 'PSWinOps' -MockWith { }
+            $script:results = Get-ClusterHealth
+        }
+
+        It -Name 'Should have ServiceStatus as default Stopped' -Test {
+            $script:results[0].ServiceStatus | Should -Be 'Stopped'
+        }
+
+        It -Name 'Should have OverallHealth Critical due to service not running' -Test {
+            $script:results[0].OverallHealth | Should -Be 'Critical'
+        }
+    }
 }

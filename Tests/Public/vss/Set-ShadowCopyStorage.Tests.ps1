@@ -93,4 +93,43 @@ Describe 'Set-ShadowCopyStorage' {
         It 'Should reject MaxSizeMB of zero' { { Set-ShadowCopyStorage -DriveLetter 'C' -MaxSizeMB 0 -Confirm:$false } | Should -Throw }
         It 'Should reject negative MaxSizeMB' { { Set-ShadowCopyStorage -DriveLetter 'C' -MaxSizeMB -1 -Confirm:$false } | Should -Throw }
     }
+
+    Context 'PreviousMaxSpaceBytes zero' {
+        BeforeAll {
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                @{ DriveLetter = 'C'; PreviousMaxSpaceBytes = 0; NewMaxSizeArg = 10240; ExitCode = 0; Output = 'Successfully resized.' }
+            }
+            $script:result = Set-ShadowCopyStorage -DriveLetter 'C' -MaxSizeMB 10240 -Confirm:$false
+        }
+        It 'Should have PreviousMaxSpaceMB 0' { $script:result.PreviousMaxSpaceMB | Should -Be 0 }
+        It 'Should have Success true' { $script:result.Success | Should -BeTrue }
+        It 'Should have NewMaxSpaceMB 10240' { $script:result.NewMaxSpaceMB | Should -Be 10240 }
+    }
+
+    Context 'PreviousMaxSpaceBytes positive' {
+        BeforeAll {
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                @{ DriveLetter = 'C'; PreviousMaxSpaceBytes = [long]5368709120; NewMaxSizeArg = 10240; ExitCode = 0; Output = 'Successfully resized.' }
+            }
+            $script:result = Set-ShadowCopyStorage -DriveLetter 'C' -MaxSizeMB 10240 -Confirm:$false
+        }
+        It 'Should calculate PreviousMaxSpaceMB correctly' { $script:result.PreviousMaxSpaceMB | Should -Be 5120 }
+        It 'Should have NewMaxSpaceMB 10240' { $script:result.NewMaxSpaceMB | Should -Be 10240 }
+        It 'Should have Success true' { $script:result.Success | Should -BeTrue }
+    }
+
+    Context 'Credential parameter acceptance' {
+        BeforeAll {
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                @{ DriveLetter = 'C'; PreviousMaxSpaceBytes = 0; NewMaxSizeArg = 1024; ExitCode = 0; Output = 'OK' }
+            }
+            $script:securePass = [System.Security.SecureString]::new()
+            'T', 'e', 's', 't' | ForEach-Object -Process { $script:securePass.AppendChar($_) }
+            $script:testCred = [System.Management.Automation.PSCredential]::new('DOMAIN\Admin', $script:securePass)
+            $script:result = Set-ShadowCopyStorage -DriveLetter 'C' -MaxSizeMB 1024 -ComputerName 'SRV01' -Credential $script:testCred -Confirm:$false
+        }
+        It 'Should accept Credential without error' { $script:result | Should -Not -BeNullOrEmpty }
+        It 'Should have Success true' { $script:result.Success | Should -BeTrue }
+        It 'Should have ComputerName SRV01' { $script:result.ComputerName | Should -Be 'SRV01' }
+    }
 }

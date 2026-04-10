@@ -444,4 +444,21 @@ Describe 'Set-PageFile' {
         }
     }
 
+    Context 'Error handling - generic exception catch block' {
+        BeforeAll {
+            Mock -CommandName 'Test-IsAdministrator' -ModuleName 'PSWinOps' -MockWith { $true }
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -ParameterFilter {
+                $ClassName -eq 'Win32_ComputerSystem'
+            } -MockWith {
+                throw [System.IO.IOException]::new('Unexpected I/O error')
+            }
+        }
+
+        It -Name 'Should write error on generic exception and continue' -Test {
+            Set-PageFile -AutoCalculate -Confirm:$false -ErrorVariable pageErr -ErrorAction SilentlyContinue
+            $pageErr | Should -Not -BeNullOrEmpty
+            "$pageErr" | Should -BeLike '*Failed to configure pagefile*'
+        }
+    }
+
 }

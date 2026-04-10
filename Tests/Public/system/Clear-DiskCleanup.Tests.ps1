@@ -265,4 +265,245 @@ Describe 'Clear-DiskCleanup' {
             $verboseMessages.Count | Should -BeGreaterThan 0
         }
     }
+
+    Context 'Scriptblock execution - TempFiles' {
+
+        BeforeAll {
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                & $ScriptBlock @ArgumentList
+            }
+            Mock -CommandName 'Test-Path' -ModuleName 'PSWinOps' -MockWith { return $true }
+            Mock -CommandName 'Get-ChildItem' -ModuleName 'PSWinOps' -MockWith {
+                @(
+                    [PSCustomObject]@{ FullName = 'C:\Windows\Temp\old1.tmp'; Length = [long]1024; LastWriteTime = (Get-Date).AddDays(-60) }
+                    [PSCustomObject]@{ FullName = 'C:\Windows\Temp\old2.tmp'; Length = [long]2048; LastWriteTime = (Get-Date).AddDays(-45) }
+                )
+            }
+            Mock -CommandName 'Remove-Item' -ModuleName 'PSWinOps' -MockWith { }
+            $script:result = @(Clear-DiskCleanup -Category 'TempFiles' -Force)
+        }
+
+        It -Name 'Should return result' -Test {
+            $script:result | Should -Not -BeNullOrEmpty
+        }
+        It -Name 'Should have Category TempFiles' -Test {
+            $script:result[0].Category | Should -Be 'TempFiles'
+        }
+        It -Name 'Should have FilesRemoved greater than 0' -Test {
+            $script:result[0].FilesRemoved | Should -BeGreaterThan 0
+        }
+        It -Name 'Should have SpaceRecoveredBytes greater than 0' -Test {
+            $script:result[0].SpaceRecoveredBytes | Should -BeGreaterThan 0
+        }
+    }
+
+    Context 'Scriptblock execution - CrashDumps' {
+
+        BeforeAll {
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                & $ScriptBlock @ArgumentList
+            }
+            Mock -CommandName 'Test-Path' -ModuleName 'PSWinOps' -MockWith { return $true }
+            Mock -CommandName 'Get-ChildItem' -ModuleName 'PSWinOps' -MockWith {
+                @(
+                    [PSCustomObject]@{ FullName = 'C:\Windows\Minidump\mini1.dmp'; Length = [long]4096; LastWriteTime = (Get-Date).AddDays(-10) }
+                )
+            }
+            Mock -CommandName 'Get-Item' -ModuleName 'PSWinOps' -MockWith {
+                [PSCustomObject]@{ FullName = 'C:\Windows\MEMORY.DMP'; Length = [long]1073741824; LastWriteTime = (Get-Date).AddDays(-5) }
+            }
+            Mock -CommandName 'Remove-Item' -ModuleName 'PSWinOps' -MockWith { }
+            $script:result = @(Clear-DiskCleanup -Category 'CrashDumps' -Force)
+        }
+
+        It -Name 'Should return result' -Test {
+            $script:result | Should -Not -BeNullOrEmpty
+        }
+        It -Name 'Should have Category CrashDumps' -Test {
+            $script:result[0].Category | Should -Be 'CrashDumps'
+        }
+        It -Name 'Should have FilesRemoved' -Test {
+            $script:result[0].FilesRemoved | Should -BeGreaterOrEqual 1
+        }
+    }
+
+    Context 'Scriptblock execution - WindowsUpdate' {
+
+        BeforeAll {
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                & $ScriptBlock @ArgumentList
+            }
+            Mock -CommandName 'Test-Path' -ModuleName 'PSWinOps' -MockWith { return $true }
+            Mock -CommandName 'Stop-Service' -ModuleName 'PSWinOps' -MockWith { }
+            Mock -CommandName 'Start-Service' -ModuleName 'PSWinOps' -MockWith { }
+            Mock -CommandName 'Get-ChildItem' -ModuleName 'PSWinOps' -MockWith {
+                @(
+                    [PSCustomObject]@{ FullName = 'C:\Windows\SoftwareDistribution\Download\kb1.cab'; Length = [long]10240; LastWriteTime = (Get-Date).AddDays(-30) }
+                )
+            }
+            Mock -CommandName 'Remove-Item' -ModuleName 'PSWinOps' -MockWith { }
+            $script:result = @(Clear-DiskCleanup -Category 'WindowsUpdate' -Force)
+        }
+
+        It -Name 'Should have Category WindowsUpdate' -Test {
+            $script:result[0].Category | Should -Be 'WindowsUpdate'
+        }
+        It -Name 'Should have FilesRemoved' -Test {
+            $script:result[0].FilesRemoved | Should -BeGreaterOrEqual 1
+        }
+    }
+
+    Context 'Scriptblock execution - OldLogs' {
+
+        BeforeAll {
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                & $ScriptBlock @ArgumentList
+            }
+            Mock -CommandName 'Test-Path' -ModuleName 'PSWinOps' -MockWith { return $true }
+            Mock -CommandName 'Get-ChildItem' -ModuleName 'PSWinOps' -MockWith {
+                @(
+                    [PSCustomObject]@{ FullName = 'C:\Windows\Logs\old.log'; Extension = '.log'; Length = [long]512; LastWriteTime = (Get-Date).AddDays(-60) }
+                    [PSCustomObject]@{ FullName = 'C:\Windows\Logs\old.etl'; Extension = '.etl'; Length = [long]256; LastWriteTime = (Get-Date).AddDays(-45) }
+                )
+            }
+            Mock -CommandName 'Remove-Item' -ModuleName 'PSWinOps' -MockWith { }
+            $script:result = @(Clear-DiskCleanup -Category 'OldLogs' -Force)
+        }
+
+        It -Name 'Should have Category OldLogs' -Test {
+            $script:result[0].Category | Should -Be 'OldLogs'
+        }
+        It -Name 'Should have FilesRemoved' -Test {
+            $script:result[0].FilesRemoved | Should -BeGreaterOrEqual 1
+        }
+    }
+
+    Context 'Scriptblock execution - WindowsOld fast path' {
+
+        BeforeAll {
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                & $ScriptBlock @ArgumentList
+            }
+            Mock -CommandName 'Test-Path' -ModuleName 'PSWinOps' -MockWith { return $true }
+            Mock -CommandName 'Get-ChildItem' -ModuleName 'PSWinOps' -MockWith {
+                @(
+                    [PSCustomObject]@{ FullName = 'C:\Windows.old\Windows\explorer.exe'; Length = [long]4194304; LastWriteTime = (Get-Date).AddDays(-90) }
+                )
+            }
+            Mock -CommandName 'Remove-Item' -ModuleName 'PSWinOps' -MockWith { }
+            $script:result = @(Clear-DiskCleanup -Category 'WindowsOld' -Force)
+        }
+
+        It -Name 'Should have Category WindowsOld' -Test {
+            $script:result[0].Category | Should -Be 'WindowsOld'
+        }
+        It -Name 'Should have FilesRemoved' -Test {
+            $script:result[0].FilesRemoved | Should -BeGreaterOrEqual 1
+        }
+        It -Name 'Should have SpaceRecoveredBytes' -Test {
+            $script:result[0].SpaceRecoveredBytes | Should -BeGreaterThan 0
+        }
+    }
+
+    Context 'Scriptblock execution - RecycleBin with fallback' {
+
+        BeforeAll {
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                & $ScriptBlock @ArgumentList
+            }
+            Mock -CommandName 'Test-Path' -ModuleName 'PSWinOps' -MockWith { return $true }
+            Mock -CommandName 'Clear-RecycleBin' -ModuleName 'PSWinOps' -MockWith {
+                throw 'Not supported'
+            }
+            Mock -CommandName 'Get-ChildItem' -ModuleName 'PSWinOps' -MockWith {
+                @(
+                    [PSCustomObject]@{ FullName = 'C:\$Recycle.Bin\S-1-5-21\$Rfile1'; Length = [long]8192; LastWriteTime = (Get-Date).AddDays(-10) }
+                )
+            }
+            Mock -CommandName 'Remove-Item' -ModuleName 'PSWinOps' -MockWith { }
+            $script:result = @(Clear-DiskCleanup -Category 'RecycleBin' -Force)
+        }
+
+        It -Name 'Should have Category RecycleBin' -Test {
+            $script:result[0].Category | Should -Be 'RecycleBin'
+        }
+        It -Name 'Should have FilesRemoved from fallback path' -Test {
+            $script:result[0].FilesRemoved | Should -BeGreaterOrEqual 1
+        }
+    }
+
+    Context 'Scriptblock execution - BrowserCache' {
+
+        BeforeAll {
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                & $ScriptBlock @ArgumentList
+            }
+            Mock -CommandName 'Test-Path' -ModuleName 'PSWinOps' -MockWith { return $true }
+            Mock -CommandName 'Get-ChildItem' -ModuleName 'PSWinOps' -MockWith {
+                param($LiteralPath, $Path)
+                if ($LiteralPath -and $LiteralPath -like '*Users*') {
+                    @([PSCustomObject]@{ FullName = 'C:\Users\testuser'; Name = 'testuser' })
+                }
+                else {
+                    @([PSCustomObject]@{ FullName = 'C:\Users\testuser\AppData\Local\Google\Chrome\User Data\Default\Cache\data_0'; Length = [long]1024; LastWriteTime = (Get-Date).AddDays(-5) })
+                }
+            }
+            Mock -CommandName 'Remove-Item' -ModuleName 'PSWinOps' -MockWith { }
+            $script:result = @(Clear-DiskCleanup -Category 'BrowserCache' -Force)
+        }
+
+        It -Name 'Should have Category BrowserCache' -Test {
+            $script:result[0].Category | Should -Be 'BrowserCache'
+        }
+    }
+
+    Context 'Scriptblock execution - ThumbnailCache' {
+
+        BeforeAll {
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                & $ScriptBlock @ArgumentList
+            }
+            Mock -CommandName 'Test-Path' -ModuleName 'PSWinOps' -MockWith { return $true }
+            Mock -CommandName 'Get-ChildItem' -ModuleName 'PSWinOps' -MockWith {
+                param($LiteralPath, $Path)
+                if ($LiteralPath -and $LiteralPath -like '*Users*') {
+                    @([PSCustomObject]@{ FullName = 'C:\Users\testuser'; Name = 'testuser' })
+                }
+                else {
+                    @([PSCustomObject]@{ FullName = 'C:\Users\testuser\AppData\Local\Microsoft\Windows\Explorer\thumbcache_256.db'; Length = [long]2048; LastWriteTime = (Get-Date).AddDays(-15) })
+                }
+            }
+            Mock -CommandName 'Remove-Item' -ModuleName 'PSWinOps' -MockWith { }
+            $script:result = @(Clear-DiskCleanup -Category 'ThumbnailCache' -Force)
+        }
+
+        It -Name 'Should have Category ThumbnailCache' -Test {
+            $script:result[0].Category | Should -Be 'ThumbnailCache'
+        }
+    }
+
+    Context 'Scriptblock execution - ExcludePath' {
+
+        BeforeAll {
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                & $ScriptBlock @ArgumentList
+            }
+            Mock -CommandName 'Test-Path' -ModuleName 'PSWinOps' -MockWith { return $true }
+            Mock -CommandName 'Get-ChildItem' -ModuleName 'PSWinOps' -MockWith {
+                @(
+                    [PSCustomObject]@{ FullName = 'C:\Windows\Temp\keep.tmp'; Length = [long]1024; LastWriteTime = (Get-Date).AddDays(-60) }
+                    [PSCustomObject]@{ FullName = 'C:\Windows\Temp\delete.tmp'; Length = [long]2048; LastWriteTime = (Get-Date).AddDays(-60) }
+                )
+            }
+            Mock -CommandName 'Remove-Item' -ModuleName 'PSWinOps' -MockWith { }
+            $script:result = @(Clear-DiskCleanup -Category 'TempFiles' -ExcludePath 'C:\Windows\Temp\keep.tmp' -Force)
+        }
+
+        It -Name 'Should have FilesSkipped for excluded path' -Test {
+            $script:result[0].FilesSkipped | Should -BeGreaterOrEqual 1
+        }
+        It -Name 'Should still have FilesRemoved for non-excluded' -Test {
+            $script:result[0].FilesRemoved | Should -BeGreaterOrEqual 1
+        }
+    }
 }

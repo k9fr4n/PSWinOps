@@ -300,4 +300,130 @@ Describe 'Get-DiskCleanupInfo' {
             $emptyResult[0].SizeMB | Should -Be 0
         }
     }
+
+    Context 'Scriptblock execution - CrashDumps' {
+
+        BeforeAll {
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+            }
+            Mock -CommandName 'Test-Path' -ModuleName 'PSWinOps' -MockWith { return $true }
+            Mock -CommandName 'Get-ChildItem' -ModuleName 'PSWinOps' -MockWith {
+                @(
+                    [PSCustomObject]@{ FullName = 'C:\Windows\Minidump\mini1.dmp'; Length = [long]65536; LastWriteTime = (Get-Date).AddDays(-10) }
+                )
+            }
+            Mock -CommandName 'Get-Item' -ModuleName 'PSWinOps' -MockWith {
+                [PSCustomObject]@{ FullName = 'C:\Windows\MEMORY.DMP'; Length = [long]1073741824; LastWriteTime = (Get-Date).AddDays(-5) }
+            }
+            $script:result = @(Get-DiskCleanupInfo -Category 'CrashDumps')
+        }
+
+        It -Name 'Should return CrashDumps result' -Test {
+            $script:result | Should -Not -BeNullOrEmpty
+            $script:result[0].Category | Should -Be 'CrashDumps'
+        }
+        It -Name 'Should have FileCount greater than 0' -Test {
+            $script:result[0].FileCount | Should -BeGreaterThan 0
+        }
+        It -Name 'Should have SizeBytes greater than 0' -Test {
+            $script:result[0].SizeBytes | Should -BeGreaterThan 0
+        }
+    }
+
+    Context 'Scriptblock execution - RecycleBin' {
+
+        BeforeAll {
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+            }
+            Mock -CommandName 'Get-ChildItem' -ModuleName 'PSWinOps' -MockWith {
+                @(
+                    [PSCustomObject]@{ FullName = 'C:\$Recycle.Bin\S-1-5-21\$Rfile1'; Length = [long]4096; LastWriteTime = (Get-Date).AddDays(-5) }
+                )
+            }
+            $script:result = @(Get-DiskCleanupInfo -Category 'RecycleBin')
+        }
+
+        It -Name 'Should return RecycleBin result' -Test {
+            $script:result | Should -Not -BeNullOrEmpty
+            $script:result[0].Category | Should -Be 'RecycleBin'
+        }
+        It -Name 'Should have FileCount' -Test {
+            $script:result[0].FileCount | Should -Be 1
+        }
+    }
+
+    Context 'Scriptblock execution - ThumbnailCache' {
+
+        BeforeAll {
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+            }
+            Mock -CommandName 'Get-ChildItem' -ModuleName 'PSWinOps' -MockWith {
+                @(
+                    [PSCustomObject]@{ FullName = 'C:\Users\test\AppData\Local\Microsoft\Windows\Explorer\thumbcache_256.db'; Length = [long]2048; LastWriteTime = (Get-Date).AddDays(-20) }
+                )
+            }
+            $script:result = @(Get-DiskCleanupInfo -Category 'ThumbnailCache')
+        }
+
+        It -Name 'Should return ThumbnailCache result' -Test {
+            $script:result | Should -Not -BeNullOrEmpty
+            $script:result[0].Category | Should -Be 'ThumbnailCache'
+        }
+        It -Name 'Should have SizeBytes' -Test {
+            $script:result[0].SizeBytes | Should -Be 2048
+        }
+    }
+
+    Context 'Scriptblock execution - OldLogs' {
+
+        BeforeAll {
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+            }
+            Mock -CommandName 'Test-Path' -ModuleName 'PSWinOps' -MockWith { return $true }
+            Mock -CommandName 'Get-ChildItem' -ModuleName 'PSWinOps' -MockWith {
+                @(
+                    [PSCustomObject]@{ FullName = 'C:\Windows\Logs\old.log'; Extension = '.log'; Length = [long]512; LastWriteTime = (Get-Date).AddDays(-60) }
+                    [PSCustomObject]@{ FullName = 'C:\Windows\Logs\old.etl'; Extension = '.etl'; Length = [long]256; LastWriteTime = (Get-Date).AddDays(-45) }
+                )
+            }
+            $script:result = @(Get-DiskCleanupInfo -Category 'OldLogs')
+        }
+
+        It -Name 'Should return OldLogs result' -Test {
+            $script:result | Should -Not -BeNullOrEmpty
+            $script:result[0].Category | Should -Be 'OldLogs'
+        }
+        It -Name 'Should have FileCount' -Test {
+            $script:result[0].FileCount | Should -BeGreaterThan 0
+        }
+    }
+
+    Context 'Scriptblock execution - BrowserCache' {
+
+        BeforeAll {
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+            }
+            Mock -CommandName 'Test-Path' -ModuleName 'PSWinOps' -MockWith { return $true }
+            Mock -CommandName 'Get-ChildItem' -ModuleName 'PSWinOps' -MockWith {
+                param($LiteralPath, $Path)
+                if ($LiteralPath -and $LiteralPath -like '*Users*') {
+                    @([PSCustomObject]@{ FullName = 'C:\Users\testuser'; Name = 'testuser' })
+                }
+                else {
+                    @([PSCustomObject]@{ FullName = 'C:\Users\testuser\AppData\Local\Google\Chrome\User Data\Default\Cache\data_0'; Length = [long]1024; LastWriteTime = (Get-Date).AddDays(-5) })
+                }
+            }
+            $script:result = @(Get-DiskCleanupInfo -Category 'BrowserCache')
+        }
+
+        It -Name 'Should return BrowserCache result' -Test {
+            $script:result | Should -Not -BeNullOrEmpty
+            $script:result[0].Category | Should -Be 'BrowserCache'
+        }
+    }
 }

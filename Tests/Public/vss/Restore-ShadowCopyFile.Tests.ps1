@@ -96,4 +96,117 @@ Describe 'Restore-ShadowCopyFile' {
         It 'Should reject empty SourcePath' { { Restore-ShadowCopyFile -ShadowCopyId '{id}' -SourcePath '' -DestinationPath 'test' -Confirm:$false } | Should -Throw }
         It 'Should reject empty DestinationPath' { { Restore-ShadowCopyFile -ShadowCopyId '{id}' -SourcePath 'test' -DestinationPath '' -Confirm:$false } | Should -Throw }
     }
+
+    Context 'Scriptblock execution - success' {
+        BeforeAll {
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                & $ScriptBlock @ArgumentList
+            }
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -ParameterFilter {
+                $ClassName -eq 'Win32_ShadowCopy'
+            } -MockWith {
+                [PSCustomObject]@{
+                    ID = '{AB12CD34-EF56-7890-AB12-CD34EF567890}'
+                    DeviceObject = '\\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy1'
+                }
+            }
+            Mock -CommandName 'Test-Path' -ModuleName 'PSWinOps' -MockWith {
+                if ($LiteralPath -like '*GLOBALROOT*') { return $true }
+                return $false
+            }
+            Mock -CommandName 'New-Item' -ModuleName 'PSWinOps' -MockWith { }
+            Mock -CommandName 'Copy-Item' -ModuleName 'PSWinOps' -MockWith { }
+            Mock -CommandName 'Get-Item' -ModuleName 'PSWinOps' -MockWith {
+                [PSCustomObject]@{ Length = [long]102400 }
+            }
+            $script:result = Restore-ShadowCopyFile -ShadowCopyId '{AB12CD34-EF56-7890-AB12-CD34EF567890}' -SourcePath 'Data\file.txt' -DestinationPath 'C:\Restore\file.txt' -Confirm:$false
+        }
+        It 'Should have Restored true' { $script:result.Restored | Should -BeTrue }
+        It 'Should have SizeBytes 102400' { $script:result.SizeBytes | Should -Be 102400 }
+        It 'Should have empty ErrorMessage' { $script:result.ErrorMessage | Should -BeNullOrEmpty }
+        It 'Should calculate SizeMB' { $script:result.SizeMB | Should -Be 0.1 }
+    }
+
+    Context 'Scriptblock execution - shadow not found' {
+        BeforeAll {
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                & $ScriptBlock @ArgumentList
+            }
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -ParameterFilter {
+                $ClassName -eq 'Win32_ShadowCopy'
+            } -MockWith { return $null }
+            $script:result = Restore-ShadowCopyFile -ShadowCopyId '{AB12CD34-EF56-7890-AB12-CD34EF567890}' -SourcePath 'Data\file.txt' -DestinationPath 'C:\Restore\file.txt' -Confirm:$false
+        }
+        It 'Should have Restored false' { $script:result.Restored | Should -BeFalse }
+        It 'Should have ErrorMessage about not found' { $script:result.ErrorMessage | Should -BeLike '*not found*' }
+        It 'Should have SizeBytes 0' { $script:result.SizeBytes | Should -Be 0 }
+    }
+
+    Context 'Scriptblock execution - source file not found' {
+        BeforeAll {
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                & $ScriptBlock @ArgumentList
+            }
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -ParameterFilter {
+                $ClassName -eq 'Win32_ShadowCopy'
+            } -MockWith {
+                [PSCustomObject]@{
+                    ID = '{AB12CD34-EF56-7890-AB12-CD34EF567890}'
+                    DeviceObject = '\\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy1'
+                }
+            }
+            Mock -CommandName 'Test-Path' -ModuleName 'PSWinOps' -MockWith { return $false }
+            $script:result = Restore-ShadowCopyFile -ShadowCopyId '{AB12CD34-EF56-7890-AB12-CD34EF567890}' -SourcePath 'Missing\nofile.txt' -DestinationPath 'C:\Restore\nofile.txt' -Confirm:$false
+        }
+        It 'Should have Restored false' { $script:result.Restored | Should -BeFalse }
+        It 'Should have ErrorMessage about source not found' { $script:result.ErrorMessage | Should -BeLike '*not found in shadow copy*' }
+    }
+
+    Context 'Scriptblock execution - destination exists without Force' {
+        BeforeAll {
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                & $ScriptBlock @ArgumentList
+            }
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -ParameterFilter {
+                $ClassName -eq 'Win32_ShadowCopy'
+            } -MockWith {
+                [PSCustomObject]@{
+                    ID = '{AB12CD34-EF56-7890-AB12-CD34EF567890}'
+                    DeviceObject = '\\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy1'
+                }
+            }
+            Mock -CommandName 'Test-Path' -ModuleName 'PSWinOps' -MockWith { return $true }
+            $script:result = Restore-ShadowCopyFile -ShadowCopyId '{AB12CD34-EF56-7890-AB12-CD34EF567890}' -SourcePath 'Data\file.txt' -DestinationPath 'C:\Restore\file.txt' -Confirm:$false
+        }
+        It 'Should have Restored false' { $script:result.Restored | Should -BeFalse }
+        It 'Should have ErrorMessage about destination exists' { $script:result.ErrorMessage | Should -BeLike '*already exists*' }
+    }
+
+    Context 'Scriptblock execution - copy exception' {
+        BeforeAll {
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                & $ScriptBlock @ArgumentList
+            }
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -ParameterFilter {
+                $ClassName -eq 'Win32_ShadowCopy'
+            } -MockWith {
+                [PSCustomObject]@{
+                    ID = '{AB12CD34-EF56-7890-AB12-CD34EF567890}'
+                    DeviceObject = '\\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy1'
+                }
+            }
+            Mock -CommandName 'Test-Path' -ModuleName 'PSWinOps' -MockWith {
+                if ($LiteralPath -like '*GLOBALROOT*') { return $true }
+                return $false
+            }
+            Mock -CommandName 'New-Item' -ModuleName 'PSWinOps' -MockWith { }
+            Mock -CommandName 'Copy-Item' -ModuleName 'PSWinOps' -MockWith {
+                throw 'Access denied to destination file'
+            }
+            $script:result = Restore-ShadowCopyFile -ShadowCopyId '{AB12CD34-EF56-7890-AB12-CD34EF567890}' -SourcePath 'Data\file.txt' -DestinationPath 'C:\Restore\file.txt' -Confirm:$false
+        }
+        It 'Should have Restored false' { $script:result.Restored | Should -BeFalse }
+        It 'Should have ErrorMessage from copy exception' { $script:result.ErrorMessage | Should -BeLike '*Access denied*' }
+        It 'Should have SizeBytes 0' { $script:result.SizeBytes | Should -Be 0 }
+    }
 }

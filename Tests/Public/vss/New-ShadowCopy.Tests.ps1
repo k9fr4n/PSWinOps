@@ -85,4 +85,77 @@ Describe 'New-ShadowCopy' {
         It 'Should reject multi-char DriveLetter' { { New-ShadowCopy -DriveLetter 'CD' -Confirm:$false } | Should -Throw }
         It 'Should reject numeric DriveLetter' { { New-ShadowCopy -DriveLetter '1' -Confirm:$false } | Should -Throw }
     }
+
+    Context 'Scriptblock execution - success' {
+        BeforeAll {
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                & $ScriptBlock @ArgumentList
+            }
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -ParameterFilter {
+                $ClassName -eq 'Win32_Volume'
+            } -MockWith {
+                [PSCustomObject]@{ DeviceID = '\\?\Volume{abc123}\'; DriveLetter = 'C:' }
+            }
+            Mock -CommandName 'Invoke-CimMethod' -ModuleName 'PSWinOps' -MockWith {
+                [PSCustomObject]@{ ReturnValue = [uint32]0; ShadowID = '{NEW-GUID-1234}' }
+            }
+            $script:result = New-ShadowCopy -DriveLetter 'C' -Confirm:$false
+        }
+        It 'Should have Success true' { $script:result.Success | Should -BeTrue }
+        It 'Should have ShadowCopyId from CIM method' { $script:result.ShadowCopyId | Should -Be '{NEW-GUID-1234}' }
+        It 'Should have ReturnCode 0' { $script:result.ReturnCode | Should -Be 0 }
+        It 'Should have ReturnMessage Success' { $script:result.ReturnMessage | Should -Be 'Success' }
+    }
+
+    Context 'Scriptblock execution - volume not found' {
+        BeforeAll {
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                & $ScriptBlock @ArgumentList
+            }
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -ParameterFilter {
+                $ClassName -eq 'Win32_Volume'
+            } -MockWith { return $null }
+            $script:result = New-ShadowCopy -DriveLetter 'X' -Confirm:$false
+        }
+        It 'Should have Success false' { $script:result.Success | Should -BeFalse }
+        It 'Should have ReturnCode 2' { $script:result.ReturnCode | Should -Be 2 }
+        It 'Should have ReturnMessage InvalidArgument' { $script:result.ReturnMessage | Should -Be 'InvalidArgument' }
+    }
+
+    Context 'Scriptblock execution - CIM exception' {
+        BeforeAll {
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                & $ScriptBlock @ArgumentList
+            }
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -ParameterFilter {
+                $ClassName -eq 'Win32_Volume'
+            } -MockWith {
+                [PSCustomObject]@{ DeviceID = '\\?\Volume{abc123}\'; DriveLetter = 'C:' }
+            }
+            Mock -CommandName 'Invoke-CimMethod' -ModuleName 'PSWinOps' -MockWith {
+                throw 'VSS provider failed'
+            }
+            $script:result = New-ShadowCopy -DriveLetter 'C' -Confirm:$false
+        }
+        It 'Should have Success false' { $script:result.Success | Should -BeFalse }
+        It 'Should have ReturnCode 99' { $script:result.ReturnCode | Should -Be 99 }
+        It 'Should include ErrorDetail in ReturnMessage' { $script:result.ReturnMessage | Should -BeLike '*VSS provider failed*' }
+    }
+
+    Context 'Unknown return code with ErrorDetail' {
+        BeforeAll {
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                @{
+                    ReturnValue = [uint32]99; ShadowId = ''
+                    VolumePath  = '\\?\Volume{abc123}\'
+                    ErrorDetail = 'Unexpected CIM error occurred'
+                }
+            }
+            $script:result = New-ShadowCopy -DriveLetter 'C' -Confirm:$false
+        }
+        It 'Should have Success false' { $script:result.Success | Should -BeFalse }
+        It 'Should have ReturnCode 99' { $script:result.ReturnCode | Should -Be 99 }
+        It 'Should concatenate Unknown and ErrorDetail' { $script:result.ReturnMessage | Should -Be 'Unknown - Unexpected CIM error occurred' }
+        It 'Should have empty ShadowCopyId' { $script:result.ShadowCopyId | Should -Be '' }
+    }
 }

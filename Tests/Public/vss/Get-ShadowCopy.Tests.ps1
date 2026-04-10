@@ -99,4 +99,138 @@ Describe 'Get-ShadowCopy' {
         It 'Should accept DNSHostName alias' { $script:cmdInfo.Parameters['ComputerName'].Aliases | Should -Contain 'DNSHostName' }
         It 'Should reject invalid DriveLetter' { { Get-ShadowCopy -DriveLetter 'ZZ' } | Should -Throw }
     }
+
+    Context 'Scriptblock execution - all shadows' {
+        BeforeAll {
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                & $ScriptBlock @ArgumentList
+            }
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -ParameterFilter {
+                $ClassName -eq 'Win32_Volume'
+            } -MockWith {
+                [PSCustomObject]@{ DeviceID = '\\?\Volume{abc123}\'; DriveLetter = 'C:' }
+            }
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -ParameterFilter {
+                $ClassName -eq 'Win32_ShadowCopy'
+            } -MockWith {
+                [PSCustomObject]@{
+                    ID           = '{AB12CD34-EF56-7890-AB12-CD34EF567890}'
+                    VolumeName   = '\\?\Volume{abc123}\'
+                    InstallDate  = (Get-Date).AddDays(-3)
+                    DeviceObject = '\\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy1'
+                    ProviderName = 'Microsoft Software Shadow Copy provider 1.0'
+                    State        = 9
+                }
+            }
+            $script:result = Get-ShadowCopy
+        }
+        It 'Should return result from scriptblock' { $script:result | Should -Not -BeNullOrEmpty }
+        It 'Should have DriveLetter C' { $script:result.DriveLetter | Should -Be 'C' }
+        It 'Should have State Created' { $script:result.State | Should -Be 'Created' }
+        It 'Should have correct ShadowCopyId' { $script:result.ShadowCopyId | Should -Be '{AB12CD34-EF56-7890-AB12-CD34EF567890}' }
+        It 'Should have DeviceObject' { $script:result.DeviceObject | Should -Be '\\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy1' }
+        It 'Should have ProviderName' { $script:result.ProviderName | Should -Be 'Microsoft Software Shadow Copy provider 1.0' }
+    }
+
+    Context 'Scriptblock execution - drive letter filter' {
+        BeforeAll {
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                & $ScriptBlock @ArgumentList
+            }
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -ParameterFilter {
+                $ClassName -eq 'Win32_Volume'
+            } -MockWith {
+                [PSCustomObject]@{ DeviceID = '\\?\Volume{abc123}\'; DriveLetter = 'C:' }
+            }
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -ParameterFilter {
+                $ClassName -eq 'Win32_ShadowCopy'
+            } -MockWith {
+                [PSCustomObject]@{
+                    ID = '{AB12CD34-EF56-7890-AB12-CD34EF567890}'; VolumeName = '\\?\Volume{abc123}\'
+                    InstallDate = (Get-Date).AddDays(-1); DeviceObject = '\\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy1'
+                    ProviderName = 'Microsoft Software Shadow Copy provider 1.0'; State = 9
+                }
+                [PSCustomObject]@{
+                    ID = '{11111111-2222-3333-4444-555555555555}'; VolumeName = '\\?\Volume{def456}\'
+                    InstallDate = (Get-Date).AddDays(-2); DeviceObject = '\\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy2'
+                    ProviderName = 'Microsoft Software Shadow Copy provider 1.0'; State = 9
+                }
+            }
+            $script:result = Get-ShadowCopy -DriveLetter 'C'
+        }
+        It 'Should return only matching shadow' { @($script:result).Count | Should -Be 1 }
+        It 'Should have DriveLetter C' { $script:result.DriveLetter | Should -Be 'C' }
+    }
+
+    Context 'Scriptblock execution - volume not found' {
+        BeforeAll {
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                & $ScriptBlock @ArgumentList
+            }
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -ParameterFilter {
+                $ClassName -eq 'Win32_Volume'
+            } -MockWith { return $null }
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -ParameterFilter {
+                $ClassName -eq 'Win32_ShadowCopy'
+            } -MockWith {
+                [PSCustomObject]@{
+                    ID = '{AB12CD34-EF56-7890-AB12-CD34EF567890}'; VolumeName = '\\?\Volume{abc123}\'
+                    InstallDate = (Get-Date); DeviceObject = '\\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy1'
+                    ProviderName = 'Microsoft Software Shadow Copy provider 1.0'; State = 9
+                }
+            }
+            $script:result = Get-ShadowCopy -DriveLetter 'X'
+        }
+        It 'Should return empty result due to early return' { $script:result | Should -BeNullOrEmpty }
+    }
+
+    Context 'Scriptblock execution - unresolved drive' {
+        BeforeAll {
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                & $ScriptBlock @ArgumentList
+            }
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -ParameterFilter {
+                $ClassName -eq 'Win32_Volume'
+            } -MockWith {
+                [PSCustomObject]@{ DeviceID = '\\?\Volume{abc123}\'; DriveLetter = 'C:' }
+            }
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -ParameterFilter {
+                $ClassName -eq 'Win32_ShadowCopy'
+            } -MockWith {
+                [PSCustomObject]@{
+                    ID = '{AB12CD34-EF56-7890-AB12-CD34EF567890}'; VolumeName = '\\?\Volume{unknown999}\'
+                    InstallDate = (Get-Date).AddDays(-3); DeviceObject = '\\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy1'
+                    ProviderName = 'Microsoft Software Shadow Copy provider 1.0'; State = 9
+                }
+            }
+            $script:result = Get-ShadowCopy
+        }
+        It 'Should return result' { $script:result | Should -Not -BeNullOrEmpty }
+        It 'Should have DriveLetter as question mark fallback' { $script:result.DriveLetter | Should -Be '?' }
+    }
+
+    Context 'Scriptblock execution - unknown state code' {
+        BeforeAll {
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
+                & $ScriptBlock @ArgumentList
+            }
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -ParameterFilter {
+                $ClassName -eq 'Win32_Volume'
+            } -MockWith {
+                [PSCustomObject]@{ DeviceID = '\\?\Volume{abc123}\'; DriveLetter = 'C:' }
+            }
+            Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -ParameterFilter {
+                $ClassName -eq 'Win32_ShadowCopy'
+            } -MockWith {
+                [PSCustomObject]@{
+                    ID = '{AB12CD34-EF56-7890-AB12-CD34EF567890}'; VolumeName = '\\?\Volume{abc123}\'
+                    InstallDate = (Get-Date); DeviceObject = '\\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy1'
+                    ProviderName = 'Microsoft Software Shadow Copy provider 1.0'; State = 99
+                }
+            }
+            $script:result = Get-ShadowCopy
+        }
+        It 'Should map unknown StateCode to Unknown' { $script:result.State | Should -Be 'Unknown' }
+        It 'Should still return valid object' { $script:result.DriveLetter | Should -Be 'C' }
+    }
 }
