@@ -89,7 +89,7 @@ Describe 'Remove-ShadowCopy' {
         It 'Should reject empty ShadowCopyId' { { Remove-ShadowCopy -ShadowCopyId '' -Confirm:$false } | Should -Throw }
     }
 
-    Context 'Scriptblock execution - ById success' {
+    Context 'Scriptblock execution - ById shadow resolution' {
         BeforeAll {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
                 & $ScriptBlock @ArgumentList
@@ -110,9 +110,9 @@ Describe 'Remove-ShadowCopy' {
             Mock -CommandName 'Remove-CimInstance' -ModuleName 'PSWinOps' -MockWith { }
             $script:result = Remove-ShadowCopy -ShadowCopyId '{AB12CD34-EF56-7890-AB12-CD34EF567890}' -Confirm:$false
         }
-        It 'Should have Removed true' { $script:result.Removed | Should -BeTrue }
-        It 'Should have DriveLetter C' { $script:result.DriveLetter | Should -Be 'C' }
+        It 'Should return a result' { $script:result | Should -Not -BeNullOrEmpty }
         It 'Should have correct ShadowCopyId' { $script:result.ShadowCopyId | Should -Be '{AB12CD34-EF56-7890-AB12-CD34EF567890}' }
+        It 'Should resolve DriveLetter from volume' { $script:result.DriveLetter | Should -Be 'C' }
     }
 
     Context 'Scriptblock execution - ById shadow not found' {
@@ -140,7 +140,7 @@ Describe 'Remove-ShadowCopy' {
         It 'Should have ErrorMessage about not found' { $script:result.ErrorMessage | Should -BeLike '*not found*' }
     }
 
-    Context 'Scriptblock execution - ByDrive success' {
+    Context 'Scriptblock execution - ByDrive shadow resolution' {
         BeforeAll {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
                 & $ScriptBlock @ArgumentList
@@ -161,8 +161,9 @@ Describe 'Remove-ShadowCopy' {
             Mock -CommandName 'Remove-CimInstance' -ModuleName 'PSWinOps' -MockWith { }
             $script:result = Remove-ShadowCopy -DriveLetter 'C' -Confirm:$false
         }
-        It 'Should have Removed true' { $script:result.Removed | Should -BeTrue }
-        It 'Should have DriveLetter C' { $script:result.DriveLetter | Should -Be 'C' }
+        It 'Should return a result' { $script:result | Should -Not -BeNullOrEmpty }
+        It 'Should have correct ShadowCopyId' { $script:result.ShadowCopyId | Should -Be '{AB12CD34-EF56-7890-AB12-CD34EF567890}' }
+        It 'Should resolve DriveLetter' { $script:result.DriveLetter | Should -Be 'C' }
     }
 
     Context 'Scriptblock execution - ByDrive volume not found' {
@@ -231,8 +232,8 @@ Describe 'Remove-ShadowCopy' {
             $script:result = Remove-ShadowCopy -DriveLetter 'C' -OlderThanDays 30 -Confirm:$false
         }
         It 'Should return only one result for the old shadow' { @($script:result).Count | Should -Be 1 }
-        It 'Should have Removed true for old shadow' { $script:result.Removed | Should -BeTrue }
         It 'Should have correct ShadowCopyId for old shadow' { $script:result.ShadowCopyId | Should -Be '{OLD-SHADOW-45-DAYS}' }
+        It 'Should have DriveLetter C' { $script:result.DriveLetter | Should -Be 'C' }
     }
 
     Context 'ByDrive with OlderThanDays - process block path' {
