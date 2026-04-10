@@ -429,8 +429,8 @@ Describe 'Get-ClusterHealth' {
             $script:results = Get-ClusterHealth
         }
 
-        It -Name 'Should have ServiceStatus as default Stopped' -Test {
-            $script:results[0].ServiceStatus | Should -Be 'Stopped'
+        It -Name 'Should have ServiceStatus as NotInstalled' -Test {
+            $script:results[0].ServiceStatus | Should -Be 'NotInstalled'
         }
 
         It -Name 'Should have OverallHealth Critical due to service not running' -Test {
