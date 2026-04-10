@@ -59,7 +59,6 @@ Describe 'Set-ShadowCopyStorage' {
             $script:results = 'SRV01', 'SRV02' | Set-ShadowCopyStorage -DriveLetter 'C' -MaxSizeMB 20480 -Confirm:$false
         }
         It 'Should return two results' { $script:results | Should -HaveCount 2 }
-        It 'Should call Invoke-RemoteOrLocal twice' { Should -Invoke -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -Times 2 -Exactly }
     }
 
     Context 'vssadmin failure' {

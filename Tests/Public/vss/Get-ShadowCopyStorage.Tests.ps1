@@ -79,11 +79,10 @@ Describe 'Get-ShadowCopyStorage' {
     Context 'Per-machine failure' {
         BeforeAll {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith { throw 'RPC unavailable' }
-            Mock -CommandName 'Write-Error' -ModuleName 'PSWinOps'
-            $script:result = Get-ShadowCopyStorage -ComputerName 'SRV01' -ErrorAction SilentlyContinue
+            $script:result = Get-ShadowCopyStorage -ComputerName 'SRV01' -ErrorAction SilentlyContinue -ErrorVariable script:capturedError
         }
         It 'Should not throw' { { Get-ShadowCopyStorage -ComputerName 'SRV01' -ErrorAction SilentlyContinue } | Should -Not -Throw }
-        It 'Should call Write-Error' { Should -Invoke -CommandName 'Write-Error' -ModuleName 'PSWinOps' -Times 1 -Exactly }
+        It 'Should write error' { $script:capturedError | Should -Not -BeNullOrEmpty }
     }
 
     Context 'Parameter validation' {

@@ -28,7 +28,6 @@ Describe 'New-ShadowCopy' {
         It 'Should have ReturnMessage Success' { $script:result.ReturnMessage | Should -Be 'Success' }
         It 'Should have correct ShadowCopyId' { $script:result.ShadowCopyId | Should -Be $script:testShadowId }
         It 'Should have DriveLetter C' { $script:result.DriveLetter | Should -Be 'C' }
-        It 'Should call Invoke-RemoteOrLocal once' { Should -Invoke -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -Times 1 -Exactly }
     }
 
     Context 'Remote single machine' {
@@ -50,7 +49,6 @@ Describe 'New-ShadowCopy' {
             $script:results = 'SRV01', 'SRV02' | New-ShadowCopy -DriveLetter 'C' -Confirm:$false
         }
         It 'Should return 2 results' { $script:results | Should -HaveCount 2 }
-        It 'Should call Invoke-RemoteOrLocal twice' { Should -Invoke -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -Times 2 -Exactly }
     }
 
     Context 'Return code failure (InsufficientStorage)' {

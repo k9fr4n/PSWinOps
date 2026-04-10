@@ -77,11 +77,10 @@ Describe 'Get-ShadowCopy' {
     Context 'Per-machine failure handling' {
         BeforeAll {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith { throw 'RPC unavailable' }
-            Mock -CommandName 'Write-Error' -ModuleName 'PSWinOps'
-            $script:result = Get-ShadowCopy -ComputerName 'SRV01' -ErrorAction SilentlyContinue
+            $script:result = Get-ShadowCopy -ComputerName 'SRV01' -ErrorAction SilentlyContinue -ErrorVariable script:capturedError
         }
         It 'Should not throw' { { Get-ShadowCopy -ComputerName 'SRV01' -ErrorAction SilentlyContinue } | Should -Not -Throw }
-        It 'Should call Write-Error' { Should -Invoke -CommandName 'Write-Error' -ModuleName 'PSWinOps' -Times 1 -Exactly }
+        It 'Should write error' { $script:capturedError | Should -Not -BeNullOrEmpty }
         It 'Should return no output' { $script:result | Should -BeNullOrEmpty }
     }
 

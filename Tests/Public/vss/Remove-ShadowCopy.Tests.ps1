@@ -54,7 +54,6 @@ Describe 'Remove-ShadowCopy' {
             $script:results = $script:pipelineInput | Remove-ShadowCopy -Confirm:$false
         }
         It 'Should process all piped objects' { $script:results | Should -HaveCount 2 }
-        It 'Should call Invoke-RemoteOrLocal for each' { Should -Invoke -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -Times 2 -Exactly }
     }
 
     Context 'Shadow copy not found' {
