@@ -70,12 +70,12 @@ function Get-StartupProgram {
         Write-Verbose -Message "[$($MyInvocation.MyCommand)] Starting"
 
         $registrySources = @(
-            @{ Path = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run';                          Scope = 'Machine'; Label = 'HKLM\...\Run' }
-            @{ Path = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce';                      Scope = 'Machine'; Label = 'HKLM\...\RunOnce' }
-            @{ Path = 'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run';              Scope = 'Machine'; Label = 'HKLM\...\WOW6432Node\Run' }
-            @{ Path = 'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\RunOnce';          Scope = 'Machine'; Label = 'HKLM\...\WOW6432Node\RunOnce' }
-            @{ Path = 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run';                          Scope = 'User';    Label = 'HKCU\...\Run' }
-            @{ Path = 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce';                      Scope = 'User';    Label = 'HKCU\...\RunOnce' }
+            @{ Path = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run';                 Scope = 'Machine' }
+            @{ Path = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce';             Scope = 'Machine' }
+            @{ Path = 'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run';    Scope = 'Machine' }
+            @{ Path = 'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\RunOnce'; Scope = 'Machine' }
+            @{ Path = 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run';                 Scope = 'User' }
+            @{ Path = 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce';             Scope = 'User' }
         )
 
         $scriptBlock = {
@@ -89,6 +89,10 @@ function Get-StartupProgram {
                 $regPath = $source.Path
                 if (-not (Test-Path -Path $regPath)) { continue }
 
+                # Convert PSDrive path to standard registry notation
+                # HKLM:\SOFTWARE\... → HKLM\SOFTWARE\...
+                $displayPath = $regPath -replace ':\\', '\'
+
                 try {
                     $regItem = Get-Item -Path $regPath -ErrorAction Stop
                     foreach ($valueName in $regItem.GetValueNames()) {
@@ -96,7 +100,7 @@ function Get-StartupProgram {
                         $results.Add([PSCustomObject]@{
                             ProgramName = $valueName
                             Command     = $regItem.GetValue($valueName)
-                            Location    = $source.Label
+                            Location    = $displayPath
                             Scope       = $source.Scope
                             Source      = 'Registry'
                         })

@@ -10,8 +10,8 @@ Describe 'Get-StartupProgram' {
 
     BeforeAll {
         $script:mockStartupEntries = @(
-            [PSCustomObject]@{ ProgramName = 'SecurityHealth'; Command = 'C:\Windows\System32\SecurityHealthSystray.exe'; Location = 'HKLM\...\Run'; Scope = 'Machine'; Source = 'Registry' },
-            [PSCustomObject]@{ ProgramName = 'OneDrive'; Command = 'C:\Users\admin\AppData\Local\Microsoft\OneDrive\OneDrive.exe'; Location = 'HKCU\...\Run'; Scope = 'User'; Source = 'Registry' },
+            [PSCustomObject]@{ ProgramName = 'SecurityHealth'; Command = 'C:\Windows\System32\SecurityHealthSystray.exe'; Location = 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run'; Scope = 'Machine'; Source = 'Registry' },
+            [PSCustomObject]@{ ProgramName = 'OneDrive'; Command = 'C:\Users\admin\AppData\Local\Microsoft\OneDrive\OneDrive.exe'; Location = 'HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Run'; Scope = 'User'; Source = 'Registry' },
             [PSCustomObject]@{ ProgramName = 'MyApp'; Command = 'C:\MyApp\app.exe'; Location = 'Common Startup Folder'; Scope = 'Machine'; Source = 'StartupFolder' }
         )
     }

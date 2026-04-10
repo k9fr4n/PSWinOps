@@ -1453,10 +1453,9 @@
         <TableHeaders>
           <TableColumnHeader><Label>ComputerName</Label><Width>18</Width></TableColumnHeader>
           <TableColumnHeader><Label>Program</Label><Width>24</Width></TableColumnHeader>
-          <TableColumnHeader><Label>Command</Label><Width>50</Width></TableColumnHeader>
-          <TableColumnHeader><Label>Location</Label><Width>28</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Command</Label><Width>46</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Location</Label><Width>30</Width></TableColumnHeader>
           <TableColumnHeader><Label>Scope</Label><Width>8</Width></TableColumnHeader>
-          <TableColumnHeader><Label>Source</Label><Width>14</Width></TableColumnHeader>
         </TableHeaders>
         <TableRowEntries>
           <TableRowEntry>
@@ -1464,9 +1463,10 @@
               <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
               <TableColumnItem><PropertyName>ProgramName</PropertyName></TableColumnItem>
               <TableColumnItem><PropertyName>Command</PropertyName></TableColumnItem>
-              <TableColumnItem><PropertyName>Location</PropertyName></TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>$_.Location -replace '\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\', '\...\WOW6432Node\' -replace '\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\', '\...\'</ScriptBlock>
+              </TableColumnItem>
               <TableColumnItem><PropertyName>Scope</PropertyName></TableColumnItem>
-              <TableColumnItem><PropertyName>Source</PropertyName></TableColumnItem>
             </TableColumnItems>
           </TableRowEntry>
         </TableRowEntries>
