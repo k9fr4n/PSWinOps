@@ -12,7 +12,7 @@
 RootModule = 'PSWinOps.psm1'
 
 # Version number of this module.
-ModuleVersion = '0.0.21'
+ModuleVersion = '0.0.22'
 
 # Supported PSEditions
 CompatiblePSEditions = 'Desktop', 'Core'
@@ -136,7 +136,7 @@ PrivateData = @{
     PSData = @{
 
         # Tags applied to this module. These help with module discovery in online galleries.
-        Tags = 'Windows','WindowsServer','PowerShell','PSModule','SysAdmin','Administration','Ops','WinOps','Utilities','Monitoring','HealthCheck','Automation','Infrastructure','ActiveDirectory','AD','RSAT','ADUser','ADComputer','ADGroup','ADReplication','AccountManagement','Inventory','Audit','Compliance','Network','DNS','ARP','TCP','Ping','Subnet','CIDR','SSL','NetStat','Traceroute','WinRM','Route','HostsFile','PublicIP','CIM','Uptime','DiskSpace','PendingReboot','ScheduledTask','InstalledSoftware','PageFile','EnvironmentVariable','Startup','RDP','RemoteDesktop','Sessions','NTP','TimeSynchronization','W32Time','Proxy','WinHTTP','WinINET','Security','Password','Encoding','DHCP','DFS','Cluster','HyperV','IIS','PrintServer','WSUS','ADFS','Exchange','CertificateAuthority','RDS','FileServer','DNSServer'
+        Tags = 'Windows','WindowsServer','PowerShell','PSModule','SysAdmin','Administration','Ops','WinOps','Utilities','Monitoring','HealthCheck','Automation','Infrastructure','ActiveDirectory','AD','RSAT','ADUser','ADComputer','ADGroup','ADReplication','AccountManagement','Inventory','Audit','Compliance','Network','DNS','ARP','TCP','Ping','Subnet','CIDR','SSL','NetStat','Traceroute','WinRM','Route','HostsFile','PublicIP','CIM','Uptime','DiskSpace','PendingReboot','ScheduledTask','InstalledSoftware','PageFile','EnvironmentVariable','Startup','RDP','RemoteDesktop','Sessions','NTP','TimeSynchronization','W32Time','Proxy','WinHTTP','WinINET','Security','Password','Encoding','DHCP','DFS','Cluster','HyperV','IIS','PrintServer','WSUS','ADFS','Exchange','CertificateAuthority','RDS','FileServer','DNSServer','VSS','ShadowCopy','VolumeSnapshot','Backup','Restore'
 
         # A URL to the license for this module.
         # LicenseUri = ''
