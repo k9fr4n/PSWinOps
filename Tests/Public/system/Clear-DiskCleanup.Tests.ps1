@@ -147,7 +147,7 @@ Describe 'Clear-DiskCleanup' {
         BeforeAll {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
                 return @{
-                    Category       = $args[0]
+                    Category       = $ArgumentList[0]
                     FilesRemoved   = 1
                     FilesSkipped   = 0
                     SpaceRecovered = [long]1024

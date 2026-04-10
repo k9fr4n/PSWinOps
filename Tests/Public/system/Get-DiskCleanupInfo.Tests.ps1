@@ -118,21 +118,32 @@ Describe 'Get-DiskCleanupInfo' {
     Context 'Category filter' {
 
         BeforeAll {
-            Mock -CommandName 'Get-ChildItem' -ModuleName 'PSWinOps' -MockWith { return $script:mockFiles }
-            Mock -CommandName 'Test-Path' -ModuleName 'PSWinOps' -MockWith { return $true }
-            Mock -CommandName 'Get-Item' -ModuleName 'PSWinOps' -MockWith { return $null }
+            # Return pre-built data keyed on the categories passed via ArgumentList
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
-                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+                $categories = $ArgumentList[0]
+                foreach ($cat in $categories) {
+                    @{
+                        Category   = $cat
+                        Path       = "C:\mock\$cat"
+                        FileCount  = 5
+                        SizeBytes  = [long]1048576
+                        SizeMB     = 1.0
+                        OldestFile = (Get-Date).AddDays(-30)
+                        NewestFile = (Get-Date).AddDays(-1)
+                    }
+                }
             }
         }
 
         It -Name 'Should return only the selected category' -Test {
             $filtered = @(Get-DiskCleanupInfo -Category 'WindowsUpdate')
-            $filtered | ForEach-Object { $_.Category | Should -Be 'WindowsUpdate' }
+            $filtered | Should -HaveCount 1
+            $filtered[0].Category | Should -Be 'WindowsUpdate'
         }
 
         It -Name 'Should return multiple categories when specified' -Test {
             $multi = @(Get-DiskCleanupInfo -Category 'TempFiles', 'WindowsUpdate')
+            $multi | Should -HaveCount 2
             $cats = $multi.Category | Sort-Object -Unique
             $cats | Should -Contain 'TempFiles'
             $cats | Should -Contain 'WindowsUpdate'
