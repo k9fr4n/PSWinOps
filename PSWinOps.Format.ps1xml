@@ -1523,13 +1523,13 @@
       </ViewSelectedBy>
       <TableControl>
         <TableHeaders>
-          <TableColumnHeader><Label>ComputerName</Label><Width>18</Width></TableColumnHeader>
-          <TableColumnHeader><Label>TaskName</Label><Width>28</Width></TableColumnHeader>
-          <TableColumnHeader><Label>TaskPath</Label><Width>20</Width></TableColumnHeader>
-          <TableColumnHeader><Label>State</Label><Width>10</Width></TableColumnHeader>
+          <TableColumnHeader><Label>ComputerName</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>TaskName</Label><Width>24</Width></TableColumnHeader>
+          <TableColumnHeader><Label>TaskPath</Label><Width>14</Width></TableColumnHeader>
+          <TableColumnHeader><Label>State</Label><Width>9</Width></TableColumnHeader>
           <TableColumnHeader><Label>LastRun</Label><Width>18</Width></TableColumnHeader>
-          <TableColumnHeader><Label>Result</Label><Width>30</Width></TableColumnHeader>
           <TableColumnHeader><Label>NextRun</Label><Width>18</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Result</Label><Width>22</Width></TableColumnHeader>
         </TableHeaders>
         <TableRowEntries>
           <TableRowEntry>
@@ -1543,12 +1543,12 @@
                   if ($_.LastRunTime -and $_.LastRunTime -ne [datetime]::MinValue) { $_.LastRunTime.ToString('yyyy-MM-dd HH:mm') } else { 'Never' }
                 </ScriptBlock>
               </TableColumnItem>
-              <TableColumnItem><PropertyName>LastResultMessage</PropertyName></TableColumnItem>
               <TableColumnItem>
                 <ScriptBlock>
                   if ($_.NextRunTime -and $_.NextRunTime -ne [datetime]::MinValue) { $_.NextRunTime.ToString('yyyy-MM-dd HH:mm') } else { 'N/A' }
                 </ScriptBlock>
               </TableColumnItem>
+              <TableColumnItem><PropertyName>LastResultMessage</PropertyName></TableColumnItem>
             </TableColumnItems>
           </TableRowEntry>
         </TableRowEntries>
