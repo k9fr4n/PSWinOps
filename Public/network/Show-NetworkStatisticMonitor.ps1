@@ -3,16 +3,15 @@
 function Show-NetworkStatisticMonitor {
     <#
         .SYNOPSIS
-            Monitors network connections in real time with auto-refresh display
+            Interactive real-time monitor for TCP/UDP network connections
 
         .DESCRIPTION
-            Provides a live, auto-refreshing console view of TCP and UDP network connections.
-            Internally calls Get-NetworkConnection at each refresh interval and displays the
-            results in a formatted table using Write-Host. Output goes to the console only,
-            not the pipeline, to support the interactive monitoring experience.
-
-            Press Ctrl+C to stop the monitor. All filtering parameters from
-            Get-NetworkConnection are available (Protocol, State, LocalPort, etc.).
+            Renders a full-screen terminal UI showing active network connections with
+            ANSI-colored protocol and state indicators, sortable columns, and interactive
+            keyboard controls. Internally calls Get-NetworkConnection at each refresh
+            interval and builds the display frame via StringBuilder for flicker-free
+            rendering. Press Q to quit, S to cycle sort column, R to reverse sort order,
+            or P to pause/resume data collection.
 
         .PARAMETER ComputerName
             One or more computer names to monitor. Accepts pipeline input by value and
@@ -48,15 +47,17 @@ function Show-NetworkStatisticMonitor {
             Refresh interval in seconds. Default: 2. Valid range: 1-300 seconds.
 
         .PARAMETER NoClear
-            Suppresses the initial Clear-Host call. Useful when embedding the monitor
-            output in a transcript, ISE, or non-interactive host where clearing the
-            console is undesirable.
+            Suppresses the console clear on exit so the final frame remains visible
+            in the scrollback buffer.
+
+        .PARAMETER NoColor
+            Disables ANSI color output for terminals that do not support escape sequences.
 
         .EXAMPLE
             Show-NetworkStatisticMonitor
 
-            Starts real-time monitoring of all network connections on the local machine,
-            refreshing every 2 seconds. Press Ctrl+C to stop.
+            Starts real-time monitoring of all network connections on the local machine.
+            Press Q to quit, S to cycle sort, R to reverse, P to pause.
 
         .EXAMPLE
             Show-NetworkStatisticMonitor -Protocol TCP -State Established -RefreshInterval 5
@@ -64,22 +65,20 @@ function Show-NetworkStatisticMonitor {
             Monitors only established TCP connections with a 5-second refresh interval.
 
         .EXAMPLE
-            Show-NetworkStatisticMonitor -ComputerName 'SRV01', 'SRV02' -Protocol TCP
+            'SRV01', 'SRV02' | Show-NetworkStatisticMonitor -Protocol TCP -NoColor
 
-            Monitors TCP connections on two remote servers in real time.
+            Monitors TCP connections on two remote servers without ANSI colors.
 
         .OUTPUTS
             None
-            This function writes directly to the host for interactive display.
-            It does not produce pipeline output.
+            This function renders an interactive TUI and does not produce pipeline output.
 
         .NOTES
-            Author:        Franck SALLET
-            Version:       1.3.0
-            Last Modified: 2026-04-02
-            Requires:      PowerShell 5.1+ / Windows only
-            Permissions:   No admin required for basic queries
-            Remote:        Requires WinRM / WS-Man enabled on target machines
+            Author: Franck SALLET
+            Version: 2.0.0
+            Last Modified: 2026-04-11
+            Requires: PowerShell 5.1+ / Windows only
+            Requires: Interactive console (not ISE or redirected output)
 
         .LINK
             https://github.com/k9fr4n/PSWinOps
@@ -87,11 +86,9 @@ function Show-NetworkStatisticMonitor {
         .LINK
             https://learn.microsoft.com/en-us/powershell/module/nettcpip/get-nettcpconnection
     #>
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWriteHost', '',
-        Justification = 'Write-Host is intentional for interactive console monitoring display')]
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '',
-        Justification = 'This function is read-only (monitoring); it does not modify system state')]
     [CmdletBinding()]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '')]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '')]
     [OutputType([void])]
     param(
         [Parameter(Mandatory = $false,
@@ -139,105 +136,269 @@ function Show-NetworkStatisticMonitor {
         [int]$RefreshInterval = 2,
 
         [Parameter(Mandatory = $false)]
-        [switch]$NoClear
+        [switch]$NoClear,
+
+        [Parameter(Mandatory = $false)]
+        [switch]$NoColor
     )
 
     begin {
+        if ($Host.Name -eq 'Windows PowerShell ISE Host') {
+            Write-Error -Message "[$($MyInvocation.MyCommand)] ISE is not supported. Use Windows Terminal, ConHost, or a remote SSH session."
+            return
+        }
+
         Write-Verbose "[$($MyInvocation.MyCommand)] Starting network statistics monitor"
 
-        # Collect all computer names from pipeline before starting the loop
         $allComputers = [System.Collections.Generic.List[string]]::new()
 
-        # Build the splat for Get-NetworkConnection (all filter params except ComputerName)
         $getStatParams = @{}
-        if ($PSBoundParameters.ContainsKey('Credential')) {
-            $getStatParams['Credential'] = $Credential
+        if ($PSBoundParameters.ContainsKey('Credential'))    { $getStatParams['Credential']    = $Credential }
+        if ($PSBoundParameters.ContainsKey('Protocol'))      { $getStatParams['Protocol']      = $Protocol }
+        if ($PSBoundParameters.ContainsKey('State'))         { $getStatParams['State']         = $State }
+        if ($PSBoundParameters.ContainsKey('LocalAddress'))  { $getStatParams['LocalAddress']  = $LocalAddress }
+        if ($PSBoundParameters.ContainsKey('LocalPort'))     { $getStatParams['LocalPort']     = $LocalPort }
+        if ($PSBoundParameters.ContainsKey('RemoteAddress')) { $getStatParams['RemoteAddress'] = $RemoteAddress }
+        if ($PSBoundParameters.ContainsKey('RemotePort'))    { $getStatParams['RemotePort']    = $RemotePort }
+        if ($PSBoundParameters.ContainsKey('ProcessName'))   { $getStatParams['ProcessName']   = $ProcessName }
+
+        # ---- ANSI helpers ----
+        $esc      = [char]27
+        $useColor = -not $NoColor
+
+        $dim       = if ($useColor) { "${esc}[90m" }  else { '' }
+        $reset     = if ($useColor) { "${esc}[0m" }   else { '' }
+        $bold      = if ($useColor) { "${esc}[1m" }   else { '' }
+        $cyan      = if ($useColor) { "${esc}[96m" }  else { '' }
+        $white     = if ($useColor) { "${esc}[97m" }  else { '' }
+        $yellow    = if ($useColor) { "${esc}[93m" }  else { '' }
+        $green     = if ($useColor) { "${esc}[92m" }  else { '' }
+        $red       = if ($useColor) { "${esc}[91m" }  else { '' }
+        $underline = if ($useColor) { "${esc}[4m" }   else { '' }
+
+        function Get-VisualWidth {
+            param([string]$Text)
+            ($Text -replace "$([char]27)\[\d+(?:;\d+)*m", '').Length
         }
-        if ($PSBoundParameters.ContainsKey('Protocol')) {
-            $getStatParams['Protocol'] = $Protocol
+
+        function ConvertTo-PaddedLine {
+            param([string]$Text, [int]$TargetWidth)
+            $visual = Get-VisualWidth -Text $Text
+            $needed = $TargetWidth - $visual
+            if ($needed -gt 0) { return $Text + [string]::new(' ', $needed) }
+            return $Text
         }
-        if ($PSBoundParameters.ContainsKey('State')) {
-            $getStatParams['State'] = $State
+
+        function Get-ProtocolColor {
+            param([string]$Proto)
+            if (-not $script:useColor) { return '' }
+            if ($Proto -eq 'TCP') { return $script:cyan }
+            if ($Proto -eq 'UDP') { return $script:yellow }
+            return ''
         }
-        if ($PSBoundParameters.ContainsKey('LocalAddress')) {
-            $getStatParams['LocalAddress'] = $LocalAddress
+
+        function Get-StateColor {
+            param([string]$ConnState)
+            if (-not $script:useColor) { return '' }
+            switch ($ConnState) {
+                'Established' { return $script:green }
+                'Listen'      { return "$($script:white)$($script:bold)" }
+                'TimeWait'    { return $script:dim }
+                'CloseWait'   { return $script:red }
+                'Closing'     { return $script:red }
+                'LastAck'     { return $script:red }
+                default       { return '' }
+            }
         }
-        if ($PSBoundParameters.ContainsKey('LocalPort')) {
-            $getStatParams['LocalPort'] = $LocalPort
-        }
-        if ($PSBoundParameters.ContainsKey('RemoteAddress')) {
-            $getStatParams['RemoteAddress'] = $RemoteAddress
-        }
-        if ($PSBoundParameters.ContainsKey('RemotePort')) {
-            $getStatParams['RemotePort'] = $RemotePort
-        }
-        if ($PSBoundParameters.ContainsKey('ProcessName')) {
-            $getStatParams['ProcessName'] = $ProcessName
-        }
+
+        $sortModes     = @('Process', 'Protocol', 'State', 'LocalPort', 'RemoteAddr')
+        $sortModeIndex = 0
+        $sortDescending = $false
+        $paused  = $false
+        $running = $true
+        $lastResults = @()
     }
 
     process {
+        if ($Host.Name -eq 'Windows PowerShell ISE Host') { return }
         foreach ($computer in $ComputerName) {
             $allComputers.Add($computer)
         }
     }
 
     end {
-        $computerList = $allComputers -join ', '
-        Write-Host "Network Statistics Monitor - Refresh every ${RefreshInterval}s - Press Ctrl+C to stop" -ForegroundColor Cyan
+        if ($Host.Name -eq 'Windows PowerShell ISE Host') { return }
 
-        $isFirstRender = $true
-        $previousLineCount = 0
+        $previousCtrlC         = [Console]::TreatControlCAsInput
+        $previousCursorVisible = [Console]::CursorVisible
 
         try {
-            while ($true) {
-                $allResults = @(Get-NetworkConnection -ComputerName $allComputers.ToArray() @getStatParams -ErrorAction SilentlyContinue)
+            [Console]::TreatControlCAsInput = $true
+            [Console]::CursorVisible        = $false
+            [Console]::Clear()
 
-                # Use cursor repositioning to avoid flicker (Clear-Host on first render only)
-                if ($isFirstRender) {
-                    if (-not $NoClear) { Clear-Host }
-                    $isFirstRender = $false
+            while ($running) {
+                $frameStart = [Diagnostics.Stopwatch]::StartNew()
+                $currentSortMode = $sortModes[$sortModeIndex]
+
+                # ---- Data gathering (skip when paused) ----
+                if (-not $paused) {
+                    $lastResults = @(Get-NetworkConnection -ComputerName $allComputers.ToArray() @getStatParams -ErrorAction SilentlyContinue)
+                }
+
+                $connectionCount = $lastResults.Count
+                $width  = [math]::Max(80, [Console]::WindowWidth)
+                $height = [math]::Max(24, [Console]::WindowHeight)
+                $computerList = $allComputers -join ', '
+
+                # ---- Sort data ----
+                $sortProperty = switch ($currentSortMode) {
+                    'Process'    { 'ProcessName' }
+                    'Protocol'   { 'Protocol' }
+                    'State'      { 'State' }
+                    'LocalPort'  { 'LocalPort' }
+                    'RemoteAddr' { 'RemoteAddress' }
+                }
+                $sortedResults = if ($connectionCount -gt 0) {
+                    $lastResults | Sort-Object -Property $sortProperty -Descending:$sortDescending
+                } else { @() }
+
+                # ---- Build frame ----
+                $frame = [System.Text.StringBuilder]::new(4096)
+                $lineCount  = 0
+                $separator  = [string]::new('-', [math]::Min($width - 4, 120))
+
+                # Header
+                $timeStr = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
+                $pauseIndicator = if ($paused) { " ${red}${bold}(PAUSED)${reset}" } else { '' }
+                $headerLine = "  ${bold}${cyan}Network Monitor${reset} ${dim}-${reset} ${bold}${white}${computerList}${reset}${pauseIndicator} ${dim}|${reset} ${dim}${timeStr}${reset}"
+                [void]$frame.AppendLine((ConvertTo-PaddedLine -Text $headerLine -TargetWidth $width))
+                $lineCount++
+                [void]$frame.AppendLine((ConvertTo-PaddedLine -Text "  ${dim}${separator}${reset}" -TargetWidth $width))
+                $lineCount++
+
+                # Column widths
+                $colProto = 7;  $colLAddr = 23; $colLPort = 12
+                $colRAddr = 23; $colRPort = 13; $colState = 14; $colProc = 20
+
+                # Sort direction arrow
+                $sortArrow = if ($sortDescending) {
+                    if ($useColor) { "${cyan}v${reset}" } else { 'v' }
                 } else {
-                    try {
-                        [Console]::SetCursorPosition(0, 0)
-                    } catch {
-                        Clear-Host
+                    if ($useColor) { "${cyan}^${reset}" } else { '^' }
+                }
+
+                # Table header with active sort highlighted
+                $protoH = if ($currentSortMode -eq 'Protocol')   { "${cyan}${underline}PROTO${reset}" }          else { "${dim}PROTO${reset}" }
+                $lAddrH = "${dim}LOCAL ADDRESS${reset}"
+                $lPortH = if ($currentSortMode -eq 'LocalPort')  { "${cyan}${underline}LOCAL PORT${reset}" }     else { "${dim}LOCAL PORT${reset}" }
+                $rAddrH = if ($currentSortMode -eq 'RemoteAddr') { "${cyan}${underline}REMOTE ADDRESS${reset}" } else { "${dim}REMOTE ADDRESS${reset}" }
+                $rPortH = "${dim}REMOTE PORT${reset}"
+                $stateH = if ($currentSortMode -eq 'State')      { "${cyan}${underline}STATE${reset}" }          else { "${dim}STATE${reset}" }
+                $procH  = if ($currentSortMode -eq 'Process')    { "${cyan}${underline}PROCESS${reset}" }        else { "${dim}PROCESS${reset}" }
+
+                $headerRow = '  {0}{1}{2}{3}{4}{5}{6}' -f `
+                    (ConvertTo-PaddedLine -Text $protoH  -TargetWidth $colProto),
+                    (ConvertTo-PaddedLine -Text $lAddrH  -TargetWidth $colLAddr),
+                    (ConvertTo-PaddedLine -Text $lPortH  -TargetWidth $colLPort),
+                    (ConvertTo-PaddedLine -Text $rAddrH  -TargetWidth $colRAddr),
+                    (ConvertTo-PaddedLine -Text $rPortH  -TargetWidth $colRPort),
+                    (ConvertTo-PaddedLine -Text $stateH  -TargetWidth $colState),
+                    $procH
+                [void]$frame.AppendLine((ConvertTo-PaddedLine -Text $headerRow -TargetWidth $width))
+                $lineCount++
+
+                $dashRow = "  ${dim}{0}{1}{2}{3}{4}{5}{6}${reset}" -f `
+                    ('{0,-7}'  -f '-----'),
+                    ('{0,-23}' -f '-------------'),
+                    ('{0,-12}' -f '----------'),
+                    ('{0,-23}' -f '--------------'),
+                    ('{0,-13}' -f '-----------'),
+                    ('{0,-14}' -f '-----'),
+                    '-------'
+                [void]$frame.AppendLine((ConvertTo-PaddedLine -Text $dashRow -TargetWidth $width))
+                $lineCount++
+
+                # Data rows
+                $availableRows = $height - $lineCount - 4
+                if ($connectionCount -gt 0) {
+                    $displayCount = [math]::Min($sortedResults.Count, [math]::Max(5, $availableRows))
+                    for ($i = 0; $i -lt $displayCount; $i++) {
+                        $conn = $sortedResults[$i]
+                        $protoColor = Get-ProtocolColor -Proto $conn.Protocol
+                        $stateColor = Get-StateColor -ConnState $conn.State
+
+                        $dataRow = '  {0}  {1}  {2}  {3}  {4}  {5}  {6}' -f `
+                            "${protoColor}$('{0,-5}' -f $conn.Protocol)${reset}",
+                            ('{0,-21}' -f $conn.LocalAddress),
+                            ('{0,-10}' -f $conn.LocalPort),
+                            ('{0,-21}' -f $conn.RemoteAddress),
+                            ('{0,-11}' -f $conn.RemotePort),
+                            "${stateColor}$('{0,-12}' -f $conn.State)${reset}",
+                            "${white}$($conn.ProcessName)${reset}"
+
+                        [void]$frame.AppendLine((ConvertTo-PaddedLine -Text $dataRow -TargetWidth $width))
+                        $lineCount++
                     }
                 }
-                $now = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
-                Write-Host "=== Network Statistics on $computerList - $now - ${RefreshInterval}s refresh - Ctrl+C to stop ===" -ForegroundColor Cyan
-                Write-Host "Total connections: $($allResults.Count)" -ForegroundColor DarkGray
-                Write-Host ''
-
-                if ($allResults.Count -gt 0) {
-                    $tableOutput = $allResults |
-                        Sort-Object ComputerName, ProcessName, Protocol, RemoteAddress |
-                        Format-Table -AutoSize |
-                        Out-String
-                    Write-Host $tableOutput -NoNewline
-                    $currentLineCount = ($tableOutput -split "`n").Count + 3
-                } else {
-                    Write-Host '(No matching connections found)' -ForegroundColor Yellow
-                    $currentLineCount = 4
+                else {
+                    [void]$frame.AppendLine((ConvertTo-PaddedLine -Text "  ${yellow}(No matching connections found)${reset}" -TargetWidth $width))
+                    $lineCount++
                 }
 
-                # Clear stale lines from previous render when content shrinks
-                if ($currentLineCount -lt $previousLineCount) {
-                    $padWidth = try { [Console]::WindowWidth } catch { 120 }
-                    $blankLine = ' ' * $padWidth
-                    for ($i = $currentLineCount; $i -lt $previousLineCount; $i++) {
-                        Write-Host $blankLine
+                # Footer
+                [void]$frame.AppendLine('')
+                $lineCount++
+                [void]$frame.AppendLine((ConvertTo-PaddedLine -Text "  ${dim}${separator}${reset}" -TargetWidth $width))
+                $lineCount++
+
+                $footerLine = "  ${bold}[${cyan}Q${reset}${bold}]${reset}uit  ${bold}[${cyan}S${reset}${bold}]${reset}ort  ${bold}[${cyan}R${reset}${bold}]${reset}everse  ${bold}[${cyan}P${reset}${bold}]${reset}ause  ${dim}|${reset}  Refresh: ${yellow}${RefreshInterval}s${reset}  ${dim}|${reset}  Sort: ${cyan}${bold}${currentSortMode}${reset} ${sortArrow}  ${dim}|${reset}  Connections: ${white}${connectionCount}${reset}"
+                [void]$frame.AppendLine((ConvertTo-PaddedLine -Text $footerLine -TargetWidth $width))
+                $lineCount++
+
+                # Erase trailing lines
+                $remainingRows = $height - $lineCount
+                for ($r = 0; $r -lt $remainingRows; $r++) {
+                    [void]$frame.AppendLine("${esc}[2K")
+                }
+
+                # Single write
+                [Console]::SetCursorPosition(0, 0)
+                [Console]::Write($frame.ToString())
+                $frameStart.Stop()
+
+                # ---- Input handling ----
+                $sleepMs    = [math]::Max(100, ($RefreshInterval * 1000) - $frameStart.ElapsedMilliseconds)
+                $inputTimer = [Diagnostics.Stopwatch]::StartNew()
+
+                while ($inputTimer.ElapsedMilliseconds -lt $sleepMs) {
+                    if ([Console]::KeyAvailable) {
+                        $key = [Console]::ReadKey($true)
+
+                        # Ctrl+C always wins
+                        if ($key.Key -eq 'C' -and ($key.Modifiers -band [ConsoleModifiers]::Control)) {
+                            $running = $false
+                            break
+                        }
+
+                        if     ($key.Key -eq 'Q' -or $key.Key -eq 'Escape') { $running = $false }
+                        elseif ($key.Key -eq 'S') { $sortModeIndex = ($sortModeIndex + 1) % $sortModes.Count }
+                        elseif ($key.Key -eq 'P') { $paused = -not $paused }
+                        elseif ($key.Key -eq 'R') { $sortDescending = -not $sortDescending }
+
+                        if (-not $running) { break }
                     }
+                    Start-Sleep -Milliseconds 50
                 }
-                $previousLineCount = $currentLineCount
-
-                Start-Sleep -Seconds $RefreshInterval
             }
-        } catch {
-            Write-Verbose "[$($MyInvocation.MyCommand)] Monitoring interrupted: $_"
-        } finally {
-            Write-Host ''
-            Write-Host 'Network Statistics Monitor stopped.' -ForegroundColor Cyan
+        }
+        finally {
+            [Console]::CursorVisible        = $previousCursorVisible
+            [Console]::TreatControlCAsInput = $previousCtrlC
+            if (-not $NoClear) {
+                [Console]::Clear()
+            }
+            Write-Information -MessageData 'Network Statistics Monitor stopped.' -InformationAction Continue
         }
     }
 }

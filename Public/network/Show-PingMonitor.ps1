@@ -3,16 +3,14 @@
 function Show-PingMonitor {
     <#
         .SYNOPSIS
-            Displays a real-time multi-host ping monitoring dashboard
+            Interactive real-time ping monitor with ANSI-colored console display
 
         .DESCRIPTION
-            Continuously pings multiple hosts and displays a live-updating table
-            showing status (Up/Down), response time, and packet loss statistics.
-
-            Similar to a NOC dashboard. Press Ctrl+C to stop and display final statistics.
-
-            This is an interactive display function that writes directly to the console.
-            It does not output objects to the pipeline.
+            Continuously pings one or more hosts and displays live statistics in an
+            interactive console interface with ANSI color-coded status indicators.
+            Supports keyboard controls for sorting, pausing, clearing statistics,
+            and quitting. Press Q to quit, S to cycle sort, C to clear stats,
+            P to pause/resume monitoring.
 
         .PARAMETER ComputerName
             One or more hostnames or IP addresses to monitor.
@@ -24,41 +22,48 @@ function Show-PingMonitor {
             Timeout per ping in milliseconds. Default: 2000. Valid range: 500-10000.
 
         .PARAMETER NoClear
-            Suppresses the initial Clear-Host call. Useful when embedding the monitor
-            output in a transcript, ISE, or non-interactive host where clearing the
-            console is undesirable.
+            Suppresses the console clear on exit so the final frame remains visible
+            in the scrollback buffer.
+
+        .PARAMETER NoColor
+            Disables ANSI color output for terminals that do not support escape sequences.
 
         .EXAMPLE
-            Show-PingMonitor -ComputerName 'SRV01', 'SRV02', 'SRV03', 'gateway'
+            Show-PingMonitor -ComputerName '192.168.1.1', 'google.com'
 
-            Monitors 4 hosts with a live dashboard. Press Ctrl+C to stop.
-
-        .EXAMPLE
-            Show-PingMonitor -ComputerName (Get-Content servers.txt) -RefreshInterval 5
-
-            Monitors hosts from a file with 5-second refresh.
+            Monitors two hosts with default settings. Press Q to quit, S to sort,
+            C to clear statistics, P to pause or resume monitoring.
 
         .EXAMPLE
-            Show-PingMonitor -ComputerName '8.8.8.8', '1.1.1.1', 'gateway.local' -PingTimeoutMs 1000
+            Show-PingMonitor -ComputerName 'SRV01' -RefreshInterval 5 -NoColor
 
-            Monitors with a 1-second ping timeout.
+            Monitors a single server with 5-second refresh and ANSI colors disabled.
+
+        .EXAMPLE
+            'SRV01', 'SRV02', 'SRV03' | Show-PingMonitor -PingTimeoutMs 1000
+
+            Monitors three servers via pipeline input with a 1-second ping timeout.
+
+        .OUTPUTS
+            None
+            This function renders an interactive TUI and does not produce pipeline output.
 
         .NOTES
-            Author:        Franck SALLET
-            Version:       1.2.0
-            Last Modified: 2026-04-02
-            Requires:      PowerShell 5.1+ / Windows only
-            Permissions:   No admin required (ICMP may be blocked by firewall)
-            Output:        Writes to console only, no pipeline output.
+            Author: Franck SALLET
+            Version: 2.0.0
+            Last Modified: 2026-04-11
+            Requires: PowerShell 5.1+ / Windows only
+            Requires: Interactive console (not ISE or redirected output)
 
         .LINK
             https://github.com/k9fr4n/PSWinOps
+
+        .LINK
+            https://learn.microsoft.com/en-us/dotnet/api/system.net.networkinformation.ping
     #>
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWriteHost', '',
-        Justification = 'Write-Host is intentional for interactive console dashboard display')]
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '',
-        Justification = 'Show-PingMonitor is a read-only monitoring loop, it does not change system state')]
     [CmdletBinding()]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '')]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '')]
     [OutputType([void])]
     param (
         [Parameter(Mandatory = $true,
@@ -78,186 +83,233 @@ function Show-PingMonitor {
         [int]$PingTimeoutMs = 2000,
 
         [Parameter(Mandatory = $false)]
-        [switch]$NoClear
+        [switch]$NoClear,
+
+        [Parameter(Mandatory = $false)]
+        [switch]$NoColor
     )
 
     begin {
-        Write-Verbose "[$($MyInvocation.MyCommand)] Starting ping dashboard for $($ComputerName.Count) host(s)"
-
-        # Initialize stats per host
-        $hostStats = @{}
-        foreach ($targetHost in $ComputerName) {
-            $hostStats[$targetHost] = @{
-                Sent     = 0
-                Received = 0
-                LastMs   = $null
-                MinMs    = [double]::MaxValue
-                MaxMs    = 0.0
-                SumMs    = 0.0
-                Status   = 'Pending'
-            }
+        if ($Host.Name -eq 'Windows PowerShell ISE Host') {
+            Write-Error -Message "[$($MyInvocation.MyCommand)] ISE is not supported. Use Windows Terminal, ConHost, or a remote SSH session."
+            return
         }
 
-        $pingSender = New-Object System.Net.NetworkInformation.Ping
-        $buffer = [byte[]]::new(32)
-        $pingOptions = New-Object System.Net.NetworkInformation.PingOptions(128, $true)
-        $startTime = Get-Date
-        $isFirstRender = $true
+        Write-Verbose -Message "[$($MyInvocation.MyCommand)] Starting"
+        $hostList = [System.Collections.Generic.List[string]]::new()
     }
 
     process {
+        if ($Host.Name -eq 'Windows PowerShell ISE Host') { return }
+        foreach ($targetHost in $ComputerName) {
+            if (-not $hostList.Contains($targetHost)) {
+                $hostList.Add($targetHost)
+            }
+        }
+    }
+
+    end {
+        if ($Host.Name -eq 'Windows PowerShell ISE Host') { return }
+        if ($hostList.Count -eq 0) {
+            Write-Warning -Message "[$($MyInvocation.MyCommand)] No hosts specified"
+            return
+        }
+
+        # ---- ANSI setup ----
+        $esc      = [char]27
+        $useColor = -not $NoColor
+
+        $bold   = if ($useColor) { "${esc}[1m" }  else { '' }
+        $dim    = if ($useColor) { "${esc}[90m" } else { '' }
+        $reset  = if ($useColor) { "${esc}[0m" }  else { '' }
+        $cyan   = if ($useColor) { "${esc}[96m" } else { '' }
+        $white  = if ($useColor) { "${esc}[97m" } else { '' }
+        $green  = if ($useColor) { "${esc}[92m" } else { '' }
+        $red    = if ($useColor) { "${esc}[91m" } else { '' }
+        $yellow = if ($useColor) { "${esc}[93m" } else { '' }
+
+        # ---- Per-host statistics ----
+        $statsTable = @{}
+        foreach ($targetHost in $hostList) {
+            $statsTable[$targetHost] = @{
+                Sent = 0; Received = 0; Lost = 0
+                LastMs = -1; MinMs = [int]::MaxValue; MaxMs = 0; TotalMs = [long]0
+                Status = 'Pending'
+            }
+        }
+
+        # Column width for host names
+        $maxHostLen = 4
+        foreach ($targetHost in $hostList) {
+            if ($targetHost.Length -gt $maxHostLen) { $maxHostLen = $targetHost.Length }
+        }
+
+        # ---- Sort modes ----
+        $sortModes = @('Host', 'Status', 'LastMs', 'Loss')
+        $sortIndex = 0
+        $sortMode  = $sortModes[$sortIndex]
+
+        $running      = $true
+        $paused       = $false
+        $monitorStart = Get-Date
+        $pinger       = [System.Net.NetworkInformation.Ping]::new()
+
+        $previousCtrlC         = [Console]::TreatControlCAsInput
+        $previousCursorVisible = [Console]::CursorVisible
+
         try {
-            while ($true) {
-                # Ping all hosts
-                foreach ($target in $ComputerName) {
-                    $stats = $hostStats[$target]
-                    $stats.Sent++
+            [Console]::TreatControlCAsInput = $true
+            [Console]::CursorVisible        = $false
+            [Console]::Clear()
 
-                    try {
-                        $reply = $pingSender.Send($target, $PingTimeoutMs, $buffer, $pingOptions)
-                        if ($reply.Status -eq [System.Net.NetworkInformation.IPStatus]::Success) {
-                            $stats.Received++
-                            $stats.LastMs = $reply.RoundtripTime
-                            $stats.SumMs += $reply.RoundtripTime
-                            if ($reply.RoundtripTime -lt $stats.MinMs) {
-                                $stats.MinMs = $reply.RoundtripTime
+            while ($running) {
+                $frameStart = [Diagnostics.Stopwatch]::StartNew()
+
+                # ---- Ping all hosts (skip when paused) ----
+                if (-not $paused) {
+                    foreach ($targetHost in $hostList) {
+                        $hostStat = $statsTable[$targetHost]
+                        $hostStat.Sent++
+                        try {
+                            $pingReply = $pinger.Send($targetHost, $PingTimeoutMs)
+                            if ($pingReply.Status -eq [System.Net.NetworkInformation.IPStatus]::Success) {
+                                $hostStat.Received++
+                                $roundtrip = [int]$pingReply.RoundtripTime
+                                $hostStat.LastMs = $roundtrip
+                                $hostStat.TotalMs += $roundtrip
+                                if ($roundtrip -lt $hostStat.MinMs) { $hostStat.MinMs = $roundtrip }
+                                if ($roundtrip -gt $hostStat.MaxMs) { $hostStat.MaxMs = $roundtrip }
+                                $hostStat.Status = 'Up'
                             }
-                            if ($reply.RoundtripTime -gt $stats.MaxMs) {
-                                $stats.MaxMs = $reply.RoundtripTime
+                            else {
+                                $hostStat.Lost++
+                                $hostStat.Status = 'Down'
                             }
-                            $stats.Status = 'Up'
-                        } else {
-                            $stats.LastMs = $null
-                            $stats.Status = 'Down'
                         }
-                    } catch {
-                        $stats.LastMs = $null
-                        $stats.Status = 'Down'
+                        catch {
+                            $hostStat.Lost++
+                            $hostStat.Status = 'Down'
+                        }
                     }
                 }
 
-                # Render dashboard — use cursor repositioning to avoid flicker
-                if ($isFirstRender) {
-                    if (-not $NoClear) { Clear-Host }
-                    $isFirstRender = $false
-                } else {
-                    try {
-                        [Console]::SetCursorPosition(0, 0)
-                    } catch {
-                        Clear-Host
-                    }
-                }
-                $elapsed = (Get-Date) - $startTime
-                $elapsedStr = '{0:hh\:mm\:ss}' -f $elapsed
-                Write-Host "=== Ping Monitor === $($ComputerName.Count) host(s) === Elapsed: $elapsedStr === Refresh: ${RefreshInterval}s === Ctrl+C to stop ===" -ForegroundColor Cyan
-                Write-Host ''
+                # ---- Build display frame ----
+                $frameBuilder = [System.Text.StringBuilder]::new(4096)
+                $elapsed      = (Get-Date) - $monitorStart
+                $elapsedStr   = '{0:00}:{1:00}:{2:00}' -f [math]::Floor($elapsed.TotalHours), $elapsed.Minutes, $elapsed.Seconds
 
-                # Table header
-                $headerFmt = '{0,-28} {1,-8} {2,8} {3,8} {4,8} {5,8} {6,8} {7,8}'
-                Write-Host ($headerFmt -f 'Host', 'Status', 'Last', 'Min', 'Avg', 'Max', 'Loss%', 'Sent') -ForegroundColor White
-                Write-Host ($headerFmt -f '----', '------', '----', '---', '---', '---', '-----', '----') -ForegroundColor DarkGray
+                # Header
+                $pauseLabel = if ($paused) { " ${yellow}(PAUSED)${reset}" } else { '' }
+                [void]$frameBuilder.AppendLine("${bold}${cyan}=== PING MONITOR ===${reset}${pauseLabel}        ${dim}Elapsed: ${elapsedStr}${reset}")
+                [void]$frameBuilder.AppendLine('')
 
-                foreach ($target in $ComputerName) {
-                    $stats = $hostStats[$target]
-                    $lossPercent = if ($stats.Sent -gt 0) {
-                        [math]::Round((($stats.Sent - $stats.Received) / $stats.Sent) * 100, 1)
-                    } else {
-                        0
-                    }
-                    $avgMs = if ($stats.Received -gt 0) {
-                        [math]::Round($stats.SumMs / $stats.Received, 1)
-                    } else {
-                        $null
-                    }
-                    $minDisplay = if ($stats.MinMs -lt [double]::MaxValue) {
-                        '{0}ms' -f [math]::Round($stats.MinMs, 0)
-                    } else {
-                        '-'
-                    }
-                    $maxDisplay = if ($stats.Received -gt 0) {
-                        '{0}ms' -f [math]::Round($stats.MaxMs, 0)
-                    } else {
-                        '-'
-                    }
-                    $avgDisplay = if ($null -ne $avgMs) {
-                        '{0}ms' -f $avgMs
-                    } else {
-                        '-'
-                    }
-                    $lastDisplay = if ($null -ne $stats.LastMs) {
-                        '{0}ms' -f $stats.LastMs
-                    } else {
-                        '-'
-                    }
+                # Column headers
+                $columnLine = "  ${bold}$('HOST'.PadRight($maxHostLen))  $('STATUS'.PadRight(8))  $('LAST(ms)'.PadLeft(8))  $('MIN(ms)'.PadLeft(8))  $('MAX(ms)'.PadLeft(8))  $('AVG(ms)'.PadLeft(8))  $('SENT'.PadLeft(6))  $('RECV'.PadLeft(6))  $('LOSS'.PadLeft(7))${reset}"
+                [void]$frameBuilder.AppendLine($columnLine)
+                $sepLine = "  ${dim}$('-' * $maxHostLen)  $('-' * 8)  $('-' * 8)  $('-' * 8)  $('-' * 8)  $('-' * 8)  $('-' * 6)  $('-' * 6)  $('-' * 7)${reset}"
+                [void]$frameBuilder.AppendLine($sepLine)
 
-                    $statusColor = switch ($stats.Status) {
-                        'Up' {
-                            'Green'
-                        }
-                        'Down' {
-                            'Red'
-                        }
-                        'Pending' {
-                            'Yellow'
-                        }
-                        default {
-                            'White'
-                        }
-                    }
-
-                    $lossColor = if ($lossPercent -eq 0) {
-                        'Green'
-                    } elseif ($lossPercent -lt 10) {
-                        'Yellow'
-                    } else {
-                        'Red'
-                    }
-
-                    Write-Host ('{0,-28} ' -f $target) -NoNewline
-                    Write-Host ('{0,-8} ' -f $stats.Status) -ForegroundColor $statusColor -NoNewline
-                    Write-Host ('{0,8} {1,8} {2,8} {3,8} ' -f $lastDisplay, $minDisplay, $avgDisplay, $maxDisplay) -NoNewline
-                    Write-Host ('{0,8} ' -f "$lossPercent%") -ForegroundColor $lossColor -NoNewline
-                    Write-Host ('{0,8}' -f $stats.Sent)
+                # Sort hosts
+                $sortedHosts = switch ($sortMode) {
+                    'Host'   { $hostList | Sort-Object -Property { $_ } }
+                    'Status' { $hostList | Sort-Object -Property { switch ($statsTable[$_].Status) { 'Down' { 0 } 'Pending' { 1 } 'Up' { 2 } default { 3 } } } }
+                    'LastMs' { $hostList | Sort-Object -Property { $statsTable[$_].LastMs } -Descending }
+                    'Loss'   { $hostList | Sort-Object -Property { $s = $statsTable[$_]; if ($s.Sent -gt 0) { $s.Lost / $s.Sent } else { 0 } } -Descending }
                 }
 
-                Write-Host ''
-                $upCount = @($ComputerName | Where-Object { $hostStats[$_].Status -eq 'Up' }).Count
-                $downCount = $ComputerName.Count - $upCount
-                Write-Host 'Summary: ' -NoNewline
-                Write-Host "$upCount Up" -ForegroundColor Green -NoNewline
-                Write-Host ' / ' -NoNewline
-                if ($downCount -gt 0) {
-                    Write-Host "$downCount Down" -ForegroundColor Red
-                } else {
-                    Write-Host '0 Down' -ForegroundColor Green
+                $upCount = 0; $downCount = 0; $pendingCount = 0
+                foreach ($displayHost in $sortedHosts) {
+                    $hostStat = $statsTable[$displayHost]
+
+                    switch ($hostStat.Status) {
+                        'Up'      { $upCount++ }
+                        'Down'    { $downCount++ }
+                        'Pending' { $pendingCount++ }
+                    }
+
+                    $statusColor = switch ($hostStat.Status) {
+                        'Up'      { $green }
+                        'Down'    { $red }
+                        'Pending' { $yellow }
+                        default   { $reset }
+                    }
+
+                    $hostPad   = $displayHost.PadRight($maxHostLen)
+                    $statusPad = $hostStat.Status.PadRight(8)
+                    $lastMsStr = if ($hostStat.LastMs -ge 0) { $hostStat.LastMs.ToString().PadLeft(8) } else { '--'.PadLeft(8) }
+                    $minMsStr  = if ($hostStat.MinMs -ne [int]::MaxValue) { $hostStat.MinMs.ToString().PadLeft(8) } else { '--'.PadLeft(8) }
+                    $maxMsStr  = if ($hostStat.MaxMs -gt 0) { $hostStat.MaxMs.ToString().PadLeft(8) } else { '--'.PadLeft(8) }
+                    $avgMsStr  = if ($hostStat.Received -gt 0) { ([math]::Round($hostStat.TotalMs / $hostStat.Received, 1)).ToString('0.0').PadLeft(8) } else { '--'.PadLeft(8) }
+                    $sentStr   = $hostStat.Sent.ToString().PadLeft(6)
+                    $recvStr   = $hostStat.Received.ToString().PadLeft(6)
+                    $lossVal   = if ($hostStat.Sent -gt 0) { [math]::Round(($hostStat.Lost / $hostStat.Sent) * 100, 1) } else { [double]0 }
+                    $lossPad   = ('{0:0.0}%' -f $lossVal).PadLeft(7)
+
+                    $lossColor = if ($lossVal -eq 0) { $green } elseif ($lossVal -lt 10) { $yellow } else { $red }
+
+                    $row = "  ${white}${hostPad}${reset}  ${statusColor}${statusPad}${reset}  ${lastMsStr}  ${minMsStr}  ${maxMsStr}  ${avgMsStr}  ${sentStr}  ${recvStr}  ${lossColor}${lossPad}${reset}"
+                    [void]$frameBuilder.AppendLine($row)
                 }
 
-                Start-Sleep -Seconds $RefreshInterval
+                # Summary + footer
+                [void]$frameBuilder.AppendLine('')
+                [void]$frameBuilder.AppendLine("  ${dim}${hostList.Count} hosts${reset}  ${dim}|${reset}  ${green}${upCount} Up${reset}  ${dim}|${reset}  ${red}${downCount} Down${reset}  ${dim}|${reset}  ${yellow}${pendingCount} Pending${reset}")
+                [void]$frameBuilder.AppendLine('')
+                [void]$frameBuilder.AppendLine("  ${bold}[${cyan}Q${reset}${bold}]${reset}uit  ${bold}[${cyan}S${reset}${bold}]${reset}ort  ${bold}[${cyan}C${reset}${bold}]${reset}lear  ${bold}[${cyan}P${reset}${bold}]${reset}ause  ${dim}|${reset}  Refresh: ${yellow}${RefreshInterval}s${reset}  ${dim}|${reset}  Sort: ${yellow}${sortMode}${reset}  ${dim}|${reset}  Elapsed: ${yellow}${elapsedStr}${reset}")
+
+                # Erase trailing lines
+                $height = [math]::Max(24, [Console]::WindowHeight)
+                $currentLines = $frameBuilder.ToString().Split("`n").Count
+                for ($r = $currentLines; $r -lt $height; $r++) {
+                    [void]$frameBuilder.AppendLine("${esc}[2K")
+                }
+
+                [Console]::SetCursorPosition(0, 0)
+                [Console]::Write($frameBuilder.ToString())
+                $frameStart.Stop()
+
+                # ---- Input handling ----
+                $sleepMs    = [math]::Max(100, ($RefreshInterval * 1000) - $frameStart.ElapsedMilliseconds)
+                $inputTimer = [Diagnostics.Stopwatch]::StartNew()
+
+                while ($inputTimer.ElapsedMilliseconds -lt $sleepMs) {
+                    if ([Console]::KeyAvailable) {
+                        $keyInfo = [Console]::ReadKey($true)
+
+                        if (($keyInfo.Key -eq 'C') -and (($keyInfo.Modifiers -band [ConsoleModifiers]::Control) -eq [ConsoleModifiers]::Control)) {
+                            $running = $false
+                            break
+                        }
+
+                        switch ($keyInfo.Key) {
+                            'Q'      { $running = $false }
+                            'Escape' { $running = $false }
+                            'S'      { $sortIndex = ($sortIndex + 1) % $sortModes.Count; $sortMode = $sortModes[$sortIndex] }
+                            'C'      {
+                                foreach ($resetHost in $hostList) {
+                                    $resetStat = $statsTable[$resetHost]
+                                    $resetStat.Sent = 0; $resetStat.Received = 0; $resetStat.Lost = 0
+                                    $resetStat.LastMs = -1; $resetStat.MinMs = [int]::MaxValue
+                                    $resetStat.MaxMs = 0; $resetStat.TotalMs = [long]0
+                                    $resetStat.Status = 'Pending'
+                                }
+                                $monitorStart = Get-Date
+                            }
+                            'P'      { $paused = -not $paused }
+                        }
+
+                        if (-not $running) { break }
+                    }
+                    Start-Sleep -Milliseconds 50
+                }
             }
-        } catch {
-            Write-Verbose "[$($MyInvocation.MyCommand)] Dashboard interrupted: $_"
-        } finally {
-            $pingSender.Dispose()
-
-            # Final summary
-            Write-Host ''
-            Write-Host '=== Final Statistics ===' -ForegroundColor Cyan
-            foreach ($target in $ComputerName) {
-                $stats = $hostStats[$target]
-                $lossPercent = if ($stats.Sent -gt 0) {
-                    [math]::Round((($stats.Sent - $stats.Received) / $stats.Sent) * 100, 1)
-                } else {
-                    0
-                }
-                $avgMs = if ($stats.Received -gt 0) {
-                    [math]::Round($stats.SumMs / $stats.Received, 1)
-                } else {
-                    0
-                }
-                Write-Host "  $target - Sent: $($stats.Sent), Received: $($stats.Received), Loss: ${lossPercent}%, Avg: ${avgMs}ms"
-            }
-            Write-Host ''
-            Write-Host 'Ping Monitor stopped.' -ForegroundColor Cyan
+        }
+        finally {
+            if ($null -ne $pinger) { $pinger.Dispose() }
+            [Console]::CursorVisible        = $previousCursorVisible
+            [Console]::TreatControlCAsInput = $previousCtrlC
+            if (-not $NoClear) { [Console]::Clear() }
+            Write-Information -MessageData 'Ping Monitor stopped.' -InformationAction Continue
         }
     }
 }

@@ -80,11 +80,9 @@ Describe 'Show-PingMonitor' {
         }
 
         It 'Should have SuppressMessageAttribute in the source code' {
-            # SuppressMessageAttribute may not be reflected via Get-Command on all platforms
-            # Verify by checking the script block text directly
             $cmd = Get-Command -Name 'Show-PingMonitor'
             $scriptText = $cmd.ScriptBlock.ToString()
-            $scriptText | Should -Match 'PSAvoidUsingWriteHost'
+            $scriptText | Should -Match 'PSUseDeclaredVarsMoreThanAssignments'
         }
 
         It 'Should have ComputerName as mandatory parameter' {
@@ -116,209 +114,93 @@ Describe 'Show-PingMonitor' {
         }
     }
 
-    Context 'Dashboard loop execution with mocked Ping' {
-
-        BeforeEach {
-            # Track iteration count to break loop after first cycle
-            $script:loopCount = 0
-
-            # Mock Ping.Send to return success
-            $mockReply = [PSCustomObject]@{
-                Status        = [System.Net.NetworkInformation.IPStatus]::Success
-                RoundtripTime = 15
-            }
-
-            Mock -ModuleName $script:ModuleName -CommandName 'New-Object' -ParameterFilter {
-                $TypeName -eq 'System.Net.NetworkInformation.Ping'
-            } -MockWith {
-                $mockPing = [PSCustomObject]@{}
-                $mockPing | Add-Member -MemberType ScriptMethod -Name 'Send' -Value {
-                    param($target, $timeout, $buffer, $options)
-                    return [PSCustomObject]@{
-                        Status        = [System.Net.NetworkInformation.IPStatus]::Success
-                        RoundtripTime = 15
-                    }
-                }
-                $mockPing | Add-Member -MemberType ScriptMethod -Name 'Dispose' -Value { }
-                return $mockPing
-            }
-
-            Mock -ModuleName $script:ModuleName -CommandName 'New-Object' -ParameterFilter {
-                $TypeName -eq 'System.Net.NetworkInformation.PingOptions'
-            } -MockWith {
-                return [PSCustomObject]@{ Ttl = 128; DontFragment = $true }
-            }
-
-            Mock -ModuleName $script:ModuleName -CommandName 'Clear-Host' -MockWith { }
-            Mock -ModuleName $script:ModuleName -CommandName 'Write-Host' -MockWith { }
-
-            # Start-Sleep mock: throw after first iteration to break the while loop
-            Mock -ModuleName $script:ModuleName -CommandName 'Start-Sleep' -MockWith {
-                $script:loopCount++
-                if ($script:loopCount -ge 1) {
-                    throw 'Test break: stopping loop'
-                }
-            }
+    Context 'NoColor parameter' {
+        It 'Should have NoColor switch parameter' {
+            $cmd = Get-Command -Name 'Show-PingMonitor'
+            $param = $cmd.Parameters['NoColor']
+            $param | Should -Not -BeNullOrEmpty
+            $param.ParameterType.Name | Should -Be 'SwitchParameter'
         }
 
-        It 'Should execute at least one ping cycle before stopping' {
-            Show-PingMonitor -ComputerName 'TestHost1'
-            Should -Invoke -CommandName 'Clear-Host' -ModuleName $script:ModuleName -Times 1 -Exactly
+        It 'Should have NoColor as non-mandatory' {
+            $cmd = Get-Command -Name 'Show-PingMonitor'
+            $pAttr = $cmd.Parameters['NoColor'].Attributes |
+                Where-Object -FilterScript { $_ -is [System.Management.Automation.ParameterAttribute] }
+            $pAttr.Mandatory | Should -BeFalse
         }
 
-        It 'Should call Write-Host for dashboard rendering' {
-            Show-PingMonitor -ComputerName 'TestHost1'
-            Should -Invoke -CommandName 'Write-Host' -ModuleName $script:ModuleName
-        }
-
-        It 'Should handle multiple hosts in one cycle' {
-            Show-PingMonitor -ComputerName 'Host1', 'Host2', 'Host3'
-            Should -Invoke -CommandName 'Clear-Host' -ModuleName $script:ModuleName -Times 1 -Exactly
-        }
-
-        It 'Should call Start-Sleep with the RefreshInterval' {
-            Show-PingMonitor -ComputerName 'TestHost1' -RefreshInterval 5
-            Should -Invoke -CommandName 'Start-Sleep' -ModuleName $script:ModuleName -Times 1 -Exactly -ParameterFilter {
-                $Seconds -eq 5
-            }
+        It 'Should have NoClear switch parameter' {
+            $cmd = Get-Command -Name 'Show-PingMonitor'
+            $cmd.Parameters['NoClear'].ParameterType.Name | Should -Be 'SwitchParameter'
         }
     }
 
-    Context 'Dashboard loop with ping failure (host down)' {
-
-        BeforeEach {
-            $script:loopCount = 0
-
-            Mock -ModuleName $script:ModuleName -CommandName 'New-Object' -ParameterFilter {
-                $TypeName -eq 'System.Net.NetworkInformation.Ping'
-            } -MockWith {
-                $mockPing = [PSCustomObject]@{}
-                $mockPing | Add-Member -MemberType ScriptMethod -Name 'Send' -Value {
-                    param($target, $timeout, $buffer, $options)
-                    return [PSCustomObject]@{
-                        Status        = [System.Net.NetworkInformation.IPStatus]::TimedOut
-                        RoundtripTime = 0
-                    }
-                }
-                $mockPing | Add-Member -MemberType ScriptMethod -Name 'Dispose' -Value { }
-                return $mockPing
+    Context 'ISE detection' {
+        It 'Should contain ISE guard clause' {
+            $funcBody = InModuleScope -ModuleName $script:ModuleName {
+                (Get-Command -Name 'Show-PingMonitor').ScriptBlock.ToString()
             }
-
-            Mock -ModuleName $script:ModuleName -CommandName 'New-Object' -ParameterFilter {
-                $TypeName -eq 'System.Net.NetworkInformation.PingOptions'
-            } -MockWith {
-                return [PSCustomObject]@{ Ttl = 128; DontFragment = $true }
-            }
-
-            Mock -ModuleName $script:ModuleName -CommandName 'Clear-Host' -MockWith { }
-            Mock -ModuleName $script:ModuleName -CommandName 'Write-Host' -MockWith { }
-
-            Mock -ModuleName $script:ModuleName -CommandName 'Start-Sleep' -MockWith {
-                $script:loopCount++
-                if ($script:loopCount -ge 1) {
-                    throw 'Test break: stopping loop'
-                }
-            }
-        }
-
-        It 'Should handle timed out ping without errors' {
-            { Show-PingMonitor -ComputerName 'DownHost' } | Should -Not -Throw
-        }
-
-        It 'Should display dashboard even when host is down' {
-            Show-PingMonitor -ComputerName 'DownHost'
-            Should -Invoke -CommandName 'Write-Host' -ModuleName $script:ModuleName
+            $funcBody | Should -Match 'Windows PowerShell ISE Host'
         }
     }
 
-    Context 'Dashboard loop with ping exception' {
-
-        BeforeEach {
-            $script:loopCount = 0
-
-            Mock -ModuleName $script:ModuleName -CommandName 'New-Object' -ParameterFilter {
-                $TypeName -eq 'System.Net.NetworkInformation.Ping'
-            } -MockWith {
-                $mockPing = [PSCustomObject]@{}
-                $mockPing | Add-Member -MemberType ScriptMethod -Name 'Send' -Value {
-                    param($target, $timeout, $buffer, $options)
-                    throw 'DNS resolution failed'
-                }
-                $mockPing | Add-Member -MemberType ScriptMethod -Name 'Dispose' -Value { }
-                return $mockPing
-            }
-
-            Mock -ModuleName $script:ModuleName -CommandName 'New-Object' -ParameterFilter {
-                $TypeName -eq 'System.Net.NetworkInformation.PingOptions'
-            } -MockWith {
-                return [PSCustomObject]@{ Ttl = 128; DontFragment = $true }
-            }
-
-            Mock -ModuleName $script:ModuleName -CommandName 'Clear-Host' -MockWith { }
-            Mock -ModuleName $script:ModuleName -CommandName 'Write-Host' -MockWith { }
-
-            Mock -ModuleName $script:ModuleName -CommandName 'Start-Sleep' -MockWith {
-                $script:loopCount++
-                if ($script:loopCount -ge 1) {
-                    throw 'Test break: stopping loop'
-                }
+    Context 'Interactive controls — function source inspection' {
+        BeforeAll {
+            $script:funcBody = InModuleScope -ModuleName $script:ModuleName {
+                (Get-Command -Name 'Show-PingMonitor').ScriptBlock.ToString()
             }
         }
 
-        It 'Should handle ping exception gracefully and mark host as Down' {
-            { Show-PingMonitor -ComputerName 'InvalidHost.nonexistent' } | Should -Not -Throw
-        }
-    }
-
-    Context 'Dashboard with mixed host statuses' {
-
-        BeforeEach {
-            $script:loopCount = 0
-            $script:callIndex = 0
-
-            Mock -ModuleName $script:ModuleName -CommandName 'New-Object' -ParameterFilter {
-                $TypeName -eq 'System.Net.NetworkInformation.Ping'
-            } -MockWith {
-                $mockPing = [PSCustomObject]@{}
-                $mockPing | Add-Member -MemberType ScriptMethod -Name 'Send' -Value {
-                    param($target, $timeout, $buffer, $options)
-                    $script:callIndex++
-                    if ($script:callIndex % 2 -eq 0) {
-                        return [PSCustomObject]@{
-                            Status        = [System.Net.NetworkInformation.IPStatus]::TimedOut
-                            RoundtripTime = 0
-                        }
-                    } else {
-                        return [PSCustomObject]@{
-                            Status        = [System.Net.NetworkInformation.IPStatus]::Success
-                            RoundtripTime = 10
-                        }
-                    }
-                }
-                $mockPing | Add-Member -MemberType ScriptMethod -Name 'Dispose' -Value { }
-                return $mockPing
-            }
-
-            Mock -ModuleName $script:ModuleName -CommandName 'New-Object' -ParameterFilter {
-                $TypeName -eq 'System.Net.NetworkInformation.PingOptions'
-            } -MockWith {
-                return [PSCustomObject]@{ Ttl = 128; DontFragment = $true }
-            }
-
-            Mock -ModuleName $script:ModuleName -CommandName 'Clear-Host' -MockWith { }
-            Mock -ModuleName $script:ModuleName -CommandName 'Write-Host' -MockWith { }
-
-            Mock -ModuleName $script:ModuleName -CommandName 'Start-Sleep' -MockWith {
-                $script:loopCount++
-                if ($script:loopCount -ge 1) {
-                    throw 'Test break: stopping loop'
-                }
-            }
+        It 'Should contain Q/Escape quit handling' {
+            $script:funcBody | Should -Match 'Escape'
+            $script:funcBody | Should -Match "keyInfo\.Key\s+-eq\s+'Q'"
         }
 
-        It 'Should render dashboard with mixed Up and Down hosts' {
-            { Show-PingMonitor -ComputerName 'UpHost', 'DownHost' } | Should -Not -Throw
-            Should -Invoke -CommandName 'Write-Host' -ModuleName $script:ModuleName
+        It 'Should contain Ctrl+C handling' {
+            $script:funcBody | Should -Match 'ConsoleModifiers.*Control'
+        }
+
+        It 'Should contain S key for sort cycling' {
+            $script:funcBody | Should -Match "keyInfo\.Key"
+            $script:funcBody | Should -Match 'sortIndex'
+        }
+
+        It 'Should contain C key for stats clear' {
+            $script:funcBody | Should -Match "'C'"
+            $script:funcBody | Should -Match 'monitorStart'
+        }
+
+        It 'Should contain P key for pause toggle' {
+            $script:funcBody | Should -Match "'P'"
+            $script:funcBody | Should -Match '\$paused'
+        }
+
+        It 'Should use StringBuilder for frame rendering' {
+            $script:funcBody | Should -Match 'System\.Text\.StringBuilder'
+        }
+
+        It 'Should use Console::Write for output' {
+            $script:funcBody | Should -Match '\[Console\]::Write'
+        }
+
+        It 'Should restore console state in finally block' {
+            $script:funcBody | Should -Match 'CursorVisible\s*=\s*\$previousCursorVisible'
+            $script:funcBody | Should -Match 'TreatControlCAsInput\s*=\s*\$previousCtrlC'
+        }
+
+        It 'Should contain all four sort modes' {
+            $script:funcBody | Should -Match "'Host'"
+            $script:funcBody | Should -Match "'Status'"
+            $script:funcBody | Should -Match "'LastMs'"
+            $script:funcBody | Should -Match "'Loss'"
+        }
+
+        It 'Should display PAUSED indicator when paused' {
+            $script:funcBody | Should -Match 'PAUSED'
+        }
+
+        It 'Should use Write-Information for stop message' {
+            $script:funcBody | Should -Match 'Write-Information.*Ping Monitor stopped'
         }
     }
 }
