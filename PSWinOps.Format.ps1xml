@@ -3489,7 +3489,7 @@
       <TableControl>
         <TableHeaders>
           <TableColumnHeader><Label>ComputerName</Label><Width>16</Width></TableColumnHeader>
-          <TableColumnHeader><Label>Volume</Label><Width>12</Width></TableColumnHeader>
+          <TableColumnHeader><Label>DriveLetter</Label><Width>12</Width></TableColumnHeader>
           <TableColumnHeader><Label>ShadowCopyId</Label><Width>40</Width></TableColumnHeader>
           <TableColumnHeader><Label>CreationTime</Label><Width>22</Width></TableColumnHeader>
           <TableColumnHeader><Label>State</Label><Width>10</Width></TableColumnHeader>
@@ -3582,7 +3582,7 @@
       <TableControl>
         <TableHeaders>
           <TableColumnHeader><Label>ComputerName</Label><Width>16</Width></TableColumnHeader>
-          <TableColumnHeader><Label>Volume</Label><Width>12</Width></TableColumnHeader>
+          <TableColumnHeader><Label>DriveLetter</Label><Width>12</Width></TableColumnHeader>
           <TableColumnHeader><Width>12</Width><Alignment>Right</Alignment></TableColumnHeader>
           <TableColumnHeader><Width>14</Width><Alignment>Right</Alignment></TableColumnHeader>
           <TableColumnHeader><Width>12</Width><Alignment>Right</Alignment></TableColumnHeader>
