@@ -83,17 +83,20 @@ function Get-ShadowCopyStorage {
             $volumeIndex = @{}
             foreach ($vol in (Get-CimInstance -ClassName Win32_Volume -ErrorAction SilentlyContinue)) {
                 if ($vol.DeviceID -and $vol.DriveLetter) {
-                    $volumeIndex[$vol.DeviceID] = $vol.DriveLetter.TrimEnd(':')
+                    # Normalize: lowercase, strip trailing backslash for reliable matching
+                    $normalizedId = $vol.DeviceID.TrimEnd('\').ToLower()
+                    $volumeIndex[$normalizedId] = $vol.DriveLetter.TrimEnd(':')
                 }
             }
 
             $shadowCountIndex = @{}
             foreach ($shadow in (Get-CimInstance -ClassName Win32_ShadowCopy -ErrorAction SilentlyContinue)) {
-                if ($shadowCountIndex.ContainsKey($shadow.VolumeName)) {
-                    $shadowCountIndex[$shadow.VolumeName] += 1
+                $normalizedVol = $shadow.VolumeName.TrimEnd('\').ToLower()
+                if ($shadowCountIndex.ContainsKey($normalizedVol)) {
+                    $shadowCountIndex[$normalizedVol] += 1
                 }
                 else {
-                    $shadowCountIndex[$shadow.VolumeName] = 1
+                    $shadowCountIndex[$normalizedVol] = 1
                 }
             }
 
@@ -103,7 +106,7 @@ function Get-ShadowCopyStorage {
                 $volumeRef = $storage.Volume.ToString()
                 $deviceId = ''
                 if ($volumeRef -match 'DeviceID="([^"]+)"') {
-                    $deviceId = $Matches[1] -replace '\\\\', '\'
+                    $deviceId = ($Matches[1] -replace '\\\\', '\').TrimEnd('\').ToLower()
                 }
 
                 $resolvedDrive = if ($deviceId -ne '' -and $volumeIndex.ContainsKey($deviceId)) {

@@ -73,6 +73,7 @@ function Get-ShadowCopy {
     begin {
         Write-Verbose -Message "[$($MyInvocation.MyCommand)] Starting"
 
+        # VSS_SNAPSHOT_STATE enum — https://learn.microsoft.com/en-us/windows/win32/api/vss/ne-vss-vss_snapshot_state
         $stateMap = @{
             0  = 'Unknown'
             1  = 'Preparing'
@@ -83,10 +84,12 @@ function Get-ShadowCopy {
             6  = 'ProcessingCommit'
             7  = 'Committed'
             8  = 'ProcessingPostCommit'
-            9  = 'Created'
-            10 = 'Aborted'
-            11 = 'Deleted'
-            12 = 'Count'
+            9  = 'ProcessingPreFinalCommit'
+            10 = 'PreFinalCommitted'
+            11 = 'ProcessingFinalCommit'
+            12 = 'Created'
+            13 = 'Aborted'
+            14 = 'Deleted'
         }
 
         $driveLetterArg = if ($PSBoundParameters.ContainsKey('DriveLetter')) { $DriveLetter } else { '' }
@@ -97,7 +100,9 @@ function Get-ShadowCopy {
             $volumeIndex = @{}
             foreach ($vol in (Get-CimInstance -ClassName Win32_Volume -ErrorAction SilentlyContinue)) {
                 if ($vol.DeviceID -and $vol.DriveLetter) {
-                    $volumeIndex[$vol.DeviceID] = $vol.DriveLetter.TrimEnd(':')
+                    # Normalize: lowercase, strip trailing backslash for reliable matching
+                    $normalizedId = $vol.DeviceID.TrimEnd('\').ToLower()
+                    $volumeIndex[$normalizedId] = $vol.DriveLetter.TrimEnd(':')
                 }
             }
 
@@ -106,7 +111,7 @@ function Get-ShadowCopy {
                 $filterExpression = "DriveLetter='$($FilterDriveLetter):'"
                 $targetVolume = Get-CimInstance -ClassName Win32_Volume -Filter $filterExpression -ErrorAction SilentlyContinue
                 if ($targetVolume) {
-                    $targetDeviceId = $targetVolume.DeviceID
+                    $targetDeviceId = $targetVolume.DeviceID.TrimEnd('\').ToLower()
                 }
                 else {
                     return
@@ -116,12 +121,13 @@ function Get-ShadowCopy {
             $shadows = Get-CimInstance -ClassName Win32_ShadowCopy -ErrorAction Stop
 
             foreach ($shadow in $shadows) {
-                if ($targetDeviceId -ne '' -and $shadow.VolumeName -ne $targetDeviceId) {
+                $normalizedVolName = $shadow.VolumeName.TrimEnd('\').ToLower()
+
+                if ($targetDeviceId -ne '' -and $normalizedVolName -ne $targetDeviceId) {
                     continue
                 }
-
-                $resolvedDrive = if ($volumeIndex.ContainsKey($shadow.VolumeName)) {
-                    $volumeIndex[$shadow.VolumeName]
+                $resolvedDrive = if ($volumeIndex.ContainsKey($normalizedVolName)) {
+                    $volumeIndex[$normalizedVolName]
                 }
                 else {
                     '?'
