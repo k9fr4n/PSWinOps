@@ -191,6 +191,54 @@ Describe -Name 'Get-ADPasswordStatus' -Fixture {
         }
     }
 
+    Context -Name 'ExpiredOnly switch filters to expired accounts only' -Fixture {
+
+        BeforeAll {
+            Mock -CommandName 'Get-ADUser' -ModuleName 'PSWinOps' -MockWith {
+                return $script:allUsers
+            }
+            Mock -CommandName 'Get-ADDefaultDomainPasswordPolicy' -ModuleName 'PSWinOps' -MockWith {
+                return $script:mockDefaultPolicy
+            }
+            Mock -CommandName 'Get-ADFineGrainedPasswordPolicy' -ModuleName 'PSWinOps' -MockWith {
+                return @($script:mockPSO)
+            }
+            $script:results = Get-ADPasswordStatus -ExpiredOnly
+        }
+
+        It -Name 'Should return only the expired account' -Test {
+            $script:results | Should -HaveCount 1
+            $script:results[0].SamAccountName | Should -Be 'expireduser'
+        }
+
+        It -Name 'Should exclude never-expires accounts' -Test {
+            $script:results.SamAccountName | Should -Not -Contain 'neverexpuser'
+        }
+
+        It -Name 'Should exclude must-change accounts' -Test {
+            $script:results.SamAccountName | Should -Not -Contain 'mustchangeuser'
+        }
+
+        It -Name 'Should exclude normal accounts' -Test {
+            $script:results.SamAccountName | Should -Not -Contain 'normaluser'
+        }
+    }
+
+    Context -Name 'ProblemsOnly and ExpiredOnly are mutually exclusive' -Fixture {
+
+        It -Name 'Should throw when both switches are specified' -Test {
+            Mock -CommandName 'Get-ADUser' -ModuleName 'PSWinOps' -MockWith { }
+            Mock -CommandName 'Get-ADDefaultDomainPasswordPolicy' -ModuleName 'PSWinOps' -MockWith {
+                return $script:mockDefaultPolicy
+            }
+            Mock -CommandName 'Get-ADFineGrainedPasswordPolicy' -ModuleName 'PSWinOps' -MockWith {
+                return @()
+            }
+            { Get-ADPasswordStatus -ProblemsOnly -ExpiredOnly -ErrorAction Stop } |
+                Should -Throw -ExpectedMessage '*cannot be used together*'
+        }
+    }
+
     Context -Name 'Password policy resolution' -Fixture {
 
         BeforeAll {
