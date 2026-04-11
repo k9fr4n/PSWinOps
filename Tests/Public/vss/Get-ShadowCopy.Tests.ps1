@@ -26,7 +26,7 @@ Describe 'Get-ShadowCopy' {
                 CreationTime = $script:testCreationTime
                 DeviceObject = '\\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy1'
                 ProviderName = 'Microsoft Software Shadow Copy provider 1.0'
-                StateCode    = 9
+                StateCode    = 12
             }
         )
     }
@@ -42,7 +42,7 @@ Describe 'Get-ShadowCopy' {
 
         It 'Should return PSWinOps.ShadowCopy type' { $script:result.PSObject.TypeNames[0] | Should -Be 'PSWinOps.ShadowCopy' }
         It 'Should set ComputerName to local' { $script:result.ComputerName | Should -Be $env:COMPUTERNAME }
-        It 'Should map StateCode 9 to Created' { $script:result.State | Should -Be 'Created' }
+        It 'Should map StateCode 12 to Created' { $script:result.State | Should -Be 'Created' }
         It 'Should contain ShadowCopyId' { $script:result.ShadowCopyId | Should -Be $script:testShadowId }
         It 'Should contain DriveLetter' { $script:result.DriveLetter | Should -Be 'C' }
         It 'Should have Timestamp' { $script:result.Timestamp | Should -Match '^\d{4}-\d{2}-\d{2}' }
@@ -119,7 +119,7 @@ Describe 'Get-ShadowCopy' {
                     InstallDate  = (Get-Date).AddDays(-3)
                     DeviceObject = '\\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy1'
                     ProviderName = 'Microsoft Software Shadow Copy provider 1.0'
-                    State        = 9
+                    State        = 12
                 }
             }
             $script:result = Get-ShadowCopy
@@ -148,12 +148,12 @@ Describe 'Get-ShadowCopy' {
                 [PSCustomObject]@{
                     ID = '{AB12CD34-EF56-7890-AB12-CD34EF567890}'; VolumeName = '\\?\Volume{abc123}\'
                     InstallDate = (Get-Date).AddDays(-1); DeviceObject = '\\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy1'
-                    ProviderName = 'Microsoft Software Shadow Copy provider 1.0'; State = 9
+                    ProviderName = 'Microsoft Software Shadow Copy provider 1.0'; State = 12
                 }
                 [PSCustomObject]@{
                     ID = '{11111111-2222-3333-4444-555555555555}'; VolumeName = '\\?\Volume{def456}\'
                     InstallDate = (Get-Date).AddDays(-2); DeviceObject = '\\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy2'
-                    ProviderName = 'Microsoft Software Shadow Copy provider 1.0'; State = 9
+                    ProviderName = 'Microsoft Software Shadow Copy provider 1.0'; State = 12
                 }
             }
             $script:result = Get-ShadowCopy -DriveLetter 'C'
@@ -176,7 +176,7 @@ Describe 'Get-ShadowCopy' {
                 [PSCustomObject]@{
                     ID = '{AB12CD34-EF56-7890-AB12-CD34EF567890}'; VolumeName = '\\?\Volume{abc123}\'
                     InstallDate = (Get-Date); DeviceObject = '\\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy1'
-                    ProviderName = 'Microsoft Software Shadow Copy provider 1.0'; State = 9
+                    ProviderName = 'Microsoft Software Shadow Copy provider 1.0'; State = 12
                 }
             }
             $script:result = Get-ShadowCopy -DriveLetter 'X'
@@ -200,7 +200,7 @@ Describe 'Get-ShadowCopy' {
                 [PSCustomObject]@{
                     ID = '{AB12CD34-EF56-7890-AB12-CD34EF567890}'; VolumeName = '\\?\Volume{unknown999}\'
                     InstallDate = (Get-Date).AddDays(-3); DeviceObject = '\\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy1'
-                    ProviderName = 'Microsoft Software Shadow Copy provider 1.0'; State = 9
+                    ProviderName = 'Microsoft Software Shadow Copy provider 1.0'; State = 12
                 }
             }
             $script:result = Get-ShadowCopy
