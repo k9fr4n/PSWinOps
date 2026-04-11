@@ -118,7 +118,6 @@ function Remove-UserProfile {
 
         $enumerateBlock = {
             param(
-                [int]$DaysOld,
                 [bool]$CalcSize
             )
 
@@ -170,7 +169,7 @@ function Remove-UserProfile {
                 $invokeParams = @{
                     ComputerName = $machine
                     ScriptBlock  = $enumerateBlock
-                    ArgumentList = @($OlderThanDays, (-not $SkipSizeCalculation.IsPresent))
+                    ArgumentList = @((-not $SkipSizeCalculation.IsPresent))
                 }
                 if ($PSBoundParameters.ContainsKey('Credential')) {
                     $invokeParams['Credential'] = $Credential
