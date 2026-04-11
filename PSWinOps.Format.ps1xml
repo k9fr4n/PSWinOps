@@ -3445,6 +3445,39 @@
     </View>
 
     <!-- ============================================================ -->
+    <!-- PSWinOps.UserProfileRemoval                                  -->
+    <!-- Used by: Remove-UserProfile                                  -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.UserProfileRemoval</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.UserProfileRemoval</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>ComputerName</Label><Width>16</Width></TableColumnHeader>
+          <TableColumnHeader><Label>UserName</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>LastUseTime</Label><Width>12</Width></TableColumnHeader>
+          <TableColumnHeader><Label>DaysInactive</Label><Width>13</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>SizeMB</Label><Width>10</Width><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Label>Status</Label><Width>10</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>ComputerName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>UserName</PropertyName></TableColumnItem>
+              <TableColumnItem><ScriptBlock>if ($_.LastUseTime) { $_.LastUseTime.ToString('yyyy-MM-dd') } else { 'Never' }</ScriptBlock></TableColumnItem>
+              <TableColumnItem><ScriptBlock>if ($_.DaysInactive -eq [int]::MaxValue) { 'Never' } else { $_.DaysInactive }</ScriptBlock></TableColumnItem>
+              <TableColumnItem><ScriptBlock>if ($_.ProfileSizeMB -ge 0) { '{0:N1}' -f $_.ProfileSizeMB } else { '-' }</ScriptBlock></TableColumnItem>
+              <TableColumnItem><PropertyName>Status</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
     <!-- PSWinOps.ShadowCopy                                          -->
     <!-- Used by: Get-ShadowCopy                                      -->
     <!-- ============================================================ -->

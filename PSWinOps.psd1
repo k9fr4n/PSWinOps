@@ -102,15 +102,16 @@ FunctionsToExport = 'Get-ShadowCopy', 'Get-ShadowCopyStorage', 'New-ShadowCopy',
                'Get-EnvironmentVariable', 'Get-InstalledSoftware', 
                'Get-PageFileConfiguration', 'Get-PendingReboot', 
                'Get-ScheduledTaskDetail', 'Get-StartupProgram', 'Get-SystemSummary', 
-               'Set-PageFile', 'Show-SystemMonitor', 'Clear-Arp', 'Edit-HostsFile', 
-               'Export-NetworkConfig', 'Get-ARPTable', 'Get-ListeningPort', 
-               'Get-NetworkAdapter', 'Get-NetworkCIDR', 'Get-NetworkConnection', 
-               'Get-NetworkRoute', 'Get-NetworkStatistic', 'Get-PublicIPAddress', 
-               'Get-SSLCertificate', 'Get-SubnetInfo', 'Measure-NetworkLatency', 
-               'New-NetworkRoute', 'Remove-NetworkRoute', 'Resolve-MACVendor', 
-               'Set-NetworkRoute', 'Show-NetworkStatisticMonitor', 
-               'Show-PingMonitor', 'Test-DNSResolution', 'Test-PortConnectivity', 
-               'Test-WinRM', 'Trace-NetworkRoute'
+               'Remove-UserProfile', 'Set-PageFile', 'Show-SystemMonitor', 'Clear-Arp', 
+               'Edit-HostsFile', 'Export-NetworkConfig', 'Get-ARPTable', 
+               'Get-ListeningPort', 'Get-NetworkAdapter', 'Get-NetworkCIDR', 
+               'Get-NetworkConnection', 'Get-NetworkRoute', 'Get-NetworkStatistic', 
+               'Get-PublicIPAddress', 'Get-SSLCertificate', 'Get-SubnetInfo', 
+               'Measure-NetworkLatency', 'New-NetworkRoute', 'Remove-NetworkRoute', 
+               'Resolve-MACVendor', 'Set-NetworkRoute', 
+               'Show-NetworkStatisticMonitor', 'Show-PingMonitor', 
+               'Test-DNSResolution', 'Test-PortConnectivity', 'Test-WinRM', 
+               'Trace-NetworkRoute'
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = @()
