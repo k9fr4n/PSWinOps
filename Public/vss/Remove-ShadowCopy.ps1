@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 function Remove-ShadowCopy {
     <#
         .SYNOPSIS
@@ -136,26 +136,24 @@ function Remove-ShadowCopy {
 
                             $shadow | Remove-CimInstance -ErrorAction Stop
                             $entry['Removed'] = $true
-                        }
-                        catch {
+                        } catch {
                             $entry['ErrorMessage'] = $_.ToString()
                         }
 
                         $resultList.Add($entry)
                     }
-                }
-                elseif ($Mode -eq 'ByDrive') {
+                } elseif ($Mode -eq 'ByDrive') {
                     $drvLetter = $DataJson
                     $filterString = "DriveLetter='${drvLetter}:'"
                     $volume = Get-CimInstance -ClassName Win32_Volume -Filter $filterString -ErrorAction Stop
 
                     if (-not $volume) {
                         $resultList.Add(@{
-                            ShadowCopyId = ''
-                            DriveLetter  = $drvLetter
-                            Removed      = $false
-                            ErrorMessage = "Volume not found: ${drvLetter}:"
-                        })
+                                ShadowCopyId = ''
+                                DriveLetter  = $drvLetter
+                                Removed      = $false
+                                ErrorMessage = "Volume not found: ${drvLetter}:"
+                            })
                         return $resultList.ToArray()
                     }
 
@@ -169,11 +167,11 @@ function Remove-ShadowCopy {
 
                     if (-not $shadows) {
                         $resultList.Add(@{
-                            ShadowCopyId = ''
-                            DriveLetter  = $drvLetter
-                            Removed      = $false
-                            ErrorMessage = 'No matching shadow copies found'
-                        })
+                                ShadowCopyId = ''
+                                DriveLetter  = $drvLetter
+                                Removed      = $false
+                                ErrorMessage = 'No matching shadow copies found'
+                            })
                         return $resultList.ToArray()
                     }
 
@@ -188,22 +186,20 @@ function Remove-ShadowCopy {
                         try {
                             $shadow | Remove-CimInstance -ErrorAction Stop
                             $entry['Removed'] = $true
-                        }
-                        catch {
+                        } catch {
                             $entry['ErrorMessage'] = $_.ToString()
                         }
 
                         $resultList.Add($entry)
                     }
                 }
-            }
-            catch {
+            } catch {
                 $resultList.Add(@{
-                    ShadowCopyId = ''
-                    DriveLetter  = ''
-                    Removed      = $false
-                    ErrorMessage = $_.ToString()
-                })
+                        ShadowCopyId = ''
+                        DriveLetter  = ''
+                        Removed      = $false
+                        ErrorMessage = $_.ToString()
+                    })
             }
 
             return $resultList.ToArray()
@@ -221,7 +217,9 @@ function Remove-ShadowCopy {
                         }
                     }
 
-                    if ($confirmedIds.Count -eq 0) { continue }
+                    if ($confirmedIds.Count -eq 0) {
+                        continue 
+                    }
 
                     try {
                         $idsJson = $confirmedIds.ToArray() | ConvertTo-Json -Compress
@@ -245,14 +243,17 @@ function Remove-ShadowCopy {
                                 PSTypeName   = 'PSWinOps.ShadowCopyRemoveResult'
                                 ComputerName = $machine
                                 ShadowCopyId = $entry.ShadowCopyId
-                                DriveLetter  = if ($entry.DriveLetter) { $entry.DriveLetter.ToUpper() } else { '' }
+                                DriveLetter  = if ($entry.DriveLetter) {
+                                    $entry.DriveLetter.ToUpper() 
+                                } else {
+                                    '' 
+                                }
                                 Removed      = $entry.Removed
                                 ErrorMessage = $entry.ErrorMessage
                                 Timestamp    = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                             }
                         }
-                    }
-                    catch {
+                    } catch {
                         Write-Error -Message "[$($MyInvocation.MyCommand)] Failed on '${machine}': $_"
 
                         foreach ($shadowId in $confirmedIds) {
@@ -271,13 +272,19 @@ function Remove-ShadowCopy {
 
                 'ByDrive' {
                     $driveUpper = $DriveLetter.ToUpper()
-                    $ageFilter = if ($PSBoundParameters.ContainsKey('OlderThanDays')) { $OlderThanDays } else { 0 }
+                    $ageFilter = if ($PSBoundParameters.ContainsKey('OlderThanDays')) {
+                        $OlderThanDays 
+                    } else {
+                        0 
+                    }
                     $shouldProcessMsg = "Remove shadow copies for volume ${driveUpper}:"
                     if ($ageFilter -gt 0) {
                         $shouldProcessMsg = "${shouldProcessMsg} older than ${ageFilter} days"
                     }
 
-                    if (-not $PSCmdlet.ShouldProcess($machine, $shouldProcessMsg)) { continue }
+                    if (-not $PSCmdlet.ShouldProcess($machine, $shouldProcessMsg)) {
+                        continue 
+                    }
 
                     try {
                         $invokeParams = @{
@@ -296,14 +303,17 @@ function Remove-ShadowCopy {
                                 PSTypeName   = 'PSWinOps.ShadowCopyRemoveResult'
                                 ComputerName = $machine
                                 ShadowCopyId = $entry.ShadowCopyId
-                                DriveLetter  = if ($entry.DriveLetter) { $entry.DriveLetter.ToUpper() } else { $driveUpper }
+                                DriveLetter  = if ($entry.DriveLetter) {
+                                    $entry.DriveLetter.ToUpper() 
+                                } else {
+                                    $driveUpper 
+                                }
                                 Removed      = $entry.Removed
                                 ErrorMessage = $entry.ErrorMessage
                                 Timestamp    = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                             }
                         }
-                    }
-                    catch {
+                    } catch {
                         Write-Error -Message "[$($MyInvocation.MyCommand)] Failed on '${machine}': $_"
 
                         [PSCustomObject]@{

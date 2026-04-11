@@ -34,7 +34,11 @@ Describe 'Get-DiskSpace' {
                 return $script:mockDisk
             }
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
-                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+                if ($ArgumentList) {
+                    & $ScriptBlock @ArgumentList 
+                } else {
+                    & $ScriptBlock 
+                }
             }
             $script:result = Get-DiskSpace
         }
@@ -74,7 +78,11 @@ Describe 'Get-DiskSpace' {
                 return $script:mockDiskCritical
             }
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
-                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+                if ($ArgumentList) {
+                    & $ScriptBlock @ArgumentList 
+                } else {
+                    & $ScriptBlock 
+                }
             }
             $script:result = Get-DiskSpace
         }
@@ -99,7 +107,11 @@ Describe 'Get-DiskSpace' {
                 return $script:mockDiskWarning
             }
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
-                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+                if ($ArgumentList) {
+                    & $ScriptBlock @ArgumentList 
+                } else {
+                    & $ScriptBlock 
+                }
             }
             $script:result = Get-DiskSpace
         }
@@ -116,7 +128,11 @@ Describe 'Get-DiskSpace' {
                 return $script:mockDisk
             }
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
-                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+                if ($ArgumentList) {
+                    & $ScriptBlock @ArgumentList 
+                } else {
+                    & $ScriptBlock 
+                }
             }
             $script:result = Get-DiskSpace -WarningThreshold 40 -CriticalThreshold 20
         }
@@ -133,7 +149,11 @@ Describe 'Get-DiskSpace' {
                 return $script:mockDisk
             }
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
-                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+                if ($ArgumentList) {
+                    & $ScriptBlock @ArgumentList 
+                } else {
+                    & $ScriptBlock 
+                }
             }
             $script:result = Get-DiskSpace -ComputerName 'SRV01'
         }
@@ -156,7 +176,11 @@ Describe 'Get-DiskSpace' {
                 return $script:mockDisk
             }
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
-                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+                if ($ArgumentList) {
+                    & $ScriptBlock @ArgumentList 
+                } else {
+                    & $ScriptBlock 
+                }
             }
             $script:results = 'SRV01', 'SRV02' | Get-DiskSpace
         }

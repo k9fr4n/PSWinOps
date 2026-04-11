@@ -283,7 +283,22 @@ function Get-DiskCleanupInfo {
             try {
                 Write-Verbose -Message "[$($MyInvocation.MyCommand)] Scanning '$machine'"
 
-                $rawResults = @(Invoke-RemoteOrLocal -ComputerName $machine -ScriptBlock $scanBlock -ArgumentList @(, $resolvedCategories), $OlderThanDays -Credential $Credential)
+                # Build ArgumentList explicitly to prevent array flattening
+                # when $resolvedCategories contains multiple elements
+                $scanArgs = [object[]]::new(2)
+                $scanArgs[0] = [string[]]$resolvedCategories
+                $scanArgs[1] = [int]$OlderThanDays
+
+                $invokeParams = @{
+                    ComputerName = $machine
+                    ScriptBlock  = $scanBlock
+                    ArgumentList = $scanArgs
+                }
+                if ($PSBoundParameters.ContainsKey('Credential')) {
+                    $invokeParams['Credential'] = $Credential
+                }
+
+                $rawResults = @(Invoke-RemoteOrLocal @invokeParams)
 
                 foreach ($raw in $rawResults) {
                     [PSCustomObject]@{

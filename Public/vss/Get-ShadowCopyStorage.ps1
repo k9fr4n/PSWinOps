@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 function Get-ShadowCopyStorage {
     <#
         .SYNOPSIS
@@ -75,41 +75,65 @@ function Get-ShadowCopyStorage {
 
         $unboundedThreshold = 1PB
 
-        $driveLetterArg = if ($PSBoundParameters.ContainsKey('DriveLetter')) { $DriveLetter } else { '' }
+        $driveLetterArg = if ($PSBoundParameters.ContainsKey('DriveLetter')) {
+            $DriveLetter 
+        } else {
+            '' 
+        }
 
         $scriptBlock = {
             param([string]$FilterDriveLetter)
 
             $volumeIndex = @{}
             foreach ($vol in (Get-CimInstance -ClassName Win32_Volume -ErrorAction SilentlyContinue)) {
-                if ($vol.DeviceID -and $vol.DriveLetter) {
-                    $volumeIndex[$vol.DeviceID] = $vol.DriveLetter.TrimEnd(':')
+                if ($vol.DeviceID) {
+                    $normalizedId = $vol.DeviceID.TrimEnd('\').ToLower()
+                    if ($vol.DriveLetter) {
+                        $volumeIndex[$normalizedId] = $vol.DriveLetter.TrimEnd(':')
+                    } elseif ($vol.Label) {
+                        $shortLabel = if ($vol.Label.Length -gt 8) {
+                            $vol.Label.Substring(0, 8) 
+                        } else {
+                            $vol.Label 
+                        }
+                        $volumeIndex[$normalizedId] = "[$shortLabel]"
+                    } elseif ($vol.DeviceID -match '\{([^}]+)\}') {
+                        $volumeIndex[$normalizedId] = $Matches[1].Substring(0, 8)
+                    }
                 }
             }
 
             $shadowCountIndex = @{}
             foreach ($shadow in (Get-CimInstance -ClassName Win32_ShadowCopy -ErrorAction SilentlyContinue)) {
-                if ($shadowCountIndex.ContainsKey($shadow.VolumeName)) {
-                    $shadowCountIndex[$shadow.VolumeName] += 1
-                }
-                else {
-                    $shadowCountIndex[$shadow.VolumeName] = 1
+                $normalizedVol = $shadow.VolumeName.TrimEnd('\').ToLower()
+                if ($shadowCountIndex.ContainsKey($normalizedVol)) {
+                    $shadowCountIndex[$normalizedVol] += 1
+                } else {
+                    $shadowCountIndex[$normalizedVol] = 1
                 }
             }
 
             $storageEntries = Get-CimInstance -ClassName Win32_ShadowStorage -ErrorAction Stop
 
             foreach ($storage in $storageEntries) {
-                $volumeRef = $storage.Volume.ToString()
                 $deviceId = ''
-                if ($volumeRef -match 'DeviceID="([^"]+)"') {
-                    $deviceId = $Matches[1] -replace '\\\\', '\'
+                $volumeObj = $storage.Volume
+                if ($volumeObj -is [Microsoft.Management.Infrastructure.CimInstance] -and $volumeObj.DeviceID) {
+                    $deviceId = $volumeObj.DeviceID.TrimEnd('\').ToLower()
+                } else {
+                    $volumeRef = $volumeObj.ToString()
+                    # CIM reference format varies: DeviceID="..." or DeviceID = "..."
+                    if ($volumeRef -match 'DeviceID\s*=\s*"([^"]+)"') {
+                        $deviceId = ($Matches[1] -replace '\\\\', '\').TrimEnd('\').ToLower()
+                    } elseif ($volumeRef -match '\{([0-9a-fA-F-]+)\}') {
+                        # Fallback: extract GUID from reference string
+                        $deviceId = "\\?\volume{$($Matches[1])}"
+                    }
                 }
 
                 $resolvedDrive = if ($deviceId -ne '' -and $volumeIndex.ContainsKey($deviceId)) {
                     $volumeIndex[$deviceId]
-                }
-                else {
+                } else {
                     '?'
                 }
 
@@ -119,9 +143,17 @@ function Get-ShadowCopyStorage {
 
                 $snapshotCount = if ($deviceId -ne '' -and $shadowCountIndex.ContainsKey($deviceId)) {
                     $shadowCountIndex[$deviceId]
-                }
-                else {
+                } else {
                     0
+                }
+
+                # MaxSpace can be UInt64.MaxValue (18446744073709551615) when unbounded
+                # which overflows [long]/Int64. Detect and normalise to -1.
+                $maxSpaceRaw = $storage.MaxSpace
+                $maxSpaceLong = if ($maxSpaceRaw -is [UInt64] -and $maxSpaceRaw -gt [long]::MaxValue) {
+                    [long]-1
+                } else {
+                    [long]$maxSpaceRaw
                 }
 
                 [PSCustomObject]@{
@@ -129,7 +161,7 @@ function Get-ShadowCopyStorage {
                     DeviceID       = $deviceId
                     UsedSpace      = [long]$storage.UsedSpace
                     AllocatedSpace = [long]$storage.AllocatedSpace
-                    MaxSpace       = [long]$storage.MaxSpace
+                    MaxSpace       = $maxSpaceLong
                     SnapshotCount  = [int]$snapshotCount
                 }
             }
@@ -153,13 +185,16 @@ function Get-ShadowCopyStorage {
                 $raw = Invoke-RemoteOrLocal @invokeParams
 
                 foreach ($item in $raw) {
-                    $isUnbounded = ($item.MaxSpace -lt 0) -or ($item.MaxSpace -gt $unboundedThreshold)
+                    $isUnbounded = ($item.MaxSpace -eq -1) -or ($item.MaxSpace -lt 0) -or ($item.MaxSpace -gt $unboundedThreshold)
 
-                    $maxSpaceMB = if ($isUnbounded) { 'Unbounded' } else { [math]::Round($item.MaxSpace / 1MB, 2) }
+                    $maxSpaceMB = if ($isUnbounded) {
+                        'Unbounded' 
+                    } else {
+                        [math]::Round($item.MaxSpace / 1MB, 2) 
+                    }
                     $usedPercent = if ($isUnbounded -or $item.MaxSpace -eq 0) {
                         0
-                    }
-                    else {
+                    } else {
                         [math]::Round(($item.UsedSpace / $item.MaxSpace) * 100, 1)
                     }
 
@@ -176,8 +211,7 @@ function Get-ShadowCopyStorage {
                         Timestamp        = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                     }
                 }
-            }
-            catch {
+            } catch {
                 Write-Error -Message "[$($MyInvocation.MyCommand)] Failed on '${machine}': $_"
                 continue
             }

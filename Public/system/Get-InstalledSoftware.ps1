@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 function Get-InstalledSoftware {
     <#
         .SYNOPSIS
@@ -93,19 +93,18 @@ function Get-InstalledSoftware {
                     foreach ($entry in $entries) {
                         if (-not [string]::IsNullOrWhiteSpace($entry.DisplayName)) {
                             $softwareList.Add([PSCustomObject]@{
-                                DisplayName     = $entry.DisplayName
-                                DisplayVersion  = $entry.DisplayVersion
-                                Publisher        = $entry.Publisher
-                                InstallDate     = $entry.InstallDate
-                                InstallLocation = $entry.InstallLocation
-                                UninstallString = $entry.UninstallString
-                                EstimatedSize   = $entry.EstimatedSize
-                                Architecture    = $archKey.Key
-                            })
+                                    DisplayName     = $entry.DisplayName
+                                    DisplayVersion  = $entry.DisplayVersion
+                                    Publisher       = $entry.Publisher
+                                    InstallDate     = $entry.InstallDate
+                                    InstallLocation = $entry.InstallLocation
+                                    UninstallString = $entry.UninstallString
+                                    EstimatedSize   = $entry.EstimatedSize
+                                    Architecture    = $archKey.Key
+                                })
                         }
                     }
-                }
-                catch {
+                } catch {
                     Write-Warning "Failed to read registry path $($archKey.Value): $_"
                 }
             }
@@ -135,8 +134,7 @@ function Get-InstalledSoftware {
                                 'yyyyMMdd',
                                 [System.Globalization.CultureInfo]::InvariantCulture
                             )
-                        }
-                        catch {
+                        } catch {
                             Write-Verbose "[$($MyInvocation.MyCommand)] Could not parse InstallDate '$($entry.InstallDate)' for '$($entry.DisplayName)'"
                         }
                     }
@@ -147,23 +145,22 @@ function Get-InstalledSoftware {
                     }
 
                     $resultList.Add([PSCustomObject]@{
-                        PSTypeName      = 'PSWinOps.InstalledSoftware'
-                        ComputerName    = $computer
-                        DisplayName     = $entry.DisplayName
-                        DisplayVersion  = $entry.DisplayVersion
-                        Publisher        = $entry.Publisher
-                        InstallDate     = $installDate
-                        InstallLocation = $entry.InstallLocation
-                        UninstallString = $entry.UninstallString
-                        Architecture    = $entry.Architecture
-                        EstimatedSizeMB = $estimatedSizeMB
-                        Timestamp       = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
-                    })
+                            PSTypeName      = 'PSWinOps.InstalledSoftware'
+                            ComputerName    = $computer
+                            DisplayName     = $entry.DisplayName
+                            DisplayVersion  = $entry.DisplayVersion
+                            Publisher       = $entry.Publisher
+                            InstallDate     = $installDate
+                            InstallLocation = $entry.InstallLocation
+                            UninstallString = $entry.UninstallString
+                            Architecture    = $entry.Architecture
+                            EstimatedSizeMB = $estimatedSizeMB
+                            Timestamp       = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
+                        })
                 }
 
                 $resultList | Sort-Object -Property DisplayName
-            }
-            catch {
+            } catch {
                 Write-Error "[$($MyInvocation.MyCommand)] Failed to query software on ${computer}: $_"
                 continue
             }

@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 function Get-ScheduledTaskDetail {
     <#
         .SYNOPSIS
@@ -120,9 +120,21 @@ function Get-ScheduledTaskDetail {
                     TaskName       = $task.TaskName
                     TaskPath       = $task.TaskPath
                     State          = $task.State.ToString()
-                    LastRunTime    = if ($runInfo) { $runInfo.LastRunTime } else { $null }
-                    LastTaskResult = if ($runInfo) { $runInfo.LastTaskResult } else { $null }
-                    NextRunTime    = if ($runInfo) { $runInfo.NextRunTime } else { $null }
+                    LastRunTime    = if ($runInfo) {
+                        $runInfo.LastRunTime 
+                    } else {
+                        $null 
+                    }
+                    LastTaskResult = if ($runInfo) {
+                        $runInfo.LastTaskResult 
+                    } else {
+                        $null 
+                    }
+                    NextRunTime    = if ($runInfo) {
+                        $runInfo.NextRunTime 
+                    } else {
+                        $null 
+                    }
                     Author         = $task.Author
                     Description    = $task.Description
                 }
@@ -136,8 +148,16 @@ function Get-ScheduledTaskDetail {
                 Write-Verbose -Message "[$($MyInvocation.MyCommand)] Querying scheduled tasks on '$machine'"
 
                 $argList = @(
-                    $(if ($PSBoundParameters.ContainsKey('TaskPath')) { $TaskPath } else { $null }),
-                    $(if ($PSBoundParameters.ContainsKey('TaskName')) { $TaskName } else { $null }),
+                    $(if ($PSBoundParameters.ContainsKey('TaskPath')) {
+                            $TaskPath 
+                        } else {
+                            $null 
+                        }),
+                    $(if ($PSBoundParameters.ContainsKey('TaskName')) {
+                            $TaskName 
+                        } else {
+                            $null 
+                        }),
                     $IncludeMicrosoftTasks.IsPresent
                 )
 
@@ -168,8 +188,7 @@ function Get-ScheduledTaskDetail {
                         Timestamp         = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                     }
                 }
-            }
-            catch {
+            } catch {
                 Write-Error -Message "[$($MyInvocation.MyCommand)] Failed on '${machine}': $_"
                 continue
             }

@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 function Restore-ShadowCopyFile {
     <#
         .SYNOPSIS
@@ -145,8 +145,7 @@ function Restore-ShadowCopyFile {
                 $copiedFile = Get-Item -LiteralPath $destPath -ErrorAction Stop
                 $resultHash.SizeBytes = $copiedFile.Length
                 $resultHash.Restored = $true
-            }
-            catch {
+            } catch {
                 $resultHash.ErrorMessage = $_.Exception.Message
                 $resultHash.Restored = $false
             }
@@ -192,8 +191,7 @@ function Restore-ShadowCopyFile {
                     ErrorMessage    = $raw.ErrorMessage
                     Timestamp       = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                 }
-            }
-            catch {
+            } catch {
                 Write-Error -Message "[$($MyInvocation.MyCommand)] Failed on '${machine}': $_"
 
                 [PSCustomObject]@{

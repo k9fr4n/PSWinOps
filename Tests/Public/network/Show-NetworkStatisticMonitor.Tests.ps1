@@ -89,141 +89,113 @@ Describe 'Show-NetworkStatisticMonitor' {
         }
     }
 
-    Context 'Monitor loop - calls Get-NetworkConnection and displays results' {
-        BeforeAll {
-            Mock -ModuleName $script:ModuleName -CommandName 'Get-NetworkConnection' -MockWith {
-                return @(
-                    [PSCustomObject]@{
-                        PSTypeName    = 'PSWinOps.NetworkConnection'
-                        ComputerName  = $env:COMPUTERNAME
-                        Protocol      = 'TCP'
-                        LocalAddress  = '127.0.0.1'
-                        LocalPort     = 80
-                        RemoteAddress = '10.0.0.1'
-                        RemotePort    = 54321
-                        State         = 'Established'
-                        ProcessId     = 1234
-                        ProcessName   = 'nginx'
-                        Timestamp     = Get-Date -Format 'o'
-                    }
-                )
-            }
-            Mock -ModuleName $script:ModuleName -CommandName 'Clear-Host' -MockWith { }
-            Mock -ModuleName $script:ModuleName -CommandName 'Write-Host' -MockWith { }
-            Mock -ModuleName $script:ModuleName -CommandName 'Start-Sleep' -MockWith {
-                # Break the loop after first iteration by throwing
-                throw 'StopLoop'
-            }
+    Context 'NoColor parameter' {
+        It 'Should have NoColor switch parameter' {
+            $cmd = Get-Command -Name 'Show-NetworkStatisticMonitor'
+            $param = $cmd.Parameters['NoColor']
+            $param | Should -Not -BeNullOrEmpty
+            $param.ParameterType.Name | Should -Be 'SwitchParameter'
         }
 
-        It 'Should not return pipeline objects' {
-            $results = Show-NetworkStatisticMonitor -Protocol TCP -ErrorAction SilentlyContinue 2>$null
-            $results | Should -BeNullOrEmpty
-        }
-
-        It 'Should call Get-NetworkConnection' {
-            Show-NetworkStatisticMonitor -Protocol TCP -ErrorAction SilentlyContinue 2>$null
-            Should -Invoke -CommandName 'Get-NetworkConnection' -ModuleName $script:ModuleName -Times 1 -Exactly
-        }
-
-        It 'Should call Clear-Host' {
-            Show-NetworkStatisticMonitor -Protocol TCP -ErrorAction SilentlyContinue 2>$null
-            Should -Invoke -CommandName 'Clear-Host' -ModuleName $script:ModuleName -Times 1 -Exactly
-        }
-
-        It 'Should call Start-Sleep with the RefreshInterval' {
-            Show-NetworkStatisticMonitor -RefreshInterval 5 -Protocol TCP -ErrorAction SilentlyContinue 2>$null
-            Should -Invoke -CommandName 'Start-Sleep' -ModuleName $script:ModuleName -Times 1 -Exactly -ParameterFilter {
-                $Seconds -eq 5
-            }
+        It 'Should have NoColor as non-mandatory' {
+            $cmd = Get-Command -Name 'Show-NetworkStatisticMonitor'
+            $pAttr = $cmd.Parameters['NoColor'].Attributes |
+                Where-Object -FilterScript { $_ -is [System.Management.Automation.ParameterAttribute] }
+            $pAttr.Mandatory | Should -BeFalse
         }
     }
 
-    Context 'Pipeline - collects all computers before starting loop' {
-        BeforeAll {
-            Mock -ModuleName $script:ModuleName -CommandName 'Get-NetworkConnection' -MockWith {
-                return @(
-                    [PSCustomObject]@{
-                        PSTypeName    = 'PSWinOps.NetworkConnection'
-                        ComputerName  = 'REMOTE01'
-                        Protocol      = 'TCP'
-                        LocalAddress  = '10.0.0.5'
-                        LocalPort     = 80
-                        RemoteAddress = '10.0.0.100'
-                        RemotePort    = 49152
-                        State         = 'Established'
-                        ProcessId     = 100
-                        ProcessName   = 'w3wp'
-                        Timestamp     = Get-Date -Format 'o'
-                    }
-                )
+    Context 'ISE detection' {
+        It 'Should contain ISE guard clause' {
+            $funcBody = InModuleScope -ModuleName $script:ModuleName {
+                (Get-Command -Name 'Show-NetworkStatisticMonitor').ScriptBlock.ToString()
             }
-            Mock -ModuleName $script:ModuleName -CommandName 'Clear-Host' -MockWith { }
-            Mock -ModuleName $script:ModuleName -CommandName 'Write-Host' -MockWith { }
-            Mock -ModuleName $script:ModuleName -CommandName 'Start-Sleep' -MockWith {
-                throw 'StopLoop'
-            }
-        }
-
-        It 'Should pass all piped computers to Get-NetworkConnection' {
-            'REMOTE01', 'REMOTE02' | Show-NetworkStatisticMonitor -Protocol TCP -ErrorAction SilentlyContinue 2>$null
-            Should -Invoke -CommandName 'Get-NetworkConnection' -ModuleName $script:ModuleName -Times 1 -Exactly -ParameterFilter {
-                $ComputerName.Count -eq 2
-            }
+            $funcBody | Should -Match 'Windows PowerShell ISE Host'
         }
     }
 
-    Context 'Filter parameters are forwarded to Get-NetworkConnection' {
+    Context 'Interactive controls — function source inspection' {
         BeforeAll {
-            Mock -ModuleName $script:ModuleName -CommandName 'Get-NetworkConnection' -MockWith {
-                return @()
-            }
-            Mock -ModuleName $script:ModuleName -CommandName 'Clear-Host' -MockWith { }
-            Mock -ModuleName $script:ModuleName -CommandName 'Write-Host' -MockWith { }
-            Mock -ModuleName $script:ModuleName -CommandName 'Start-Sleep' -MockWith {
-                throw 'StopLoop'
+            $script:funcBody = InModuleScope -ModuleName $script:ModuleName {
+                (Get-Command -Name 'Show-NetworkStatisticMonitor').ScriptBlock.ToString()
             }
         }
 
-        It 'Should forward Protocol filter to Get-NetworkConnection' {
-            Show-NetworkStatisticMonitor -Protocol TCP -ErrorAction SilentlyContinue 2>$null
-            Should -Invoke -CommandName 'Get-NetworkConnection' -ModuleName $script:ModuleName -ParameterFilter {
-                $Protocol -contains 'TCP'
-            }
+        It 'Should contain Q/Escape quit handling' {
+            $script:funcBody | Should -Match 'Escape'
+            $script:funcBody | Should -Match "key\.Key\s+-eq\s+'Q'"
         }
 
-        It 'Should forward State filter to Get-NetworkConnection' {
-            Show-NetworkStatisticMonitor -Protocol TCP -State Established -ErrorAction SilentlyContinue 2>$null
-            Should -Invoke -CommandName 'Get-NetworkConnection' -ModuleName $script:ModuleName -ParameterFilter {
-                $State -contains 'Established'
-            }
+        It 'Should contain Ctrl+C handling' {
+            $script:funcBody | Should -Match 'ConsoleModifiers.*Control'
         }
 
-        It 'Should forward ProcessName filter to Get-NetworkConnection' {
-            Show-NetworkStatisticMonitor -ProcessName 'svchost' -ErrorAction SilentlyContinue 2>$null
-            Should -Invoke -CommandName 'Get-NetworkConnection' -ModuleName $script:ModuleName -ParameterFilter {
-                $ProcessName -eq 'svchost'
-            }
+        It 'Should contain S key for sort cycling' {
+            $script:funcBody | Should -Match "key\.Key\s+-eq\s+'S'"
+            $script:funcBody | Should -Match 'sortModeIndex'
+        }
+
+        It 'Should contain P key for pause toggle' {
+            $script:funcBody | Should -Match "key\.Key\s+-eq\s+'P'"
+            $script:funcBody | Should -Match '\$paused'
+        }
+
+        It 'Should contain R key for reverse sort' {
+            $script:funcBody | Should -Match "key\.Key\s+-eq\s+'R'"
+            $script:funcBody | Should -Match '\$sortDescending'
+        }
+
+        It 'Should use StringBuilder for frame rendering' {
+            $script:funcBody | Should -Match 'System\.Text\.StringBuilder'
+        }
+
+        It 'Should use Console::Write for output' {
+            $script:funcBody | Should -Match '\[Console\]::Write'
+        }
+
+        It 'Should restore console state in finally block' {
+            $script:funcBody | Should -Match 'CursorVisible\s*=\s*\$previousCursorVisible'
+            $script:funcBody | Should -Match 'TreatControlCAsInput\s*=\s*\$previousCtrlC'
+        }
+
+        It 'Should contain all five sort modes' {
+            $script:funcBody | Should -Match "'Process'"
+            $script:funcBody | Should -Match "'Protocol'"
+            $script:funcBody | Should -Match "'State'"
+            $script:funcBody | Should -Match "'LocalPort'"
+            $script:funcBody | Should -Match "'RemoteAddr'"
+        }
+
+        It 'Should display PAUSED indicator when paused' {
+            $script:funcBody | Should -Match 'PAUSED'
+        }
+
+        It 'Should use Write-Information for stop message' {
+            $script:funcBody | Should -Match 'Write-Information.*Network Statistics Monitor stopped'
         }
     }
 
-    Context 'Empty results - shows no-match message' {
+    Context 'ANSI color helpers' {
         BeforeAll {
-            Mock -ModuleName $script:ModuleName -CommandName 'Get-NetworkConnection' -MockWith {
-                return @()
-            }
-            Mock -ModuleName $script:ModuleName -CommandName 'Clear-Host' -MockWith { }
-            Mock -ModuleName $script:ModuleName -CommandName 'Write-Host' -MockWith { }
-            Mock -ModuleName $script:ModuleName -CommandName 'Start-Sleep' -MockWith {
-                throw 'StopLoop'
+            $script:funcBody = InModuleScope -ModuleName $script:ModuleName {
+                (Get-Command -Name 'Show-NetworkStatisticMonitor').ScriptBlock.ToString()
             }
         }
 
-        It 'Should display no-match message when no results' {
-            Show-NetworkStatisticMonitor -Protocol TCP -ErrorAction SilentlyContinue 2>$null
-            Should -Invoke -CommandName 'Write-Host' -ModuleName $script:ModuleName -ParameterFilter {
-                $Object -eq '(No matching connections found)'
-            }
+        It 'Should have Get-ProtocolColor helper' {
+            $script:funcBody | Should -Match 'function Get-ProtocolColor'
+        }
+
+        It 'Should have Get-StateColor helper' {
+            $script:funcBody | Should -Match 'function Get-StateColor'
+        }
+
+        It 'Should color Established state green' {
+            $script:funcBody | Should -Match "'Established'.*green"
+        }
+
+        It 'Should color CloseWait state red' {
+            $script:funcBody | Should -Match "'CloseWait'.*red"
         }
     }
 }

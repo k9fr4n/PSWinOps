@@ -10,12 +10,18 @@ function Get-ADPasswordStatus {
         password age, expiry date, applied password policy (Fine-Grained Password Policy or
         Default Domain Policy), and problem flags. By default all enabled accounts are returned.
         Use the -ProblemsOnly switch to filter to accounts with password concerns only
-        (expired, never expires, or must change at next logon).
+        (expired, never expires, or must change at next logon). Use the -ExpiredOnly
+        switch to return only accounts whose password has actually expired.
 
     .PARAMETER ProblemsOnly
         When specified, returns only accounts with at least one password concern:
         expired password, password set to never expire, or must change at next logon.
-        By default all enabled accounts are returned.
+        By default all enabled accounts are returned. Cannot be used with -ExpiredOnly.
+
+    .PARAMETER ExpiredOnly
+        When specified, returns only accounts whose password has actually expired
+        (PasswordExpired -eq $true). This is more restrictive than -ProblemsOnly.
+        Cannot be used with -ProblemsOnly.
 
     .PARAMETER SearchBase
         The distinguished name of the OU to search within. If omitted, searches the entire domain.
@@ -37,6 +43,11 @@ function Get-ADPasswordStatus {
         Returns only accounts with password concerns from a specific domain controller.
 
     .EXAMPLE
+        Get-ADPasswordStatus -ExpiredOnly
+
+        Returns only accounts whose password has actually expired.
+
+    .EXAMPLE
         Get-ADPasswordStatus -SearchBase 'OU=Users,DC=contoso,DC=com' | Where-Object DaysUntilExpiry -lt 14
 
         Returns accounts in a specific OU whose passwords expire within 14 days.
@@ -48,8 +59,8 @@ function Get-ADPasswordStatus {
 
     .NOTES
         Author: Franck SALLET
-        Version: 2.0.0
-        Last Modified: 2026-04-04
+        Version: 2.1.0
+        Last Modified: 2026-04-11
         Requires: PowerShell 5.1+ / Windows only
         Requires: ActiveDirectory module (RSAT)
 
@@ -69,6 +80,9 @@ function Get-ADPasswordStatus {
         [switch]$ProblemsOnly,
 
         [Parameter()]
+        [switch]$ExpiredOnly,
+
+        [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]$SearchBase,
 
@@ -83,6 +97,17 @@ function Get-ADPasswordStatus {
 
     begin {
         Write-Verbose -Message "[$($MyInvocation.MyCommand)] Starting"
+
+        if ($ProblemsOnly -and $ExpiredOnly) {
+            $PSCmdlet.ThrowTerminatingError(
+                [System.Management.Automation.ErrorRecord]::new(
+                    [System.ArgumentException]::new('-ProblemsOnly and -ExpiredOnly cannot be used together.'),
+                    'MutuallyExclusiveSwitches',
+                    [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                    $null
+                )
+            )
+        }
 
         try {
             Import-Module -Name 'ActiveDirectory' -ErrorAction Stop -Verbose:$false
@@ -171,7 +196,12 @@ function Get-ADPasswordStatus {
             $neverExpires = $user.PasswordNeverExpires
             $mustChange = ($null -eq $user.PasswordLastSet)
 
-            if ($ProblemsOnly) {
+            if ($ExpiredOnly) {
+                if (-not $isExpired) {
+                    continue
+                }
+            }
+            elseif ($ProblemsOnly) {
                 if (-not ($isExpired -or $neverExpires -or $mustChange)) {
                     continue
                 }

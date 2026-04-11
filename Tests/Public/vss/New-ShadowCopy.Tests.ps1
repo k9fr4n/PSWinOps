@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 #Requires -Modules @{ ModuleName = 'Pester'; ModuleVersion = '5.0' }
 
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute(
@@ -147,7 +147,7 @@ Describe 'New-ShadowCopy' {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
                 @{
                     ReturnValue = [uint32]99; ShadowId = ''
-                    VolumePath  = '\\?\Volume{abc123}\'
+                    VolumePath = '\\?\Volume{abc123}\'
                     ErrorDetail = 'Unexpected CIM error occurred'
                 }
             }

@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 function Get-EnvironmentVariable {
     <#
         .SYNOPSIS
@@ -100,29 +100,33 @@ function Get-EnvironmentVariable {
 
             $scopesToQuery = if ($RequestedScope -eq 'All') {
                 @('Machine', 'User')
-            }
-            else {
+            } else {
                 @($RequestedScope)
             }
 
             foreach ($scopeName in $scopesToQuery) {
-                if ($scopeName -eq 'Process') { continue }
+                if ($scopeName -eq 'Process') {
+                    continue 
+                }
 
                 $path = $Paths[$scopeName]
-                if (-not $path) { continue }
+                if (-not $path) {
+                    continue 
+                }
 
                 try {
                     $regItem = Get-Item -Path $path -ErrorAction Stop
                     foreach ($valueName in $regItem.GetValueNames()) {
-                        if ([string]::IsNullOrEmpty($valueName)) { continue }
+                        if ([string]::IsNullOrEmpty($valueName)) {
+                            continue 
+                        }
                         $results.Add([PSCustomObject]@{
-                            Name  = $valueName
-                            Value = $regItem.GetValue($valueName, '', 'DoNotExpandEnvironmentNames')
-                            Scope = $scopeName
-                        })
+                                Name  = $valueName
+                                Value = $regItem.GetValue($valueName, '', 'DoNotExpandEnvironmentNames')
+                                Scope = $scopeName
+                            })
                     }
-                }
-                catch {
+                } catch {
                     Write-Warning "Failed to read $scopeName environment: $_"
                 }
             }
@@ -158,10 +162,10 @@ function Get-EnvironmentVariable {
                     $envVars = [Environment]::GetEnvironmentVariables('Process')
                     foreach ($key in $envVars.Keys) {
                         $resultList.Add([PSCustomObject]@{
-                            Name  = $key
-                            Value = $envVars[$key]
-                            Scope = 'Process'
-                        })
+                                Name  = $key
+                                Value = $envVars[$key]
+                                Scope = 'Process'
+                            })
                     }
                 }
 
@@ -182,8 +186,7 @@ function Get-EnvironmentVariable {
                             Timestamp    = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                         }
                     }
-            }
-            catch {
+            } catch {
                 Write-Error -Message "[$($MyInvocation.MyCommand)] Failed on '${machine}': $_"
                 continue
             }

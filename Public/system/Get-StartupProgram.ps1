@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 function Get-StartupProgram {
     <#
         .SYNOPSIS
@@ -70,12 +70,12 @@ function Get-StartupProgram {
         Write-Verbose -Message "[$($MyInvocation.MyCommand)] Starting"
 
         $registrySources = @(
-            @{ Path = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run';                          Scope = 'Machine'; Label = 'HKLM\...\Run' }
-            @{ Path = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce';                      Scope = 'Machine'; Label = 'HKLM\...\RunOnce' }
-            @{ Path = 'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run';              Scope = 'Machine'; Label = 'HKLM\...\WOW6432Node\Run' }
-            @{ Path = 'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\RunOnce';          Scope = 'Machine'; Label = 'HKLM\...\WOW6432Node\RunOnce' }
-            @{ Path = 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run';                          Scope = 'User';    Label = 'HKCU\...\Run' }
-            @{ Path = 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce';                      Scope = 'User';    Label = 'HKCU\...\RunOnce' }
+            @{ Path = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run'; Scope = 'Machine' }
+            @{ Path = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce'; Scope = 'Machine' }
+            @{ Path = 'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run'; Scope = 'Machine' }
+            @{ Path = 'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\RunOnce'; Scope = 'Machine' }
+            @{ Path = 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run'; Scope = 'User' }
+            @{ Path = 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce'; Scope = 'User' }
         )
 
         $scriptBlock = {
@@ -87,22 +87,29 @@ function Get-StartupProgram {
 
             foreach ($source in $Sources) {
                 $regPath = $source.Path
-                if (-not (Test-Path -Path $regPath)) { continue }
+                if (-not (Test-Path -Path $regPath)) {
+                    continue 
+                }
+
+                # Convert PSDrive path to standard registry notation
+                # HKLM:\SOFTWARE\... → HKLM\SOFTWARE\...
+                $displayPath = $regPath -replace ':\\', '\'
 
                 try {
                     $regItem = Get-Item -Path $regPath -ErrorAction Stop
                     foreach ($valueName in $regItem.GetValueNames()) {
-                        if ([string]::IsNullOrEmpty($valueName)) { continue }
+                        if ([string]::IsNullOrEmpty($valueName)) {
+                            continue 
+                        }
                         $results.Add([PSCustomObject]@{
-                            ProgramName = $valueName
-                            Command     = $regItem.GetValue($valueName)
-                            Location    = $source.Label
-                            Scope       = $source.Scope
-                            Source      = 'Registry'
-                        })
+                                ProgramName = $valueName
+                                Command     = $regItem.GetValue($valueName)
+                                Location    = $displayPath
+                                Scope       = $source.Scope
+                                Source      = 'Registry'
+                            })
                     }
-                }
-                catch {
+                } catch {
                     Write-Warning "Failed to read '$regPath': $_"
                 }
             }
@@ -116,21 +123,20 @@ function Get-StartupProgram {
                         $shell = New-Object -ComObject WScript.Shell
                         $lnk = $shell.CreateShortcut($shortcut.FullName)
                         $results.Add([PSCustomObject]@{
-                            ProgramName = [System.IO.Path]::GetFileNameWithoutExtension($shortcut.Name)
-                            Command     = $lnk.TargetPath
-                            Location    = 'Common Startup Folder'
-                            Scope       = 'Machine'
-                            Source      = 'StartupFolder'
-                        })
-                    }
-                    catch {
+                                ProgramName = [System.IO.Path]::GetFileNameWithoutExtension($shortcut.Name)
+                                Command     = $lnk.TargetPath
+                                Location    = 'Common Startup Folder'
+                                Scope       = 'Machine'
+                                Source      = 'StartupFolder'
+                            })
+                    } catch {
                         $results.Add([PSCustomObject]@{
-                            ProgramName = [System.IO.Path]::GetFileNameWithoutExtension($shortcut.Name)
-                            Command     = $shortcut.FullName
-                            Location    = 'Common Startup Folder'
-                            Scope       = 'Machine'
-                            Source      = 'StartupFolder'
-                        })
+                                ProgramName = [System.IO.Path]::GetFileNameWithoutExtension($shortcut.Name)
+                                Command     = $shortcut.FullName
+                                Location    = 'Common Startup Folder'
+                                Scope       = 'Machine'
+                                Source      = 'StartupFolder'
+                            })
                     }
                 }
             }
@@ -144,21 +150,20 @@ function Get-StartupProgram {
                         $shell = New-Object -ComObject WScript.Shell
                         $lnk = $shell.CreateShortcut($shortcut.FullName)
                         $results.Add([PSCustomObject]@{
-                            ProgramName = [System.IO.Path]::GetFileNameWithoutExtension($shortcut.Name)
-                            Command     = $lnk.TargetPath
-                            Location    = 'User Startup Folder'
-                            Scope       = 'User'
-                            Source      = 'StartupFolder'
-                        })
-                    }
-                    catch {
+                                ProgramName = [System.IO.Path]::GetFileNameWithoutExtension($shortcut.Name)
+                                Command     = $lnk.TargetPath
+                                Location    = 'User Startup Folder'
+                                Scope       = 'User'
+                                Source      = 'StartupFolder'
+                            })
+                    } catch {
                         $results.Add([PSCustomObject]@{
-                            ProgramName = [System.IO.Path]::GetFileNameWithoutExtension($shortcut.Name)
-                            Command     = $shortcut.FullName
-                            Location    = 'User Startup Folder'
-                            Scope       = 'User'
-                            Source      = 'StartupFolder'
-                        })
+                                ProgramName = [System.IO.Path]::GetFileNameWithoutExtension($shortcut.Name)
+                                Command     = $shortcut.FullName
+                                Location    = 'User Startup Folder'
+                                Scope       = 'User'
+                                Source      = 'StartupFolder'
+                            })
                     }
                 }
             }
@@ -187,8 +192,7 @@ function Get-StartupProgram {
                         Timestamp    = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                     }
                 }
-            }
-            catch {
+            } catch {
                 Write-Error -Message "[$($MyInvocation.MyCommand)] Failed on '${machine}': $_"
                 continue
             }
