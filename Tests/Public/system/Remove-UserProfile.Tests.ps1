@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 #Requires -Modules @{ ModuleName = 'Pester'; ModuleVersion = '5.0' }
 
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute(
@@ -388,8 +388,7 @@ Describe 'Remove-UserProfile' {
                             SizeMB      = [double]150.0
                         }
                     )
-                }
-                else {
+                } else {
                     throw 'Access denied'
                 }
             }

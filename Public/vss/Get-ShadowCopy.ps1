@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 function Get-ShadowCopy {
     <#
         .SYNOPSIS
@@ -92,7 +92,11 @@ function Get-ShadowCopy {
             14 = 'Deleted'
         }
 
-        $driveLetterArg = if ($PSBoundParameters.ContainsKey('DriveLetter')) { $DriveLetter } else { '' }
+        $driveLetterArg = if ($PSBoundParameters.ContainsKey('DriveLetter')) {
+            $DriveLetter 
+        } else {
+            '' 
+        }
 
         $scriptBlock = {
             param([string]$FilterDriveLetter)
@@ -103,12 +107,14 @@ function Get-ShadowCopy {
                     $normalizedId = $vol.DeviceID.TrimEnd('\').ToLower()
                     if ($vol.DriveLetter) {
                         $volumeIndex[$normalizedId] = $vol.DriveLetter.TrimEnd(':')
-                    }
-                    elseif ($vol.Label) {
-                        $shortLabel = if ($vol.Label.Length -gt 8) { $vol.Label.Substring(0, 8) } else { $vol.Label }
+                    } elseif ($vol.Label) {
+                        $shortLabel = if ($vol.Label.Length -gt 8) {
+                            $vol.Label.Substring(0, 8) 
+                        } else {
+                            $vol.Label 
+                        }
                         $volumeIndex[$normalizedId] = "[$shortLabel]"
-                    }
-                    elseif ($vol.DeviceID -match '\{([^}]+)\}') {
+                    } elseif ($vol.DeviceID -match '\{([^}]+)\}') {
                         $volumeIndex[$normalizedId] = $Matches[1].Substring(0, 8)
                     }
                 }
@@ -120,8 +126,7 @@ function Get-ShadowCopy {
                 $targetVolume = Get-CimInstance -ClassName Win32_Volume -Filter $filterExpression -ErrorAction SilentlyContinue
                 if ($targetVolume) {
                     $targetDeviceId = $targetVolume.DeviceID.TrimEnd('\').ToLower()
-                }
-                else {
+                } else {
                     return
                 }
             }
@@ -136,8 +141,7 @@ function Get-ShadowCopy {
                 }
                 $resolvedDrive = if ($volumeIndex.ContainsKey($normalizedVolName)) {
                     $volumeIndex[$normalizedVolName]
-                }
-                else {
+                } else {
                     '?'
                 }
 
@@ -173,8 +177,7 @@ function Get-ShadowCopy {
                 foreach ($item in $raw) {
                     $mappedState = if ($stateMap.ContainsKey([int]$item.StateCode)) {
                         $stateMap[[int]$item.StateCode]
-                    }
-                    else {
+                    } else {
                         'Unknown'
                     }
 
@@ -191,8 +194,7 @@ function Get-ShadowCopy {
                         Timestamp    = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                     }
                 }
-            }
-            catch {
+            } catch {
                 Write-Error -Message "[$($MyInvocation.MyCommand)] Failed on '${machine}': $_"
                 continue
             }

@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 #Requires -Modules @{ ModuleName = 'Pester'; ModuleVersion = '5.0' }
 
 BeforeAll {
@@ -218,9 +218,15 @@ Describe 'Get-StartupProgram' {
                 $mockRegItem | Add-Member -MemberType ScriptMethod -Name 'GetValue' -Value {
                     param($valueName)
                     switch ($valueName) {
-                        'SecurityHealth' { return 'C:\Windows\System32\SecurityHealthSystray.exe' }
-                        'OneDrive' { return 'C:\Users\admin\OneDrive\OneDrive.exe' }
-                        default { return '' }
+                        'SecurityHealth' {
+                            return 'C:\Windows\System32\SecurityHealthSystray.exe' 
+                        }
+                        'OneDrive' {
+                            return 'C:\Users\admin\OneDrive\OneDrive.exe' 
+                        }
+                        default {
+                            return '' 
+                        }
                     }
                 }
                 return $mockRegItem
@@ -264,7 +270,7 @@ Describe 'Get-StartupProgram' {
             Mock -CommandName 'Get-ChildItem' -ModuleName 'PSWinOps' -MockWith {
                 @(
                     [PSCustomObject]@{
-                        Name = 'MyApp.lnk'
+                        Name     = 'MyApp.lnk'
                         FullName = 'C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup\MyApp.lnk'
                     }
                 )
@@ -282,12 +288,12 @@ Describe 'Get-StartupProgram' {
         }
 
         It -Name 'Should return StartupFolder entries from local machine' -Test {
-            $folderEntries = $script:localFolderResults | Where-Object Source -eq 'StartupFolder'
+            $folderEntries = $script:localFolderResults | Where-Object Source -EQ 'StartupFolder'
             $folderEntries | Should -Not -BeNullOrEmpty
         }
 
         It -Name 'Should resolve shortcut target via WScript.Shell' -Test {
-            $folderEntries = $script:localFolderResults | Where-Object Source -eq 'StartupFolder'
+            $folderEntries = $script:localFolderResults | Where-Object Source -EQ 'StartupFolder'
             $folderEntries[0].Command | Should -Be 'C:\MyApp\app.exe'
         }
     }

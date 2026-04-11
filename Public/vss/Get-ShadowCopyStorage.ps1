@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 function Get-ShadowCopyStorage {
     <#
         .SYNOPSIS
@@ -75,7 +75,11 @@ function Get-ShadowCopyStorage {
 
         $unboundedThreshold = 1PB
 
-        $driveLetterArg = if ($PSBoundParameters.ContainsKey('DriveLetter')) { $DriveLetter } else { '' }
+        $driveLetterArg = if ($PSBoundParameters.ContainsKey('DriveLetter')) {
+            $DriveLetter 
+        } else {
+            '' 
+        }
 
         $scriptBlock = {
             param([string]$FilterDriveLetter)
@@ -86,12 +90,14 @@ function Get-ShadowCopyStorage {
                     $normalizedId = $vol.DeviceID.TrimEnd('\').ToLower()
                     if ($vol.DriveLetter) {
                         $volumeIndex[$normalizedId] = $vol.DriveLetter.TrimEnd(':')
-                    }
-                    elseif ($vol.Label) {
-                        $shortLabel = if ($vol.Label.Length -gt 8) { $vol.Label.Substring(0, 8) } else { $vol.Label }
+                    } elseif ($vol.Label) {
+                        $shortLabel = if ($vol.Label.Length -gt 8) {
+                            $vol.Label.Substring(0, 8) 
+                        } else {
+                            $vol.Label 
+                        }
                         $volumeIndex[$normalizedId] = "[$shortLabel]"
-                    }
-                    elseif ($vol.DeviceID -match '\{([^}]+)\}') {
+                    } elseif ($vol.DeviceID -match '\{([^}]+)\}') {
                         $volumeIndex[$normalizedId] = $Matches[1].Substring(0, 8)
                     }
                 }
@@ -102,8 +108,7 @@ function Get-ShadowCopyStorage {
                 $normalizedVol = $shadow.VolumeName.TrimEnd('\').ToLower()
                 if ($shadowCountIndex.ContainsKey($normalizedVol)) {
                     $shadowCountIndex[$normalizedVol] += 1
-                }
-                else {
+                } else {
                     $shadowCountIndex[$normalizedVol] = 1
                 }
             }
@@ -115,14 +120,12 @@ function Get-ShadowCopyStorage {
                 $volumeObj = $storage.Volume
                 if ($volumeObj -is [Microsoft.Management.Infrastructure.CimInstance] -and $volumeObj.DeviceID) {
                     $deviceId = $volumeObj.DeviceID.TrimEnd('\').ToLower()
-                }
-                else {
+                } else {
                     $volumeRef = $volumeObj.ToString()
                     # CIM reference format varies: DeviceID="..." or DeviceID = "..."
                     if ($volumeRef -match 'DeviceID\s*=\s*"([^"]+)"') {
                         $deviceId = ($Matches[1] -replace '\\\\', '\').TrimEnd('\').ToLower()
-                    }
-                    elseif ($volumeRef -match '\{([0-9a-fA-F-]+)\}') {
+                    } elseif ($volumeRef -match '\{([0-9a-fA-F-]+)\}') {
                         # Fallback: extract GUID from reference string
                         $deviceId = "\\?\volume{$($Matches[1])}"
                     }
@@ -130,8 +133,7 @@ function Get-ShadowCopyStorage {
 
                 $resolvedDrive = if ($deviceId -ne '' -and $volumeIndex.ContainsKey($deviceId)) {
                     $volumeIndex[$deviceId]
-                }
-                else {
+                } else {
                     '?'
                 }
 
@@ -141,8 +143,7 @@ function Get-ShadowCopyStorage {
 
                 $snapshotCount = if ($deviceId -ne '' -and $shadowCountIndex.ContainsKey($deviceId)) {
                     $shadowCountIndex[$deviceId]
-                }
-                else {
+                } else {
                     0
                 }
 
@@ -151,8 +152,7 @@ function Get-ShadowCopyStorage {
                 $maxSpaceRaw = $storage.MaxSpace
                 $maxSpaceLong = if ($maxSpaceRaw -is [UInt64] -and $maxSpaceRaw -gt [long]::MaxValue) {
                     [long]-1
-                }
-                else {
+                } else {
                     [long]$maxSpaceRaw
                 }
 
@@ -187,11 +187,14 @@ function Get-ShadowCopyStorage {
                 foreach ($item in $raw) {
                     $isUnbounded = ($item.MaxSpace -eq -1) -or ($item.MaxSpace -lt 0) -or ($item.MaxSpace -gt $unboundedThreshold)
 
-                    $maxSpaceMB = if ($isUnbounded) { 'Unbounded' } else { [math]::Round($item.MaxSpace / 1MB, 2) }
+                    $maxSpaceMB = if ($isUnbounded) {
+                        'Unbounded' 
+                    } else {
+                        [math]::Round($item.MaxSpace / 1MB, 2) 
+                    }
                     $usedPercent = if ($isUnbounded -or $item.MaxSpace -eq 0) {
                         0
-                    }
-                    else {
+                    } else {
                         [math]::Round(($item.UsedSpace / $item.MaxSpace) * 100, 1)
                     }
 
@@ -208,8 +211,7 @@ function Get-ShadowCopyStorage {
                         Timestamp        = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                     }
                 }
-            }
-            catch {
+            } catch {
                 Write-Error -Message "[$($MyInvocation.MyCommand)] Failed on '${machine}': $_"
                 continue
             }

@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 #Requires -Modules @{ ModuleName = 'Pester'; ModuleVersion = '5.0' }
 
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute(
@@ -112,7 +112,7 @@ Describe 'Get-ShadowCopyStorage' {
             } -MockWith {
                 $script:mockStorage = [PSCustomObject]@{
                     UsedSpace = [long]5368709120; AllocatedSpace = [long]8589934592
-                    MaxSpace  = [long]10737418240
+                    MaxSpace = [long]10737418240
                 }
                 $script:mockVolRef = 'Win32_Volume.DeviceID="\\\\?\Volume{abc123}\\"'
                 Add-Member -InputObject $script:mockStorage -MemberType NoteProperty -Name 'Volume' -Value $script:mockVolRef

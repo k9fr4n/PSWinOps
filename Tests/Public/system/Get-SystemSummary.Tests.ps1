@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 #Requires -Modules @{ ModuleName = 'Pester'; ModuleVersion = '5.0.0' }
 
 BeforeAll {
@@ -74,7 +74,11 @@ Describe 'Get-SystemSummary' {
         } -MockWith { return $script:fakeNetwork }
 
         Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
-            if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+            if ($ArgumentList) {
+                & $ScriptBlock @ArgumentList
+            } else {
+                & $ScriptBlock
+            }
         }
     }
 

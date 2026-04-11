@@ -48,7 +48,11 @@ Describe 'Get-PageFileConfiguration' {
             } -ParameterFilter { $ClassName -eq 'Win32_PageFileUsage' }
 
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
-                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+                if ($ArgumentList) {
+                    & $ScriptBlock @ArgumentList 
+                } else {
+                    & $ScriptBlock 
+                }
             }
             $script:result = Get-PageFileConfiguration
         }
@@ -111,7 +115,11 @@ Describe 'Get-PageFileConfiguration' {
             } -ParameterFilter { $ClassName -eq 'Win32_PageFileUsage' }
 
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
-                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+                if ($ArgumentList) {
+                    & $ScriptBlock @ArgumentList 
+                } else {
+                    & $ScriptBlock 
+                }
             }
             $script:result = Get-PageFileConfiguration
         }
@@ -157,7 +165,11 @@ Describe 'Get-PageFileConfiguration' {
             } -ParameterFilter { $ClassName -eq 'Win32_PageFileUsage' }
 
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
-                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+                if ($ArgumentList) {
+                    & $ScriptBlock @ArgumentList 
+                } else {
+                    & $ScriptBlock 
+                }
             }
             $script:result = Get-PageFileConfiguration -ComputerName 'SRV01'
         }
@@ -188,7 +200,11 @@ Describe 'Get-PageFileConfiguration' {
             } -ParameterFilter { $ClassName -eq 'Win32_PageFileUsage' }
 
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
-                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+                if ($ArgumentList) {
+                    & $ScriptBlock @ArgumentList 
+                } else {
+                    & $ScriptBlock 
+                }
             }
             $script:results = 'SRV01', 'SRV02' | Get-PageFileConfiguration
         }

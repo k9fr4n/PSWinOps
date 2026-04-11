@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 
 function Remove-UserProfile {
     <#
@@ -128,21 +128,23 @@ function Remove-UserProfile {
 
             foreach ($prof in $profiles) {
                 # Skip system / special profiles
-                if ($prof.Special -eq $true) { continue }
+                if ($prof.Special -eq $true) {
+                    continue 
+                }
 
                 $results.Add(@{
-                    SID         = $prof.SID
-                    LocalPath   = $prof.LocalPath
-                    LastUseTime = $prof.LastUseTime
-                    Loaded      = $prof.Loaded
-                    SizeMB      = if ($CalcSize -and $prof.LocalPath -and (Test-Path -LiteralPath $prof.LocalPath)) {
-                        $sizeBytes = (Get-ChildItem -LiteralPath $prof.LocalPath -Recurse -File -Force -ErrorAction SilentlyContinue |
-                            Measure-Object -Property Length -Sum -ErrorAction SilentlyContinue).Sum
-                        [math]::Round(($sizeBytes / 1MB), 2)
-                    } else {
-                        [double]-1
-                    }
-                })
+                        SID         = $prof.SID
+                        LocalPath   = $prof.LocalPath
+                        LastUseTime = $prof.LastUseTime
+                        Loaded      = $prof.Loaded
+                        SizeMB      = if ($CalcSize -and $prof.LocalPath -and (Test-Path -LiteralPath $prof.LocalPath)) {
+                            $sizeBytes = (Get-ChildItem -LiteralPath $prof.LocalPath -Recurse -File -Force -ErrorAction SilentlyContinue |
+                                    Measure-Object -Property Length -Sum -ErrorAction SilentlyContinue).Sum
+                            [math]::Round(($sizeBytes / 1MB), 2)
+                        } else {
+                            [double]-1
+                        }
+                    })
             }
 
             @($results)
@@ -176,8 +178,7 @@ function Remove-UserProfile {
                 }
 
                 $rawProfiles = @(Invoke-RemoteOrLocal @invokeParams)
-            }
-            catch {
+            } catch {
                 Write-Error -Message "[$($MyInvocation.MyCommand)] Failed to enumerate profiles on '${machine}': $_"
                 continue
             }
@@ -186,19 +187,27 @@ function Remove-UserProfile {
 
             foreach ($prof in $rawProfiles) {
                 # Skip if raw result is null or not a hashtable
-                if ($null -eq $prof -or $prof -isnot [hashtable]) { continue }
+                if ($null -eq $prof -or $prof -isnot [hashtable]) {
+                    continue 
+                }
 
                 $localPath = $prof.LocalPath
-                $sid       = $prof.SID
-                $lastUse   = $prof.LastUseTime
-                $loaded    = $prof.Loaded
-                $sizeMB    = $prof.SizeMB
+                $sid = $prof.SID
+                $lastUse = $prof.LastUseTime
+                $loaded = $prof.Loaded
+                $sizeMB = $prof.SizeMB
 
                 # Extract username from LocalPath (last segment)
-                $userName = if ($localPath) { Split-Path -Path $localPath -Leaf } else { $sid }
+                $userName = if ($localPath) {
+                    Split-Path -Path $localPath -Leaf 
+                } else {
+                    $sid 
+                }
 
                 # ---- Exclusion: system SIDs ----
-                if ($sid -in $systemSids) { continue }
+                if ($sid -in $systemSids) {
+                    continue 
+                }
 
                 # ---- Exclusion: system path segments ----
                 $isSystemPath = $false
@@ -208,7 +217,9 @@ function Remove-UserProfile {
                         break
                     }
                 }
-                if ($isSystemPath) { continue }
+                if ($isSystemPath) {
+                    continue 
+                }
 
                 # ---- Exclusion: user-specified patterns ----
                 if ($ExcludeUser) {
@@ -219,7 +230,9 @@ function Remove-UserProfile {
                             break
                         }
                     }
-                    if ($isExcluded) { continue }
+                    if ($isExcluded) {
+                        continue 
+                    }
                 }
 
                 # ---- Filter: age threshold ----
@@ -257,7 +270,11 @@ function Remove-UserProfile {
                 } else {
                     'Never'
                 }
-                $sizeDisplay = if ($sizeMB -ge 0) { '{0:N1} MB' -f $sizeMB } else { 'unknown' }
+                $sizeDisplay = if ($sizeMB -ge 0) {
+                    '{0:N1} MB' -f $sizeMB 
+                } else {
+                    'unknown' 
+                }
                 $target = "User '$userName' ($localPath, last used $lastUseDisplay, $sizeDisplay)"
 
                 if (-not $PSCmdlet.ShouldProcess($target, 'Remove user profile')) {
@@ -303,8 +320,7 @@ function Remove-UserProfile {
                         ErrorMessage  = $null
                         Timestamp     = Get-Date -Format 'o'
                     }
-                }
-                catch {
+                } catch {
                     [PSCustomObject]@{
                         PSTypeName    = 'PSWinOps.UserProfileRemoval'
                         ComputerName  = $machine

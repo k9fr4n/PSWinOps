@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 #Requires -Modules @{ ModuleName = 'Pester'; ModuleVersion = '5.0' }
 
 BeforeAll {
@@ -9,7 +9,7 @@ BeforeAll {
         [PSCustomObject]@{
             DisplayName     = 'Visual Studio Code'
             DisplayVersion  = '1.87.0'
-            Publisher        = 'Microsoft'
+            Publisher       = 'Microsoft'
             InstallDate     = '20240301'
             InstallLocation = 'C:\Program Files\VSCode'
             UninstallString = 'uninstall.exe'
@@ -18,7 +18,7 @@ BeforeAll {
         [PSCustomObject]@{
             DisplayName     = '7-Zip'
             DisplayVersion  = '23.01'
-            Publisher        = 'Igor Pavlov'
+            Publisher       = 'Igor Pavlov'
             InstallDate     = '20240115'
             InstallLocation = 'C:\Program Files\7-Zip'
             UninstallString = 'uninstall.exe'
@@ -27,7 +27,7 @@ BeforeAll {
         [PSCustomObject]@{
             DisplayName     = $null
             DisplayVersion  = $null
-            Publisher        = $null
+            Publisher       = $null
             InstallDate     = $null
             InstallLocation = $null
             UninstallString = $null
@@ -39,7 +39,7 @@ BeforeAll {
         [PSCustomObject]@{
             DisplayName     = 'SQL Server 2022'
             DisplayVersion  = '16.0'
-            Publisher        = 'Microsoft'
+            Publisher       = 'Microsoft'
             InstallDate     = '20240201'
             InstallLocation = 'C:\SQL'
             UninstallString = 'uninstall.exe'

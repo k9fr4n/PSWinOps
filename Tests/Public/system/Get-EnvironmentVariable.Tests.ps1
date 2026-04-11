@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 #Requires -Modules @{ ModuleName = 'Pester'; ModuleVersion = '5.0' }
 
 BeforeAll {
@@ -252,15 +252,25 @@ Describe 'Get-EnvironmentVariable' {
                 $mockRegItem | Add-Member -MemberType ScriptMethod -Name 'GetValue' -Value {
                     param($valueName, $defaultValue, $options)
                     switch ($valueName) {
-                        'COMPUTERNAME' { return 'TESTPC' }
-                        'PATH' { return 'C:\Windows;C:\Windows\System32' }
-                        default { return '' }
+                        'COMPUTERNAME' {
+                            return 'TESTPC' 
+                        }
+                        'PATH' {
+                            return 'C:\Windows;C:\Windows\System32' 
+                        }
+                        default {
+                            return '' 
+                        }
                     }
                 }
                 return $mockRegItem
             }
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
-                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+                if ($ArgumentList) {
+                    & $ScriptBlock @ArgumentList 
+                } else {
+                    & $ScriptBlock 
+                }
             }
         }
 
@@ -271,7 +281,7 @@ Describe 'Get-EnvironmentVariable' {
 
         It -Name 'Should include Process scope for local queries' -Test {
             $script:localResults = Get-EnvironmentVariable -ComputerName $env:COMPUTERNAME -Scope 'All'
-            $processEntries = $script:localResults | Where-Object Scope -eq 'Process'
+            $processEntries = $script:localResults | Where-Object Scope -EQ 'Process'
             $processEntries | Should -Not -BeNullOrEmpty
         }
 
@@ -297,15 +307,25 @@ Describe 'Get-EnvironmentVariable' {
                 $mockRegItem | Add-Member -MemberType ScriptMethod -Name 'GetValue' -Value {
                     param($valueName, $defaultValue, $options)
                     switch ($valueName) {
-                        'OS' { return 'Windows_NT' }
-                        'SystemRoot' { return 'C:\Windows' }
-                        default { return '' }
+                        'OS' {
+                            return 'Windows_NT' 
+                        }
+                        'SystemRoot' {
+                            return 'C:\Windows' 
+                        }
+                        default {
+                            return '' 
+                        }
                     }
                 }
                 return $mockRegItem
             }
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
-                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+                if ($ArgumentList) {
+                    & $ScriptBlock @ArgumentList 
+                } else {
+                    & $ScriptBlock 
+                }
             }
         }
 
@@ -340,7 +360,11 @@ Describe 'Get-EnvironmentVariable' {
                 return $mockRegItem
             }
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
-                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+                if ($ArgumentList) {
+                    & $ScriptBlock @ArgumentList 
+                } else {
+                    & $ScriptBlock 
+                }
             }
         }
 
@@ -363,7 +387,11 @@ Describe 'Get-EnvironmentVariable' {
                 return $mockRegItem
             }
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
-                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+                if ($ArgumentList) {
+                    & $ScriptBlock @ArgumentList 
+                } else {
+                    & $ScriptBlock 
+                }
             }
         }
 

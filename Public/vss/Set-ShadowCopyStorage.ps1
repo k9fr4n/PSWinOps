@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 function Set-ShadowCopyStorage {
     <#
         .SYNOPSIS
@@ -91,8 +91,7 @@ function Set-ShadowCopyStorage {
         if ($Unbounded) {
             $effectiveMaxSizeMB = -1
             $displaySize = 'Unbounded'
-        }
-        else {
+        } else {
             $effectiveMaxSizeMB = $MaxSizeMB
             $displaySize = "$MaxSizeMB MB"
         }
@@ -120,15 +119,13 @@ function Set-ShadowCopyStorage {
                         }
                     }
                 }
-            }
-            catch {
+            } catch {
                 $previousMaxSpaceBytes = 0
             }
 
             if ($MaxMB -eq -1) {
                 $vssArgs = "resize shadowstorage /For=${DrvLetter}: /On=${DrvLetter}: /MaxSize=UNBOUNDED"
-            }
-            else {
+            } else {
                 $vssArgs = "resize shadowstorage /For=${DrvLetter}: /On=${DrvLetter}: /MaxSize=${MaxMB}MB"
             }
 
@@ -192,7 +189,11 @@ function Set-ShadowCopyStorage {
 
                 $isSuccess = ($raw.ExitCode -eq 0)
 
-                $newMaxDisplay = if ($raw.NewMaxSizeArg -eq -1) { 'Unbounded' } else { [math]::Round($raw.NewMaxSizeArg, 2) }
+                $newMaxDisplay = if ($raw.NewMaxSizeArg -eq -1) {
+                    'Unbounded' 
+                } else {
+                    [math]::Round($raw.NewMaxSizeArg, 2) 
+                }
 
                 [PSCustomObject]@{
                     PSTypeName         = 'PSWinOps.ShadowCopyStorageResult'
@@ -204,8 +205,7 @@ function Set-ShadowCopyStorage {
                     Message            = $raw.Output
                     Timestamp          = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                 }
-            }
-            catch {
+            } catch {
                 Write-Error -Message "[$($MyInvocation.MyCommand)] Failed on '${machine}': $_"
 
                 [PSCustomObject]@{

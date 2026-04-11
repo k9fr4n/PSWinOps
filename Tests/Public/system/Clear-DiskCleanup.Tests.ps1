@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 #Requires -Modules @{ ModuleName = 'Pester'; ModuleVersion = '5.0' }
 
 BeforeAll {
@@ -443,8 +443,7 @@ Describe 'Clear-DiskCleanup' {
                 param($LiteralPath, $Path)
                 if ($LiteralPath -and $LiteralPath -like '*Users*') {
                     @([PSCustomObject]@{ FullName = 'C:\Users\testuser'; Name = 'testuser' })
-                }
-                else {
+                } else {
                     @([PSCustomObject]@{ FullName = 'C:\Users\testuser\AppData\Local\Google\Chrome\User Data\Default\Cache\data_0'; Length = [long]1024; LastWriteTime = (Get-Date).AddDays(-5) })
                 }
             }
@@ -468,8 +467,7 @@ Describe 'Clear-DiskCleanup' {
                 param($LiteralPath, $Path)
                 if ($LiteralPath -and $LiteralPath -like '*Users*') {
                     @([PSCustomObject]@{ FullName = 'C:\Users\testuser'; Name = 'testuser' })
-                }
-                else {
+                } else {
                     @([PSCustomObject]@{ FullName = 'C:\Users\testuser\AppData\Local\Microsoft\Windows\Explorer\thumbcache_256.db'; Length = [long]2048; LastWriteTime = (Get-Date).AddDays(-15) })
                 }
             }

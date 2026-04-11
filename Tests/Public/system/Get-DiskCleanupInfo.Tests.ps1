@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 #Requires -Modules @{ ModuleName = 'Pester'; ModuleVersion = '5.0' }
 
 BeforeAll {
@@ -73,7 +73,11 @@ Describe 'Get-DiskCleanupInfo' {
             Mock -CommandName 'Get-ChildItem' -ModuleName 'PSWinOps' -MockWith { return $script:mockFiles }
             Mock -CommandName 'Test-Path' -ModuleName 'PSWinOps' -MockWith { return $true }
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
-                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+                if ($ArgumentList) {
+                    & $ScriptBlock @ArgumentList 
+                } else {
+                    & $ScriptBlock 
+                }
             }
             $script:results = @(Get-DiskCleanupInfo -Category 'TempFiles')
         }
@@ -182,7 +186,11 @@ Describe 'Get-DiskCleanupInfo' {
 
         BeforeAll {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
-                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+                if ($ArgumentList) {
+                    & $ScriptBlock @ArgumentList 
+                } else {
+                    & $ScriptBlock 
+                }
             }
         }
 
@@ -269,7 +277,9 @@ Describe 'Get-DiskCleanupInfo' {
 
         It -Name 'Should continue to next machine after failure' -Test {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
-                if ($ComputerName -eq 'BADHOST') { throw 'Connection failed' }
+                if ($ComputerName -eq 'BADHOST') {
+                    throw 'Connection failed' 
+                }
                 return @{
                     Category   = 'TempFiles'
                     Path       = 'C:\Windows\Temp'
@@ -289,7 +299,11 @@ Describe 'Get-DiskCleanupInfo' {
 
         BeforeAll {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
-                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+                if ($ArgumentList) {
+                    & $ScriptBlock @ArgumentList 
+                } else {
+                    & $ScriptBlock 
+                }
             }
         }
 
@@ -305,7 +319,11 @@ Describe 'Get-DiskCleanupInfo' {
 
         BeforeAll {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
-                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+                if ($ArgumentList) {
+                    & $ScriptBlock @ArgumentList 
+                } else {
+                    & $ScriptBlock 
+                }
             }
             Mock -CommandName 'Test-Path' -ModuleName 'PSWinOps' -MockWith { return $true }
             Mock -CommandName 'Get-ChildItem' -ModuleName 'PSWinOps' -MockWith {
@@ -335,7 +353,11 @@ Describe 'Get-DiskCleanupInfo' {
 
         BeforeAll {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
-                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+                if ($ArgumentList) {
+                    & $ScriptBlock @ArgumentList 
+                } else {
+                    & $ScriptBlock 
+                }
             }
             Mock -CommandName 'Get-ChildItem' -ModuleName 'PSWinOps' -MockWith {
                 @(
@@ -358,7 +380,11 @@ Describe 'Get-DiskCleanupInfo' {
 
         BeforeAll {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
-                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+                if ($ArgumentList) {
+                    & $ScriptBlock @ArgumentList 
+                } else {
+                    & $ScriptBlock 
+                }
             }
             Mock -CommandName 'Get-ChildItem' -ModuleName 'PSWinOps' -MockWith {
                 @(
@@ -381,7 +407,11 @@ Describe 'Get-DiskCleanupInfo' {
 
         BeforeAll {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
-                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+                if ($ArgumentList) {
+                    & $ScriptBlock @ArgumentList 
+                } else {
+                    & $ScriptBlock 
+                }
             }
             Mock -CommandName 'Test-Path' -ModuleName 'PSWinOps' -MockWith { return $true }
             Mock -CommandName 'Get-ChildItem' -ModuleName 'PSWinOps' -MockWith {
@@ -406,15 +436,18 @@ Describe 'Get-DiskCleanupInfo' {
 
         BeforeAll {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
-                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+                if ($ArgumentList) {
+                    & $ScriptBlock @ArgumentList 
+                } else {
+                    & $ScriptBlock 
+                }
             }
             Mock -CommandName 'Test-Path' -ModuleName 'PSWinOps' -MockWith { return $true }
             Mock -CommandName 'Get-ChildItem' -ModuleName 'PSWinOps' -MockWith {
                 param($LiteralPath, $Path)
                 if ($LiteralPath -and $LiteralPath -like '*Users*') {
                     @([PSCustomObject]@{ FullName = 'C:\Users\testuser'; Name = 'testuser' })
-                }
-                else {
+                } else {
                     @([PSCustomObject]@{ FullName = 'C:\Users\testuser\AppData\Local\Google\Chrome\User Data\Default\Cache\data_0'; Length = [long]1024; LastWriteTime = (Get-Date).AddDays(-5) })
                 }
             }

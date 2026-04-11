@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 function New-ShadowCopy {
     <#
         .SYNOPSIS
@@ -114,8 +114,7 @@ function New-ShadowCopy {
                 if ($cimResult.ReturnValue -eq 0) {
                     $resultHash['ShadowId'] = $cimResult.ShadowID
                 }
-            }
-            catch {
+            } catch {
                 $resultHash['ReturnValue'] = [uint32]99
                 $resultHash['ErrorDetail'] = $_.ToString()
             }
@@ -144,8 +143,7 @@ function New-ShadowCopy {
 
                     $message = if ($returnCodeMap.ContainsKey([int]$code)) {
                         $returnCodeMap[[int]$code]
-                    }
-                    else {
+                    } else {
                         'Unknown'
                     }
 
@@ -157,15 +155,18 @@ function New-ShadowCopy {
                         PSTypeName    = 'PSWinOps.ShadowCopyResult'
                         ComputerName  = $machine
                         DriveLetter   = $DriveLetter.ToUpper()
-                        ShadowCopyId  = if ($isSuccess) { $raw.ShadowId } else { '' }
+                        ShadowCopyId  = if ($isSuccess) {
+                            $raw.ShadowId 
+                        } else {
+                            '' 
+                        }
                         CreationTime  = Get-Date
                         Success       = $isSuccess
                         ReturnCode    = $code
                         ReturnMessage = $message
                         Timestamp     = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                     }
-                }
-                catch {
+                } catch {
                     Write-Error -Message "[$($MyInvocation.MyCommand)] Failed on '${machine}': $_"
 
                     [PSCustomObject]@{

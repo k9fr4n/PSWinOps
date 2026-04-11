@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 #Requires -Modules @{ ModuleName = 'Pester'; ModuleVersion = '5.0' }
 
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute(
@@ -98,7 +98,7 @@ Describe 'Remove-ShadowCopy' {
                 $ClassName -eq 'Win32_ShadowCopy'
             } -MockWith {
                 [PSCustomObject]@{
-                    ID = '{AB12CD34-EF56-7890-AB12-CD34EF567890}'
+                    ID         = '{AB12CD34-EF56-7890-AB12-CD34EF567890}'
                     VolumeName = '\\?\Volume{abc123}\'
                 }
             }
@@ -124,7 +124,7 @@ Describe 'Remove-ShadowCopy' {
                 $ClassName -eq 'Win32_ShadowCopy'
             } -MockWith {
                 [PSCustomObject]@{
-                    ID = '{DIFFERENT-GUID-NOT-MATCHING-AT-ALL}'
+                    ID         = '{DIFFERENT-GUID-NOT-MATCHING-AT-ALL}'
                     VolumeName = '\\?\Volume{abc123}\'
                 }
             }

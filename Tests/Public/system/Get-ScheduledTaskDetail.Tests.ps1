@@ -47,7 +47,11 @@ Describe 'Get-ScheduledTaskDetail' {
             }
 
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
-                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+                if ($ArgumentList) {
+                    & $ScriptBlock @ArgumentList 
+                } else {
+                    & $ScriptBlock 
+                }
             }
             $script:results = Get-ScheduledTaskDetail
         }
@@ -93,7 +97,11 @@ Describe 'Get-ScheduledTaskDetail' {
             }
 
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
-                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+                if ($ArgumentList) {
+                    & $ScriptBlock @ArgumentList 
+                } else {
+                    & $ScriptBlock 
+                }
             }
             $script:results = Get-ScheduledTaskDetail -IncludeMicrosoftTasks
         }
@@ -127,7 +135,11 @@ Describe 'Get-ScheduledTaskDetail' {
             }
 
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
-                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+                if ($ArgumentList) {
+                    & $ScriptBlock @ArgumentList 
+                } else {
+                    & $ScriptBlock 
+                }
             }
             $script:results = Get-ScheduledTaskDetail -TaskName 'Backup*' -IncludeMicrosoftTasks
         }
@@ -157,7 +169,11 @@ Describe 'Get-ScheduledTaskDetail' {
             }
 
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
-                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+                if ($ArgumentList) {
+                    & $ScriptBlock @ArgumentList 
+                } else {
+                    & $ScriptBlock 
+                }
             }
             $script:results = Get-ScheduledTaskDetail -ComputerName 'SRV01'
         }
@@ -188,7 +204,11 @@ Describe 'Get-ScheduledTaskDetail' {
             }
 
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith {
-                if ($ArgumentList) { & $ScriptBlock @ArgumentList } else { & $ScriptBlock }
+                if ($ArgumentList) {
+                    & $ScriptBlock @ArgumentList 
+                } else {
+                    & $ScriptBlock 
+                }
             }
             $script:results = 'SRV01', 'SRV02' | Get-ScheduledTaskDetail
         }

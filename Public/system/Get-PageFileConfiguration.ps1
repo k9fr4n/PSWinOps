@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 function Get-PageFileConfiguration {
     <#
         .SYNOPSIS
@@ -68,7 +68,7 @@ function Get-PageFileConfiguration {
 
         $scriptBlock = {
             @{
-                ComputerSystem  = Get-CimInstance -ClassName 'Win32_ComputerSystem' -ErrorAction Stop
+                ComputerSystem   = Get-CimInstance -ClassName 'Win32_ComputerSystem' -ErrorAction Stop
                 PageFileSettings = @(Get-CimInstance -ClassName 'Win32_PageFileSetting' -ErrorAction Stop)
                 PageFileUsages   = @(Get-CimInstance -ClassName 'Win32_PageFileUsage' -ErrorAction Stop)
             }
@@ -99,8 +99,7 @@ function Get-PageFileConfiguration {
                     foreach ($pageFile in $pageFileSettings) {
                         $driveLetter = if ($pageFile.Name -and $pageFile.Name.Length -ge 2) {
                             $pageFile.Name.Substring(0, 2)
-                        }
-                        else {
+                        } else {
                             'N/A'
                         }
 
@@ -113,9 +112,21 @@ function Get-PageFileConfiguration {
                             PageFilePath        = $pageFile.Name
                             InitialSizeMB       = [int]$pageFile.InitialSize
                             MaximumSizeMB       = [int]$pageFile.MaximumSize
-                            CurrentUsageMB      = if ($usage) { [int]$usage.CurrentUsage } else { 0 }
-                            AllocatedSizeMB     = if ($usage) { [int]$usage.AllocatedBaseSize } else { 0 }
-                            PeakUsageMB         = if ($usage) { [int]$usage.PeakUsage } else { 0 }
+                            CurrentUsageMB      = if ($usage) {
+                                [int]$usage.CurrentUsage 
+                            } else {
+                                0 
+                            }
+                            AllocatedSizeMB     = if ($usage) {
+                                [int]$usage.AllocatedBaseSize 
+                            } else {
+                                0 
+                            }
+                            PeakUsageMB         = if ($usage) {
+                                [int]$usage.PeakUsage 
+                            } else {
+                                0 
+                            }
                             AutoManagedPagefile = $autoManaged
                             RamTotalGB          = $ramTotalGB
                             EnsureCompleteDump  = $false
@@ -124,11 +135,14 @@ function Get-PageFileConfiguration {
                             Timestamp           = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                         }
                     }
-                }
-                elseif ($autoManaged) {
+                } elseif ($autoManaged) {
                     Write-Verbose "[$($MyInvocation.MyCommand)] System-managed pagefile on '$machine'"
 
-                    $firstUsage = if ($pageFileUsages.Count -gt 0) { $pageFileUsages[0] } else { $null }
+                    $firstUsage = if ($pageFileUsages.Count -gt 0) {
+                        $pageFileUsages[0] 
+                    } else {
+                        $null 
+                    }
 
                     [PSCustomObject]@{
                         PSTypeName          = 'PSWinOps.PageFileConfiguration'
@@ -137,9 +151,21 @@ function Get-PageFileConfiguration {
                         PageFilePath        = 'System Managed'
                         InitialSizeMB       = 0
                         MaximumSizeMB       = 0
-                        CurrentUsageMB      = if ($firstUsage) { [int]$firstUsage.CurrentUsage } else { 0 }
-                        AllocatedSizeMB     = if ($firstUsage) { [int]$firstUsage.AllocatedBaseSize } else { 0 }
-                        PeakUsageMB         = if ($firstUsage) { [int]$firstUsage.PeakUsage } else { 0 }
+                        CurrentUsageMB      = if ($firstUsage) {
+                            [int]$firstUsage.CurrentUsage 
+                        } else {
+                            0 
+                        }
+                        AllocatedSizeMB     = if ($firstUsage) {
+                            [int]$firstUsage.AllocatedBaseSize 
+                        } else {
+                            0 
+                        }
+                        PeakUsageMB         = if ($firstUsage) {
+                            [int]$firstUsage.PeakUsage 
+                        } else {
+                            0 
+                        }
                         AutoManagedPagefile = $autoManaged
                         RamTotalGB          = $ramTotalGB
                         EnsureCompleteDump  = $false
@@ -147,12 +173,10 @@ function Get-PageFileConfiguration {
                         Status              = 'Current'
                         Timestamp           = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                     }
-                }
-                else {
+                } else {
                     Write-Warning "[$($MyInvocation.MyCommand)] No pagefile configured on '$machine'"
                 }
-            }
-            catch {
+            } catch {
                 Write-Error "[$($MyInvocation.MyCommand)] Failed to query '$machine': $_"
                 continue
             }
