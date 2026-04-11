@@ -203,8 +203,12 @@ function Show-PingMonitor {
                 [void]$frameBuilder.AppendLine("${bold}${cyan}=== PING MONITOR ===${reset}${pauseLabel}        ${dim}Elapsed: ${elapsedStr}${reset}")
                 [void]$frameBuilder.AppendLine('')
 
-                # Column headers
-                $columnLine = "  ${bold}$('HOST'.PadRight($maxHostLen))  $('STATUS'.PadRight(8))  $('LAST(ms)'.PadLeft(8))  $('MIN(ms)'.PadLeft(8))  $('MAX(ms)'.PadLeft(8))  $('AVG(ms)'.PadLeft(8))  $('SENT'.PadLeft(6))  $('RECV'.PadLeft(6))  $('LOSS'.PadLeft(7))${reset}"
+                # Column headers — highlight active sort column
+                $hHost   = if ($sortMode -eq 'Host')   { "${cyan}${bold}" } else { $bold }
+                $hStatus = if ($sortMode -eq 'Status') { "${cyan}${bold}" } else { $bold }
+                $hLast   = if ($sortMode -eq 'LastMs') { "${cyan}${bold}" } else { $bold }
+                $hLoss   = if ($sortMode -eq 'Loss')   { "${cyan}${bold}" } else { $bold }
+                $columnLine = "  ${hHost}$('HOST'.PadRight($maxHostLen))${reset}  ${hStatus}$('STATUS'.PadRight(8))${reset}  ${hLast}$('LAST(ms)'.PadLeft(8))${reset}  ${bold}$('MIN(ms)'.PadLeft(8))${reset}  ${bold}$('MAX(ms)'.PadLeft(8))${reset}  ${bold}$('AVG(ms)'.PadLeft(8))${reset}  ${bold}$('SENT'.PadLeft(6))${reset}  ${bold}$('RECV'.PadLeft(6))${reset}  ${hLoss}$('LOSS'.PadLeft(7))${reset}"
                 [void]$frameBuilder.AppendLine($columnLine)
                 $sepLine = "  ${dim}$('-' * $maxHostLen)  $('-' * 8)  $('-' * 8)  $('-' * 8)  $('-' * 8)  $('-' * 8)  $('-' * 6)  $('-' * 6)  $('-' * 7)${reset}"
                 [void]$frameBuilder.AppendLine($sepLine)
