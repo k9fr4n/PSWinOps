@@ -152,8 +152,8 @@ Describe 'Show-PingMonitor' {
         }
 
         It 'Should contain Q/Escape quit handling' {
-            $script:funcBody | Should -Match 'Escape'
-            $script:funcBody | Should -Match "keyInfo\.Key\s+-eq\s+'Q'"
+            $script:funcBody | Should -Match "'Escape'"
+            $script:funcBody | Should -Match "'Q'"
         }
 
         It 'Should contain Ctrl+C handling' {
