@@ -122,7 +122,6 @@ function Remove-UserProfile {
                 [bool]$CalcSize
             )
 
-            $cutoff = (Get-Date).AddDays(-$DaysOld)
             $profiles = @(Get-CimInstance -ClassName 'Win32_UserProfile' -ErrorAction Stop)
             $results = [System.Collections.Generic.List[hashtable]]::new()
 
