@@ -3487,13 +3487,14 @@
         <TypeName>PSWinOps.ShadowCopy</TypeName>
       </ViewSelectedBy>
       <TableControl>
+        <AutoSize/>
         <TableHeaders>
-          <TableColumnHeader><Label>ComputerName</Label><Width>16</Width></TableColumnHeader>
-          <TableColumnHeader><Label>DriveLetter</Label><Width>12</Width></TableColumnHeader>
-          <TableColumnHeader><Label>ShadowCopyId</Label><Width>40</Width></TableColumnHeader>
-          <TableColumnHeader><Label>CreationTime</Label><Width>22</Width></TableColumnHeader>
-          <TableColumnHeader><Label>State</Label><Width>10</Width></TableColumnHeader>
-          <TableColumnHeader><Label>Timestamp</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>ComputerName</Label></TableColumnHeader>
+          <TableColumnHeader><Label>DriveLetter</Label></TableColumnHeader>
+          <TableColumnHeader><Label>ShadowCopyId</Label></TableColumnHeader>
+          <TableColumnHeader><Label>CreationTime</Label></TableColumnHeader>
+          <TableColumnHeader><Label>State</Label></TableColumnHeader>
+          <TableColumnHeader><Label>Timestamp</Label></TableColumnHeader>
         </TableHeaders>
         <TableRowEntries>
           <TableRowEntry>
@@ -3580,15 +3581,16 @@
         <TypeName>PSWinOps.ShadowCopyStorage</TypeName>
       </ViewSelectedBy>
       <TableControl>
+        <AutoSize/>
         <TableHeaders>
-          <TableColumnHeader><Label>ComputerName</Label><Width>16</Width></TableColumnHeader>
-          <TableColumnHeader><Label>DriveLetter</Label><Width>12</Width></TableColumnHeader>
-          <TableColumnHeader><Width>12</Width><Alignment>Right</Alignment></TableColumnHeader>
-          <TableColumnHeader><Width>14</Width><Alignment>Right</Alignment></TableColumnHeader>
-          <TableColumnHeader><Width>12</Width><Alignment>Right</Alignment></TableColumnHeader>
-          <TableColumnHeader><Width>10</Width><Alignment>Right</Alignment></TableColumnHeader>
-          <TableColumnHeader><Width>6</Width><Alignment>Right</Alignment></TableColumnHeader>
-          <TableColumnHeader><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>ComputerName</Label></TableColumnHeader>
+          <TableColumnHeader><Label>DriveLetter</Label></TableColumnHeader>
+          <TableColumnHeader><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader><Alignment>Right</Alignment></TableColumnHeader>
+          <TableColumnHeader></TableColumnHeader>
         </TableHeaders>
         <TableRowEntries>
           <TableRowEntry>
