@@ -99,10 +99,17 @@ function Get-ShadowCopy {
 
             $volumeIndex = @{}
             foreach ($vol in (Get-CimInstance -ClassName Win32_Volume -ErrorAction SilentlyContinue)) {
-                if ($vol.DeviceID -and $vol.DriveLetter) {
-                    # Normalize: lowercase, strip trailing backslash for reliable matching
+                if ($vol.DeviceID) {
                     $normalizedId = $vol.DeviceID.TrimEnd('\').ToLower()
-                    $volumeIndex[$normalizedId] = $vol.DriveLetter.TrimEnd(':')
+                    if ($vol.DriveLetter) {
+                        $volumeIndex[$normalizedId] = $vol.DriveLetter.TrimEnd(':')
+                    }
+                    elseif ($vol.Label) {
+                        $volumeIndex[$normalizedId] = "[$($vol.Label)]"
+                    }
+                    elseif ($vol.DeviceID -match '\{([^}]+)\}') {
+                        $volumeIndex[$normalizedId] = $Matches[1].Substring(0, 8)
+                    }
                 }
             }
 
