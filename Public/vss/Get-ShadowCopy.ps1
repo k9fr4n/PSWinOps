@@ -105,7 +105,8 @@ function Get-ShadowCopy {
                         $volumeIndex[$normalizedId] = $vol.DriveLetter.TrimEnd(':')
                     }
                     elseif ($vol.Label) {
-                        $volumeIndex[$normalizedId] = "[$($vol.Label)]"
+                        $shortLabel = if ($vol.Label.Length -gt 8) { $vol.Label.Substring(0, 8) } else { $vol.Label }
+                        $volumeIndex[$normalizedId] = "[$shortLabel]"
                     }
                     elseif ($vol.DeviceID -match '\{([^}]+)\}') {
                         $volumeIndex[$normalizedId] = $Matches[1].Substring(0, 8)

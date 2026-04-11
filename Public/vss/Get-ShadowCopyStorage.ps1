@@ -88,7 +88,8 @@ function Get-ShadowCopyStorage {
                         $volumeIndex[$normalizedId] = $vol.DriveLetter.TrimEnd(':')
                     }
                     elseif ($vol.Label) {
-                        $volumeIndex[$normalizedId] = "[$($vol.Label)]"
+                        $shortLabel = if ($vol.Label.Length -gt 8) { $vol.Label.Substring(0, 8) } else { $vol.Label }
+                        $volumeIndex[$normalizedId] = "[$shortLabel]"
                     }
                     elseif ($vol.DeviceID -match '\{([^}]+)\}') {
                         $volumeIndex[$normalizedId] = $Matches[1].Substring(0, 8)
@@ -110,10 +111,21 @@ function Get-ShadowCopyStorage {
             $storageEntries = Get-CimInstance -ClassName Win32_ShadowStorage -ErrorAction Stop
 
             foreach ($storage in $storageEntries) {
-                $volumeRef = $storage.Volume.ToString()
                 $deviceId = ''
-                if ($volumeRef -match 'DeviceID="([^"]+)"') {
-                    $deviceId = ($Matches[1] -replace '\\\\', '\').TrimEnd('\').ToLower()
+                $volumeObj = $storage.Volume
+                if ($volumeObj -is [Microsoft.Management.Infrastructure.CimInstance] -and $volumeObj.DeviceID) {
+                    $deviceId = $volumeObj.DeviceID.TrimEnd('\').ToLower()
+                }
+                else {
+                    $volumeRef = $volumeObj.ToString()
+                    # CIM reference format varies: DeviceID="..." or DeviceID = "..."
+                    if ($volumeRef -match 'DeviceID\s*=\s*"([^"]+)"') {
+                        $deviceId = ($Matches[1] -replace '\\\\', '\').TrimEnd('\').ToLower()
+                    }
+                    elseif ($volumeRef -match '\{([0-9a-fA-F-]+)\}') {
+                        # Fallback: extract GUID from reference string
+                        $deviceId = "\\?\volume{$($Matches[1])}"
+                    }
                 }
 
                 $resolvedDrive = if ($deviceId -ne '' -and $volumeIndex.ContainsKey($deviceId)) {
