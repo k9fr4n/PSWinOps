@@ -265,9 +265,6 @@ function Get-DiskCleanupInfo {
                     $files = @(Get-ChildItem -LiteralPath $windowsOldPath -Recurse -File -Force -ErrorAction SilentlyContinue)
                     $results.Add((Measure-FileCollection -CategoryName 'WindowsOld' -BasePath $windowsOldPath -FileList $files))
                 }
-                else {
-                    $results.Add((Measure-FileCollection -CategoryName 'WindowsOld' -BasePath $windowsOldPath -FileList @()))
-                }
             }
 
             # --- ThumbnailCache ---
