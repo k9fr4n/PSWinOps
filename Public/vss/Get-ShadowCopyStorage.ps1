@@ -124,12 +124,22 @@ function Get-ShadowCopyStorage {
                     0
                 }
 
+                # MaxSpace can be UInt64.MaxValue (18446744073709551615) when unbounded
+                # which overflows [long]/Int64. Detect and normalise to -1.
+                $maxSpaceRaw = $storage.MaxSpace
+                $maxSpaceLong = if ($maxSpaceRaw -is [UInt64] -and $maxSpaceRaw -gt [long]::MaxValue) {
+                    [long]-1
+                }
+                else {
+                    [long]$maxSpaceRaw
+                }
+
                 [PSCustomObject]@{
                     DriveLetter    = $resolvedDrive
                     DeviceID       = $deviceId
                     UsedSpace      = [long]$storage.UsedSpace
                     AllocatedSpace = [long]$storage.AllocatedSpace
-                    MaxSpace       = [long]$storage.MaxSpace
+                    MaxSpace       = $maxSpaceLong
                     SnapshotCount  = [int]$snapshotCount
                 }
             }
@@ -153,7 +163,7 @@ function Get-ShadowCopyStorage {
                 $raw = Invoke-RemoteOrLocal @invokeParams
 
                 foreach ($item in $raw) {
-                    $isUnbounded = ($item.MaxSpace -lt 0) -or ($item.MaxSpace -gt $unboundedThreshold)
+                    $isUnbounded = ($item.MaxSpace -eq -1) -or ($item.MaxSpace -lt 0) -or ($item.MaxSpace -gt $unboundedThreshold)
 
                     $maxSpaceMB = if ($isUnbounded) { 'Unbounded' } else { [math]::Round($item.MaxSpace / 1MB, 2) }
                     $usedPercent = if ($isUnbounded -or $item.MaxSpace -eq 0) {
