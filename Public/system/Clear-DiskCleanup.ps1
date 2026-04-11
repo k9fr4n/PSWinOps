@@ -166,17 +166,34 @@ function Clear-DiskCleanup {
             switch ($CategoryName) {
 
                 'TempFiles' {
-                    $tempPaths = @(
-                        $env:TEMP
-                        (Join-Path -Path $env:SystemRoot -ChildPath 'Temp')
-                    )
-                    foreach ($tempPath in $tempPaths) {
-                        if (Test-Path -LiteralPath $tempPath) {
-                            $files = @(
-                                Get-ChildItem -LiteralPath $tempPath -Recurse -File -Force -ErrorAction SilentlyContinue |
-                                    Where-Object -FilterScript { $_.LastWriteTime -lt $cutoffDate }
-                            )
-                            if ($files) { & $processFileList -FileItems $files }
+                    $skipProfiles = @('Public', 'Default', 'Default User', 'All Users')
+
+                    # System-wide temp
+                    $systemTemp = Join-Path -Path $env:SystemRoot -ChildPath 'Temp'
+                    if (Test-Path -LiteralPath $systemTemp) {
+                        $files = @(
+                            Get-ChildItem -LiteralPath $systemTemp -Recurse -File -Force -ErrorAction SilentlyContinue |
+                                Where-Object -FilterScript { $_.LastWriteTime -lt $cutoffDate }
+                        )
+                        if ($files) { & $processFileList -FileItems $files }
+                    }
+
+                    # All user profile temp folders
+                    $usersDir = Join-Path -Path $env:SystemDrive -ChildPath 'Users'
+                    if (Test-Path -LiteralPath $usersDir) {
+                        $userDirs = @(
+                            Get-ChildItem -LiteralPath $usersDir -Directory -Force -ErrorAction SilentlyContinue |
+                                Where-Object -FilterScript { $_.Name -notin $skipProfiles }
+                        )
+                        foreach ($userDir in $userDirs) {
+                            $userTemp = Join-Path -Path $userDir.FullName -ChildPath 'AppData\Local\Temp'
+                            if (Test-Path -LiteralPath $userTemp) {
+                                $files = @(
+                                    Get-ChildItem -LiteralPath $userTemp -Recurse -File -Force -ErrorAction SilentlyContinue |
+                                        Where-Object -FilterScript { $_.LastWriteTime -lt $cutoffDate }
+                                )
+                                if ($files) { & $processFileList -FileItems $files }
+                            }
                         }
                     }
                 }
