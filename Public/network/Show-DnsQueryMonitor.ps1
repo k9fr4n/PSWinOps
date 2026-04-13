@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 
 function Show-DnsQueryMonitor {
     <#
@@ -209,7 +209,7 @@ function Show-DnsQueryMonitor {
                                     try {
                                         $proc = Get-Process -Id $processId -ErrorAction SilentlyContinue
                                         if ($proc) { $processName = $proc.ProcessName }
-                                    } catch { }
+                                    } catch { $processName = "PID:$processId" }
                                 }
 
                                 $totalQueries++
@@ -225,7 +225,7 @@ function Show-DnsQueryMonitor {
                             }
                         }
                     }
-                    catch { }
+                    catch { Write-Debug -Message "Event poll error: $_" }
 
                     # Trim buffer
                     while ($eventBuffer.Count -gt 500) {
@@ -337,8 +337,8 @@ function Show-DnsQueryMonitor {
                                 [Console]::CursorVisible = $true
                                 [Console]::SetCursorPosition(0, 1)
                                 [Console]::Write("${esc}[2K  ${bold}Domain filter (blank=all): ${reset}")
-                                $input = [Console]::ReadLine()
-                                $currentFilter = if ($null -eq $input -or $input.Trim() -eq '') { '' } else { $input.Trim() }
+                                $userInput = [Console]::ReadLine()
+                                $currentFilter = if ($null -eq $userInput -or $userInput.Trim() -eq '') { '' } else { $userInput.Trim() }
                                 [Console]::CursorVisible = $false
                             }
                         }

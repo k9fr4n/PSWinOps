@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 
 function Get-DnsQueryLog {
     <#
@@ -167,7 +167,7 @@ function Get-DnsQueryLog {
                         $proc = Get-Process -Id $processId -ErrorAction SilentlyContinue
                         if ($proc) { $processName = $proc.ProcessName }
                     }
-                    catch { }
+                    catch { Write-Verbose -Message "Could not resolve PID $processId" }
                 }
 
                 $results.Add(@{
