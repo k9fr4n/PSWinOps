@@ -84,14 +84,15 @@ FUNCTION DOMAINS
       Get-ServiceHealth
       Get-WSUSHealth
 
-  network (24 functions)
+  network (26 functions)
     Functions for network diagnostics, discovery,
-    certificate inspection, and real-time monitoring.
+    certificate inspection, DNS sniffing, and real-time monitoring.
 
       Clear-Arp
       Edit-HostsFile
       Export-NetworkConfig
       Get-ARPTable
+      Get-DnsQueryLog
       Get-ListeningPort
       Get-NetworkAdapter
       Get-NetworkCIDR
@@ -106,6 +107,7 @@ FUNCTION DOMAINS
       Remove-NetworkRoute
       Resolve-MACVendor
       Set-NetworkRoute
+      Show-DnsQueryMonitor
       Show-NetworkStatisticMonitor
       Show-PingMonitor
       Test-DNSResolution
@@ -275,7 +277,7 @@ REMOTE EXECUTION PATTERN
     in the pipeline continue to be processed.
 
 PSWINOPS TYPE REGISTRY
-    The following 86 PSTypeName values are defined by the
+    The following 87 PSTypeName values are defined by the
     module. Each corresponds to the output of one or more
     public functions.
 
@@ -314,6 +316,7 @@ PSWINOPS TYPE REGISTRY
       PSWinOps.DiskCleanupInfo
       PSWinOps.DiskCleanupResult
       PSWinOps.DiskSpace
+      PSWinOps.DnsQueryLog
       PSWinOps.DnsResolution
       PSWinOps.DnsServerHealth
       PSWinOps.EnvironmentVariable

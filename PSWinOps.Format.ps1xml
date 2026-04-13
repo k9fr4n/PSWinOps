@@ -1368,6 +1368,40 @@
       </TableControl>
     </View>
     <!-- ============================================================ -->
+    <!-- PSWinOps.DnsQueryLog                                         -->
+    <!-- Used by: Get-DnsQueryLog                                     -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.DnsQueryLog</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.DnsQueryLog</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <AutoSize />
+        <TableHeaders>
+          <TableColumnHeader><Label>TimeCreated</Label></TableColumnHeader>
+          <TableColumnHeader><Label>QueryType</Label></TableColumnHeader>
+          <TableColumnHeader><Label>Status</Label></TableColumnHeader>
+          <TableColumnHeader><Label>ProcessName</Label></TableColumnHeader>
+          <TableColumnHeader><Label>QueryName</Label></TableColumnHeader>
+          <TableColumnHeader><Label>Result</Label></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><ScriptBlock>$_.TimeCreated.ToString('HH:mm:ss.ff')</ScriptBlock></TableColumnItem>
+              <TableColumnItem><PropertyName>QueryType</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Status</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>ProcessName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>QueryName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Result</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
     <!-- PSWinOps.DnsResolution                                       -->
     <!-- Used by: Test-DNSResolution                                  -->
     <!-- ============================================================ -->
