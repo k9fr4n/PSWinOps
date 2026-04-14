@@ -25,7 +25,7 @@ Describe 'Show-DnsQueryMonitor' {
         }
 
         It -Name 'Should have OutputType void' -Test {
-            $script:commandInfo.OutputType.Name | Should -Contain 'Void'
+            $script:commandInfo.OutputType.Name | Should -Contain 'System.Void'
         }
 
         It -Name 'Should have RefreshInterval with ValidateRange 1-30' -Test {
