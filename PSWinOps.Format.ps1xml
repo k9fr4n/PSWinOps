@@ -1455,10 +1455,10 @@
                 <ScriptBlock>if ($_.QueryTimeMs) { '{0:N1}' -f $_.QueryTimeMs } else { '-' }</ScriptBlock>
               </TableColumnItem>
               <TableColumnItem>
-                <ScriptBlock>if ($_.Success) { [char]0x2713 } else { [char]0x2717 }</ScriptBlock>
+                <ScriptBlock>if ($_.Success) { 'Y' } else { 'N' }</ScriptBlock>
               </TableColumnItem>
               <TableColumnItem>
-                <ScriptBlock>if ($null -eq $_.Consistent) { '-' } elseif ($_.Consistent) { [char]0x2713 } else { [char]0x2717 }</ScriptBlock>
+                <ScriptBlock>if ($null -eq $_.Consistent) { '-' } elseif ($_.Consistent) { 'Y' } else { 'N' }</ScriptBlock>
               </TableColumnItem>
             </TableColumnItems>
           </TableRowEntry>
@@ -2729,63 +2729,6 @@
               </TableColumnItem>
               <TableColumnItem>
                 <PropertyName>LastResultMessage</PropertyName>
-              </TableColumnItem>
-            </TableColumnItems>
-          </TableRowEntry>
-        </TableRowEntries>
-      </TableControl>
-    </View>
-    <!-- ============================================================ -->
-    <!-- PSWinOps.ServiceHealth                                       -->
-    <!-- Used by: Get-ServiceHealth                                   -->
-    <!-- ============================================================ -->
-    <View>
-      <Name>PSWinOps.ServiceHealth</Name>
-      <ViewSelectedBy>
-        <TypeName>PSWinOps.ServiceHealth</TypeName>
-      </ViewSelectedBy>
-      <TableControl>
-        <AutoSize />
-        <TableHeaders>
-          <TableColumnHeader>
-            <Label>ComputerName</Label>
-          </TableColumnHeader>
-          <TableColumnHeader>
-            <Label>ServiceName</Label>
-          </TableColumnHeader>
-          <TableColumnHeader>
-            <Label>DisplayName</Label>
-          </TableColumnHeader>
-          <TableColumnHeader>
-            <Label>State</Label>
-          </TableColumnHeader>
-          <TableColumnHeader>
-            <Label>StartMode</Label>
-          </TableColumnHeader>
-          <TableColumnHeader>
-            <Label>Status</Label>
-          </TableColumnHeader>
-        </TableHeaders>
-        <TableRowEntries>
-          <TableRowEntry>
-            <TableColumnItems>
-              <TableColumnItem>
-                <PropertyName>ComputerName</PropertyName>
-              </TableColumnItem>
-              <TableColumnItem>
-                <PropertyName>ServiceName</PropertyName>
-              </TableColumnItem>
-              <TableColumnItem>
-                <PropertyName>DisplayName</PropertyName>
-              </TableColumnItem>
-              <TableColumnItem>
-                <PropertyName>State</PropertyName>
-              </TableColumnItem>
-              <TableColumnItem>
-                <PropertyName>StartMode</PropertyName>
-              </TableColumnItem>
-              <TableColumnItem>
-                <PropertyName>Status</PropertyName>
               </TableColumnItem>
             </TableColumnItems>
           </TableRowEntry>

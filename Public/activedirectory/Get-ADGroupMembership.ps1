@@ -56,7 +56,7 @@ function Get-ADGroupMembership {
         https://learn.microsoft.com/en-us/powershell/module/activedirectory/get-adgroupmember
     #>
     [CmdletBinding()]
-    [OutputType([PSCustomObject])]
+    [OutputType('PSWinOps.ADGroupMember')]
     param(
         [Parameter(Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
