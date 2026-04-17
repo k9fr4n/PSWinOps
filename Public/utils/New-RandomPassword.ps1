@@ -107,7 +107,16 @@ function New-RandomPassword {
         # Validate total constraints do not exceed length
         $totalRequired = $UpperCount + $LowerCount + $NumericCount + $SpecialCount
         if ($totalRequired -gt $Length) {
-            throw "[$($MyInvocation.MyCommand)] Sum of character class minimums ($totalRequired) exceeds password length ($Length)"
+            $PSCmdlet.ThrowTerminatingError(
+                [System.Management.Automation.ErrorRecord]::new(
+                    [System.ArgumentException]::new(
+                        "[$($MyInvocation.MyCommand)] Sum of character class minimums ($totalRequired) exceeds password length ($Length)"
+                    ),
+                    'InvalidPasswordConstraints',
+                    [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                    $null
+                )
+            )
         }
 
         # Build combined character set based on required counts
@@ -128,7 +137,16 @@ function New-RandomPassword {
         $charSet = $charSetBuilder.ToString().ToCharArray()
 
         if ($charSet.Count -eq 0) {
-            throw "[$($MyInvocation.MyCommand)] At least one character class must have a count greater than zero"
+            $PSCmdlet.ThrowTerminatingError(
+                [System.Management.Automation.ErrorRecord]::new(
+                    [System.ArgumentException]::new(
+                        "[$($MyInvocation.MyCommand)] At least one character class must have a count greater than zero"
+                    ),
+                    'EmptyCharacterSet',
+                    [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                    $null
+                )
+            )
         }
 
         Write-Verbose "[$($MyInvocation.MyCommand)] Character set size: $($charSet.Count)"

@@ -131,7 +131,7 @@ function Sync-NTPTime {
         foreach ($targetComputer in $ComputerName) {
             try {
                 Write-Verbose "[$($MyInvocation.MyCommand)] Processing: $targetComputer"
-                $isLocal = ($targetComputer -eq $env:COMPUTERNAME)
+                $isLocal = $script:LocalComputerNames -contains $targetComputer
                 $serviceRestarted = $false
 
                 # Optionally restart w32time service before resync

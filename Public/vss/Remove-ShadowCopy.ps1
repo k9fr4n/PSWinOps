@@ -67,7 +67,7 @@ function Remove-ShadowCopy {
         .LINK
             https://learn.microsoft.com/en-us/windows/win32/vss/volume-shadow-copy-service-overview
     #>
-    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High', DefaultParameterSetName = 'ById')]
+    [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High', DefaultParameterSetName = 'ById')]
     [OutputType('PSWinOps.ShadowCopyRemoveResult')]
     param(
         [Parameter(Mandatory = $true, ParameterSetName = 'ById', ValueFromPipelineByPropertyName = $true)]

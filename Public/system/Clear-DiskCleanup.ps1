@@ -72,7 +72,7 @@ function Clear-DiskCleanup {
         .LINK
             https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.management/remove-item
     #>
-    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
+    [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
     [OutputType('PSWinOps.DiskCleanupResult')]
     param(
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true)]

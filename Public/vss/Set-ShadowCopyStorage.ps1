@@ -57,7 +57,7 @@ function Set-ShadowCopyStorage {
         .LINK
             https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/vssadmin-resize-shadowstorage
     #>
-    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium', DefaultParameterSetName = 'BySize')]
+    [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'Medium', DefaultParameterSetName = 'BySize')]
     [OutputType('PSWinOps.ShadowCopyStorageResult')]
     param(
         [Parameter(Mandatory = $true)]

@@ -53,7 +53,7 @@ function New-ShadowCopy {
         .LINK
             https://learn.microsoft.com/en-us/windows/win32/vss/volume-shadow-copy-service-overview
     #>
-    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
+    [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'Medium')]
     [OutputType('PSWinOps.ShadowCopyResult')]
     param(
         [Parameter(Mandatory = $true)]

@@ -61,7 +61,7 @@ function Restore-ShadowCopyFile {
         .LINK
             https://learn.microsoft.com/en-us/windows/win32/vss/volume-shadow-copy-service-overview
     #>
-    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
+    [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'Medium')]
     [OutputType('PSWinOps.ShadowCopyRestoreResult')]
     param(
         [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]

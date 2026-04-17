@@ -68,7 +68,7 @@ function Uninstall-WindowsUpdate {
         .LINK
             https://learn.microsoft.com/en-us/windows/win32/wua_sdk/portal-client
     #>
-    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
+    [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
     [OutputType('PSWinOps.WindowsUpdateUninstallResult')]
     param(
         [Parameter(Mandatory = $false, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]

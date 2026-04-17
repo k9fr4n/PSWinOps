@@ -12,7 +12,7 @@
     RootModule           = 'PSWinOps.psm1'
 
     # Version number of this module.
-    ModuleVersion        = '0.0.22'
+    ModuleVersion        = '0.0.23'
 
     # Supported PSEditions
     # Core is supported on Windows only; the module-level guard in PSWinOps.psm1 blocks
@@ -249,7 +249,22 @@
             # IconUri = ''
 
             # ReleaseNotes of this module
-            ReleaseNotes = '## 0.0.17 - 2026-04-02
+            ReleaseNotes = '## 0.0.23 - 2026-04-17
+- fix: audit corrections — SupportsShouldProcess style, ThrowTerminatingError, local-check coherence (#45)
+
+## 0.0.21 - 2026-04-10
+- feat: improvements and new functions (#44)
+
+## 0.0.20 - 2026-04-10
+- fix(system): fix Set-PageFile Generic failure error (#43)
+
+## 0.0.19 - 2026-04-08
+- feat(windowsupdate): add Windows Update management functions (#42)
+
+## 0.0.18 - 2026-04-04
+- feat(activedirectory): expand AD functions and security audit (#40)
+
+## 0.0.17 - 2026-04-02
 - refactor: Invoke-RemoteOrLocal rewrite (#30)
 - refactor: move OverallHealth computation to process{} block (#31)
 - fix: misc cleanup — synopsis, #Requires, module-scoped local names (#32)
