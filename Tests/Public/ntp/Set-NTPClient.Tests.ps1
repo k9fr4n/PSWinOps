@@ -18,7 +18,8 @@ BeforeAll {
         }
     }
 
-    $script:modulePath = Split-Path -Path (Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent) -Parent
+    $script:moduleRoot = Split-Path -Path (Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent) -Parent
+    $script:modulePath = Join-Path -Path $script:moduleRoot -ChildPath 'PSWinOps.psd1'
     Import-Module -Name $script:modulePath -Force -ErrorAction Stop
 
     $script:mockSyncOutputEN = @(
