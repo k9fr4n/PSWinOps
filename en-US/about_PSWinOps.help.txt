@@ -33,7 +33,7 @@ LONG DESCRIPTION
 FUNCTION DOMAINS
     PSWinOps organizes its functions into ten domains.
 
-  activedirectory (21 functions)
+  activedirectory (22 functions)
     Functions for Active Directory inventory, user and
     computer management, group membership analysis,
     replication monitoring, and security auditing.
@@ -84,14 +84,15 @@ FUNCTION DOMAINS
       Get-ServiceHealth
       Get-WSUSHealth
 
-  network (24 functions)
+  network (26 functions)
     Functions for network diagnostics, discovery,
-    certificate inspection, and real-time monitoring.
+    certificate inspection, DNS sniffing, and real-time monitoring.
 
       Clear-Arp
       Edit-HostsFile
       Export-NetworkConfig
       Get-ARPTable
+      Get-DnsQueryLog
       Get-ListeningPort
       Get-NetworkAdapter
       Get-NetworkCIDR
@@ -106,6 +107,7 @@ FUNCTION DOMAINS
       Remove-NetworkRoute
       Resolve-MACVendor
       Set-NetworkRoute
+      Show-DnsQueryMonitor
       Show-NetworkStatisticMonitor
       Show-PingMonitor
       Test-DNSResolution
@@ -162,14 +164,20 @@ FUNCTION DOMAINS
       Set-PageFile
       Show-SystemMonitor
 
-  windowsupdate (3 functions)
-    Functions for querying and managing Windows Update
-    on local or remote machines via the COM API and
-    registry.
+  windowsupdate (9 functions)
+    Functions for querying, downloading, installing,
+    hiding, and managing Windows Update on local or
+    remote machines via the COM API and registry.
 
+      Clear-WindowsUpdateCache
       Get-WindowsUpdate
       Get-WindowsUpdateConfiguration
       Get-WindowsUpdateHistory
+      Hide-WindowsUpdate
+      Install-WindowsUpdate
+      Save-WindowsUpdate
+      Show-WindowsUpdate
+      Uninstall-WindowsUpdate
 
   utils (2 functions)
     Pure utility functions that do not follow the standard
@@ -198,7 +206,7 @@ OUTPUT CONVENTIONS
     Standard fields present on every object:
 
       ComputerName   [string]  The target machine name.
-      Timestamp      [string]  ISO 8601 date/time string.
+      Timestamp      [string]  Date/time in 'yyyy-MM-dd HH:mm:ss' format.
 
     Exception: the two utility functions listed above
     (New-RandomPassword, ConvertFrom-MisencodedString) do
@@ -275,7 +283,7 @@ REMOTE EXECUTION PATTERN
     in the pipeline continue to be processed.
 
 PSWINOPS TYPE REGISTRY
-    The following 86 PSTypeName values are defined by the
+    The following 93 PSTypeName values are defined by the
     module. Each corresponds to the output of one or more
     public functions.
 
@@ -314,6 +322,7 @@ PSWINOPS TYPE REGISTRY
       PSWinOps.DiskCleanupInfo
       PSWinOps.DiskCleanupResult
       PSWinOps.DiskSpace
+      PSWinOps.DnsQueryLog
       PSWinOps.DnsResolution
       PSWinOps.DnsServerHealth
       PSWinOps.EnvironmentVariable
@@ -361,8 +370,14 @@ PSWINOPS TYPE REGISTRY
       PSWinOps.TraceRouteHop
       PSWinOps.UserProfileRemoval
       PSWinOps.WindowsUpdate
+      PSWinOps.WindowsUpdateCacheResult
       PSWinOps.WindowsUpdateConfiguration
+      PSWinOps.WindowsUpdateDownloadResult
+      PSWinOps.WindowsUpdateHideResult
       PSWinOps.WindowsUpdateHistory
+      PSWinOps.WindowsUpdateInstallResult
+      PSWinOps.WindowsUpdateShowResult
+      PSWinOps.WindowsUpdateUninstallResult
       PSWinOps.WinRMTestResult
       PSWinOps.WSUSHealth
 

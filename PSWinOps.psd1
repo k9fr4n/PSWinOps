@@ -74,7 +74,7 @@
     # NestedModules = @()
 
     # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-    FunctionsToExport    = @(
+    FunctionsToExport = @(
         'Clear-Arp',
         'Clear-DiskCleanup',
         'Clear-WindowsUpdateCache',
@@ -112,6 +112,7 @@
         'Get-DhcpServerHealth',
         'Get-DiskCleanupInfo',
         'Get-DiskSpace',
+        'Get-DnsQueryLog',
         'Get-DnsServerHealth',
         'Get-EnvironmentVariable',
         'Get-ExchangeServerHealth',
@@ -171,6 +172,7 @@
         'Set-PageFile',
         'Set-ProxyConfiguration',
         'Set-ShadowCopyStorage',
+        'Show-DnsQueryMonitor',
         'Show-NetworkStatisticMonitor',
         'Show-PingMonitor',
         'Show-SystemMonitor',

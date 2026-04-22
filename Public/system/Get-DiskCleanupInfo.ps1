@@ -151,19 +151,39 @@ function Get-DiskCleanupInfo {
 
             # --- TempFiles ---
             if ($CategoriesToScan -contains 'TempFiles') {
-                $tempPaths = @(
-                    $env:TEMP
-                    (Join-Path -Path $env:SystemRoot -ChildPath 'Temp')
-                )
-                foreach ($tempPath in $tempPaths) {
-                    if (Test-Path -LiteralPath $tempPath) {
-                        $files = @(
-                            Get-ChildItem -LiteralPath $tempPath -Recurse -File -Force -ErrorAction SilentlyContinue |
-                                Where-Object -FilterScript { $_.LastWriteTime -lt $cutoffDate }
-                        )
-                        $results.Add((Measure-FileCollection -CategoryName 'TempFiles' -BasePath $tempPath -FileList $files))
+                $skipProfiles = @('Public', 'Default', 'Default User', 'All Users')
+                $allTempFiles = [System.Collections.Generic.List[object]]::new()
+
+                # System-wide temp
+                $systemTemp = Join-Path -Path $env:SystemRoot -ChildPath 'Temp'
+                if (Test-Path -LiteralPath $systemTemp) {
+                    $found = @(
+                        Get-ChildItem -LiteralPath $systemTemp -Recurse -File -Force -ErrorAction SilentlyContinue |
+                            Where-Object -FilterScript { $_.LastWriteTime -lt $cutoffDate }
+                    )
+                    foreach ($f in $found) { $allTempFiles.Add($f) }
+                }
+
+                # All user profile temp folders
+                $usersDir = Join-Path -Path $env:SystemDrive -ChildPath 'Users'
+                if (Test-Path -LiteralPath $usersDir) {
+                    $userDirs = @(
+                        Get-ChildItem -LiteralPath $usersDir -Directory -Force -ErrorAction SilentlyContinue |
+                            Where-Object -FilterScript { $_.Name -notin $skipProfiles }
+                    )
+                    foreach ($userDir in $userDirs) {
+                        $userTemp = Join-Path -Path $userDir.FullName -ChildPath 'AppData\Local\Temp'
+                        if (Test-Path -LiteralPath $userTemp) {
+                            $found = @(
+                                Get-ChildItem -LiteralPath $userTemp -Recurse -File -Force -ErrorAction SilentlyContinue |
+                                    Where-Object -FilterScript { $_.LastWriteTime -lt $cutoffDate }
+                            )
+                            foreach ($f in $found) { $allTempFiles.Add($f) }
+                        }
                     }
                 }
+
+                $results.Add((Measure-FileCollection -CategoryName 'TempFiles' -BasePath "$env:SystemDrive\Users\*\AppData\Local\Temp" -FileList $allTempFiles.ToArray()))
             }
 
             # --- WindowsUpdate ---
