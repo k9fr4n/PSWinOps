@@ -53,17 +53,20 @@ $script:ADUserCompleter = {
     param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
     $null = $commandName, $parameterName, $commandAst
     try {
+        # Sanitize user-typed text to prevent LDAP filter injection / wildcard explosion.
+        $safe = ($wordToComplete -as [string]) -replace "'", '' -replace '\*', ''
+        if ([string]::IsNullOrWhiteSpace($safe)) { return }
         $splat = @{
-            Filter      = "SamAccountName -like '$wordToComplete*'"
-            Properties  = @('DisplayName')
-            ErrorAction = 'Stop'
+            Filter        = "SamAccountName -like '$safe*'"
+            Properties    = @('DisplayName')
+            ResultSetSize = 20
+            ErrorAction   = 'Stop'
         }
         if ($fakeBoundParameters.ContainsKey('Server'))     { $splat['Server']     = $fakeBoundParameters['Server'] }
         if ($fakeBoundParameters.ContainsKey('Credential')) { $splat['Credential'] = $fakeBoundParameters['Credential'] }
 
         Get-ADUser @splat |
             Sort-Object -Property 'SamAccountName' |
-            Select-Object -First 20 |
             ForEach-Object {
                 $toolTip = if ($_.DisplayName) { "$($_.SamAccountName) ($($_.DisplayName))" } else { $_.SamAccountName }
                 [System.Management.Automation.CompletionResult]::new(
@@ -83,16 +86,19 @@ $script:ADComputerCompleter = {
     param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
     $null = $commandName, $parameterName, $commandAst
     try {
+        # Sanitize user-typed text to prevent LDAP filter injection / wildcard explosion.
+        $safe = ($wordToComplete -as [string]) -replace "'", '' -replace '\*', ''
+        if ([string]::IsNullOrWhiteSpace($safe)) { return }
         $splat = @{
-            Filter      = "Name -like '$wordToComplete*'"
-            ErrorAction = 'Stop'
+            Filter        = "Name -like '$safe*'"
+            ResultSetSize = 20
+            ErrorAction   = 'Stop'
         }
         if ($fakeBoundParameters.ContainsKey('Server'))     { $splat['Server']     = $fakeBoundParameters['Server'] }
         if ($fakeBoundParameters.ContainsKey('Credential')) { $splat['Credential'] = $fakeBoundParameters['Credential'] }
 
         Get-ADComputer @splat |
             Sort-Object -Property 'Name' |
-            Select-Object -First 20 |
             ForEach-Object {
                 [System.Management.Automation.CompletionResult]::new(
                     $_.Name,
@@ -111,16 +117,19 @@ $script:ADGroupCompleter = {
     param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
     $null = $commandName, $parameterName, $commandAst
     try {
+        # Sanitize user-typed text to prevent LDAP filter injection / wildcard explosion.
+        $safe = ($wordToComplete -as [string]) -replace "'", '' -replace '\*', ''
+        if ([string]::IsNullOrWhiteSpace($safe)) { return }
         $splat = @{
-            Filter      = "Name -like '$wordToComplete*'"
-            ErrorAction = 'Stop'
+            Filter        = "Name -like '$safe*'"
+            ResultSetSize = 20
+            ErrorAction   = 'Stop'
         }
         if ($fakeBoundParameters.ContainsKey('Server'))     { $splat['Server']     = $fakeBoundParameters['Server'] }
         if ($fakeBoundParameters.ContainsKey('Credential')) { $splat['Credential'] = $fakeBoundParameters['Credential'] }
 
         Get-ADGroup @splat |
             Sort-Object -Property 'Name' |
-            Select-Object -First 20 |
             ForEach-Object {
                 [System.Management.Automation.CompletionResult]::new(
                     $_.Name,
