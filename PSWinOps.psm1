@@ -22,6 +22,14 @@ $script:LocalComputerNames = @($env:COMPUTERNAME, 'localhost', '.')
 
 Write-Verbose "[$($MyInvocation.MyCommand)] Loading PSWinOps module from: $script:ModuleRoot"
 
+# Legacy alias gate — opt-in for one minor release cycle, then remove entirely.
+# Set $env:PSWINOPS_LEGACY_ALIASES = '1' BEFORE Import-Module to re-create the
+# pre-rename aliases. Each gated alias emits a deprecation warning.
+if ($env:PSWINOPS_LEGACY_ALIASES -eq '1') {
+    Set-Alias -Name 'Download-WindowsUpdate' -Value 'Save-WindowsUpdate' -Scope Global
+    Write-Warning "PSWinOps: 'Download-WindowsUpdate' alias is deprecated. Use 'Save-WindowsUpdate' (Download is not an approved verb). This alias will be removed in a future minor release."
+}
+
 # Import Private functions
 $privatePath = Join-Path -Path $script:ModuleRoot -ChildPath 'Private'
 if (Test-Path -Path $privatePath) {
