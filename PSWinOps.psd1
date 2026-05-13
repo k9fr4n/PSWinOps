@@ -240,7 +240,7 @@
             )
 
             # A URL to the license for this module.
-            # LicenseUri = ''
+            LicenseUri   = 'https://github.com/k9fr4n/PSWinOps/blob/main/LICENSE'
 
             # A URL to the main website for this project.
             ProjectUri   = 'https://github.com/k9fr4n/PSWinOps'
