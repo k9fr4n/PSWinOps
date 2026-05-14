@@ -162,55 +162,6 @@ function Show-NetworkStatisticMonitor {
         if ($PSBoundParameters.ContainsKey('RemotePort'))    { $getStatParams['RemotePort']    = $RemotePort }
         if ($PSBoundParameters.ContainsKey('ProcessName'))   { $getStatParams['ProcessName']   = $ProcessName }
 
-        # ---- ANSI helpers ----
-        $esc      = [char]27
-        $useColor = -not $NoColor
-
-        $dim       = if ($useColor) { "${esc}[90m" }  else { '' }
-        $reset     = if ($useColor) { "${esc}[0m" }   else { '' }
-        $bold      = if ($useColor) { "${esc}[1m" }   else { '' }
-        $cyan      = if ($useColor) { "${esc}[96m" }  else { '' }
-        $white     = if ($useColor) { "${esc}[97m" }  else { '' }
-        $yellow    = if ($useColor) { "${esc}[93m" }  else { '' }
-        $green     = if ($useColor) { "${esc}[92m" }  else { '' }
-        $red       = if ($useColor) { "${esc}[91m" }  else { '' }
-        $underline = if ($useColor) { "${esc}[4m" }   else { '' }
-
-        function Get-VisualWidth {
-            param([string]$Text)
-            ($Text -replace "$([char]27)\[\d+(?:;\d+)*m", '').Length
-        }
-
-        function ConvertTo-PaddedLine {
-            param([string]$Text, [int]$TargetWidth)
-            $visual = Get-VisualWidth -Text $Text
-            $needed = $TargetWidth - $visual
-            if ($needed -gt 0) { return $Text + [string]::new(' ', $needed) }
-            return $Text
-        }
-
-        function Get-ProtocolColor {
-            param([string]$Proto)
-            if (-not $script:useColor) { return '' }
-            if ($Proto -eq 'TCP') { return $script:cyan }
-            if ($Proto -eq 'UDP') { return $script:yellow }
-            return ''
-        }
-
-        function Get-StateColor {
-            param([string]$ConnState)
-            if (-not $script:useColor) { return '' }
-            switch ($ConnState) {
-                'Established' { return $script:green }
-                'Listen'      { return "$($script:white)$($script:bold)" }
-                'TimeWait'    { return $script:dim }
-                'CloseWait'   { return $script:red }
-                'Closing'     { return $script:red }
-                'LastAck'     { return $script:red }
-                default       { return '' }
-            }
-        }
-
         $sortModes     = @('Process', 'Protocol', 'State', 'LocalPort', 'RemoteAddr')
         $sortModeIndex = 0
         $sortDescending = $false
@@ -264,107 +215,21 @@ function Show-NetworkStatisticMonitor {
                 } else { @() }
 
                 # ---- Build frame ----
-                $frame = [System.Text.StringBuilder]::new(4096)
-                $lineCount  = 0
-                $separator  = [string]::new('-', [math]::Min($width - 4, 120))
+                $timeStr      = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
+                $frameContent = Format-NetworkStatisticMonitorFrame `
+                    -SortedConnections $sortedResults `
+                    -ComputerList      $computerList `
+                    -CurrentSortMode   $currentSortMode `
+                    -SortDescending    $sortDescending `
+                    -Paused            $paused `
+                    -TimeStr           $timeStr `
+                    -Width             $width `
+                    -Height            $height `
+                    -RefreshInterval   $RefreshInterval `
+                    -NoColor:$NoColor
 
-                # Header
-                $timeStr = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
-                $pauseIndicator = if ($paused) { " ${red}${bold}(PAUSED)${reset}" } else { '' }
-                $headerLine = "  ${bold}${cyan}Network Monitor${reset} ${dim}-${reset} ${bold}${white}${computerList}${reset}${pauseIndicator} ${dim}|${reset} ${dim}${timeStr}${reset}"
-                [void]$frame.AppendLine((ConvertTo-PaddedLine -Text $headerLine -TargetWidth $width))
-                $lineCount++
-                [void]$frame.AppendLine((ConvertTo-PaddedLine -Text "  ${dim}${separator}${reset}" -TargetWidth $width))
-                $lineCount++
-
-                # Column widths
-                $colProto = 7;  $colLAddr = 23; $colLPort = 12
-                $colRAddr = 23; $colRPort = 13; $colState = 14; $colProc = 20
-
-                # Sort direction arrow
-                $sortArrow = if ($sortDescending) {
-                    if ($useColor) { "${cyan}v${reset}" } else { 'v' }
-                } else {
-                    if ($useColor) { "${cyan}^${reset}" } else { '^' }
-                }
-
-                # Table header with active sort highlighted
-                $protoH = if ($currentSortMode -eq 'Protocol')   { "${cyan}${underline}PROTO${reset}" }          else { "${dim}PROTO${reset}" }
-                $lAddrH = "${dim}LOCAL ADDRESS${reset}"
-                $lPortH = if ($currentSortMode -eq 'LocalPort')  { "${cyan}${underline}LOCAL PORT${reset}" }     else { "${dim}LOCAL PORT${reset}" }
-                $rAddrH = if ($currentSortMode -eq 'RemoteAddr') { "${cyan}${underline}REMOTE ADDRESS${reset}" } else { "${dim}REMOTE ADDRESS${reset}" }
-                $rPortH = "${dim}REMOTE PORT${reset}"
-                $stateH = if ($currentSortMode -eq 'State')      { "${cyan}${underline}STATE${reset}" }          else { "${dim}STATE${reset}" }
-                $procH  = if ($currentSortMode -eq 'Process')    { "${cyan}${underline}PROCESS${reset}" }        else { "${dim}PROCESS${reset}" }
-
-                $headerRow = '  {0}{1}{2}{3}{4}{5}{6}' -f `
-                    (ConvertTo-PaddedLine -Text $protoH  -TargetWidth $colProto),
-                    (ConvertTo-PaddedLine -Text $lAddrH  -TargetWidth $colLAddr),
-                    (ConvertTo-PaddedLine -Text $lPortH  -TargetWidth $colLPort),
-                    (ConvertTo-PaddedLine -Text $rAddrH  -TargetWidth $colRAddr),
-                    (ConvertTo-PaddedLine -Text $rPortH  -TargetWidth $colRPort),
-                    (ConvertTo-PaddedLine -Text $stateH  -TargetWidth $colState),
-                    $procH
-                [void]$frame.AppendLine((ConvertTo-PaddedLine -Text $headerRow -TargetWidth $width))
-                $lineCount++
-
-                $dashRow = "  ${dim}{0}{1}{2}{3}{4}{5}{6}${reset}" -f `
-                    ('{0,-7}'  -f '-----'),
-                    ('{0,-23}' -f '-------------'),
-                    ('{0,-12}' -f '----------'),
-                    ('{0,-23}' -f '--------------'),
-                    ('{0,-13}' -f '-----------'),
-                    ('{0,-14}' -f '-----'),
-                    '-------'
-                [void]$frame.AppendLine((ConvertTo-PaddedLine -Text $dashRow -TargetWidth $width))
-                $lineCount++
-
-                # Data rows
-                $availableRows = $height - $lineCount - 4
-                if ($connectionCount -gt 0) {
-                    $displayCount = [math]::Min($sortedResults.Count, [math]::Max(5, $availableRows))
-                    for ($i = 0; $i -lt $displayCount; $i++) {
-                        $conn = $sortedResults[$i]
-                        $protoColor = Get-ProtocolColor -Proto $conn.Protocol
-                        $stateColor = Get-StateColor -ConnState $conn.State
-
-                        $dataRow = '  {0}  {1}  {2}  {3}  {4}  {5}  {6}' -f `
-                            "${protoColor}$('{0,-5}' -f $conn.Protocol)${reset}",
-                            ('{0,-21}' -f $conn.LocalAddress),
-                            ('{0,-10}' -f $conn.LocalPort),
-                            ('{0,-21}' -f $conn.RemoteAddress),
-                            ('{0,-11}' -f $conn.RemotePort),
-                            "${stateColor}$('{0,-12}' -f $conn.State)${reset}",
-                            "${white}$($conn.ProcessName)${reset}"
-
-                        [void]$frame.AppendLine((ConvertTo-PaddedLine -Text $dataRow -TargetWidth $width))
-                        $lineCount++
-                    }
-                }
-                else {
-                    [void]$frame.AppendLine((ConvertTo-PaddedLine -Text "  ${yellow}(No matching connections found)${reset}" -TargetWidth $width))
-                    $lineCount++
-                }
-
-                # Footer
-                [void]$frame.AppendLine('')
-                $lineCount++
-                [void]$frame.AppendLine((ConvertTo-PaddedLine -Text "  ${dim}${separator}${reset}" -TargetWidth $width))
-                $lineCount++
-
-                $footerLine = "  ${bold}[${cyan}Q${reset}${bold}]${reset}uit  ${bold}[${cyan}S${reset}${bold}]${reset}ort  ${bold}[${cyan}R${reset}${bold}]${reset}everse  ${bold}[${cyan}P${reset}${bold}]${reset}ause  ${dim}|${reset}  Refresh: ${yellow}${RefreshInterval}s${reset}  ${dim}|${reset}  Sort: ${cyan}${bold}${currentSortMode}${reset} ${sortArrow}  ${dim}|${reset}  Connections: ${white}${connectionCount}${reset}"
-                [void]$frame.AppendLine((ConvertTo-PaddedLine -Text $footerLine -TargetWidth $width))
-                $lineCount++
-
-                # Erase trailing lines
-                $remainingRows = $height - $lineCount
-                for ($r = 0; $r -lt $remainingRows; $r++) {
-                    [void]$frame.AppendLine("${esc}[2K")
-                }
-
-                # Single write
                 [Console]::SetCursorPosition(0, 0)
-                [Console]::Write($frame.ToString())
+                [Console]::Write($frameContent)
                 $frameStart.Stop()
 
                 # ---- Input handling ----
