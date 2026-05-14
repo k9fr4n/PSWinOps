@@ -62,7 +62,7 @@ $script:ADUserCompleter = {
     $null = $commandName, $parameterName, $commandAst
     try {
         # Sanitize user-typed text to prevent LDAP filter injection / wildcard explosion.
-        $safe = ($wordToComplete -as [string]) -replace "'", '' -replace '\*', ''
+        $safe = ($wordToComplete -as [string]) -replace '[\\\(\)\*\x00'']', ''
         if ([string]::IsNullOrWhiteSpace($safe)) { return }
         $splat = @{
             Filter        = "SamAccountName -like '$safe*'"
@@ -95,7 +95,7 @@ $script:ADComputerCompleter = {
     $null = $commandName, $parameterName, $commandAst
     try {
         # Sanitize user-typed text to prevent LDAP filter injection / wildcard explosion.
-        $safe = ($wordToComplete -as [string]) -replace "'", '' -replace '\*', ''
+        $safe = ($wordToComplete -as [string]) -replace '[\\\(\)\*\x00'']', ''
         if ([string]::IsNullOrWhiteSpace($safe)) { return }
         $splat = @{
             Filter        = "Name -like '$safe*'"
@@ -126,7 +126,7 @@ $script:ADGroupCompleter = {
     $null = $commandName, $parameterName, $commandAst
     try {
         # Sanitize user-typed text to prevent LDAP filter injection / wildcard explosion.
-        $safe = ($wordToComplete -as [string]) -replace "'", '' -replace '\*', ''
+        $safe = ($wordToComplete -as [string]) -replace '[\\\(\)\*\x00'']', ''
         if ([string]::IsNullOrWhiteSpace($safe)) { return }
         $splat = @{
             Filter        = "Name -like '$safe*'"
