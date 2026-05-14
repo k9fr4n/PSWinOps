@@ -12,7 +12,7 @@
     RootModule           = 'PSWinOps.psm1'
 
     # Version number of this module.
-    ModuleVersion        = '0.0.22'
+    ModuleVersion        = '0.1.1'
 
     # Supported PSEditions
     # Core is supported on Windows only; the module-level guard in PSWinOps.psm1 blocks
@@ -166,6 +166,7 @@
         'Restore-ShadowCopyFile',
         'Save-WindowsUpdate',
         'Search-ADObject',
+        'Set-IISBindingCertificate',
         'Set-NetworkRoute',
         'Set-NTPClient',
         'Set-PageFile',
@@ -249,7 +250,13 @@
             # IconUri = ''
 
             # ReleaseNotes of this module
-            ReleaseNotes = '## 0.0.17 - 2026-04-02
+            ReleaseNotes = '## 0.1.1 - 2026-05-14
+### Added
+- feat(iis): add Set-IISBindingCertificate — replace SSL/TLS certificate on one or more IIS HTTPS site bindings with idempotent rotation, -WhatIf/-Confirm (ConfirmImpact=High), remote execution via WinRM, and pipeline-by-property-name from Get-SSLCertificate / Get-IISHealth.
+- feat(iis): introduce new public domain Public/iis/ (registered in CI matrix and about_PSWinOps).
+- feat(format): TableControl view for PSWinOps.IISBindingCertificateResult in PSWinOps.Format.ps1xml.
+
+## 0.0.17 - 2026-04-02
 - refactor: Invoke-RemoteOrLocal rewrite (#30)
 - refactor: move OverallHealth computation to process{} block (#31)
 - fix: misc cleanup — synopsis, #Requires, module-scoped local names (#32)

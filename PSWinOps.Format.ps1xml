@@ -6697,5 +6697,68 @@
         </TableRowEntries>
       </TableControl>
     </View>
+    <!-- ============================================================ -->
+    <!-- PSWinOps.IISBindingCertificateResult                        -->
+    <!-- Used by: Set-IISBindingCertificate                          -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.IISBindingCertificateResult</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.IISBindingCertificateResult</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <AutoSize />
+        <TableHeaders>
+          <TableColumnHeader>
+            <Label>ComputerName</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>SiteName</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>BindingInformation</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Status</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>PrevThumbprint</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>NewThumbprint</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Timestamp</Label>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem>
+                <PropertyName>ComputerName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>SiteName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>BindingInformation</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Status</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>PreviousThumbprint</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>NewThumbprint</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Timestamp</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
   </ViewDefinitions>
 </Configuration>
