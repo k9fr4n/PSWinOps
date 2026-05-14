@@ -12,7 +12,7 @@
     RootModule           = 'PSWinOps.psm1'
 
     # Version number of this module.
-    ModuleVersion        = '0.0.22'
+    ModuleVersion        = '0.1.0'
 
     # Supported PSEditions
     # Core is supported on Windows only; the module-level guard in PSWinOps.psm1 blocks
@@ -166,6 +166,7 @@
         'Restore-ShadowCopyFile',
         'Save-WindowsUpdate',
         'Search-ADObject',
+        'Set-IISBindingCertificate',
         'Set-NetworkRoute',
         'Set-NTPClient',
         'Set-PageFile',

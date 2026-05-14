@@ -99,6 +99,7 @@ jobs:
           - "Private"
           - "Public/activedirectory"
           - "Public/healthcheck"
+          - "Public/iis"
           - "Public/network"
           - "Public/ntp"
           - "Public/proxy"

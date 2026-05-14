@@ -12,7 +12,7 @@ LONG DESCRIPTION
     PSWinOps is a comprehensive toolbox designed for Windows
     system administrators running PowerShell 5.1 or later.
     It provides a curated collection of functions organized
-    into ten functional domains, covering everything from
+    into eleven functional domains, covering everything from
     Active Directory inventory and security auditing,
     service health monitoring, network troubleshooting,
     NTP synchronization, proxy management, RDP session
@@ -31,7 +31,7 @@ LONG DESCRIPTION
     Requires    : PowerShell 5.1+ / Windows only
 
 FUNCTION DOMAINS
-    PSWinOps organizes its functions into ten domains.
+    PSWinOps organizes its functions into eleven domains.
 
   activedirectory (21 functions)
     Functions for Active Directory inventory, user and
@@ -83,6 +83,13 @@ FUNCTION DOMAINS
       Get-RDSHealth
       Get-ServiceHealth
       Get-WSUSHealth
+
+  iis (1 function)
+    Functions for managing IIS HTTPS site bindings,
+    including SSL/TLS certificate rotation across
+    local or remote servers via WinRM.
+
+      Set-IISBindingCertificate
 
   network (24 functions)
     Functions for network diagnostics, discovery,
@@ -275,7 +282,7 @@ REMOTE EXECUTION PATTERN
     in the pipeline continue to be processed.
 
 PSWINOPS TYPE REGISTRY
-    The following 86 PSTypeName values are defined by the
+    The following 87 PSTypeName values are defined by the
     module. Each corresponds to the output of one or more
     public functions.
 
@@ -320,6 +327,7 @@ PSWINOPS TYPE REGISTRY
       PSWinOps.ExchangeServerHealth
       PSWinOps.FileServerHealth
       PSWinOps.HyperVHostHealth
+      PSWinOps.IISBindingCertificateResult
       PSWinOps.IISHealth
       PSWinOps.InstalledSoftware
       PSWinOps.ListeningPort
