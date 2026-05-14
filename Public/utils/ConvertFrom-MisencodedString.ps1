@@ -127,13 +127,31 @@ function ConvertFrom-MisencodedString {
 
             $result
         } catch [System.Text.EncoderFallbackException] {
-            Write-Error "[$($MyInvocation.MyCommand)] Encoding fallback error for '$String': $_"
+            $errorRecord = [System.Management.Automation.ErrorRecord]::new(
+                $_.Exception,
+                'ConvertFromMisencodedStringEncoderFallback',
+                [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                $String
+            )
+            $PSCmdlet.WriteError($errorRecord)
             return
         } catch [System.ArgumentException] {
-            Write-Error "[$($MyInvocation.MyCommand)] Invalid characters in string for encoding '$SourceEncoding': $_"
+            $errorRecord = [System.Management.Automation.ErrorRecord]::new(
+                $_.Exception,
+                'ConvertFromMisencodedStringInvalidChar',
+                [System.Management.Automation.ErrorCategory]::InvalidData,
+                $String
+            )
+            $PSCmdlet.WriteError($errorRecord)
             return
         } catch {
-            Write-Error "[$($MyInvocation.MyCommand)] Conversion failed for string '$String': $_"
+            $errorRecord = [System.Management.Automation.ErrorRecord]::new(
+                $_.Exception,
+                'ConvertFromMisencodedStringFailed',
+                [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                $String
+            )
+            $PSCmdlet.WriteError($errorRecord)
             return
         }
     }

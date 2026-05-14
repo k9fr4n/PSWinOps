@@ -103,7 +103,10 @@ Describe -Name 'ConvertFrom-MisencodedString' -Fixture {
     Context -Name 'Error handling' -Fixture {
 
         It -Name 'Should write error but not throw on encoding conversion failure' -Test {
-            # Mock Write-Error to verify it gets called
+            # NOTE: error paths now use $PSCmdlet.WriteError($errorRecord) instead of Write-Error.
+            # The Mock below is retained as a harmless no-op; assertions should use
+            # $error[0].FullyQualifiedErrorId (e.g. 'ConvertFromMisencodedStringFailed') when
+            # the test can reliably trigger the encoding catch paths.
             Mock -CommandName 'Write-Error' -ModuleName 'PSWinOps' -MockWith {}
 
             # Create a scenario that triggers an encoding error:

@@ -80,7 +80,13 @@ function Get-ADGroupInventory {
         Import-Module -Name 'ActiveDirectory' -ErrorAction Stop -Verbose:$false
     }
     catch {
-        Write-Error -Message "[$($MyInvocation.MyCommand)] ActiveDirectory module is not available. Install RSAT: $_"
+        $errorRecord = [System.Management.Automation.ErrorRecord]::new(
+            $_.Exception,
+            'GetADGroupInventoryModuleNotFound',
+            [System.Management.Automation.ErrorCategory]::NotInstalled,
+            $null
+        )
+        $PSCmdlet.WriteError($errorRecord)
         return
     }
 
@@ -112,7 +118,13 @@ function Get-ADGroupInventory {
         $adGroups = Get-ADGroup @adGroupParams
     }
     catch {
-        Write-Error -Message "[$($MyInvocation.MyCommand)] Failed to query Active Directory: $_"
+        $errorRecord = [System.Management.Automation.ErrorRecord]::new(
+            $_.Exception,
+            'GetADGroupInventoryFailed',
+            [System.Management.Automation.ErrorCategory]::InvalidOperation,
+            $null
+        )
+        $PSCmdlet.WriteError($errorRecord)
         return
     }
 
