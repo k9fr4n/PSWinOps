@@ -34,3 +34,6 @@ logs/
 *.pfx
 *.p12
 secrets.json
+
+# KDust per-run sandbox (ADR-0009)
+work/
