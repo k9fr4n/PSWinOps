@@ -79,10 +79,11 @@ Describe -Name 'Save-WindowsUpdate' -Tag 'Unit' -Fixture {
             Get-Command -Name 'Save-WindowsUpdate' -Module 'PSWinOps' | Should -Not -BeNullOrEmpty
         }
 
-        It -Name 'Should have alias Download-WindowsUpdate' -Test {
-            $alias = Get-Alias -Name 'Download-WindowsUpdate' -ErrorAction SilentlyContinue
-            $alias | Should -Not -BeNullOrEmpty
-            $alias.ResolvedCommand.Name | Should -Be 'Save-WindowsUpdate'
+        It -Name 'Should NOT export legacy alias Download-WindowsUpdate by default' -Test {
+            # The legacy alias is opt-in via $env:PSWINOPS_LEGACY_ALIASES = '1'.
+            # On a default import it must not be present (Download is not an approved verb).
+            $exported = Get-Command -Module 'PSWinOps' -CommandType Alias -Name 'Download-WindowsUpdate' -ErrorAction SilentlyContinue
+            $exported | Should -BeNullOrEmpty
         }
 
         It -Name 'Should support ShouldProcess' -Test {

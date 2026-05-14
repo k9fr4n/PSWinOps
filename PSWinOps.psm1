@@ -22,6 +22,14 @@ $script:LocalComputerNames = @($env:COMPUTERNAME, 'localhost', '.')
 
 Write-Verbose "[$($MyInvocation.MyCommand)] Loading PSWinOps module from: $script:ModuleRoot"
 
+# Legacy alias gate — opt-in for one minor release cycle, then remove entirely.
+# Set $env:PSWINOPS_LEGACY_ALIASES = '1' BEFORE Import-Module to re-create the
+# pre-rename aliases. Each gated alias emits a deprecation warning.
+if ($env:PSWINOPS_LEGACY_ALIASES -eq '1') {
+    Set-Alias -Name 'Download-WindowsUpdate' -Value 'Save-WindowsUpdate' -Scope Global
+    Write-Warning "PSWinOps: 'Download-WindowsUpdate' alias is deprecated. Use 'Save-WindowsUpdate' (Download is not an approved verb). This alias will be removed in a future minor release."
+}
+
 # Import Private functions
 $privatePath = Join-Path -Path $script:ModuleRoot -ChildPath 'Private'
 if (Test-Path -Path $privatePath) {
@@ -53,17 +61,20 @@ $script:ADUserCompleter = {
     param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
     $null = $commandName, $parameterName, $commandAst
     try {
+        # Sanitize user-typed text to prevent LDAP filter injection / wildcard explosion.
+        $safe = ($wordToComplete -as [string]) -replace "'", '' -replace '\*', ''
+        if ([string]::IsNullOrWhiteSpace($safe)) { return }
         $splat = @{
-            Filter      = "SamAccountName -like '$wordToComplete*'"
-            Properties  = @('DisplayName')
-            ErrorAction = 'Stop'
+            Filter        = "SamAccountName -like '$safe*'"
+            Properties    = @('DisplayName')
+            ResultSetSize = 20
+            ErrorAction   = 'Stop'
         }
         if ($fakeBoundParameters.ContainsKey('Server'))     { $splat['Server']     = $fakeBoundParameters['Server'] }
         if ($fakeBoundParameters.ContainsKey('Credential')) { $splat['Credential'] = $fakeBoundParameters['Credential'] }
 
         Get-ADUser @splat |
             Sort-Object -Property 'SamAccountName' |
-            Select-Object -First 20 |
             ForEach-Object {
                 $toolTip = if ($_.DisplayName) { "$($_.SamAccountName) ($($_.DisplayName))" } else { $_.SamAccountName }
                 [System.Management.Automation.CompletionResult]::new(
@@ -83,16 +94,19 @@ $script:ADComputerCompleter = {
     param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
     $null = $commandName, $parameterName, $commandAst
     try {
+        # Sanitize user-typed text to prevent LDAP filter injection / wildcard explosion.
+        $safe = ($wordToComplete -as [string]) -replace "'", '' -replace '\*', ''
+        if ([string]::IsNullOrWhiteSpace($safe)) { return }
         $splat = @{
-            Filter      = "Name -like '$wordToComplete*'"
-            ErrorAction = 'Stop'
+            Filter        = "Name -like '$safe*'"
+            ResultSetSize = 20
+            ErrorAction   = 'Stop'
         }
         if ($fakeBoundParameters.ContainsKey('Server'))     { $splat['Server']     = $fakeBoundParameters['Server'] }
         if ($fakeBoundParameters.ContainsKey('Credential')) { $splat['Credential'] = $fakeBoundParameters['Credential'] }
 
         Get-ADComputer @splat |
             Sort-Object -Property 'Name' |
-            Select-Object -First 20 |
             ForEach-Object {
                 [System.Management.Automation.CompletionResult]::new(
                     $_.Name,
@@ -111,16 +125,19 @@ $script:ADGroupCompleter = {
     param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
     $null = $commandName, $parameterName, $commandAst
     try {
+        # Sanitize user-typed text to prevent LDAP filter injection / wildcard explosion.
+        $safe = ($wordToComplete -as [string]) -replace "'", '' -replace '\*', ''
+        if ([string]::IsNullOrWhiteSpace($safe)) { return }
         $splat = @{
-            Filter      = "Name -like '$wordToComplete*'"
-            ErrorAction = 'Stop'
+            Filter        = "Name -like '$safe*'"
+            ResultSetSize = 20
+            ErrorAction   = 'Stop'
         }
         if ($fakeBoundParameters.ContainsKey('Server'))     { $splat['Server']     = $fakeBoundParameters['Server'] }
         if ($fakeBoundParameters.ContainsKey('Credential')) { $splat['Credential'] = $fakeBoundParameters['Credential'] }
 
         Get-ADGroup @splat |
             Sort-Object -Property 'Name' |
-            Select-Object -First 20 |
             ForEach-Object {
                 [System.Management.Automation.CompletionResult]::new(
                     $_.Name,

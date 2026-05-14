@@ -34,6 +34,16 @@ jobs:
           Write-Output "Version: $($result.Version)"
           Write-Output "Author : $($result.Author)"
 
+      - name: Validate PSGallery compliance metadata
+        shell: pwsh
+        run: |
+          $m = Test-ModuleManifest -Path .\PSWinOps.psd1 -ErrorAction Stop
+          foreach ($k in 'LicenseUri','ProjectUri','Tags','ReleaseNotes') {
+              if (-not $m.PrivateData.PSData.$k) { throw "[FAIL] PrivateData.PSData.$k is missing" }
+          }
+          if (-not (Test-Path .\LICENSE)) { throw "[FAIL] LICENSE file missing" }
+          Write-Output "[OK] PSGallery compliance metadata present"
+
   # ─────────────────────────────────────────
   # JOB 2 — LINT
   # ─────────────────────────────────────────

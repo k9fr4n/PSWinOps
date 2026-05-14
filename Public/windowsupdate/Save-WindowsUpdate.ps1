@@ -82,7 +82,6 @@ function Save-WindowsUpdate {
             https://learn.microsoft.com/en-us/windows/win32/api/wuapi/nn-wuapi-iupdatedownloader
     #>
     [CmdletBinding(SupportsShouldProcess = $true)]
-    [Alias('Download-WindowsUpdate')]
     [OutputType('PSWinOps.WindowsUpdateDownloadResult')]
     param(
         [Parameter(Mandatory = $false, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]

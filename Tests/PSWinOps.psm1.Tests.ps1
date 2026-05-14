@@ -131,7 +131,7 @@ Describe -Name 'PSWinOps Module Loader' -Fixture {
         It -Name 'Should return CompletionResult objects when AD returns users' -Test {
             $results = & (Get-Module -Name 'PSWinOps') {
                 function Get-ADUser {
-                    param($Filter, $Properties, $Server, $Credential, $ErrorAction)
+                    param($Filter, $Properties, $ResultSetSize, $Server, $Credential, $ErrorAction)
                     [PSCustomObject]@{ SamAccountName = 'jdoe'; DisplayName = 'John Doe' }
                 }
                 & $script:ADUserCompleter 'Test-Cmd' 'Identity' 'jd' $null @{}
@@ -143,7 +143,7 @@ Describe -Name 'PSWinOps Module Loader' -Fixture {
         It -Name 'Should return CompletionResult with tooltip including DisplayName' -Test {
             $results = & (Get-Module -Name 'PSWinOps') {
                 function Get-ADUser {
-                    param($Filter, $Properties, $Server, $Credential, $ErrorAction)
+                    param($Filter, $Properties, $ResultSetSize, $Server, $Credential, $ErrorAction)
                     [PSCustomObject]@{ SamAccountName = 'jdoe'; DisplayName = 'John Doe' }
                 }
                 & $script:ADUserCompleter 'Test-Cmd' 'Identity' 'jd' $null @{}
@@ -154,7 +154,7 @@ Describe -Name 'PSWinOps Module Loader' -Fixture {
         It -Name 'Should return empty when AD module is unavailable' -Test {
             $results = & (Get-Module -Name 'PSWinOps') {
                 function Get-ADUser {
-                    param($Filter, $Properties, $Server, $Credential, $ErrorAction)
+                    param($Filter, $Properties, $ResultSetSize, $Server, $Credential, $ErrorAction)
                     throw 'Module not loaded'
                 }
                 & $script:ADUserCompleter 'Test-Cmd' 'Identity' 'jd' $null @{}
@@ -162,17 +162,45 @@ Describe -Name 'PSWinOps Module Loader' -Fixture {
             $results | Should -BeNullOrEmpty
         }
 
-        It -Name 'Should limit results to maximum 20 entries' -Test {
+        It -Name 'Should limit results to maximum 20 entries (server-side ResultSetSize)' -Test {
             $results = & (Get-Module -Name 'PSWinOps') {
                 function Get-ADUser {
-                    param($Filter, $Properties, $Server, $Credential, $ErrorAction)
-                    1..30 | ForEach-Object {
+                    param($Filter, $Properties, $ResultSetSize, $Server, $Credential, $ErrorAction)
+                    $count = if ($ResultSetSize) { [int]$ResultSetSize } else { 30 }
+                    1..$count | ForEach-Object {
                         [PSCustomObject]@{ SamAccountName = "user$_"; DisplayName = "User $_" }
                     }
                 }
                 & $script:ADUserCompleter 'Test-Cmd' 'Identity' 'user' $null @{}
             }
             @($results).Count | Should -BeLessOrEqual 20
+        }
+
+        It -Name 'Should return nothing when wordToComplete is empty (no wildcard dump)' -Test {
+            $results = & (Get-Module -Name 'PSWinOps') {
+                function Get-ADUser {
+                    param($Filter, $Properties, $ResultSetSize, $Server, $Credential, $ErrorAction)
+                    throw 'Get-ADUser should not be called for empty/wildcard input'
+                }
+                & $script:ADUserCompleter 'Test-Cmd' 'Identity' '*' $null @{}
+            }
+            $results | Should -BeNullOrEmpty
+        }
+
+        It -Name 'Should strip single-quote from wordToComplete (LDAP filter safety)' -Test {
+            $capturedFilter = $null
+            $results = & (Get-Module -Name 'PSWinOps') {
+                $script:capturedFilter = $null
+                function Get-ADUser {
+                    param($Filter, $Properties, $ResultSetSize, $Server, $Credential, $ErrorAction)
+                    $script:capturedFilter = $Filter
+                    [PSCustomObject]@{ SamAccountName = 'obrien'; DisplayName = "O'Brien" }
+                }
+                & $script:ADUserCompleter 'Test-Cmd' 'Identity' "o'br" $null @{} | Out-Null
+                $script:capturedFilter
+            }
+            $results | Should -Not -Match "'o'br"
+            $results | Should -Match "obr"
         }
     }
 
@@ -187,7 +215,7 @@ Describe -Name 'PSWinOps Module Loader' -Fixture {
         It -Name 'Should return CompletionResult for computers' -Test {
             $results = & (Get-Module -Name 'PSWinOps') {
                 function Get-ADComputer {
-                    param($Filter, $Server, $Credential, $ErrorAction)
+                    param($Filter, $ResultSetSize, $Server, $Credential, $ErrorAction)
                     [PSCustomObject]@{ Name = 'SRV-WEB01'; DistinguishedName = 'CN=SRV-WEB01,OU=Servers,DC=contoso,DC=com' }
                 }
                 & $script:ADComputerCompleter 'Test-Cmd' 'Identity' 'SRV' $null @{}
@@ -199,7 +227,7 @@ Describe -Name 'PSWinOps Module Loader' -Fixture {
         It -Name 'Should return empty when AD is unavailable for computers' -Test {
             $results = & (Get-Module -Name 'PSWinOps') {
                 function Get-ADComputer {
-                    param($Filter, $Server, $Credential, $ErrorAction)
+                    param($Filter, $ResultSetSize, $Server, $Credential, $ErrorAction)
                     throw 'Module not loaded'
                 }
                 & $script:ADComputerCompleter 'Test-Cmd' 'Identity' 'SRV' $null @{}
@@ -219,7 +247,7 @@ Describe -Name 'PSWinOps Module Loader' -Fixture {
         It -Name 'Should return CompletionResult for groups' -Test {
             $results = & (Get-Module -Name 'PSWinOps') {
                 function Get-ADGroup {
-                    param($Filter, $Server, $Credential, $ErrorAction)
+                    param($Filter, $ResultSetSize, $Server, $Credential, $ErrorAction)
                     [PSCustomObject]@{ Name = 'Domain Admins'; GroupScope = 'Global'; GroupCategory = 'Security' }
                 }
                 & $script:ADGroupCompleter 'Test-Cmd' 'Identity' 'Dom' $null @{}
@@ -231,7 +259,7 @@ Describe -Name 'PSWinOps Module Loader' -Fixture {
         It -Name 'Should return empty when AD is unavailable for groups' -Test {
             $results = & (Get-Module -Name 'PSWinOps') {
                 function Get-ADGroup {
-                    param($Filter, $Server, $Credential, $ErrorAction)
+                    param($Filter, $ResultSetSize, $Server, $Credential, $ErrorAction)
                     throw 'Module not loaded'
                 }
                 & $script:ADGroupCompleter 'Test-Cmd' 'Identity' 'Dom' $null @{}
