@@ -162,12 +162,17 @@ function New-RandomPassword {
             $passwordChars = [System.Collections.Generic.List[char]]::new()
 
             # Helper function to get cryptographically random index
+            # Uses rejection sampling to eliminate modulo bias (NIST SP 800-90A Rev.1 §A.5.1)
             $getRandomIndex = {
                 param([int]$maxValue)
-                $bytes = New-Object -TypeName 'byte[]' -ArgumentList 4
-                $rng.GetBytes($bytes)
-                $randomInt = [System.BitConverter]::ToUInt32($bytes, 0)
-                return [int]($randomInt % $maxValue)
+                $bytes = [byte[]]::new(4)
+                # Largest uint32 multiple of $maxValue (rejection-sampling upper bound)
+                $limit = [uint32]([math]::Floor([uint32]::MaxValue / $maxValue) * $maxValue)
+                while ($true) {
+                    $rng.GetBytes($bytes)
+                    $r = [System.BitConverter]::ToUInt32($bytes, 0)
+                    if ($r -lt $limit) { return [int]($r % $maxValue) }
+                }
             }
 
             # Add required uppercase characters
