@@ -130,7 +130,14 @@ function Connect-RdpSession {
         $script:qwinstaPath = Join-Path -Path $env:SystemRoot -ChildPath 'System32\qwinsta.exe'
 
         if (-not (Test-Path -Path $script:mstscPath -PathType Leaf)) {
-            throw "[$($MyInvocation.MyCommand)] mstsc.exe not found at: $script:mstscPath"
+            $PSCmdlet.ThrowTerminatingError(
+                [System.Management.Automation.ErrorRecord]::new(
+                    [System.IO.FileNotFoundException]::new("mstsc.exe not found at: $script:mstscPath"),
+                    'MstscNotFound',
+                    [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+                    $script:mstscPath
+                )
+            )
         }
     }
 

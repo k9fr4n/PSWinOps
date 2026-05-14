@@ -109,14 +109,28 @@ function Remove-ProxyConfiguration {
             if ($PSCmdlet.ShouldProcess('WinHTTP (netsh winhttp)', 'Reset proxy to direct access')) {
                 try {
                     if (-not (Test-IsAdministrator)) {
-                        throw [System.UnauthorizedAccessException]::new('WinHTTP scope requires Administrator privileges.')
+                        $PSCmdlet.ThrowTerminatingError(
+                            [System.Management.Automation.ErrorRecord]::new(
+                                [System.UnauthorizedAccessException]::new('WinHTTP scope requires Administrator privileges.'),
+                                'WinHTTPElevationRequired',
+                                [System.Management.Automation.ErrorCategory]::PermissionDenied,
+                                $null
+                            )
+                        )
                     }
 
                     Write-Verbose "[$($MyInvocation.MyCommand)] Resetting WinHTTP proxy settings"
 
                     $netshPath = Join-Path -Path $env:SystemRoot -ChildPath 'System32\netsh.exe'
                     if (-not (Test-Path -Path $netshPath -PathType Leaf)) {
-                        throw "netsh.exe not found at '$netshPath'"
+                        $PSCmdlet.ThrowTerminatingError(
+                            [System.Management.Automation.ErrorRecord]::new(
+                                [System.IO.FileNotFoundException]::new("netsh.exe not found at '$netshPath'"),
+                                'NetshNotFound',
+                                [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+                                $netshPath
+                            )
+                        )
                     }
 
                     Write-Verbose "[$($MyInvocation.MyCommand)] Running: netsh winhttp reset proxy"

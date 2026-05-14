@@ -119,7 +119,16 @@ function Get-NTPSyncStatus {
                     Write-Verbose "[$($MyInvocation.MyCommand)] Local execution - Invoke-NativeCommand w32tm call"
                     $w32tmResult = Invoke-NativeCommand -FilePath $w32tmPath -ArgumentList @('/query', '/status')
                     if ($w32tmResult.ExitCode -ne 0) {
-                        throw "w32tm /query /status failed (exit code $($w32tmResult.ExitCode)): $($w32tmResult.Output)"
+                        $PSCmdlet.ThrowTerminatingError(
+                            [System.Management.Automation.ErrorRecord]::new(
+                                [System.InvalidOperationException]::new(
+                                    "w32tm /query /status failed (exit code $($w32tmResult.ExitCode)): $($w32tmResult.Output)"
+                                ),
+                                'W32tmQueryStatusFailed',
+                                [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                                $targetComputer
+                            )
+                        )
                     }
                     $rawOutput = $w32tmResult.Output -split '\r?\n'
                 } else {

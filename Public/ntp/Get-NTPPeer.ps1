@@ -90,7 +90,16 @@ function Get-NTPPeer {
                     # Local execution: use Invoke-NativeCommand for testable w32tm calls
                     $w32tmResult = Invoke-NativeCommand -FilePath $w32tmPath -ArgumentList @('/query', '/peers')
                     if ($w32tmResult.ExitCode -ne 0) {
-                        throw "w32tm /query /peers failed (exit code $($w32tmResult.ExitCode)): $($w32tmResult.Output)"
+                        $PSCmdlet.ThrowTerminatingError(
+                            [System.Management.Automation.ErrorRecord]::new(
+                                [System.InvalidOperationException]::new(
+                                    "w32tm /query /peers failed (exit code $($w32tmResult.ExitCode)): $($w32tmResult.Output)"
+                                ),
+                                'W32tmQueryPeersFailed',
+                                [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                                $targetComputer
+                            )
+                        )
                     }
                     $rawOutput = $w32tmResult.Output -split '\r?\n'
                 } else {
