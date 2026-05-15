@@ -125,6 +125,7 @@
         'Get-HyperVHostHealth',
         'Get-IISHealth',
         'Get-IISParsedLog',
+        'Get-IISWorkerProcess',
         'Get-InstalledSoftware',
         'Get-ListeningPort',
         'Get-NetworkAdapter',
