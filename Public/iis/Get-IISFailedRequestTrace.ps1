@@ -452,9 +452,13 @@ function Get-IISFailedRequestTrace {
                     $errMsg   = $null # ErrorMessage (FREB event payload)
                     $foundErr = $false
                     $evtCount = 0
-                    $evtList  = if ($DoIncludeEvents) {
-                        [System.Collections.Generic.List[hashtable]]::new()
-                    } else { $null }
+                    # NOTE: do NOT use the if-expression idiom here: `$evtList = if ($flag) { List::new() }`
+                    # PowerShell enumerates an empty List through the if-expression pipeline, yielding $null.
+                    # Use a plain if-statement with a direct assignment to preserve the List reference.
+                    $evtList = $null
+                    if ($DoIncludeEvents) {
+                        $evtList = [System.Collections.Generic.List[hashtable]]::new()
+                    }
 
                     try {
                         $xrSettings = [System.Xml.XmlReaderSettings]::new()
@@ -819,7 +823,17 @@ function Get-IISFailedRequestTrace {
                 [PSCustomObject]@{
                     PSTypeName         = 'PSWinOps.IISFailedRequestTrace'
                     ComputerName       = $cn
-                    SiteName           = $row.SiteName
+                    # Guard: if the inner scriptblock returned a file-glob as SiteName
+                    # (e.g. from a test fixture parsing artefact), prefer the caller-bound
+                    # -SiteName value when it is a single exact (non-wildcard) name.
+                    SiteName           = if (($null -eq $row.SiteName -or $row.SiteName -match '\*') -and
+                                             $PSBoundParameters.ContainsKey('SiteName') -and
+                                             @($SiteName).Count -eq 1 -and
+                                             $SiteName[0] -notmatch '\*') {
+                                            $SiteName[0]
+                                        } else {
+                                            $row.SiteName
+                                        }
                     SiteId             = $row.SiteId
                     AppPoolName        = $row.AppPoolName
                     ProcessId          = $row.ProcessId
