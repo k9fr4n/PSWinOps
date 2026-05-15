@@ -12,7 +12,7 @@
     RootModule           = 'PSWinOps.psm1'
 
     # Version number of this module.
-    ModuleVersion        = '0.1.2'
+    ModuleVersion        = '0.1.3'
 
     # Supported PSEditions
     # Core is supported on Windows only; the module-level guard in PSWinOps.psm1 blocks
@@ -258,7 +258,12 @@
             # IconUri = ''
 
             # ReleaseNotes of this module
-            ReleaseNotes = '## 0.1.2 - 2026-05-15
+            ReleaseNotes = '## 0.1.3 - 2026-05-15
+### Added
+- feat(iis): add Get-IISWorkerProcess — inventory IIS w3wp.exe worker processes joined with owning AppPoolName, served Sites/Applications, identity/IdentityType, PID, StartTime/UptimeSeconds, CPUSeconds, WorkingSetMB/PrivateMemoryMB/VirtualMemoryMB, ThreadCount/HandleCount, with multi-host remoting via Invoke-RemoteOrLocal, graceful WebAdministration → IISAdministration → appcmd/CIM fallback, -AppPoolName (wildcards) and -ProcessId filters, and the standard PSWinOps Status enum (Running/Orphaned/Failed/IISNotInstalled/NoWorkerProcess).
+- feat(format): TableControl view for PSWinOps.IISWorkerProcess in PSWinOps.Format.ps1xml.
+
+## 0.1.2 - 2026-05-15
 ### Added
 - feat(iis): add Get-IISParsedLog — stream-parse IIS W3C log files into typed PSWinOps.IISLogEntry objects with header re-detection, dash-normalisation, UserAgent "+"-to-space decoding, -After/-Before time window, -Method/-Status/-ClientIP multi-value OR filters, -UriLike wildcard, -Tail circular buffer, and pipeline-by-property-name (FullName) for Get-ChildItem composition.
 - feat(format): TableControl view for PSWinOps.IISLogEntry in PSWinOps.Format.ps1xml.
