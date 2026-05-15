@@ -6760,5 +6760,64 @@
         </TableRowEntries>
       </TableControl>
     </View>
+    <!-- ============================================================ -->
+    <!-- PSWinOps.IISLogEntry                                        -->
+    <!-- Used by: Get-IISParsedLog                                   -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.IISLogEntry</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.IISLogEntry</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <AutoSize />
+        <TableHeaders>
+          <TableColumnHeader>
+            <Label>Timestamp</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Method</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>UriStem</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>HttpStatus</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>TimeTaken</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>ClientIP</Label>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem>
+                <ScriptBlock>
+                  if ($null -ne $_.Timestamp) { $_.Timestamp.ToString('yyyy-MM-dd HH:mm:ss') } else { '' }
+                </ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Method</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>UriStem</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>HttpStatus</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>TimeTaken</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>ClientIP</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
   </ViewDefinitions>
 </Configuration>
