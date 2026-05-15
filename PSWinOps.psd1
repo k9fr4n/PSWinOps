@@ -12,7 +12,7 @@
     RootModule           = 'PSWinOps.psm1'
 
     # Version number of this module.
-    ModuleVersion        = '0.1.5'
+    ModuleVersion        = '0.1.6'
 
     # Supported PSEditions
     # Core is supported on Windows only; the module-level guard in PSWinOps.psm1 blocks
@@ -124,6 +124,7 @@
         'Get-FileServerHealth',
         'Get-HyperVHostHealth',
         'Get-IISCurrentRequest',
+        'Get-IISFailedRequestTrace',
         'Get-IISHealth',
         'Get-IISParsedLog',
         'Get-IISWorkerProcess',

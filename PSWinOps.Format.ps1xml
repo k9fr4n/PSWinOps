@@ -6917,6 +6917,78 @@
     </View>
 
     <!-- ============================================================ -->
+    <!-- PSWinOps.IISFailedRequestTrace                               -->
+    <!-- Used by: Get-IISFailedRequestTrace                           -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.IISFailedRequestTrace</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.IISFailedRequestTrace</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <AutoSize />
+        <TableHeaders>
+          <TableColumnHeader>
+            <Label>ComputerName</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>SiteName</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Timestamp</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Verb</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Status</Label>
+            <Alignment>Right</Alignment>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Time(ms)</Label>
+            <Alignment>Right</Alignment>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Reason</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Url</Label>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem>
+                <PropertyName>ComputerName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>SiteName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>if ($_.Timestamp) { $_.Timestamp.ToString('yyyy-MM-dd HH:mm:ss') } else { '' }</ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Verb</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>StatusCode</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>TimeTaken</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>FailureReason</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Url</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
     <!-- PSWinOps.IISCurrentRequest                                   -->
     <!-- Used by: Get-IISCurrentRequest                               -->
     <!-- ============================================================ -->
