@@ -6819,5 +6819,101 @@
         </TableRowEntries>
       </TableControl>
     </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.IISWorkerProcess                                    -->
+    <!-- Used by: Get-IISWorkerProcess                                -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.IISWorkerProcess</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.IISWorkerProcess</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <AutoSize />
+        <TableHeaders>
+          <TableColumnHeader>
+            <Label>ComputerName</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>PID</Label>
+            <Alignment>Right</Alignment>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>AppPoolName</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Sites</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Identity</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Status</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>UptimeSec</Label>
+            <Alignment>Right</Alignment>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>WorkingSetMB</Label>
+            <Alignment>Right</Alignment>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>CPUSec</Label>
+            <Alignment>Right</Alignment>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Threads</Label>
+            <Alignment>Right</Alignment>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Handles</Label>
+            <Alignment>Right</Alignment>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem>
+                <PropertyName>ComputerName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>ProcessId</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>AppPoolName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>
+                  if ($_.Sites) { $_.Sites -join ', ' } else { '' }
+                </ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Identity</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Status</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>UptimeSeconds</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>WorkingSetMB</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>CPUSeconds</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>ThreadCount</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>HandleCount</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
   </ViewDefinitions>
 </Configuration>
