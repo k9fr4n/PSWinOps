@@ -1,0 +1,7 @@
+chain: pswinops-function-author
+function: Get-IISCurrentRequest
+domain: iis
+created: 2026-05-15T17:29:47Z
+created_by: pswinops-fn-spec-analyst
+chain_branch: kdust/chain/pswinops-fn-get-iiscurrentrequest-2605151729
+spec_path: work/get-iiscurrentrequest/spec.yaml
