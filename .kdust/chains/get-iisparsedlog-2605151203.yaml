@@ -1,0 +1,7 @@
+chain: pswinops-function-author
+function: Get-IISParsedLog
+domain: iis
+created: 2026-05-15T12:08:10Z
+created_by: pswinops-fn-spec-analyst
+chain_branch: kdust/chain/pswinops-fn-get-iisparsedlog-2605151203
+spec_path: work/get-iisparsedlog/spec.yaml
