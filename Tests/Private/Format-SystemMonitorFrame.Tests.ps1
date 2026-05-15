@@ -12,9 +12,10 @@ BeforeAll {
     }
 
     # Helper: build a synthetic process object
+    # NOTE: $PID is a read-only automatic variable in PowerShell; use $ProcessId instead.
     function script:NewProc {
-        param([int]$PID = 1234, [double]$CPU = 5.0, [double]$MemMB = 100.0, [string]$Name = 'svchost')
-        [PSCustomObject]@{ PID = $PID; CPU = $CPU; MemMB = $MemMB; Name = $Name }
+        param([int]$ProcessId = 1234, [double]$CPU = 5.0, [double]$MemMB = 100.0, [string]$Name = 'svchost')
+        [PSCustomObject]@{ PID = $ProcessId; CPU = $CPU; MemMB = $MemMB; Name = $Name }
     }
 
     # Minimal valid call helper (no color, fixed dimensions)
@@ -108,8 +109,8 @@ Describe -Name 'Format-SystemMonitorFrame' -Fixture {
                 (script:NewCore -Name '3' -Pct 85)
             )
             $procs = @(
-                (script:NewProc -PID 1000 -CPU 60.0 -MemMB 512.0 -Name 'notepad'),
-                (script:NewProc -PID 2000 -CPU 5.0  -MemMB 128.0 -Name 'svchost')
+                (script:NewProc -ProcessId 1000 -CPU 60.0 -MemMB 512.0 -Name 'notepad'),
+                (script:NewProc -ProcessId 2000 -CPU 5.0  -MemMB 128.0 -Name 'svchost')
             )
             $script:frame = script:InvokeFrame @{
                 CpuTotalPercent = 53
