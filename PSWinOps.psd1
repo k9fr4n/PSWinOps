@@ -124,6 +124,7 @@
         'Get-FileServerHealth',
         'Get-HyperVHostHealth',
         'Get-IISHealth',
+        'Get-IISParsedLog',
         'Get-InstalledSoftware',
         'Get-ListeningPort',
         'Get-NetworkAdapter',
