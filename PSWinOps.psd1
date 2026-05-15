@@ -12,7 +12,7 @@
     RootModule           = 'PSWinOps.psm1'
 
     # Version number of this module.
-    ModuleVersion        = '0.1.1'
+    ModuleVersion        = '0.1.2'
 
     # Supported PSEditions
     # Core is supported on Windows only; the module-level guard in PSWinOps.psm1 blocks
@@ -257,7 +257,12 @@
             # IconUri = ''
 
             # ReleaseNotes of this module
-            ReleaseNotes = '## 0.1.1 - 2026-05-14
+            ReleaseNotes = '## 0.1.2 - 2026-05-15
+### Added
+- feat(iis): add Get-IISParsedLog — stream-parse IIS W3C log files into typed PSWinOps.IISLogEntry objects with header re-detection, dash-normalisation, UserAgent "+"-to-space decoding, -After/-Before time window, -Method/-Status/-ClientIP multi-value OR filters, -UriLike wildcard, -Tail circular buffer, and pipeline-by-property-name (FullName) for Get-ChildItem composition.
+- feat(format): TableControl view for PSWinOps.IISLogEntry in PSWinOps.Format.ps1xml.
+
+## 0.1.1 - 2026-05-14
 ### Added
 - feat(iis): add Set-IISBindingCertificate — replace SSL/TLS certificate on one or more IIS HTTPS site bindings with idempotent rotation, -WhatIf/-Confirm (ConfirmImpact=High), remote execution via WinRM, and pipeline-by-property-name from Get-SSLCertificate / Get-IISHealth.
 - feat(iis): introduce new public domain Public/iis/ (registered in CI matrix and about_PSWinOps).
