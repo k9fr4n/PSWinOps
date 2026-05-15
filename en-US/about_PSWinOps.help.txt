@@ -84,11 +84,13 @@ FUNCTION DOMAINS
       Get-ServiceHealth
       Get-WSUSHealth
 
-  iis (3 functions)
+  iis (4 functions)
     Functions for managing IIS sites, HTTPS bindings,
-    log file analysis, and worker process monitoring
-    across local or remote servers.
+    log file analysis, worker process monitoring, and
+    real-time in-flight request inspection across local
+    or remote servers.
 
+      Get-IISCurrentRequest
       Get-IISParsedLog
       Get-IISWorkerProcess
       Set-IISBindingCertificate
@@ -284,7 +286,7 @@ REMOTE EXECUTION PATTERN
     in the pipeline continue to be processed.
 
 PSWINOPS TYPE REGISTRY
-    The following 89 PSTypeName values are defined by the
+    The following 90 PSTypeName values are defined by the
     module. Each corresponds to the output of one or more
     public functions.
 
@@ -330,6 +332,7 @@ PSWINOPS TYPE REGISTRY
       PSWinOps.FileServerHealth
       PSWinOps.HyperVHostHealth
       PSWinOps.IISBindingCertificateResult
+      PSWinOps.IISCurrentRequest
       PSWinOps.IISHealth
       PSWinOps.IISLogEntry
       PSWinOps.IISWorkerProcess

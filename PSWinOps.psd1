@@ -12,7 +12,7 @@
     RootModule           = 'PSWinOps.psm1'
 
     # Version number of this module.
-    ModuleVersion        = '0.1.3'
+    ModuleVersion        = '0.1.4'
 
     # Supported PSEditions
     # Core is supported on Windows only; the module-level guard in PSWinOps.psm1 blocks
@@ -123,6 +123,7 @@
         'Get-ExchangeServerHealth',
         'Get-FileServerHealth',
         'Get-HyperVHostHealth',
+        'Get-IISCurrentRequest',
         'Get-IISHealth',
         'Get-IISParsedLog',
         'Get-IISWorkerProcess',
@@ -258,7 +259,12 @@
             # IconUri = ''
 
             # ReleaseNotes of this module
-            ReleaseNotes = '## 0.1.3 - 2026-05-15
+            ReleaseNotes = '## 0.1.4 - 2026-05-15
+### Added
+- feat(iis): add Get-IISCurrentRequest — list HTTP requests currently executing in IIS (typed equivalent of `appcmd list requests`) with per-request ComputerName, ProcessId, AppPoolName, SiteName, Url, Verb, ClientIPAddress, TimeElapsed/TimeElapsedMs, PipelineState; multi-host remoting via Invoke-RemoteOrLocal; -AppPoolName / -SiteName wildcards and -MinElapsedMs threshold filters; standard PSWinOps Status enum (InFlight/NoRequests/IISNotInstalled/AppcmdMissing/Failed) + ErrorMessage + Timestamp tail.
+- feat(format): TableControl view for PSWinOps.IISCurrentRequest in PSWinOps.Format.ps1xml.
+
+## 0.1.3 - 2026-05-15
 ### Added
 - feat(iis): add Get-IISWorkerProcess — inventory IIS w3wp.exe worker processes joined with owning AppPoolName, served Sites/Applications, identity/IdentityType, PID, StartTime/UptimeSeconds, CPUSeconds, WorkingSetMB/PrivateMemoryMB/VirtualMemoryMB, ThreadCount/HandleCount, with multi-host remoting via Invoke-RemoteOrLocal, graceful WebAdministration → IISAdministration → appcmd/CIM fallback, -AppPoolName (wildcards) and -ProcessId filters, and the standard PSWinOps Status enum (Running/Orphaned/Failed/IISNotInstalled/NoWorkerProcess).
 - feat(format): TableControl view for PSWinOps.IISWorkerProcess in PSWinOps.Format.ps1xml.
