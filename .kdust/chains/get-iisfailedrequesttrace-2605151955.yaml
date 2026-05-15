@@ -1,0 +1,7 @@
+chain: pswinops-function-author
+function: Get-IISFailedRequestTrace
+domain: iis
+created: 2026-05-15T19:55:50Z
+created_by: pswinops-fn-spec-analyst
+chain_branch: kdust/chain/pswinops-fn-get-iisfailedrequesttrace-2605151955
+spec_path: work/get-iisfailedrequesttrace/spec.yaml
