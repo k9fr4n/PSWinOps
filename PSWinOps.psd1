@@ -12,7 +12,7 @@
     RootModule           = 'PSWinOps.psm1'
 
     # Version number of this module.
-    ModuleVersion        = '0.1.4'
+    ModuleVersion        = '0.1.5'
 
     # Supported PSEditions
     # Core is supported on Windows only; the module-level guard in PSWinOps.psm1 blocks
@@ -192,7 +192,8 @@
         'Test-WinRM',
         'Trace-NetworkRoute',
         'Uninstall-WindowsUpdate',
-        'Unlock-ADUserAccount'
+        'Unlock-ADUserAccount',
+        'Watch-IISLog'
     )
 
     # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
@@ -259,7 +260,11 @@
             # IconUri = ''
 
             # ReleaseNotes of this module
-            ReleaseNotes = '## 0.1.4 - 2026-05-15
+            ReleaseNotes = '## 0.1.5 - 2026-05-15
+### Added
+- feat(iis): add Watch-IISLog — real-time IIS W3C log tailer emitting typed PSWinOps.IISLogEntry objects (same shape as Get-IISParsedLog) as new lines are written; resolves the active site log via WebAdministration / Microsoft.Web.Administration / appcmd fallback; opens with FileShare.ReadWrite|Delete so IIS is undisturbed; supports -InitialLines (tail -n replay), -FollowRollover (daily log rotation), -PollIntervalMs, -Duration and -MaxEntries bounds; in-stream filters -Method/-Status/-UriLike/-ClientIP/-MinStatus; multi-host remoting via Invoke-RemoteOrLocal with -Credential; reuses the existing PSWinOps.IISLogEntry Format view.
+
+## 0.1.4 - 2026-05-15
 ### Added
 - feat(iis): add Get-IISCurrentRequest — list HTTP requests currently executing in IIS (typed equivalent of `appcmd list requests`) with per-request ComputerName, ProcessId, AppPoolName, SiteName, Url, Verb, ClientIPAddress, TimeElapsed/TimeElapsedMs, PipelineState; multi-host remoting via Invoke-RemoteOrLocal; -AppPoolName / -SiteName wildcards and -MinElapsedMs threshold filters; standard PSWinOps Status enum (InFlight/NoRequests/IISNotInstalled/AppcmdMissing/Failed) + ErrorMessage + Timestamp tail.
 - feat(format): TableControl view for PSWinOps.IISCurrentRequest in PSWinOps.Format.ps1xml.

@@ -1,0 +1,7 @@
+chain: pswinops-function-author
+function: Watch-IISLog
+domain: iis
+created: 2026-05-15T18:34:06Z
+created_by: pswinops-fn-spec-analyst
+chain_branch: kdust/chain/pswinops-fn-watch-iislog-2605151832
+spec_path: work/watch-iislog/spec.yaml

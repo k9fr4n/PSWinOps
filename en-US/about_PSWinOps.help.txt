@@ -84,16 +84,17 @@ FUNCTION DOMAINS
       Get-ServiceHealth
       Get-WSUSHealth
 
-  iis (4 functions)
+  iis (5 functions)
     Functions for managing IIS sites, HTTPS bindings,
-    log file analysis, worker process monitoring, and
-    real-time in-flight request inspection across local
-    or remote servers.
+    log file analysis, real-time log streaming, worker
+    process monitoring, and in-flight request inspection
+    across local or remote servers.
 
       Get-IISCurrentRequest
       Get-IISParsedLog
       Get-IISWorkerProcess
       Set-IISBindingCertificate
+      Watch-IISLog
 
   network (24 functions)
     Functions for network diagnostics, discovery,
