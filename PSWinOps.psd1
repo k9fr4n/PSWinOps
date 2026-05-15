@@ -123,6 +123,7 @@
         'Get-ExchangeServerHealth',
         'Get-FileServerHealth',
         'Get-HyperVHostHealth',
+        'Get-IISCurrentRequest',
         'Get-IISHealth',
         'Get-IISParsedLog',
         'Get-IISWorkerProcess',

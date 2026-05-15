@@ -6915,5 +6915,89 @@
         </TableRowEntries>
       </TableControl>
     </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.IISCurrentRequest                                   -->
+    <!-- Used by: Get-IISCurrentRequest                               -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.IISCurrentRequest</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.IISCurrentRequest</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <AutoSize />
+        <TableHeaders>
+          <TableColumnHeader>
+            <Label>ComputerName</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>PID</Label>
+            <Alignment>Right</Alignment>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>AppPoolName</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>SiteName</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Verb</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Url</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>ClientIP</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>ElapsedMs</Label>
+            <Alignment>Right</Alignment>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>PipelineState</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Status</Label>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem>
+                <PropertyName>ComputerName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>ProcessId</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>AppPoolName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>SiteName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Verb</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Url</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>ClientIPAddress</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>TimeElapsedMs</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>PipelineState</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Status</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
   </ViewDefinitions>
 </Configuration>
