@@ -261,7 +261,12 @@
             # IconUri = ''
 
             # ReleaseNotes of this module
-            ReleaseNotes = '## 0.1.5 - 2026-05-15
+            ReleaseNotes = '## 0.1.6 - 2026-05-15
+### Added
+- feat(iis): add Get-IISFailedRequestTrace — parse IIS Failed Request Tracing (FREB) fr######.xml files into typed PSWinOps.IISFailedRequestTrace objects; auto-resolves the FREB folder per site via WebAdministration / IISAdministration / appcmd fallback; surfaces <failedRequest> root attributes (URL, verb, statusCode/subStatus split, timeTaken, appPool, worker PID, failureReason) plus the first ERROR/WARNING event (module, notification, message) without a full DOM load; supports multi-host execution via Invoke-RemoteOrLocal, per-site -Path override, -After/-Before/-StatusCode/-FailureReason filters, -Tail for the most recent N traces, and -IncludeEvents to attach the full event timeline; standard PSWinOps Status enum (Parsed/NoTraces/SiteNotFound/FolderNotFound/IISNotInstalled/Failed).
+- feat(format): TableControl view for PSWinOps.IISFailedRequestTrace in PSWinOps.Format.ps1xml.
+
+## 0.1.5 - 2026-05-15
 ### Added
 - feat(iis): add Watch-IISLog — real-time IIS W3C log tailer emitting typed PSWinOps.IISLogEntry objects (same shape as Get-IISParsedLog) as new lines are written; resolves the active site log via WebAdministration / Microsoft.Web.Administration / appcmd fallback; opens with FileShare.ReadWrite|Delete so IIS is undisturbed; supports -InitialLines (tail -n replay), -FollowRollover (daily log rotation), -PollIntervalMs, -Duration and -MaxEntries bounds; in-stream filters -Method/-Status/-UriLike/-ClientIP/-MinStatus; multi-host remoting via Invoke-RemoteOrLocal with -Credential; reuses the existing PSWinOps.IISLogEntry Format view.
 
