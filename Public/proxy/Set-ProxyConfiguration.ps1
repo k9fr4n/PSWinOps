@@ -166,28 +166,14 @@ function Set-ProxyConfiguration {
                 if ($PSCmdlet.ShouldProcess('WinHTTP (netsh winhttp)', 'Set proxy configuration')) {
                     try {
                         if (-not (Test-IsAdministrator)) {
-                            $PSCmdlet.ThrowTerminatingError(
-                                [System.Management.Automation.ErrorRecord]::new(
-                                    [System.UnauthorizedAccessException]::new('WinHTTP scope requires Administrator privileges.'),
-                                    'WinHTTPElevationRequired',
-                                    [System.Management.Automation.ErrorCategory]::PermissionDenied,
-                                    $null
-                                )
-                            )
+                            throw [System.UnauthorizedAccessException]::new('WinHTTP scope requires Administrator privileges.')
                         }
 
                         Write-Verbose "[$($MyInvocation.MyCommand)] Configuring WinHTTP proxy settings"
 
                         $netshPath = Join-Path -Path $env:SystemRoot -ChildPath 'System32\netsh.exe'
                         if (-not (Test-Path -Path $netshPath -PathType Leaf)) {
-                            $PSCmdlet.ThrowTerminatingError(
-                                [System.Management.Automation.ErrorRecord]::new(
-                                    [System.IO.FileNotFoundException]::new("netsh.exe not found at '$netshPath'"),
-                                    'NetshNotFound',
-                                    [System.Management.Automation.ErrorCategory]::ObjectNotFound,
-                                    $netshPath
-                                )
-                            )
+                            throw "netsh.exe not found at '$netshPath'"
                         }
 
                         $netshArgs = @('winhttp', 'set', 'proxy', "proxy-server=$ProxyServer")
