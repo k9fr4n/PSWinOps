@@ -156,7 +156,14 @@ function Set-NTPClient {
             Write-Verbose "[$($MyInvocation.MyCommand)] Verifying registry paths..."
             foreach ($pathInfo in $registryPaths.GetEnumerator()) {
                 if (-not (Test-Path -Path $pathInfo.Value)) {
-                    throw "Registry key not found: $($pathInfo.Value)"
+                    $PSCmdlet.ThrowTerminatingError(
+                        [System.Management.Automation.ErrorRecord]::new(
+                            [System.IO.FileNotFoundException]::new("Registry key not found: $($pathInfo.Value)"),
+                            'NTPRegistryKeyMissing',
+                            [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+                            $pathInfo.Value
+                        )
+                    )
                 }
             }
 

@@ -75,7 +75,17 @@ function Get-ADLockedAccount {
             Import-Module -Name 'ActiveDirectory' -ErrorAction Stop
         }
         catch {
-            throw "[$($MyInvocation.MyCommand)] Failed to import ActiveDirectory module: $_"
+            $PSCmdlet.ThrowTerminatingError(
+                [System.Management.Automation.ErrorRecord]::new(
+                    [System.InvalidOperationException]::new(
+                        'ActiveDirectory module is not available. Install RSAT-AD-PowerShell.',
+                        $_.Exception
+                    ),
+                    'ActiveDirectoryModuleMissing',
+                    [System.Management.Automation.ErrorCategory]::NotInstalled,
+                    'ActiveDirectory'
+                )
+            )
         }
 
         $adParams = @{}

@@ -116,8 +116,11 @@ Describe 'Show-NetworkStatisticMonitor' {
 
     Context 'Interactive controls — function source inspection' {
         BeforeAll {
+            # Include both the public function and its private formatter so that
+            # patterns moved to Format-NetworkStatisticMonitorFrame are still found.
             $script:funcBody = InModuleScope -ModuleName $script:ModuleName {
-                (Get-Command -Name 'Show-NetworkStatisticMonitor').ScriptBlock.ToString()
+                (Get-Command -Name 'Show-NetworkStatisticMonitor').ScriptBlock.ToString() +
+                (Get-Command -Name 'Format-NetworkStatisticMonitorFrame').ScriptBlock.ToString()
             }
         }
 
@@ -177,8 +180,11 @@ Describe 'Show-NetworkStatisticMonitor' {
 
     Context 'ANSI color helpers' {
         BeforeAll {
+            # Color helper functions (Get-ProtocolColor, Get-StateColor) were moved
+            # to the private formatter; include both bodies for source inspection.
             $script:funcBody = InModuleScope -ModuleName $script:ModuleName {
-                (Get-Command -Name 'Show-NetworkStatisticMonitor').ScriptBlock.ToString()
+                (Get-Command -Name 'Show-NetworkStatisticMonitor').ScriptBlock.ToString() +
+                (Get-Command -Name 'Format-NetworkStatisticMonitorFrame').ScriptBlock.ToString()
             }
         }
 

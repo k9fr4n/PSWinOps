@@ -113,7 +113,13 @@ function Get-ADPasswordStatus {
             Import-Module -Name 'ActiveDirectory' -ErrorAction Stop -Verbose:$false
         }
         catch {
-            Write-Error -Message "[$($MyInvocation.MyCommand)] ActiveDirectory module is not available: $_"
+            $errorRecord = [System.Management.Automation.ErrorRecord]::new(
+                $_.Exception,
+                'GetADPasswordStatusModuleNotFound',
+                [System.Management.Automation.ErrorCategory]::NotInstalled,
+                $null
+            )
+            $PSCmdlet.WriteError($errorRecord)
             return
         }
 
@@ -178,7 +184,13 @@ function Get-ADPasswordStatus {
             $users = Get-ADUser @searchSplat @adSplat
         }
         catch {
-            Write-Error -Message "[$($MyInvocation.MyCommand)] Failed to query users: $_"
+            $errorRecord = [System.Management.Automation.ErrorRecord]::new(
+                $_.Exception,
+                'GetADPasswordStatusFailed',
+                [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                $null
+            )
+            $PSCmdlet.WriteError($errorRecord)
             return
         }
 

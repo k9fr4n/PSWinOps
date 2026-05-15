@@ -147,7 +147,13 @@ function Get-ADUserGroupInventory {
                 }
             }
             catch {
-                Write-Error -Message "[$($MyInvocation.MyCommand)] Failed to query users: $_"
+                $errorRecord = [System.Management.Automation.ErrorRecord]::new(
+                    $_.Exception,
+                    'GetADUserGroupInventoryFailed',
+                    [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                    $null
+                )
+                $PSCmdlet.WriteError($errorRecord)
                 return
             }
         }

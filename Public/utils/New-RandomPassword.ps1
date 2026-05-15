@@ -107,7 +107,16 @@ function New-RandomPassword {
         # Validate total constraints do not exceed length
         $totalRequired = $UpperCount + $LowerCount + $NumericCount + $SpecialCount
         if ($totalRequired -gt $Length) {
-            throw "[$($MyInvocation.MyCommand)] Sum of character class minimums ($totalRequired) exceeds password length ($Length)"
+            $PSCmdlet.ThrowTerminatingError(
+                [System.Management.Automation.ErrorRecord]::new(
+                    [System.ArgumentException]::new(
+                        "Sum of character class minimums ($totalRequired) exceeds password length ($Length)"
+                    ),
+                    'PasswordConstraintExceedsLength',
+                    [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                    $Length
+                )
+            )
         }
 
         # Build combined character set based on required counts
@@ -128,7 +137,16 @@ function New-RandomPassword {
         $charSet = $charSetBuilder.ToString().ToCharArray()
 
         if ($charSet.Count -eq 0) {
-            throw "[$($MyInvocation.MyCommand)] At least one character class must have a count greater than zero"
+            $PSCmdlet.ThrowTerminatingError(
+                [System.Management.Automation.ErrorRecord]::new(
+                    [System.ArgumentException]::new(
+                        'At least one character class must have a count greater than zero'
+                    ),
+                    'NoCharacterClassSelected',
+                    [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                    $null
+                )
+            )
         }
 
         Write-Verbose "[$($MyInvocation.MyCommand)] Character set size: $($charSet.Count)"
@@ -144,12 +162,17 @@ function New-RandomPassword {
             $passwordChars = [System.Collections.Generic.List[char]]::new()
 
             # Helper function to get cryptographically random index
+            # Uses rejection sampling to eliminate modulo bias (NIST SP 800-90A Rev.1 §A.5.1)
             $getRandomIndex = {
                 param([int]$maxValue)
-                $bytes = New-Object -TypeName 'byte[]' -ArgumentList 4
-                $rng.GetBytes($bytes)
-                $randomInt = [System.BitConverter]::ToUInt32($bytes, 0)
-                return [int]($randomInt % $maxValue)
+                $bytes = [byte[]]::new(4)
+                # Largest uint32 multiple of $maxValue (rejection-sampling upper bound)
+                $limit = [uint32]([math]::Floor([uint32]::MaxValue / $maxValue) * $maxValue)
+                while ($true) {
+                    $rng.GetBytes($bytes)
+                    $r = [System.BitConverter]::ToUInt32($bytes, 0)
+                    if ($r -lt $limit) { return [int]($r % $maxValue) }
+                }
             }
 
             # Add required uppercase characters

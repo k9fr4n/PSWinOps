@@ -81,7 +81,13 @@ function Get-ADUserInventory {
         Import-Module -Name 'ActiveDirectory' -ErrorAction Stop -Verbose:$false
     }
     catch {
-        Write-Error -Message "[$($MyInvocation.MyCommand)] ActiveDirectory module is not available. Install RSAT: $_"
+        $errorRecord = [System.Management.Automation.ErrorRecord]::new(
+            $_.Exception,
+            'GetADUserInventoryModuleNotFound',
+            [System.Management.Automation.ErrorCategory]::NotInstalled,
+            $null
+        )
+        $PSCmdlet.WriteError($errorRecord)
         return
     }
 
@@ -121,7 +127,13 @@ function Get-ADUserInventory {
         $adUserList = Get-ADUser @splatGetADUser
     }
     catch {
-        Write-Error -Message "[$($MyInvocation.MyCommand)] Failed to query Active Directory: $_"
+        $errorRecord = [System.Management.Automation.ErrorRecord]::new(
+            $_.Exception,
+            'GetADUserInventoryFailed',
+            [System.Management.Automation.ErrorCategory]::InvalidOperation,
+            $null
+        )
+        $PSCmdlet.WriteError($errorRecord)
         return
     }
 

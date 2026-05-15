@@ -71,7 +71,13 @@ function Get-ADDomainInfo {
             Import-Module -Name 'ActiveDirectory' -ErrorAction Stop -Verbose:$false
         }
         catch {
-            Write-Error -Message "[$($MyInvocation.MyCommand)] ActiveDirectory module is not available: $_"
+            $errorRecord = [System.Management.Automation.ErrorRecord]::new(
+                $_.Exception,
+                'GetADDomainInfoModuleNotFound',
+                [System.Management.Automation.ErrorCategory]::NotInstalled,
+                $null
+            )
+            $PSCmdlet.WriteError($errorRecord)
             return
         }
 

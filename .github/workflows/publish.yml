@@ -128,39 +128,22 @@ jobs:
           Write-Output "Publishing version: $version"
           Add-Content -Path $env:GITHUB_ENV -Value "MODULE_VERSION=$version" -Encoding UTF8
 
-      - name: Clean unnecessary files before publish
+      - name: Stage module for publication
         shell: pwsh
         run: |
-          # Remove directories not needed in the published module
-          $dirsToRemove = @('.devcontainer', '.github', 'Tests', 'output')
-
-          foreach ($dir in $dirsToRemove) {
-            $path = Join-Path -Path . -ChildPath $dir
-            if (Test-Path $path) {
-              Remove-Item -Path $path -Recurse -Force
-              Write-Output "Removed directory: $dir"
-            }
-          }
-
-          # Remove files not needed in the published module
-          $filesToRemove = @('build.ps1', 'coverage.xml')
-
-          foreach ($file in $filesToRemove) {
-            $path = Join-Path -Path . -ChildPath $file
-            if (Test-Path $path) {
-              Remove-Item -Path $path -Force
-              Write-Output "Removed file: $file"
-            }
-          }
-
-          Write-Output "[OK] Cleanup complete"
+          $staging = Join-Path $env:RUNNER_TEMP 'PSWinOps'
+          $exclude = @('.git', '.github', 'Tests', '.devcontainer', 'build.ps1', 'coverage.xml', 'output', 'TestResults*.xml')
+          New-Item -Path $staging -ItemType Directory -Force | Out-Null
+          Get-ChildItem -Path . -Force | Where-Object { $exclude -notcontains $_.Name } |
+              Copy-Item -Destination $staging -Recurse -Force
+          "STAGING_PATH=$staging" | Out-File -Append $env:GITHUB_ENV
 
       - name: Publish to PSGallery
         shell: pwsh
         env:
           PSGALLERY_API_KEY: ${{ secrets.PSGALLERY_API_KEY }}
         run: |
-          Publish-Module -Path . -NuGetApiKey $env:PSGALLERY_API_KEY -Repository PSGallery -Verbose
+          Publish-Module -Path $env:STAGING_PATH -NuGetApiKey $env:PSGALLERY_API_KEY -Repository PSGallery -Verbose
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2.3.2

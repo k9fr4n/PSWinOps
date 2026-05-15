@@ -93,7 +93,13 @@ function Get-ADStaleComputer {
             Import-Module -Name 'ActiveDirectory' -ErrorAction Stop -Verbose:$false
         }
         catch {
-            Write-Error -Message "[$($MyInvocation.MyCommand)] ActiveDirectory module is not available: $_"
+            $errorRecord = [System.Management.Automation.ErrorRecord]::new(
+                $_.Exception,
+                'GetADStaleComputerModuleNotFound',
+                [System.Management.Automation.ErrorCategory]::NotInstalled,
+                $null
+            )
+            $PSCmdlet.WriteError($errorRecord)
             return
         }
 
@@ -135,7 +141,13 @@ function Get-ADStaleComputer {
             $computers = Get-ADComputer @searchSplat @adSplat
         }
         catch {
-            Write-Error -Message "[$($MyInvocation.MyCommand)] Failed to query computers: $_"
+            $errorRecord = [System.Management.Automation.ErrorRecord]::new(
+                $_.Exception,
+                'GetADStaleComputerFailed',
+                [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                $null
+            )
+            $PSCmdlet.WriteError($errorRecord)
             return
         }
 

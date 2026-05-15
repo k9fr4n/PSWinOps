@@ -146,8 +146,11 @@ Describe 'Show-PingMonitor' {
 
     Context 'Interactive controls — function source inspection' {
         BeforeAll {
+            # Include both the public function and its private formatter so that
+            # patterns moved to Format-PingMonitorFrame are still found.
             $script:funcBody = InModuleScope -ModuleName $script:ModuleName {
-                (Get-Command -Name 'Show-PingMonitor').ScriptBlock.ToString()
+                (Get-Command -Name 'Show-PingMonitor').ScriptBlock.ToString() +
+                (Get-Command -Name 'Format-PingMonitorFrame').ScriptBlock.ToString()
             }
         }
 

@@ -112,7 +112,13 @@ function Get-ADReplicationStatus {
                 Write-Verbose -Message "[$($MyInvocation.MyCommand)] Discovered $($dcList.Count) domain controller(s)"
             }
             catch {
-                Write-Error -Message "[$($MyInvocation.MyCommand)] Failed to discover domain controllers: $_"
+                $errorRecord = [System.Management.Automation.ErrorRecord]::new(
+                    $_.Exception,
+                    'GetADReplicationStatusDiscoveryFailed',
+                    [System.Management.Automation.ErrorCategory]::ResourceUnavailable,
+                    $null
+                )
+                $PSCmdlet.WriteError($errorRecord)
                 return
             }
         }

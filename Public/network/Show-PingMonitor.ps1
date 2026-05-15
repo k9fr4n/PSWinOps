@@ -194,82 +194,23 @@ function Show-PingMonitor {
                 }
 
                 # ---- Build display frame ----
-                $frameBuilder = [System.Text.StringBuilder]::new(4096)
-                $elapsed      = (Get-Date) - $monitorStart
-                $elapsedStr   = '{0:00}:{1:00}:{2:00}' -f [math]::Floor($elapsed.TotalHours), $elapsed.Minutes, $elapsed.Seconds
+                $elapsed    = (Get-Date) - $monitorStart
+                $elapsedStr = '{0:00}:{1:00}:{2:00}' -f [math]::Floor($elapsed.TotalHours), $elapsed.Minutes, $elapsed.Seconds
+                $height     = [math]::Max(24, [Console]::WindowHeight)
 
-                # Header
-                $pauseLabel = if ($paused) { " ${yellow}(PAUSED)${reset}" } else { '' }
-                [void]$frameBuilder.AppendLine("${bold}${cyan}=== PING MONITOR ===${reset}${pauseLabel}        ${dim}Elapsed: ${elapsedStr}${reset}")
-                [void]$frameBuilder.AppendLine('')
-
-                # Column headers — highlight active sort column
-                $hHost   = if ($sortMode -eq 'Host')   { "${cyan}${bold}" } else { $bold }
-                $hStatus = if ($sortMode -eq 'Status') { "${cyan}${bold}" } else { $bold }
-                $hLast   = if ($sortMode -eq 'LastMs') { "${cyan}${bold}" } else { $bold }
-                $hLoss   = if ($sortMode -eq 'Loss')   { "${cyan}${bold}" } else { $bold }
-                $columnLine = "  ${hHost}$('HOST'.PadRight($maxHostLen))${reset}  ${hStatus}$('STATUS'.PadRight(8))${reset}  ${hLast}$('LAST(ms)'.PadLeft(8))${reset}  ${bold}$('MIN(ms)'.PadLeft(8))${reset}  ${bold}$('MAX(ms)'.PadLeft(8))${reset}  ${bold}$('AVG(ms)'.PadLeft(8))${reset}  ${bold}$('SENT'.PadLeft(6))${reset}  ${bold}$('RECV'.PadLeft(6))${reset}  ${hLoss}$('LOSS'.PadLeft(7))${reset}"
-                [void]$frameBuilder.AppendLine($columnLine)
-                $sepLine = "  ${dim}$('-' * $maxHostLen)  $('-' * 8)  $('-' * 8)  $('-' * 8)  $('-' * 8)  $('-' * 8)  $('-' * 6)  $('-' * 6)  $('-' * 7)${reset}"
-                [void]$frameBuilder.AppendLine($sepLine)
-
-                # Sort hosts
-                $sortedHosts = switch ($sortMode) {
-                    'Host'   { $hostList | Sort-Object -Property { $_ } }
-                    'Status' { $hostList | Sort-Object -Property { switch ($statsTable[$_].Status) { 'Down' { 0 } 'Pending' { 1 } 'Up' { 2 } default { 3 } } } }
-                    'LastMs' { $hostList | Sort-Object -Property { $statsTable[$_].LastMs } -Descending }
-                    'Loss'   { $hostList | Sort-Object -Property { $s = $statsTable[$_]; if ($s.Sent -gt 0) { $s.Lost / $s.Sent } else { 0 } } -Descending }
-                }
-
-                $upCount = 0; $downCount = 0; $pendingCount = 0
-                foreach ($displayHost in $sortedHosts) {
-                    $hostStat = $statsTable[$displayHost]
-
-                    switch ($hostStat.Status) {
-                        'Up'      { $upCount++ }
-                        'Down'    { $downCount++ }
-                        'Pending' { $pendingCount++ }
-                    }
-
-                    $statusColor = switch ($hostStat.Status) {
-                        'Up'      { $green }
-                        'Down'    { $red }
-                        'Pending' { $yellow }
-                        default   { $reset }
-                    }
-
-                    $hostPad   = $displayHost.PadRight($maxHostLen)
-                    $statusPad = $hostStat.Status.PadRight(8)
-                    $lastMsStr = if ($hostStat.LastMs -ge 0) { $hostStat.LastMs.ToString().PadLeft(8) } else { '--'.PadLeft(8) }
-                    $minMsStr  = if ($hostStat.MinMs -ne [int]::MaxValue) { $hostStat.MinMs.ToString().PadLeft(8) } else { '--'.PadLeft(8) }
-                    $maxMsStr  = if ($hostStat.MaxMs -gt 0) { $hostStat.MaxMs.ToString().PadLeft(8) } else { '--'.PadLeft(8) }
-                    $avgMsStr  = if ($hostStat.Received -gt 0) { ([math]::Round($hostStat.TotalMs / $hostStat.Received, 1)).ToString('0.0').PadLeft(8) } else { '--'.PadLeft(8) }
-                    $sentStr   = $hostStat.Sent.ToString().PadLeft(6)
-                    $recvStr   = $hostStat.Received.ToString().PadLeft(6)
-                    $lossVal   = if ($hostStat.Sent -gt 0) { [math]::Round(($hostStat.Lost / $hostStat.Sent) * 100, 1) } else { [double]0 }
-                    $lossPad   = ('{0:0.0}%' -f $lossVal).PadLeft(7)
-
-                    $lossColor = if ($lossVal -eq 0) { $green } elseif ($lossVal -lt 10) { $yellow } else { $red }
-
-                    $row = "  ${white}${hostPad}${reset}  ${statusColor}${statusPad}${reset}  ${lastMsStr}  ${minMsStr}  ${maxMsStr}  ${avgMsStr}  ${sentStr}  ${recvStr}  ${lossColor}${lossPad}${reset}"
-                    [void]$frameBuilder.AppendLine($row)
-                }
-
-                # Summary + footer
-                [void]$frameBuilder.AppendLine('')
-                [void]$frameBuilder.AppendLine("  ${dim}${hostList.Count} hosts${reset}  ${dim}|${reset}  ${green}${upCount} Up${reset}  ${dim}|${reset}  ${red}${downCount} Down${reset}  ${dim}|${reset}  ${yellow}${pendingCount} Pending${reset}")
-                [void]$frameBuilder.AppendLine('')
-                [void]$frameBuilder.AppendLine("  ${bold}[${cyan}Q${reset}${bold}]${reset}uit  ${bold}[${cyan}S${reset}${bold}]${reset}ort  ${bold}[${cyan}C${reset}${bold}]${reset}lear  ${bold}[${cyan}P${reset}${bold}]${reset}ause  ${dim}|${reset}  Refresh: ${yellow}${RefreshInterval}s${reset}  ${dim}|${reset}  Sort: ${yellow}${sortMode}${reset}  ${dim}|${reset}  Elapsed: ${yellow}${elapsedStr}${reset}")
-
-                # Erase trailing lines
-                $height = [math]::Max(24, [Console]::WindowHeight)
-                $currentLines = $frameBuilder.ToString().Split("`n").Count
-                for ($r = $currentLines; $r -lt $height; $r++) {
-                    [void]$frameBuilder.AppendLine("${esc}[2K")
-                }
+                $frameContent = Format-PingMonitorFrame `
+                    -StatsTable      $statsTable `
+                    -HostList        @($hostList) `
+                    -MaxHostLen      $maxHostLen `
+                    -SortMode        $sortMode `
+                    -Paused          $paused `
+                    -ElapsedStr      $elapsedStr `
+                    -RefreshInterval $RefreshInterval `
+                    -TerminalHeight  $height `
+                    -NoColor:$NoColor
 
                 [Console]::SetCursorPosition(0, 0)
-                [Console]::Write($frameBuilder.ToString())
+                [Console]::Write($frameContent)
                 $frameStart.Stop()
 
                 # ---- Input handling ----

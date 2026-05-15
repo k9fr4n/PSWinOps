@@ -111,7 +111,7 @@ function Get-ScheduledTaskDetail {
             foreach ($task in $allTasks) {
                 $runInfo = $null
                 try {
-                    $runInfo = ScheduledTasks\Get-ScheduledTaskInfo -TaskName $task.TaskName -TaskPath $task.TaskPath -ErrorAction SilentlyContinue
+                    $runInfo = Get-ScheduledTaskInfo -TaskName $task.TaskName -TaskPath $task.TaskPath -ErrorAction SilentlyContinue
                 } catch {
                     Write-Verbose -Message "[$($MyInvocation.MyCommand)] Could not retrieve run info for '$($task.TaskPath)$($task.TaskName)': $_"
                 }

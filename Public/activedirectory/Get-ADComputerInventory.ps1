@@ -80,7 +80,13 @@ function Get-ADComputerInventory {
         Import-Module -Name 'ActiveDirectory' -ErrorAction Stop -Verbose:$false
     }
     catch {
-        Write-Error -Message "[$($MyInvocation.MyCommand)] ActiveDirectory module is not available. Install RSAT: $_"
+        $errorRecord = [System.Management.Automation.ErrorRecord]::new(
+            $_.Exception,
+            'GetADComputerInventoryModuleNotFound',
+            [System.Management.Automation.ErrorCategory]::NotInstalled,
+            $null
+        )
+        $PSCmdlet.WriteError($errorRecord)
         return
     }
 
@@ -119,7 +125,13 @@ function Get-ADComputerInventory {
         $adComputerList = Get-ADComputer @splatParams
     }
     catch {
-        Write-Error -Message "[$($MyInvocation.MyCommand)] Failed to query Active Directory: $_"
+        $errorRecord = [System.Management.Automation.ErrorRecord]::new(
+            $_.Exception,
+            'GetADComputerInventoryFailed',
+            [System.Management.Automation.ErrorCategory]::InvalidOperation,
+            $null
+        )
+        $PSCmdlet.WriteError($errorRecord)
         return
     }
 

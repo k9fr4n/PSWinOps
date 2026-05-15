@@ -30,6 +30,33 @@ Import-Module PSWinOps
 Get-Command -Module PSWinOps
 ```
 
+## Optional Dependencies
+
+PSWinOps lazy-imports the following modules on demand. They are **not** listed in
+`RequiredModules` so the module remains loadable on hosts that only need a subset of
+its surface. Install only what you use.
+
+| Domain | PSWinOps Functions | Module(s) | How to install |
+|---|---|---|---|
+| Active Directory | `Get-AD*`, `Enable/Disable/Unlock-ADUserAccount`, `Reset-ADUserPassword`, `Invoke-ADSecurityAudit`, `Search-ADObject`, `Get-AdDomainControllerHealth` | `ActiveDirectory` | `Install-WindowsFeature RSAT-AD-PowerShell` |
+| IIS (classic pipeline) | `Get-IISHealth`, `Set-IISBindingCertificate` | `WebAdministration` | `Install-WindowsFeature Web-Scripting-Tools` (Server) |
+| IIS (modern) | `Get-IISHealth`, `Set-IISBindingCertificate` | `IISAdministration` | `Install-Module IISAdministration` (PSGallery) |
+| Hyper-V | `Get-HyperVHostHealth` | `Hyper-V` | `Install-WindowsFeature Hyper-V-PowerShell` |
+| Failover Clusters | `Get-ClusterHealth` | `FailoverClusters` | `Install-WindowsFeature RSAT-Clustering-PowerShell` |
+| DHCP | `Get-DhcpServerHealth` | `DhcpServer` | `Install-WindowsFeature RSAT-DHCP` |
+| DNS Server | `Get-DnsServerHealth` | `DnsServer` | `Install-WindowsFeature RSAT-DNS-Server` |
+| File Server (FSRM) | `Get-FileServerHealth` | `FileServerResourceManager` | `Install-WindowsFeature FS-Resource-Manager` |
+| Exchange | `Get-ExchangeServerHealth` | `ExchangeManagementShell` (module) or `Microsoft.Exchange.Management.PowerShell.SnapIn` (snapin, Desktop only) | Exchange Management Tools (shipped with Exchange Server) |
+| Remote Desktop Services | `Get-RDSHealth` | `RemoteDesktop` | `Install-WindowsFeature RSAT-RDS-Tools` |
+| WSUS | `Get-WSUSHealth` | `UpdateServices` | `Install-WindowsFeature RSAT-UpdateServices` |
+| AD FS | `Get-ADFSHealth` | `ADFS` | `Install-WindowsFeature ADFS-Federation` or `RSAT-ADFS` |
+| Print Server | `Get-PrintServerHealth` | `PrintManagement` | `Install-WindowsFeature Print-Services` (built-in on Server) |
+| DFS Namespace | `Get-DfsNamespaceHealth` | `DFSN` | `Install-WindowsFeature RSAT-DFS-Mgmt-Con` |
+
+> **Note:** `Get-DfsReplicationHealth` and `Get-CertificateAuthorityHealth` use CIM/WMI
+> directly and do not require an external PowerShell module — only the corresponding
+> Windows role/service must be running on the target computer.
+
 ## Contributing
 
 1. Fork the repo

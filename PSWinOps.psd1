@@ -55,6 +55,12 @@
 
     # Modules that must be imported into the global environment prior to importing this module
     # RequiredModules = @()
+    # NOTE: Several public functions lazy-import optional modules (ActiveDirectory, Hyper-V,
+    # FailoverClusters, DhcpServer, DnsServer, WebAdministration, IISAdministration,
+    # FileServerResourceManager, ExchangeManagementShell, RemoteDesktop, UpdateServices,
+    # ADFS, PrintManagement, DFSN). None are listed in RequiredModules so the module
+    # remains loadable on hosts that only need a subset of its surface.
+    # See the "Optional Dependencies" section in readme.md for the full install reference.
 
     # Assemblies that must be loaded prior to importing this module
     # RequiredAssemblies = @()
