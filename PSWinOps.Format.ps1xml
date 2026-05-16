@@ -7150,5 +7150,94 @@
         </TableRowEntries>
       </TableControl>
     </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.IISCertificateBindingTestResult                     -->
+    <!-- Used by: Test-IISBindingCertificate                          -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.IISCertificateBindingTestResult</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.IISCertificateBindingTestResult</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <AutoSize />
+        <TableHeaders>
+          <TableColumnHeader>
+            <Label>ComputerName</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>SiteName</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Binding</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>HostHeader</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>ExpirationStatus</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>DaysLeft</Label>
+            <Alignment>Right</Alignment>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>ChainValid</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>HostMatch</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>AlgorithmStrength</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>OverallStatus</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Status</Label>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem>
+                <PropertyName>ComputerName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>SiteName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>BindingInformation</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>HostHeader</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>ExpirationStatus</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>DaysUntilExpiration</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>ChainValid</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>HostnameMatch</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>AlgorithmStrength</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>OverallStatus</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Status</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
   </ViewDefinitions>
 </Configuration>

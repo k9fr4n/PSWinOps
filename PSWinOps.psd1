@@ -189,6 +189,7 @@
         'Show-WindowsUpdate',
         'Sync-NTPTime',
         'Test-DNSResolution',
+        'Test-IISBindingCertificate',
         'Test-PortConnectivity',
         'Test-ProxyConnection',
         'Test-WinRM',
