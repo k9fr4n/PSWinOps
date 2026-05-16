@@ -1,0 +1,7 @@
+chain: pswinops-function-author
+function: Get-IISCertificateBinding
+domain: iis
+created: 2026-05-16T13:39:59Z
+created_by: pswinops-fn-spec-analyst
+chain_branch: kdust/chain/pswinops-fn-get-iiscertificatebinding-2605161338
+spec_path: work/get-iiscertificatebinding/spec.yaml
