@@ -7071,5 +7071,84 @@
         </TableRowEntries>
       </TableControl>
     </View>
+
+    <!-- ============================================================ -->
+    <!-- PSWinOps.IISCertificateBinding                               -->
+    <!-- Used by: Get-IISCertificateBinding                           -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.IISCertificateBinding</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.IISCertificateBinding</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <AutoSize />
+        <TableHeaders>
+          <TableColumnHeader>
+            <Label>ComputerName</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>SiteName</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Binding</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>HostHeader</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Thumbprint</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>NotAfter</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>DaysLeft</Label>
+            <Alignment>Right</Alignment>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>SNI</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Status</Label>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem>
+                <PropertyName>ComputerName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>SiteName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>BindingInformation</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>HostHeader</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Thumbprint</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>
+                  if ($_.NotAfter) { $_.NotAfter.ToString('yyyy-MM-dd') } else { '' }
+                </ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>DaysUntilExpiration</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>SniEnabled</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Status</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
   </ViewDefinitions>
 </Configuration>

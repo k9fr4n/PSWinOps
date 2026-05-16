@@ -123,6 +123,7 @@
         'Get-ExchangeServerHealth',
         'Get-FileServerHealth',
         'Get-HyperVHostHealth',
+        'Get-IISCertificateBinding',
         'Get-IISCurrentRequest',
         'Get-IISFailedRequestTrace',
         'Get-IISHealth',
