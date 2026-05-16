@@ -7239,5 +7239,78 @@
         </TableRowEntries>
       </TableControl>
     </View>
+    <!-- ============================================================ -->
+    <!-- PSWinOps.IISAppPoolHistoryEvent                             -->
+    <!-- Used by: Get-IISAppPoolHistory                              -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.IISAppPoolHistoryEvent</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.IISAppPoolHistoryEvent</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <AutoSize />
+        <TableHeaders>
+          <TableColumnHeader>
+            <Label>TimeCreatedLocal</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>ComputerName</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>AppPoolName</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Category</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>EventId</Label>
+            <Alignment>Right</Alignment>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>WorkerPid</Label>
+            <Alignment>Right</Alignment>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>ReasonCode</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>LogName</Label>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem>
+                <ScriptBlock>
+                  if ($_.TimeCreatedLocal) { $_.TimeCreatedLocal.ToString('yyyy-MM-dd HH:mm:ss') } else { '' }
+                </ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>ComputerName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>AppPoolName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Category</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>EventId</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>WorkerPid</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>ReasonCode</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>LogName</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
   </ViewDefinitions>
 </Configuration>

@@ -12,7 +12,7 @@
     RootModule           = 'PSWinOps.psm1'
 
     # Version number of this module.
-    ModuleVersion        = '0.1.8'
+    ModuleVersion        = '0.1.9'
 
     # Supported PSEditions
     # Core is supported on Windows only; the module-level guard in PSWinOps.psm1 blocks
@@ -123,6 +123,7 @@
         'Get-ExchangeServerHealth',
         'Get-FileServerHealth',
         'Get-HyperVHostHealth',
+        'Get-IISAppPoolHistory',
         'Get-IISCertificateBinding',
         'Get-IISCurrentRequest',
         'Get-IISFailedRequestTrace',
@@ -263,7 +264,12 @@
             # IconUri = ''
 
             # ReleaseNotes of this module
-            ReleaseNotes = '## 0.1.8 - 2026-05-16
+            ReleaseNotes = '## 0.1.9 - 2026-05-16
+### Added
+- feat(iis): add Get-IISAppPoolHistory — reconstructs the lifecycle history (recycles, rapid-fail shutdowns, crashes, start/stop, identity changes, orphaned worker processes) of IIS application pools by mining the System (Microsoft-Windows-WAS), Application (W3SVC-WP) and optionally the IIS-W3SVC-WP/Operational event logs; classifies each event using a static 16-entry EventId map into typed PSWinOps.IISAppPoolHistoryEvent rows enriched with AppPoolName (parsed from InsertionStrings), WorkerPid, normalised ReasonCode, UTC and local timestamps; server-side filtering via Get-WinEvent -FilterHashtable (-After/-Before/-EventId); client-side -AppPoolName wildcard post-filter and -Tail for the most recent N events; multi-host execution via Invoke-RemoteOrLocal with -Credential; -IncludeOperationalLog adds the admin-only channel with Write-Warning+skip when absent.
+- feat(format): TableControl view for PSWinOps.IISAppPoolHistoryEvent in PSWinOps.Format.ps1xml.
+
+## 0.1.8 - 2026-05-16
 ### Added
 - feat(iis): add Test-IISBindingCertificate — read-only auditor that validates every IIS HTTPS binding certificate across six independent checks (expiration vs configurable Warning/Critical thresholds, X509Chain.Build() validity, hostname/SAN match against the binding host header, HasPrivateKey, signature/key-algorithm strength, and CertStoreName alignment); emits typed PSWinOps.IISCertificateBindingTestResult rows with per-binding OverallStatus (Pass/Warning/Critical/Fail) plus a Findings array describing every non-Pass condition; supports multi-host execution via Invoke-RemoteOrLocal with -Credential, -WarningDays/-CriticalDays thresholds, -SkipChainValidation for air-gapped hosts, optional -IncludeRevocationCheck (CRL/OCSP), and standard Status enum (Tested/IISNotInstalled/BindingNotFound/CertNotFound/Failed); pipes cleanly from Get-IISCertificateBinding for targeted re-test.
 - feat(format): TableControl view for PSWinOps.IISCertificateBindingTestResult in PSWinOps.Format.ps1xml.
