@@ -12,7 +12,7 @@
     RootModule           = 'PSWinOps.psm1'
 
     # Version number of this module.
-    ModuleVersion        = '0.1.6'
+    ModuleVersion        = '0.1.7'
 
     # Supported PSEditions
     # Core is supported on Windows only; the module-level guard in PSWinOps.psm1 blocks
@@ -262,7 +262,12 @@
             # IconUri = ''
 
             # ReleaseNotes of this module
-            ReleaseNotes = '## 0.1.6 - 2026-05-15
+            ReleaseNotes = '## 0.1.7 - 2026-05-16
+### Added
+- feat(iis): add Get-IISCertificateBinding — read-only inventory of every IIS HTTPS binding joined to the X509 certificate it actually presents; emits typed PSWinOps.IISCertificateBinding objects with SiteName, BindingInformation (ip:port:hostheader), Protocol, SslFlags (SNI/CCS), Thumbprint, Subject, SubjectAlternativeName, Issuer, NotBefore/NotAfter, DaysUntilExpiration, Expired, CertificateStore and HasPrivateKey; multi-host execution via Invoke-RemoteOrLocal with -Credential; -SiteName/-HostHeader (-like) and -Thumbprint/-Port filters, plus -ExpiringInDays and -IncludeExpired for renewal audits; graceful WebAdministration → IISAdministration → appcmd fallback; pipes cleanly into Set-IISBindingCertificate for rotation workflows.
+- feat(format): TableControl view for PSWinOps.IISCertificateBinding in PSWinOps.Format.ps1xml.
+
+## 0.1.6 - 2026-05-15
 ### Added
 - feat(iis): add Get-IISFailedRequestTrace — parse IIS Failed Request Tracing (FREB) fr######.xml files into typed PSWinOps.IISFailedRequestTrace objects; auto-resolves the FREB folder per site via WebAdministration / IISAdministration / appcmd fallback; surfaces <failedRequest> root attributes (URL, verb, statusCode/subStatus split, timeTaken, appPool, worker PID, failureReason) plus the first ERROR/WARNING event (module, notification, message) without a full DOM load; supports multi-host execution via Invoke-RemoteOrLocal, per-site -Path override, -After/-Before/-StatusCode/-FailureReason filters, -Tail for the most recent N traces, and -IncludeEvents to attach the full event timeline; standard PSWinOps Status enum (Parsed/NoTraces/SiteNotFound/FolderNotFound/IISNotInstalled/Failed).
 - feat(format): TableControl view for PSWinOps.IISFailedRequestTrace in PSWinOps.Format.ps1xml.
