@@ -12,7 +12,7 @@
     RootModule           = 'PSWinOps.psm1'
 
     # Version number of this module.
-    ModuleVersion        = '0.1.9'
+    ModuleVersion        = '0.0.23'
 
     # Supported PSEditions
     # Core is supported on Windows only; the module-level guard in PSWinOps.psm1 blocks
@@ -264,50 +264,23 @@
             # IconUri = ''
 
             # ReleaseNotes of this module
-            ReleaseNotes = '## 0.1.9 - 2026-05-16
+            ReleaseNotes = '## 0.0.23 - 2026-05-21
 ### Added
-- feat(iis): add Get-IISAppPoolHistory — reconstructs the lifecycle history (recycles, rapid-fail shutdowns, crashes, start/stop, identity changes, orphaned worker processes) of IIS application pools by mining the System (Microsoft-Windows-WAS), Application (W3SVC-WP) and optionally the IIS-W3SVC-WP/Operational event logs; classifies each event using a static 16-entry EventId map into typed PSWinOps.IISAppPoolHistoryEvent rows enriched with AppPoolName (parsed from InsertionStrings), WorkerPid, normalised ReasonCode, UTC and local timestamps; server-side filtering via Get-WinEvent -FilterHashtable (-After/-Before/-EventId); client-side -AppPoolName wildcard post-filter and -Tail for the most recent N events; multi-host execution via Invoke-RemoteOrLocal with -Credential; -IncludeOperationalLog adds the admin-only channel with Write-Warning+skip when absent.
-- feat(format): TableControl view for PSWinOps.IISAppPoolHistoryEvent in PSWinOps.Format.ps1xml.
-
-## 0.1.8 - 2026-05-16
-### Added
-- feat(iis): add Test-IISBindingCertificate — read-only auditor that validates every IIS HTTPS binding certificate across six independent checks (expiration vs configurable Warning/Critical thresholds, X509Chain.Build() validity, hostname/SAN match against the binding host header, HasPrivateKey, signature/key-algorithm strength, and CertStoreName alignment); emits typed PSWinOps.IISCertificateBindingTestResult rows with per-binding OverallStatus (Pass/Warning/Critical/Fail) plus a Findings array describing every non-Pass condition; supports multi-host execution via Invoke-RemoteOrLocal with -Credential, -WarningDays/-CriticalDays thresholds, -SkipChainValidation for air-gapped hosts, optional -IncludeRevocationCheck (CRL/OCSP), and standard Status enum (Tested/IISNotInstalled/BindingNotFound/CertNotFound/Failed); pipes cleanly from Get-IISCertificateBinding for targeted re-test.
-- feat(format): TableControl view for PSWinOps.IISCertificateBindingTestResult in PSWinOps.Format.ps1xml.
-
-## 0.1.7 - 2026-05-16
-### Added
-- feat(iis): add Get-IISCertificateBinding — read-only inventory of every IIS HTTPS binding joined to the X509 certificate it actually presents; emits typed PSWinOps.IISCertificateBinding objects with SiteName, BindingInformation (ip:port:hostheader), Protocol, SslFlags (SNI/CCS), Thumbprint, Subject, SubjectAlternativeName, Issuer, NotBefore/NotAfter, DaysUntilExpiration, Expired, CertificateStore and HasPrivateKey; multi-host execution via Invoke-RemoteOrLocal with -Credential; -SiteName/-HostHeader (-like) and -Thumbprint/-Port filters, plus -ExpiringInDays and -IncludeExpired for renewal audits; graceful WebAdministration → IISAdministration → appcmd fallback; pipes cleanly into Set-IISBindingCertificate for rotation workflows.
-- feat(format): TableControl view for PSWinOps.IISCertificateBinding in PSWinOps.Format.ps1xml.
-
-## 0.1.6 - 2026-05-15
-### Added
-- feat(iis): add Get-IISFailedRequestTrace — parse IIS Failed Request Tracing (FREB) fr######.xml files into typed PSWinOps.IISFailedRequestTrace objects; auto-resolves the FREB folder per site via WebAdministration / IISAdministration / appcmd fallback; surfaces <failedRequest> root attributes (URL, verb, statusCode/subStatus split, timeTaken, appPool, worker PID, failureReason) plus the first ERROR/WARNING event (module, notification, message) without a full DOM load; supports multi-host execution via Invoke-RemoteOrLocal, per-site -Path override, -After/-Before/-StatusCode/-FailureReason filters, -Tail for the most recent N traces, and -IncludeEvents to attach the full event timeline; standard PSWinOps Status enum (Parsed/NoTraces/SiteNotFound/FolderNotFound/IISNotInstalled/Failed).
-- feat(format): TableControl view for PSWinOps.IISFailedRequestTrace in PSWinOps.Format.ps1xml.
-
-## 0.1.5 - 2026-05-15
-### Added
-- feat(iis): add Watch-IISLog — real-time IIS W3C log tailer emitting typed PSWinOps.IISLogEntry objects (same shape as Get-IISParsedLog) as new lines are written; resolves the active site log via WebAdministration / Microsoft.Web.Administration / appcmd fallback; opens with FileShare.ReadWrite|Delete so IIS is undisturbed; supports -InitialLines (tail -n replay), -FollowRollover (daily log rotation), -PollIntervalMs, -Duration and -MaxEntries bounds; in-stream filters -Method/-Status/-UriLike/-ClientIP/-MinStatus; multi-host remoting via Invoke-RemoteOrLocal with -Credential; reuses the existing PSWinOps.IISLogEntry Format view.
-
-## 0.1.4 - 2026-05-15
-### Added
-- feat(iis): add Get-IISCurrentRequest — list HTTP requests currently executing in IIS (typed equivalent of `appcmd list requests`) with per-request ComputerName, ProcessId, AppPoolName, SiteName, Url, Verb, ClientIPAddress, TimeElapsed/TimeElapsedMs, PipelineState; multi-host remoting via Invoke-RemoteOrLocal; -AppPoolName / -SiteName wildcards and -MinElapsedMs threshold filters; standard PSWinOps Status enum (InFlight/NoRequests/IISNotInstalled/AppcmdMissing/Failed) + ErrorMessage + Timestamp tail.
-- feat(format): TableControl view for PSWinOps.IISCurrentRequest in PSWinOps.Format.ps1xml.
-
-## 0.1.3 - 2026-05-15
-### Added
-- feat(iis): add Get-IISWorkerProcess — inventory IIS w3wp.exe worker processes joined with owning AppPoolName, served Sites/Applications, identity/IdentityType, PID, StartTime/UptimeSeconds, CPUSeconds, WorkingSetMB/PrivateMemoryMB/VirtualMemoryMB, ThreadCount/HandleCount, with multi-host remoting via Invoke-RemoteOrLocal, graceful WebAdministration → IISAdministration → appcmd/CIM fallback, -AppPoolName (wildcards) and -ProcessId filters, and the standard PSWinOps Status enum (Running/Orphaned/Failed/IISNotInstalled/NoWorkerProcess).
-- feat(format): TableControl view for PSWinOps.IISWorkerProcess in PSWinOps.Format.ps1xml.
-
-## 0.1.2 - 2026-05-15
-### Added
-- feat(iis): add Get-IISParsedLog — stream-parse IIS W3C log files into typed PSWinOps.IISLogEntry objects with header re-detection, dash-normalisation, UserAgent "+"-to-space decoding, -After/-Before time window, -Method/-Status/-ClientIP multi-value OR filters, -UriLike wildcard, -Tail circular buffer, and pipeline-by-property-name (FullName) for Get-ChildItem composition.
-- feat(format): TableControl view for PSWinOps.IISLogEntry in PSWinOps.Format.ps1xml.
-
-## 0.1.1 - 2026-05-14
-### Added
-- feat(iis): add Set-IISBindingCertificate — replace SSL/TLS certificate on one or more IIS HTTPS site bindings with idempotent rotation, -WhatIf/-Confirm (ConfirmImpact=High), remote execution via WinRM, and pipeline-by-property-name from Get-SSLCertificate / Get-IISHealth.
 - feat(iis): introduce new public domain Public/iis/ (registered in CI matrix and about_PSWinOps).
-- feat(format): TableControl view for PSWinOps.IISBindingCertificateResult in PSWinOps.Format.ps1xml.
+- feat(iis): add Set-IISBindingCertificate — replace SSL/TLS certificate on IIS HTTPS bindings with idempotent rotation, -WhatIf/-Confirm (ConfirmImpact=High), remote execution via WinRM, pipeline-by-property-name from Get-SSLCertificate / Get-IISHealth (#47).
+- feat(iis): add Get-IISParsedLog — stream-parse IIS W3C log files into typed PSWinOps.IISLogEntry objects; header re-detection, dash-normalisation, UserAgent "+"-to-space decoding; -After/-Before window, -Method/-Status/-ClientIP multi-value OR filters, -UriLike wildcard, -Tail circular buffer, pipeline-by-property-name FullName (#49).
+- feat(iis): add Get-IISWorkerProcess — inventory IIS w3wp.exe processes joined with AppPoolName, Sites/Applications, identity, PID, uptime, CPU, working/private/virtual memory, thread/handle counts; WebAdministration → IISAdministration → appcmd/CIM fallback; -AppPoolName/-ProcessId filters; Status enum (Running/Orphaned/Failed/IISNotInstalled/NoWorkerProcess) (#50).
+- feat(iis): add Get-IISCurrentRequest — list HTTP requests currently executing in IIS (typed equivalent of `appcmd list requests`) with ComputerName, ProcessId, AppPoolName, SiteName, Url, Verb, ClientIPAddress, TimeElapsed/TimeElapsedMs, PipelineState; -AppPoolName/-SiteName wildcards and -MinElapsedMs threshold (#51).
+- feat(iis): add Watch-IISLog — real-time IIS W3C log tailer emitting typed PSWinOps.IISLogEntry objects; FileShare.ReadWrite|Delete; -InitialLines, -FollowRollover, -PollIntervalMs, -Duration, -MaxEntries; in-stream filters -Method/-Status/-UriLike/-ClientIP/-MinStatus (#52).
+- feat(iis): add Get-IISFailedRequestTrace — parse FREB fr######.xml files into typed PSWinOps.IISFailedRequestTrace objects; auto-resolves FREB folder per site; surfaces URL/verb/statusCode/subStatus/timeTaken/appPool/worker PID/failureReason plus first ERROR/WARNING event; -After/-Before/-StatusCode/-FailureReason filters, -Tail, -IncludeEvents (#53).
+- feat(iis): add Get-IISCertificateBinding — read-only inventory of IIS HTTPS bindings joined to their presented X509 certificate; SiteName, BindingInformation, Protocol, SslFlags (SNI/CCS), Thumbprint, Subject, SAN, Issuer, NotBefore/NotAfter, DaysUntilExpiration, Expired, CertificateStore, HasPrivateKey; -SiteName/-HostHeader/-Thumbprint/-Port filters, -ExpiringInDays, -IncludeExpired (#54).
+- feat(iis): add Test-IISBindingCertificate — read-only auditor running six independent checks per binding (expiration vs Warning/Critical thresholds, X509Chain.Build, hostname/SAN match, HasPrivateKey, signature/key-algorithm strength, CertStoreName alignment); emits PSWinOps.IISCertificateBindingTestResult with OverallStatus and Findings array; -WarningDays/-CriticalDays, -SkipChainValidation, -IncludeRevocationCheck (#55).
+- feat(iis): add Get-IISAppPoolHistory — reconstructs app pool lifecycle (recycles, rapid-fail shutdowns, crashes, start/stop, identity changes, orphaned workers) by mining System (Microsoft-Windows-WAS), Application (W3SVC-WP) and optionally IIS-W3SVC-WP/Operational event logs; classifies events via a 16-entry EventId map into typed PSWinOps.IISAppPoolHistoryEvent rows with AppPoolName, WorkerPid, normalised ReasonCode, UTC/local timestamps; server-side -After/-Before/-EventId, client-side -AppPoolName wildcard, -Tail, -IncludeOperationalLog (#56).
+- feat(format): TableControl views for all new typed outputs in PSWinOps.Format.ps1xml.
+### Changed
+- refactor: automated remediation chain — quality, testability & monitor extraction (ITER 1-8).
+### Fixed
+- fix(tests): import PSWinOps.psd1 explicitly in Set-NTPClient.Tests.
 
 ## 0.0.17 - 2026-04-02
 - refactor: Invoke-RemoteOrLocal rewrite (#30)
