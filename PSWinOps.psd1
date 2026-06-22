@@ -12,7 +12,7 @@
     RootModule           = 'PSWinOps.psm1'
 
     # Version number of this module.
-    ModuleVersion        = '0.0.23'
+    ModuleVersion        = '0.0.24'
 
     # Supported PSEditions
     # Core is supported on Windows only; the module-level guard in PSWinOps.psm1 blocks
@@ -265,7 +265,11 @@
             # IconUri = ''
 
             # ReleaseNotes of this module
-            ReleaseNotes = '## 0.0.23 - 2026-05-21
+            ReleaseNotes = '## 0.0.24 - 2026-06-22 UTC
+### Added
+- Get-IISAppPool: Inventory IIS application pool configuration across one or more servers
+
+## 0.0.23 - 2026-05-21
 ### Added
 - feat(iis): introduce new public domain Public/iis/ (registered in CI matrix and about_PSWinOps).
 - feat(iis): add Set-IISBindingCertificate — replace SSL/TLS certificate on IIS HTTPS bindings with idempotent rotation, -WhatIf/-Confirm (ConfirmImpact=High), remote execution via WinRM, pipeline-by-property-name from Get-SSLCertificate / Get-IISHealth (#47).
