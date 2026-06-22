@@ -7312,5 +7312,89 @@
         </TableRowEntries>
       </TableControl>
     </View>
+    <!-- ============================================================ -->
+    <!-- PSWinOps.IISAppPool                                         -->
+    <!-- Used by: Get-IISAppPool                                     -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.IISAppPool</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.IISAppPool</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <AutoSize />
+        <TableHeaders>
+          <TableColumnHeader>
+            <Label>ComputerName</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Name</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>State</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>ManagedRuntimeVersion</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>ManagedPipelineMode</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>IdentityType</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>StartMode</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>QueueLength</Label>
+            <Alignment>Right</Alignment>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>IdleTimeoutMinutes</Label>
+            <Alignment>Right</Alignment>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>CpuLimitPercent</Label>
+            <Alignment>Right</Alignment>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem>
+                <PropertyName>ComputerName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Name</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>State</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>ManagedRuntimeVersion</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>ManagedPipelineMode</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>IdentityType</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>StartMode</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>QueueLength</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>IdleTimeoutMinutes</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>CpuLimitPercent</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
   </ViewDefinitions>
 </Configuration>
