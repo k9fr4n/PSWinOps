@@ -1,0 +1,83 @@
+# PSWinOps Type Registry — canonical PSTypeName per function (Rule 7)
+
+| Function | PSTypeName | View |
+|---|---|---|
+| Get-RdpSession | PSWinOps.ActiveRdpSession | Table |
+| Get-RdpSessionHistory | PSWinOps.RdpSessionHistory | Table |
+| Get-RdpSessionLock | PSWinOps.RdpSessionLock | Table |
+| Get-NTPConfiguration | PSWinOps.NtpConfiguration | List |
+| Get-NTPPeer | PSWinOps.NtpPeer | Table |
+| Get-NTPSyncStatus | PSWinOps.NtpSyncResult | List |
+| Sync-NTPTime | PSWinOps.NtpResyncResult | List |
+| Get-SystemSummary | PSWinOps.SystemSummary | List |
+| Get-ComputerUptime | PSWinOps.ComputerUptime | Table |
+| Get-DiskSpace | PSWinOps.DiskSpace | Table |
+| Get-EnvironmentVariable | PSWinOps.EnvironmentVariable | Table |
+| Get-InstalledSoftware | PSWinOps.InstalledSoftware | Table |
+| Get-PageFileConfiguration | PSWinOps.PageFileConfiguration | Table |
+| Get-PendingReboot | PSWinOps.PendingReboot | List |
+| Get-ScheduledTaskDetail | PSWinOps.ScheduledTaskDetail | Table |
+| Get-StartupProgram | PSWinOps.StartupProgram | Table |
+| Set-PageFile | PSWinOps.PageFileConfiguration | List |
+| Clear-Arp | PSWinOps.ArpEntry | Table |
+| Get-ARPTable | PSWinOps.ArpEntry | Table |
+| Get-ListeningPort | PSWinOps.ListeningPort | Table |
+| Get-NetworkAdapter | PSWinOps.NetworkAdapterInfo | Table |
+| Get-NetworkCIDR | PSWinOps.NetworkCIDR | Table |
+| Get-NetworkConnection | PSWinOps.NetworkConnection | Table |
+| Get-NetworkRoute | PSWinOps.NetworkRoute | Table |
+| Get-NetworkStatistic | PSWinOps.NetworkStatistic | Table |
+| Get-PublicIPAddress | PSWinOps.PublicIPAddress | List |
+| Get-SSLCertificate | PSWinOps.SSLCertificate | List |
+| Get-SubnetInfo | PSWinOps.SubnetInfo | List |
+| Export-NetworkConfig | PSWinOps.NetworkConfig | List |
+| Measure-NetworkLatency | PSWinOps.NetworkLatency | Table |
+| Resolve-MACVendor | PSWinOps.MACVendor | Table |
+| Test-DNSResolution | PSWinOps.DnsResolution | Table |
+| Test-PortConnectivity | PSWinOps.PortConnectivity | Table |
+| Test-WinRM | PSWinOps.WinRMTestResult | Table |
+| Trace-NetworkRoute | PSWinOps.TraceRouteHop | Table |
+| Get-ProxyConfiguration | PSWinOps.ProxyConfiguration | List |
+| Test-ProxyConnection | PSWinOps.ProxyTestResult | Table |
+| Get-ADComputerDetail | PSWinOps.ADComputerDetail | List |
+| Get-ADComputerInventory | PSWinOps.ADComputerInventory | Table |
+| Get-ADDomainInfo | PSWinOps.ADDomainInfo | List |
+| Get-ADGroupInventory | PSWinOps.ADGroupInventory | Table |
+| Get-ADGroupMembership | PSWinOps.ADGroupMember | Table |
+| Get-ADLockedAccount | PSWinOps.ADLockedAccount | Table |
+| Get-ADNestedGroupMembership | PSWinOps.ADNestedGroupMembership | Table |
+| Get-ADPasswordStatus | PSWinOps.ADPasswordStatus | Table |
+| Get-ADPrivilegedAccount | PSWinOps.ADPrivilegedAccount | Table |
+| Get-ADReplicationStatus | PSWinOps.ADReplicationStatus | Table |
+| Get-ADSiteTopology | PSWinOps.ADSiteTopology | Table |
+| Get-ADStaleAccount | PSWinOps.ADStaleAccount | Table |
+| Get-ADStaleComputer | PSWinOps.ADStaleComputer | Table |
+| Get-ADUserDetail | PSWinOps.ADUserDetail | List |
+| Get-ADUserGroupInventory | PSWinOps.ADUserGroupInventory | Table |
+| Get-ADUserInventory | PSWinOps.ADUserInventory | Table |
+| Invoke-ADSecurityAudit | PSWinOps.ADSecurityFinding | Table |
+| Search-ADObject | PSWinOps.ADSearchResult | Table |
+| Disable-ADUserAccount | PSWinOps.ADAccountDisableResult | Table |
+| Enable-ADUserAccount | PSWinOps.ADAccountEnableResult | Table |
+| Reset-ADUserPassword | PSWinOps.ADPasswordResetResult | Table |
+| Unlock-ADUserAccount | PSWinOps.ADAccountUnlockResult | Table |
+| Get-AdDomainControllerHealth | PSWinOps.AdDomainControllerHealth | List |
+| Get-ADFSHealth | PSWinOps.ADFSHealth | List |
+| Get-CertificateAuthorityHealth | PSWinOps.CertificateAuthorityHealth | List |
+| Get-ClusterHealth | PSWinOps.ClusterHealth | List |
+| Get-DfsNamespaceHealth | PSWinOps.DfsNamespaceHealth | List |
+| Get-DfsReplicationHealth | PSWinOps.DfsReplicationHealth | List |
+| Get-DhcpServerHealth | PSWinOps.DhcpServerHealth | List |
+| Get-DnsServerHealth | PSWinOps.DnsServerHealth | List |
+| Get-ExchangeServerHealth | PSWinOps.ExchangeServerHealth | List |
+| Get-FileServerHealth | PSWinOps.FileServerHealth | List |
+| Get-HyperVHostHealth | PSWinOps.HyperVHostHealth | List |
+| Get-IISHealth | PSWinOps.IISHealth | List |
+| Get-PrintServerHealth | PSWinOps.PrintServerHealth | List |
+| Get-RDSHealth | PSWinOps.RDSHealth | List |
+| Get-ServiceHealth | PSWinOps.ServiceHealth | List |
+| Get-WSUSHealth | PSWinOps.WSUSHealth | List |
+
+**Exempted** (return plain string, no PSTypeName required): `New-RandomPassword`, `ConvertFrom-MisencodedString`
+**Exempted** (action functions, return `PSWinOps.RdpSessionAction`): `Connect-RdpSession`, `Disconnect-RdpSession`, `Remove-RdpSession`
+**Exempted** (interactive monitors, no structured return): `Show-PingMonitor`, `Show-NetworkStatisticMonitor`, `Show-SystemMonitor`
