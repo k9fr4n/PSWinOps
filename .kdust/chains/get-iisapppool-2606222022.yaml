@@ -1,0 +1,7 @@
+chain: pswinops-function-author
+function: Get-IISAppPool
+domain: iis
+created: 2026-06-22T20:22:50Z
+created_by: pswinops-fn-spec-analyst
+chain_branch: kdust/chain/pswinops-fn-get-iisapppool-2606222022
+spec_path: work/get-iisapppool/spec.yaml
