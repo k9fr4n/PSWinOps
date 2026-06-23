@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -nE 'ValidateSet|\\\\[string\\\\]\\\\s*\\\\$Task|param\\\\\\(' build.ps1)",
+      "Skill(git:sync)",
+      "Bash(grep -rnE 'xxd|xmllint|python3|\\\\bfile \"\\\\$|\\\\| file\\\\b|file \"\\\\$f\"' .claude/)",
+      "Bash(echo \"--- exit: $? ---\")"
+    ]
+  }
+}

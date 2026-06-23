@@ -17,6 +17,7 @@ BeforeAll {
     $script:mockRecentDate = (Get-Date).AddDays(-10)
     $script:mockProfiles = @(
         @{
+            Source      = 'Registry+Disk'
             SID         = 'S-1-5-21-1234-5678-9012-1001'
             LocalPath   = 'C:\Users\john.doe'
             LastUseTime = $script:mockOldDate
@@ -24,6 +25,7 @@ BeforeAll {
             SizeMB      = [double]512.5
         },
         @{
+            Source      = 'Registry+Disk'
             SID         = 'S-1-5-21-1234-5678-9012-1002'
             LocalPath   = 'C:\Users\jane.smith'
             LastUseTime = $script:mockRecentDate
@@ -31,6 +33,7 @@ BeforeAll {
             SizeMB      = [double]256.3
         },
         @{
+            Source      = 'Registry+Disk'
             SID         = 'S-1-5-21-1234-5678-9012-1003'
             LocalPath   = 'C:\Users\svc_backup'
             LastUseTime = $script:mockOldDate
@@ -38,6 +41,7 @@ BeforeAll {
             SizeMB      = [double]10.0
         },
         @{
+            Source      = 'Registry+Disk'
             SID         = 'S-1-5-21-1234-5678-9012-1004'
             LocalPath   = 'C:\Users\admin'
             LastUseTime = $script:mockOldDate
@@ -200,6 +204,7 @@ Describe 'Remove-UserProfile' {
             $first.PSObject.Properties.Name | Should -Contain 'UserName'
             $first.PSObject.Properties.Name | Should -Contain 'LocalPath'
             $first.PSObject.Properties.Name | Should -Contain 'SID'
+            $first.PSObject.Properties.Name | Should -Contain 'Source'
             $first.PSObject.Properties.Name | Should -Contain 'LastUseTime'
             $first.PSObject.Properties.Name | Should -Contain 'ProfileSizeMB'
             $first.PSObject.Properties.Name | Should -Contain 'DaysInactive'
@@ -249,6 +254,7 @@ Describe 'Remove-UserProfile' {
         BeforeAll {
             $script:systemProfiles = @(
                 @{
+                    Source      = 'Registry+Disk'
                     SID         = 'S-1-5-18'
                     LocalPath   = 'C:\WINDOWS\system32\config\systemprofile'
                     LastUseTime = $script:mockOldDate
@@ -256,6 +262,7 @@ Describe 'Remove-UserProfile' {
                     SizeMB      = [double]1.0
                 },
                 @{
+                    Source      = 'Registry+Disk'
                     SID         = 'S-1-5-19'
                     LocalPath   = 'C:\WINDOWS\ServiceProfiles\LocalService'
                     LastUseTime = $script:mockOldDate
@@ -263,6 +270,7 @@ Describe 'Remove-UserProfile' {
                     SizeMB      = [double]1.0
                 },
                 @{
+                    Source      = 'Registry+Disk'
                     SID         = 'S-1-5-20'
                     LocalPath   = 'C:\WINDOWS\ServiceProfiles\NetworkService'
                     LastUseTime = $script:mockOldDate
@@ -270,6 +278,7 @@ Describe 'Remove-UserProfile' {
                     SizeMB      = [double]1.0
                 },
                 @{
+                    Source      = 'Registry+Disk'
                     SID         = 'S-1-5-21-1234-5678-9012-1001'
                     LocalPath   = 'C:\Users\john.doe'
                     LastUseTime = $script:mockOldDate
@@ -324,6 +333,7 @@ Describe 'Remove-UserProfile' {
         BeforeAll {
             $script:loadedProfile = @(
                 @{
+                    Source      = 'Registry+Disk'
                     SID         = 'S-1-5-21-1234-5678-9012-9999'
                     LocalPath   = 'C:\Users\active.user'
                     LastUseTime = $script:mockOldDate
@@ -353,6 +363,7 @@ Describe 'Remove-UserProfile' {
                     # First call: enumerate
                     @(
                         @{
+                            Source      = 'Registry+Disk'
                             SID         = 'S-1-5-21-1234-5678-9012-2001'
                             LocalPath   = 'C:\Users\old.user'
                             LastUseTime = $script:mockOldDate
@@ -381,6 +392,7 @@ Describe 'Remove-UserProfile' {
                 if ($script:removeCallCount -eq 1) {
                     @(
                         @{
+                            Source      = 'Registry+Disk'
                             SID         = 'S-1-5-21-1234-5678-9012-3001'
                             LocalPath   = 'C:\Users\locked.user'
                             LastUseTime = $script:mockOldDate
@@ -452,10 +464,93 @@ Describe 'Remove-UserProfile' {
         }
     }
 
+    Context 'Ghost registry entries (RegistryOnly)' {
+        BeforeAll {
+            $script:ghostProfiles = @(
+                @{
+                    Source      = 'RegistryOnly'
+                    SID         = 'S-1-5-21-1234-5678-9012-5001'
+                    LocalPath   = 'C:\Users\mmesrati'
+                    LastUseTime = $null
+                    Loaded      = $false
+                    SizeMB      = [double]-1
+                }
+            )
+            $script:ghostRemoveArgs = $null
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName -MockWith {
+                if ($null -ne $ArgumentList -and $ArgumentList.Count -ge 3) {
+                    $script:ghostRemoveArgs = $ArgumentList
+                    return
+                }
+                @($script:ghostProfiles)
+            }
+        }
+
+        It -Name 'Should surface RegistryOnly profiles with Source flag' -Test {
+            $results = @(Remove-UserProfile -OlderThanDays 90 -WhatIf)
+            $results.Count | Should -Be 1
+            $results[0].Source | Should -Be 'RegistryOnly'
+            $results[0].UserName | Should -Be 'mmesrati'
+        }
+
+        It -Name 'Should forward SID + LocalPath + Source to remove block' -Test {
+            $script:ghostRemoveArgs = $null
+            $null = Remove-UserProfile -OlderThanDays 90 -Force
+            $script:ghostRemoveArgs | Should -Not -BeNullOrEmpty
+            $script:ghostRemoveArgs[0] | Should -Be 'S-1-5-21-1234-5678-9012-5001'
+            $script:ghostRemoveArgs[2] | Should -Be 'RegistryOnly'
+        }
+    }
+
+    Context 'Orphan folders (DiskOnly)' {
+        BeforeAll {
+            $script:orphanProfiles = @(
+                @{
+                    Source      = 'DiskOnly'
+                    SID         = $null
+                    LocalPath   = 'C:\Users\aausset'
+                    LastUseTime = (Get-Date).AddYears(-4)
+                    Loaded      = $false
+                    SizeMB      = [double]2048.0
+                }
+            )
+            $script:orphanRemoveArgs = $null
+            Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName -MockWith {
+                if ($null -ne $ArgumentList -and $ArgumentList.Count -ge 3) {
+                    $script:orphanRemoveArgs = $ArgumentList
+                    return
+                }
+                @($script:orphanProfiles)
+            }
+        }
+
+        It -Name 'Should surface DiskOnly folders with null SID' -Test {
+            $results = @(Remove-UserProfile -OlderThanDays 90 -WhatIf)
+            $results.Count | Should -Be 1
+            $results[0].Source | Should -Be 'DiskOnly'
+            $results[0].SID | Should -BeNullOrEmpty
+            $results[0].UserName | Should -Be 'aausset'
+        }
+
+        It -Name 'Should pass DiskOnly source to remove block with the folder path' -Test {
+            $script:orphanRemoveArgs = $null
+            $null = Remove-UserProfile -OlderThanDays 90 -Force
+            $script:orphanRemoveArgs | Should -Not -BeNullOrEmpty
+            $script:orphanRemoveArgs[1] | Should -Be 'C:\Users\aausset'
+            $script:orphanRemoveArgs[2] | Should -Be 'DiskOnly'
+        }
+
+        It -Name 'Should not trip the system SID exclusion on null SID' -Test {
+            $results = @(Remove-UserProfile -OlderThanDays 90 -WhatIf)
+            $results | Should -Not -BeNullOrEmpty
+        }
+    }
+
     Context 'Null LastUseTime handling' {
         BeforeAll {
             $script:nullDateProfiles = @(
                 @{
+                    Source      = 'Registry+Disk'
                     SID         = 'S-1-5-21-1234-5678-9012-4001'
                     LocalPath   = 'C:\Users\never.used'
                     LastUseTime = $null

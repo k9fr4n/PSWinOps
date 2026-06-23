@@ -52,8 +52,13 @@ function Remove-UserProfile {
 
         .OUTPUTS
             PSWinOps.UserProfileRemoval
-            Returns objects with ComputerName, UserName, LocalPath, SID, LastUseTime,
-            ProfileSizeMB, DaysInactive, Status, ErrorMessage, and Timestamp.
+            Returns objects with ComputerName, UserName, LocalPath, SID, Source,
+            LastUseTime, ProfileSizeMB, DaysInactive, Status, ErrorMessage, and Timestamp.
+
+            The Source property indicates how the profile was detected:
+            - Registry+Disk : entry in Win32_UserProfile AND folder on disk (normal)
+            - RegistryOnly  : entry in Win32_UserProfile but folder missing (ghost)
+            - DiskOnly      : folder under C:\Users with no Win32_UserProfile entry (orphan)
 
         .NOTES
             Author: Franck SALLET
@@ -121,28 +126,72 @@ function Remove-UserProfile {
                 [bool]$CalcSize
             )
 
-            $profiles = @(Get-CimInstance -ClassName 'Win32_UserProfile' -ErrorAction Stop)
-            $results = [System.Collections.Generic.List[hashtable]]::new()
+            $usersRoot = Join-Path -Path $env:SystemDrive -ChildPath 'Users'
 
+            # Disk-side folders that mirror system / built-in profiles
+            $skipFolders = @(
+                'Public', 'Default', 'Default User', 'All Users',
+                'systemprofile', 'LocalService', 'NetworkService',
+                'WDAGUtilityAccount', 'desktop.ini'
+            )
+
+            $getSize = {
+                param($path, [bool]$calc)
+                if (-not $calc) { return [double]-1 }
+                if (-not $path -or -not (Test-Path -LiteralPath $path)) { return [double]-1 }
+                $sumBytes = (Get-ChildItem -LiteralPath $path -Recurse -File -Force -ErrorAction SilentlyContinue |
+                        Measure-Object -Property Length -Sum -ErrorAction SilentlyContinue).Sum
+                [math]::Round(($sumBytes / 1MB), 2)
+            }
+
+            $results   = [System.Collections.Generic.List[hashtable]]::new()
+            $seenPaths = @{}
+
+            # 1) Registry side — Win32_UserProfile
+            $profiles = @(Get-CimInstance -ClassName 'Win32_UserProfile' -ErrorAction Stop)
             foreach ($prof in $profiles) {
-                # Skip system / special profiles
-                if ($prof.Special -eq $true) {
-                    continue 
-                }
+                if ($prof.Special -eq $true) { continue }
+
+                $path   = $prof.LocalPath
+                $onDisk = $path -and (Test-Path -LiteralPath $path)
+                $source = if ($onDisk) { 'Registry+Disk' } else { 'RegistryOnly' }
+
+                if ($path) { $seenPaths[$path.ToLowerInvariant()] = $true }
 
                 $results.Add(@{
+                        Source      = $source
                         SID         = $prof.SID
-                        LocalPath   = $prof.LocalPath
+                        LocalPath   = $path
                         LastUseTime = $prof.LastUseTime
                         Loaded      = $prof.Loaded
-                        SizeMB      = if ($CalcSize -and $prof.LocalPath -and (Test-Path -LiteralPath $prof.LocalPath)) {
-                            $sizeBytes = (Get-ChildItem -LiteralPath $prof.LocalPath -Recurse -File -Force -ErrorAction SilentlyContinue |
-                                    Measure-Object -Property Length -Sum -ErrorAction SilentlyContinue).Sum
-                            [math]::Round(($sizeBytes / 1MB), 2)
-                        } else {
-                            [double]-1
-                        }
+                        SizeMB      = & $getSize $path $CalcSize
                     })
+            }
+
+            # 2) Disk side — C:\Users folders without a Win32_UserProfile entry
+            if (Test-Path -LiteralPath $usersRoot) {
+                $diskFolders = @(Get-ChildItem -LiteralPath $usersRoot -Directory -Force -ErrorAction SilentlyContinue)
+                foreach ($dir in $diskFolders) {
+                    $full = $dir.FullName
+                    $name = $dir.Name
+
+                    # Filter out built-in / system folders
+                    $skip = $false
+                    foreach ($pat in $skipFolders) {
+                        if ($name -like $pat) { $skip = $true; break }
+                    }
+                    if ($skip) { continue }
+                    if ($seenPaths.ContainsKey($full.ToLowerInvariant())) { continue }
+
+                    $results.Add(@{
+                            Source      = 'DiskOnly'
+                            SID         = $null
+                            LocalPath   = $full
+                            LastUseTime = $dir.LastWriteTime    # no reliable LastUseTime — fallback
+                            Loaded      = $false
+                            SizeMB      = & $getSize $full $CalcSize
+                        })
+                }
             }
 
             @($results)
@@ -150,12 +199,27 @@ function Remove-UserProfile {
 
         $removeBlock = {
             param(
-                [string]$ProfileSid
+                [string]$ProfileSid,
+                [string]$LocalPath,
+                [string]$Source
             )
 
-            $prof = Get-CimInstance -ClassName 'Win32_UserProfile' -Filter "SID='$ProfileSid'" -ErrorAction Stop
-            if ($prof) {
-                Remove-CimInstance -InputObject $prof -ErrorAction Stop
+            switch ($Source) {
+                'DiskOnly' {
+                    # Orphan folder — no registry entry, just nuke the directory
+                    if ($LocalPath -and (Test-Path -LiteralPath $LocalPath)) {
+                        Remove-Item -LiteralPath $LocalPath -Recurse -Force -ErrorAction Stop
+                    }
+                }
+                default {
+                    # Registry+Disk and RegistryOnly: drop the CIM instance.
+                    # For RegistryOnly the on-disk Remove-Item is a no-op inside the
+                    # provider, so this purges the orphan registry entry cleanly.
+                    $prof = Get-CimInstance -ClassName 'Win32_UserProfile' -Filter "SID='$ProfileSid'" -ErrorAction Stop
+                    if ($prof) {
+                        Remove-CimInstance -InputObject $prof -ErrorAction Stop
+                    }
+                }
             }
         }
     }
@@ -191,6 +255,7 @@ function Remove-UserProfile {
 
                 $localPath = $prof.LocalPath
                 $sid = $prof.SID
+                $source = $prof.Source
                 $lastUse = $prof.LastUseTime
                 $loaded = $prof.Loaded
                 $sizeMB = $prof.SizeMB
@@ -202,8 +267,8 @@ function Remove-UserProfile {
                     $sid 
                 }
 
-                # ---- Exclusion: system SIDs ----
-                if ($sid -in $systemSids) {
+                # ---- Exclusion: system SIDs (only meaningful when SID is set) ----
+                if ($sid -and $sid -in $systemSids) {
                     continue 
                 }
 
@@ -252,6 +317,7 @@ function Remove-UserProfile {
                         UserName      = $userName
                         LocalPath     = $localPath
                         SID           = $sid
+                        Source        = $source
                         LastUseTime   = $lastUse
                         ProfileSizeMB = $sizeMB
                         DaysInactive  = $daysInactive
@@ -273,15 +339,21 @@ function Remove-UserProfile {
                 } else {
                     'unknown' 
                 }
-                $target = "User '$userName' ($localPath, last used $lastUseDisplay, $sizeDisplay)"
+                $actionVerb = switch ($source) {
+                    'DiskOnly'     { 'Remove orphan user folder' }
+                    'RegistryOnly' { 'Remove ghost profile registry entry' }
+                    default        { 'Remove user profile' }
+                }
+                $target = "User '$userName' [$source] ($localPath, last used $lastUseDisplay, $sizeDisplay)"
 
-                if (-not $PSCmdlet.ShouldProcess($target, 'Remove user profile')) {
+                if (-not $PSCmdlet.ShouldProcess($target, $actionVerb)) {
                     [PSCustomObject]@{
                         PSTypeName    = 'PSWinOps.UserProfileRemoval'
                         ComputerName  = $machine
                         UserName      = $userName
                         LocalPath     = $localPath
                         SID           = $sid
+                        Source        = $source
                         LastUseTime   = $lastUse
                         ProfileSizeMB = $sizeMB
                         DaysInactive  = $daysInactive
@@ -297,7 +369,7 @@ function Remove-UserProfile {
                     $removeParams = @{
                         ComputerName = $machine
                         ScriptBlock  = $removeBlock
-                        ArgumentList = @($sid)
+                        ArgumentList = @($sid, $localPath, $source)
                     }
                     if ($PSBoundParameters.ContainsKey('Credential')) {
                         $removeParams['Credential'] = $Credential
@@ -311,6 +383,7 @@ function Remove-UserProfile {
                         UserName      = $userName
                         LocalPath     = $localPath
                         SID           = $sid
+                        Source        = $source
                         LastUseTime   = $lastUse
                         ProfileSizeMB = $sizeMB
                         DaysInactive  = $daysInactive
@@ -325,6 +398,7 @@ function Remove-UserProfile {
                         UserName      = $userName
                         LocalPath     = $localPath
                         SID           = $sid
+                        Source        = $source
                         LastUseTime   = $lastUse
                         ProfileSizeMB = $sizeMB
                         DaysInactive  = $daysInactive
