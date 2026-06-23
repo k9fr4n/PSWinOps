@@ -136,8 +136,8 @@ function Remove-UserProfile {
             )
 
             $getSize = {
-                param($path)
-                if (-not $CalcSize) { return [double]-1 }
+                param($path, [bool]$calc)
+                if (-not $calc) { return [double]-1 }
                 if (-not $path -or -not (Test-Path -LiteralPath $path)) { return [double]-1 }
                 $sumBytes = (Get-ChildItem -LiteralPath $path -Recurse -File -Force -ErrorAction SilentlyContinue |
                         Measure-Object -Property Length -Sum -ErrorAction SilentlyContinue).Sum
@@ -164,7 +164,7 @@ function Remove-UserProfile {
                         LocalPath   = $path
                         LastUseTime = $prof.LastUseTime
                         Loaded      = $prof.Loaded
-                        SizeMB      = & $getSize $path
+                        SizeMB      = & $getSize $path $CalcSize
                     })
             }
 
@@ -189,7 +189,7 @@ function Remove-UserProfile {
                             LocalPath   = $full
                             LastUseTime = $dir.LastWriteTime    # no reliable LastUseTime — fallback
                             Loaded      = $false
-                            SizeMB      = & $getSize $full
+                            SizeMB      = & $getSize $full $CalcSize
                         })
                 }
             }
