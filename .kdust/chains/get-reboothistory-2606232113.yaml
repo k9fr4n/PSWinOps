@@ -1,0 +1,7 @@
+chain: pswinops-function-author
+function: Get-RebootHistory
+domain: system
+created: 2026-06-23T21:13:44Z
+created_by: pswinops-fn-spec-analyst
+chain_branch: kdust/chain/pswinops-fn-get-reboothistory-2606232113
+spec_path: work/get-reboothistory/spec.yaml
