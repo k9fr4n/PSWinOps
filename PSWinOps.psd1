@@ -142,6 +142,7 @@
         'Get-NTPSyncStatus',
         'Get-PageFileConfiguration',
         'Get-PendingReboot',
+        'Get-RebootHistory',
         'Get-PrintServerHealth',
         'Get-ProxyConfiguration',
         'Get-PublicIPAddress',
