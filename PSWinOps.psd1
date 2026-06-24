@@ -173,6 +173,7 @@
         'Remove-ProxyConfiguration',
         'Remove-RdpSession',
         'Remove-ShadowCopy',
+        'Remove-StringDiacritic',
         'Remove-UserProfile',
         'Reset-ADUserPassword',
         'Reset-WindowsUpdateComponent',
