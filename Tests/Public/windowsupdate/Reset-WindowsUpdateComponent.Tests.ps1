@@ -3,16 +3,6 @@
     Import-Module -Name (Join-Path -Path $script:modulePath -ChildPath 'PSWinOps.psd1') -Force
 
     # ---------------------------------------------------------------------------
-    # Stub declarations for every command we mock (parameters must be explicit)
-    # ---------------------------------------------------------------------------
-    function global:Get-Service    { param($Name, $ErrorAction) }
-    function global:Stop-Service   { param($Name, $Force, $ErrorAction) }
-    function global:Start-Service  { param($Name, $ErrorAction) }
-    function global:Remove-Item    { param($LiteralPath, $Path, $Force, $Recurse, $ErrorAction) }
-    function global:Rename-Item    { param($LiteralPath, $NewName, $ErrorAction) }
-    function global:Test-Path      { param($Path, $LiteralPath, $PathType) }
-
-    # ---------------------------------------------------------------------------
     # Shared mock return objects
     # ---------------------------------------------------------------------------
     $script:mockSuccessResult = [PSCustomObject]@{
@@ -273,7 +263,7 @@ Describe -Name 'Reset-WindowsUpdateComponent' -Tag 'Unit' -Fixture {
     Context 'Per-machine failure - continues processing remaining machines' {
     # ==========================================================================
 
-        It -Name 'Should write error for failing machine and still succeed on remaining one' -Test {
+        BeforeAll {
             Mock -CommandName 'Test-IsAdministrator' -ModuleName 'PSWinOps' -MockWith {
                 return $true
             }
@@ -283,17 +273,26 @@ Describe -Name 'Reset-WindowsUpdateComponent' -Tag 'Unit' -Fixture {
                 }
                 return $script:mockSuccessResult
             }
-            $allOutput = 'SRV01', 'SRV02' |
+            $script:perMachineOutput    = 'SRV01', 'SRV02' |
                 Reset-WindowsUpdateComponent -Confirm:$false 2>&1
-            $errors    = @($allOutput | Where-Object -FilterScript {
+            $script:perMachineErrors    = @($script:perMachineOutput | Where-Object {
                 $_ -is [System.Management.Automation.ErrorRecord]
             })
-            $successes = @($allOutput | Where-Object -FilterScript {
+            $script:perMachineSuccesses = @($script:perMachineOutput | Where-Object {
                 $_ -isnot [System.Management.Automation.ErrorRecord]
             })
-            $errors.Count    | Should -BeGreaterThan 0
-            $successes.Count | Should -Be 1
-            $successes[0].ComputerName | Should -Be 'SRV02'
+        }
+
+        It -Name 'Should write error for failing machine' -Test {
+            $script:perMachineErrors.Count | Should -BeGreaterThan 0
+        }
+
+        It -Name 'Should succeed on remaining machine' -Test {
+            $script:perMachineSuccesses.Count | Should -Be 1
+        }
+
+        It -Name 'Succeeded machine should be SRV02' -Test {
+            $script:perMachineSuccesses[0].ComputerName | Should -Be 'SRV02'
         }
     }
 
