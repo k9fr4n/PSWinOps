@@ -161,7 +161,7 @@ FUNCTION DOMAINS
       Get-RdpSessionLock
       Remove-RdpSession
 
-  system (14 functions)
+  system (15 functions)
     Functions for general system information, state,
     disk cleanup, profile management, and real-time monitoring.
 
@@ -173,6 +173,7 @@ FUNCTION DOMAINS
       Get-InstalledSoftware
       Get-PageFileConfiguration
       Get-PendingReboot
+      Get-RebootHistory
       Get-ScheduledTaskDetail
       Get-StartupProgram
       Get-SystemSummary
@@ -372,6 +373,7 @@ PSWINOPS TYPE REGISTRY
       PSWinOps.RdpSessionHistory
       PSWinOps.RdpSessionLock
       PSWinOps.RDSHealth
+      PSWinOps.RebootHistory
       PSWinOps.ScheduledTaskDetail
       PSWinOps.ServiceHealth
       PSWinOps.ShadowCopy

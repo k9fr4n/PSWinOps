@@ -7312,5 +7312,76 @@
         </TableRowEntries>
       </TableControl>
     </View>
+    <!-- ============================================================ -->
+    <!-- PSWinOps.RebootHistory                                       -->
+    <!-- Used by: Get-RebootHistory                                   -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.RebootHistory</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.RebootHistory</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <AutoSize />
+        <TableHeaders>
+          <TableColumnHeader>
+            <Label>ComputerName</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>ShutdownTime</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>BootTime</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>DowntimeMinutes</Label>
+            <Alignment>Right</Alignment>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Type</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Cause</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Initiator</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>EventId</Label>
+            <Alignment>Right</Alignment>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem>
+                <PropertyName>ComputerName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>ShutdownTime</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>BootTime</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>DowntimeMinutes</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Type</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Cause</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Initiator</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>EventId</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
   </ViewDefinitions>
 </Configuration>

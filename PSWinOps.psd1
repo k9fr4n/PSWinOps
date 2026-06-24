@@ -12,7 +12,7 @@
     RootModule           = 'PSWinOps.psm1'
 
     # Version number of this module.
-    ModuleVersion        = '0.0.23'
+    ModuleVersion        = '0.0.24'
 
     # Supported PSEditions
     # Core is supported on Windows only; the module-level guard in PSWinOps.psm1 blocks
@@ -142,6 +142,7 @@
         'Get-NTPSyncStatus',
         'Get-PageFileConfiguration',
         'Get-PendingReboot',
+        'Get-RebootHistory',
         'Get-PrintServerHealth',
         'Get-ProxyConfiguration',
         'Get-PublicIPAddress',
@@ -264,7 +265,11 @@
             # IconUri = ''
 
             # ReleaseNotes of this module
-            ReleaseNotes = '## 0.0.23 - 2026-05-21
+            ReleaseNotes = '## 0.0.24 - 2026-06-24
+### Added
+- feat(system): add Get-RebootHistory — correlates Windows System event log entries (1074, 1076, 6005, 6006, 6008, Kernel-Power 41) to reconstruct reboot/shutdown history per computer; classifies each event as Planned/Unexpected/Crash/PowerLoss/Unknown with DowntimeMinutes, Cause, Initiator, Comment; -MaxEvents, -After, -Before filters; remote execution via Invoke-RemoteOrLocal (#59).
+
+## 0.0.23 - 2026-05-21
 ### Added
 - feat(iis): introduce new public domain Public/iis/ (registered in CI matrix and about_PSWinOps).
 - feat(iis): add Set-IISBindingCertificate — replace SSL/TLS certificate on IIS HTTPS bindings with idempotent rotation, -WhatIf/-Confirm (ConfirmImpact=High), remote execution via WinRM, pipeline-by-property-name from Get-SSLCertificate / Get-IISHealth (#47).
