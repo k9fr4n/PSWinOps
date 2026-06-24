@@ -274,7 +274,7 @@ Describe -Name 'Reset-WindowsUpdateComponent' -Tag 'Unit' -Fixture {
                 return $script:mockSuccessResult
             }
             $script:perMachineOutput    = 'SRV01', 'SRV02' |
-                Reset-WindowsUpdateComponent -Confirm:$false 2>&1
+                Reset-WindowsUpdateComponent -Confirm:$false -ErrorAction Continue 2>&1
             $script:perMachineErrors    = @($script:perMachineOutput | Where-Object {
                 $_ -is [System.Management.Automation.ErrorRecord]
             })
