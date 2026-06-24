@@ -52,14 +52,16 @@ function Remove-StringDiacritic {
         [string]$String
     )
     process {
-        $normalized = $String.Normalize([Text.NormalizationForm]::FormD)
-        $sb = [Text.StringBuilder]::new()
-        foreach ($char in $normalized.ToCharArray()) {
-            if ([Globalization.CharUnicodeInfo]::GetUnicodeCategory($char) -ne
-                [Globalization.UnicodeCategory]::NonSpacingMark) {
-                [void]$sb.Append($char)
+        if ($PSCmdlet.ShouldProcess($String, 'Remove diacritics')) {
+            $normalized = $String.Normalize([Text.NormalizationForm]::FormD)
+            $sb = [Text.StringBuilder]::new()
+            foreach ($char in $normalized.ToCharArray()) {
+                if ([Globalization.CharUnicodeInfo]::GetUnicodeCategory($char) -ne
+                    [Globalization.UnicodeCategory]::NonSpacingMark) {
+                    [void]$sb.Append($char)
+                }
             }
+            $sb.ToString().Normalize([Text.NormalizationForm]::FormC)
         }
-        $sb.ToString().Normalize([Text.NormalizationForm]::FormC)
     }
 }
