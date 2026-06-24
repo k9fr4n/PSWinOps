@@ -460,6 +460,117 @@ Describe 'Invoke-WindowsUpdateReset' {
         }
     }
 
+    Context 'qmgr files exist - deleted successfully' {
+
+        BeforeAll {
+            $script:result = & $script:mod {
+                Mock -CommandName 'Get-Service'    -MockWith { [PSCustomObject]@{ Status = 'Running' } }
+                Mock -CommandName 'Stop-Service'   -MockWith {}
+                Mock -CommandName 'Start-Sleep'    -MockWith {}
+                Mock -CommandName 'Start-Service'  -MockWith {}
+                Mock -CommandName 'Remove-Item'    -MockWith {}
+                Mock -CommandName 'Rename-Item'    -MockWith {}
+                Mock -CommandName 'Invoke-NativeCommand' -MockWith {
+                    [PSCustomObject]@{ ExitCode = 0; Output = '' }
+                }
+                Mock -CommandName 'Get-ChildItem'  -MockWith {
+                    @(
+                        [PSCustomObject]@{ FullName = 'C:\ProgramData\Microsoft\Network\Downloader\qmgr0.dat' }
+                        [PSCustomObject]@{ FullName = 'C:\ProgramData\Microsoft\Network\Downloader\qmgr1.dat' }
+                    )
+                }
+                Mock -CommandName 'Test-Path' -MockWith {
+                    param($LiteralPath, $Path, $PathType)
+                    $t = if ($LiteralPath) { $LiteralPath } else { $Path }
+                    # qmgr folder and DLLs/exes exist; no WU log; no SD/Catroot2
+                    return ($t -match '\.dll$|\.exe$') -or ($t -match 'Downloader$')
+                }
+                Invoke-WindowsUpdateReset -DoNetworkReset $false
+            }
+        }
+
+        It 'Should have QmgrFilesDeleted equal to 2' {
+            $script:result.QmgrFilesDeleted | Should -Be 2
+        }
+
+        It 'Should have Status Succeeded' {
+            $script:result.Status | Should -Be 'Succeeded'
+        }
+    }
+
+    Context 'WindowsUpdate.log exists - deleted' {
+
+        BeforeAll {
+            $script:result = & $script:mod {
+                Mock -CommandName 'Get-Service'    -MockWith { [PSCustomObject]@{ Status = 'Running' } }
+                Mock -CommandName 'Stop-Service'   -MockWith {}
+                Mock -CommandName 'Start-Sleep'    -MockWith {}
+                Mock -CommandName 'Start-Service'  -MockWith {}
+                Mock -CommandName 'Get-ChildItem'  -MockWith { @() }
+                Mock -CommandName 'Remove-Item'    -MockWith {}
+                Mock -CommandName 'Rename-Item'    -MockWith {}
+                Mock -CommandName 'Invoke-NativeCommand' -MockWith {
+                    [PSCustomObject]@{ ExitCode = 0; Output = '' }
+                }
+                Mock -CommandName 'Test-Path' -MockWith {
+                    param($LiteralPath, $Path, $PathType)
+                    $t = if ($LiteralPath) { $LiteralPath } else { $Path }
+                    # DLLs, exes, and WindowsUpdate.log exist
+                    return ($t -match '\.dll$|\.exe$') -or ($t -match 'WindowsUpdate\.log$')
+                }
+                Invoke-WindowsUpdateReset -DoNetworkReset $false
+            }
+        }
+
+        It 'Should have Status Succeeded' {
+            $script:result.Status | Should -Be 'Succeeded'
+        }
+
+        It 'Should have no failures' {
+            $script:result.Failures.Count | Should -Be 0
+        }
+    }
+
+    Context 'regsvr32 fails for a present DLL - DllsFailed incremented' {
+
+        BeforeAll {
+            $script:result = & $script:mod {
+                Mock -CommandName 'Get-Service'    -MockWith { [PSCustomObject]@{ Status = 'Running' } }
+                Mock -CommandName 'Stop-Service'   -MockWith {}
+                Mock -CommandName 'Start-Sleep'    -MockWith {}
+                Mock -CommandName 'Start-Service'  -MockWith {}
+                Mock -CommandName 'Get-ChildItem'  -MockWith { @() }
+                Mock -CommandName 'Remove-Item'    -MockWith {}
+                Mock -CommandName 'Rename-Item'    -MockWith {}
+                Mock -CommandName 'Invoke-NativeCommand' -MockWith {
+                    param($FilePath, $ArgumentList)
+                    if ($FilePath -match 'regsvr32') {
+                        return [PSCustomObject]@{ ExitCode = 5; Output = 'Access denied' }
+                    }
+                    return [PSCustomObject]@{ ExitCode = 0; Output = '' }
+                }
+                Mock -CommandName 'Test-Path' -MockWith {
+                    param($LiteralPath, $Path, $PathType)
+                    $t = if ($LiteralPath) { $LiteralPath } else { $Path }
+                    return ($t -match '\.dll$|\.exe$')
+                }
+                Invoke-WindowsUpdateReset -DoNetworkReset $false
+            }
+        }
+
+        It 'Should have DllsFailed greater than zero' {
+            $script:result.DllsFailed | Should -BeGreaterThan 0
+        }
+
+        It 'Should have Status PartialSuccess' {
+            $script:result.Status | Should -Be 'PartialSuccess'
+        }
+
+        It 'Should record regsvr32 failure in Failures' {
+            $script:result.Failures | Where-Object { $_ -match 'regsvr32' } | Should -Not -BeNullOrEmpty
+        }
+    }
+
     Context 'Return type validation' {
 
         BeforeAll {
