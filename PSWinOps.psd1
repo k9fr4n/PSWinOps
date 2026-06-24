@@ -175,6 +175,7 @@
         'Remove-ShadowCopy',
         'Remove-UserProfile',
         'Reset-ADUserPassword',
+        'Reset-WindowsUpdateComponent',
         'Resolve-MACVendor',
         'Restore-ShadowCopyFile',
         'Save-WindowsUpdate',

@@ -181,7 +181,7 @@ FUNCTION DOMAINS
       Set-PageFile
       Show-SystemMonitor
 
-  windowsupdate (3 functions)
+  windowsupdate (4 functions)
     Functions for querying and managing Windows Update
     on local or remote machines via the COM API and
     registry.
@@ -189,6 +189,7 @@ FUNCTION DOMAINS
       Get-WindowsUpdate
       Get-WindowsUpdateConfiguration
       Get-WindowsUpdateHistory
+      Reset-WindowsUpdateComponent
 
   utils (2 functions)
     Pure utility functions that do not follow the standard
@@ -391,6 +392,7 @@ PSWINOPS TYPE REGISTRY
       PSWinOps.WindowsUpdate
       PSWinOps.WindowsUpdateConfiguration
       PSWinOps.WindowsUpdateHistory
+      PSWinOps.WindowsUpdateResetResult
       PSWinOps.WinRMTestResult
       PSWinOps.WSUSHealth
 
