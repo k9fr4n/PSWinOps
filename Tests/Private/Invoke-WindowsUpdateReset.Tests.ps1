@@ -5,14 +5,7 @@ BeforeAll {
     $script:modulePath = Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent
     Import-Module -Name (Join-Path -Path $script:modulePath -ChildPath 'PSWinOps.psd1') -Force
     $script:ModuleName = 'PSWinOps'
-
-    function script:Invoke-Private {
-        param([string]$Name, [hashtable]$Params = @{})
-        & (Get-Module -Name $script:ModuleName) {
-            param($n, $p)
-            & $n @p
-        } $Name $Params
-    }
+    $script:mod        = Get-Module -Name $script:ModuleName
 }
 
 Describe 'Invoke-WindowsUpdateReset' {
@@ -20,38 +13,48 @@ Describe 'Invoke-WindowsUpdateReset' {
     Context 'Happy path - services running, DLLs present, no network reset' {
 
         BeforeAll {
-            Mock -CommandName 'Get-Service' -ModuleName $script:ModuleName -MockWith {
-                [PSCustomObject]@{ Status = 'Running' }
+            $script:result = & $script:mod {
+                Mock -CommandName 'Get-Service'    -MockWith { [PSCustomObject]@{ Status = 'Running' } }
+                Mock -CommandName 'Stop-Service'   -MockWith {}
+                Mock -CommandName 'Start-Sleep'    -MockWith {}
+                Mock -CommandName 'Start-Service'  -MockWith {}
+                Mock -CommandName 'Get-ChildItem'  -MockWith { @() }
+                Mock -CommandName 'Remove-Item'    -MockWith {}
+                Mock -CommandName 'Rename-Item'    -MockWith {}
+                Mock -CommandName 'Invoke-NativeCommand' -MockWith {
+                    [PSCustomObject]@{ ExitCode = 0; Output = '' }
+                }
+                Mock -CommandName 'Test-Path' -MockWith {
+                    param($LiteralPath, $Path, $PathType)
+                    $t = if ($LiteralPath) { $LiteralPath } else { $Path }
+                    return ($t -match '\.dll$|\.exe$')
+                }
+                Invoke-WindowsUpdateReset -DoNetworkReset $false
             }
-            Mock -CommandName 'Stop-Service'  -ModuleName $script:ModuleName -MockWith {}
-            Mock -CommandName 'Start-Sleep'   -ModuleName $script:ModuleName -MockWith {}
-            Mock -CommandName 'Start-Service' -ModuleName $script:ModuleName -MockWith {}
-            Mock -CommandName 'Get-ChildItem' -ModuleName $script:ModuleName -MockWith { @() }
-            Mock -CommandName 'Remove-Item'   -ModuleName $script:ModuleName -MockWith {}
-            Mock -CommandName 'Rename-Item'   -ModuleName $script:ModuleName -MockWith {}
-            Mock -CommandName 'Invoke-NativeCommand' -ModuleName $script:ModuleName -MockWith {
-                [PSCustomObject]@{ ExitCode = 0; Output = '' }
-            }
-            # DLLs and exes present; folders absent
-            Mock -CommandName 'Test-Path' -ModuleName $script:ModuleName -MockWith {
-                param($LiteralPath, $Path, $PathType)
-                $target = if ($LiteralPath) { $LiteralPath } else { $Path }
-                return ($target -match '\.dll$|\.exe$')
-            }
-
-            $script:result = script:Invoke-Private -Name 'Invoke-WindowsUpdateReset' -Params @{ DoNetworkReset = $false }
         }
 
         It 'Should return a PSCustomObject' {
             $script:result | Should -Not -BeNullOrEmpty
         }
 
-        It 'Should have Status Succeeded when no failures' {
+        It 'Should have Status Succeeded' {
             $script:result.Status | Should -Be 'Succeeded'
         }
 
         It 'Should have empty Failures list' {
             $script:result.Failures.Count | Should -Be 0
+        }
+
+        It 'Should have 4 services stopped' {
+            $script:result.ServicesStopped.Count | Should -Be 4
+        }
+
+        It 'Should have 4 services started' {
+            $script:result.ServicesStarted.Count | Should -Be 4
+        }
+
+        It 'Should have DllsReregistered equal to 36' {
+            $script:result.DllsReregistered | Should -Be 36
         }
 
         It 'Should have NetworkResetPerformed false' {
@@ -61,42 +64,29 @@ Describe 'Invoke-WindowsUpdateReset' {
         It 'Should have RebootRequired false' {
             $script:result.RebootRequired | Should -Be $false
         }
-
-        It 'Should call Stop-Service for running services' {
-            Should -Invoke -CommandName 'Stop-Service' -ModuleName $script:ModuleName -Times 4 -Exactly
-        }
-
-        It 'Should call Start-Service for services' {
-            Should -Invoke -CommandName 'Start-Service' -ModuleName $script:ModuleName -Times 4 -Exactly
-        }
-
-        It 'Should have DllsReregistered equal to 36' {
-            $script:result.DllsReregistered | Should -Be 36
-        }
     }
 
-    Context 'Network reset path - DoNetworkReset = true, all commands succeed' {
+    Context 'Network reset - all commands succeed' {
 
         BeforeAll {
-            Mock -CommandName 'Get-Service' -ModuleName $script:ModuleName -MockWith {
-                [PSCustomObject]@{ Status = 'Running' }
+            $script:result = & $script:mod {
+                Mock -CommandName 'Get-Service'    -MockWith { [PSCustomObject]@{ Status = 'Running' } }
+                Mock -CommandName 'Stop-Service'   -MockWith {}
+                Mock -CommandName 'Start-Sleep'    -MockWith {}
+                Mock -CommandName 'Start-Service'  -MockWith {}
+                Mock -CommandName 'Get-ChildItem'  -MockWith { @() }
+                Mock -CommandName 'Remove-Item'    -MockWith {}
+                Mock -CommandName 'Rename-Item'    -MockWith {}
+                Mock -CommandName 'Invoke-NativeCommand' -MockWith {
+                    [PSCustomObject]@{ ExitCode = 0; Output = '' }
+                }
+                Mock -CommandName 'Test-Path' -MockWith {
+                    param($LiteralPath, $Path, $PathType)
+                    $t = if ($LiteralPath) { $LiteralPath } else { $Path }
+                    return ($t -match '\.dll$|\.exe$')
+                }
+                Invoke-WindowsUpdateReset -DoNetworkReset $true
             }
-            Mock -CommandName 'Stop-Service'  -ModuleName $script:ModuleName -MockWith {}
-            Mock -CommandName 'Start-Sleep'   -ModuleName $script:ModuleName -MockWith {}
-            Mock -CommandName 'Start-Service' -ModuleName $script:ModuleName -MockWith {}
-            Mock -CommandName 'Get-ChildItem' -ModuleName $script:ModuleName -MockWith { @() }
-            Mock -CommandName 'Remove-Item'   -ModuleName $script:ModuleName -MockWith {}
-            Mock -CommandName 'Rename-Item'   -ModuleName $script:ModuleName -MockWith {}
-            Mock -CommandName 'Invoke-NativeCommand' -ModuleName $script:ModuleName -MockWith {
-                [PSCustomObject]@{ ExitCode = 0; Output = '' }
-            }
-            Mock -CommandName 'Test-Path' -ModuleName $script:ModuleName -MockWith {
-                param($LiteralPath, $Path, $PathType)
-                $target = if ($LiteralPath) { $LiteralPath } else { $Path }
-                return ($target -match '\.dll$|\.exe$')
-            }
-
-            $script:result = script:Invoke-Private -Name 'Invoke-WindowsUpdateReset' -Params @{ DoNetworkReset = $true }
         }
 
         It 'Should have NetworkResetPerformed true' {
@@ -112,28 +102,27 @@ Describe 'Invoke-WindowsUpdateReset' {
         }
     }
 
-    Context 'Network reset path - winsock fails' {
+    Context 'Network reset - winsock fails' {
 
         BeforeAll {
-            Mock -CommandName 'Get-Service' -ModuleName $script:ModuleName -MockWith {
-                [PSCustomObject]@{ Status = 'Running' }
+            $script:result = & $script:mod {
+                Mock -CommandName 'Get-Service'    -MockWith { [PSCustomObject]@{ Status = 'Running' } }
+                Mock -CommandName 'Stop-Service'   -MockWith {}
+                Mock -CommandName 'Start-Sleep'    -MockWith {}
+                Mock -CommandName 'Start-Service'  -MockWith {}
+                Mock -CommandName 'Get-ChildItem'  -MockWith { @() }
+                Mock -CommandName 'Remove-Item'    -MockWith {}
+                Mock -CommandName 'Rename-Item'    -MockWith {}
+                Mock -CommandName 'Invoke-NativeCommand' -MockWith {
+                    [PSCustomObject]@{ ExitCode = 1; Output = 'error' }
+                }
+                Mock -CommandName 'Test-Path' -MockWith {
+                    param($LiteralPath, $Path, $PathType)
+                    $t = if ($LiteralPath) { $LiteralPath } else { $Path }
+                    return ($t -match '\.dll$|\.exe$')
+                }
+                Invoke-WindowsUpdateReset -DoNetworkReset $true
             }
-            Mock -CommandName 'Stop-Service'  -ModuleName $script:ModuleName -MockWith {}
-            Mock -CommandName 'Start-Sleep'   -ModuleName $script:ModuleName -MockWith {}
-            Mock -CommandName 'Start-Service' -ModuleName $script:ModuleName -MockWith {}
-            Mock -CommandName 'Get-ChildItem' -ModuleName $script:ModuleName -MockWith { @() }
-            Mock -CommandName 'Remove-Item'   -ModuleName $script:ModuleName -MockWith {}
-            Mock -CommandName 'Rename-Item'   -ModuleName $script:ModuleName -MockWith {}
-            Mock -CommandName 'Invoke-NativeCommand' -ModuleName $script:ModuleName -MockWith {
-                [PSCustomObject]@{ ExitCode = 1; Output = 'error' }
-            }
-            Mock -CommandName 'Test-Path' -ModuleName $script:ModuleName -MockWith {
-                param($LiteralPath, $Path, $PathType)
-                $target = if ($LiteralPath) { $LiteralPath } else { $Path }
-                return ($target -match '\.dll$|\.exe$')
-            }
-
-            $script:result = script:Invoke-Private -Name 'Invoke-WindowsUpdateReset' -Params @{ DoNetworkReset = $true }
         }
 
         It 'Should have NetworkResetPerformed false when winsock fails' {
@@ -152,25 +141,24 @@ Describe 'Invoke-WindowsUpdateReset' {
     Context 'Service stop fails - failure recorded, processing continues' {
 
         BeforeAll {
-            Mock -CommandName 'Get-Service' -ModuleName $script:ModuleName -MockWith {
-                [PSCustomObject]@{ Status = 'Running' }
+            $script:result = & $script:mod {
+                Mock -CommandName 'Get-Service'    -MockWith { [PSCustomObject]@{ Status = 'Running' } }
+                Mock -CommandName 'Stop-Service'   -MockWith { throw 'access denied' }
+                Mock -CommandName 'Start-Sleep'    -MockWith {}
+                Mock -CommandName 'Start-Service'  -MockWith {}
+                Mock -CommandName 'Get-ChildItem'  -MockWith { @() }
+                Mock -CommandName 'Remove-Item'    -MockWith {}
+                Mock -CommandName 'Rename-Item'    -MockWith {}
+                Mock -CommandName 'Invoke-NativeCommand' -MockWith {
+                    [PSCustomObject]@{ ExitCode = 0; Output = '' }
+                }
+                Mock -CommandName 'Test-Path' -MockWith {
+                    param($LiteralPath, $Path, $PathType)
+                    $t = if ($LiteralPath) { $LiteralPath } else { $Path }
+                    return ($t -match '\.dll$|\.exe$')
+                }
+                Invoke-WindowsUpdateReset -DoNetworkReset $false
             }
-            Mock -CommandName 'Stop-Service'  -ModuleName $script:ModuleName -MockWith { throw 'access denied' }
-            Mock -CommandName 'Start-Sleep'   -ModuleName $script:ModuleName -MockWith {}
-            Mock -CommandName 'Start-Service' -ModuleName $script:ModuleName -MockWith {}
-            Mock -CommandName 'Get-ChildItem' -ModuleName $script:ModuleName -MockWith { @() }
-            Mock -CommandName 'Remove-Item'   -ModuleName $script:ModuleName -MockWith {}
-            Mock -CommandName 'Rename-Item'   -ModuleName $script:ModuleName -MockWith {}
-            Mock -CommandName 'Invoke-NativeCommand' -ModuleName $script:ModuleName -MockWith {
-                [PSCustomObject]@{ ExitCode = 0; Output = '' }
-            }
-            Mock -CommandName 'Test-Path' -ModuleName $script:ModuleName -MockWith {
-                param($LiteralPath, $Path, $PathType)
-                $target = if ($LiteralPath) { $LiteralPath } else { $Path }
-                return ($target -match '\.dll$|\.exe$')
-            }
-
-            $script:result = script:Invoke-Private -Name 'Invoke-WindowsUpdateReset' -Params @{ DoNetworkReset = $false }
         }
 
         It 'Should record stop failures' {
@@ -190,25 +178,24 @@ Describe 'Invoke-WindowsUpdateReset' {
     Context 'Service start fails - failure recorded' {
 
         BeforeAll {
-            Mock -CommandName 'Get-Service' -ModuleName $script:ModuleName -MockWith {
-                [PSCustomObject]@{ Status = 'Running' }
+            $script:result = & $script:mod {
+                Mock -CommandName 'Get-Service'    -MockWith { [PSCustomObject]@{ Status = 'Running' } }
+                Mock -CommandName 'Stop-Service'   -MockWith {}
+                Mock -CommandName 'Start-Sleep'    -MockWith {}
+                Mock -CommandName 'Start-Service'  -MockWith { throw 'start failed' }
+                Mock -CommandName 'Get-ChildItem'  -MockWith { @() }
+                Mock -CommandName 'Remove-Item'    -MockWith {}
+                Mock -CommandName 'Rename-Item'    -MockWith {}
+                Mock -CommandName 'Invoke-NativeCommand' -MockWith {
+                    [PSCustomObject]@{ ExitCode = 0; Output = '' }
+                }
+                Mock -CommandName 'Test-Path' -MockWith {
+                    param($LiteralPath, $Path, $PathType)
+                    $t = if ($LiteralPath) { $LiteralPath } else { $Path }
+                    return ($t -match '\.dll$|\.exe$')
+                }
+                Invoke-WindowsUpdateReset -DoNetworkReset $false
             }
-            Mock -CommandName 'Stop-Service'  -ModuleName $script:ModuleName -MockWith {}
-            Mock -CommandName 'Start-Sleep'   -ModuleName $script:ModuleName -MockWith {}
-            Mock -CommandName 'Start-Service' -ModuleName $script:ModuleName -MockWith { throw 'start failed' }
-            Mock -CommandName 'Get-ChildItem' -ModuleName $script:ModuleName -MockWith { @() }
-            Mock -CommandName 'Remove-Item'   -ModuleName $script:ModuleName -MockWith {}
-            Mock -CommandName 'Rename-Item'   -ModuleName $script:ModuleName -MockWith {}
-            Mock -CommandName 'Invoke-NativeCommand' -ModuleName $script:ModuleName -MockWith {
-                [PSCustomObject]@{ ExitCode = 0; Output = '' }
-            }
-            Mock -CommandName 'Test-Path' -ModuleName $script:ModuleName -MockWith {
-                param($LiteralPath, $Path, $PathType)
-                $target = if ($LiteralPath) { $LiteralPath } else { $Path }
-                return ($target -match '\.dll$|\.exe$')
-            }
-
-            $script:result = script:Invoke-Private -Name 'Invoke-WindowsUpdateReset' -Params @{ DoNetworkReset = $false }
         }
 
         It 'Should record start failures' {
@@ -224,26 +211,25 @@ Describe 'Invoke-WindowsUpdateReset' {
     Context 'All DLL paths absent - DllsFailed populated, PartialSuccess' {
 
         BeforeAll {
-            Mock -CommandName 'Get-Service' -ModuleName $script:ModuleName -MockWith {
-                [PSCustomObject]@{ Status = 'Running' }
+            $script:result = & $script:mod {
+                Mock -CommandName 'Get-Service'    -MockWith { [PSCustomObject]@{ Status = 'Running' } }
+                Mock -CommandName 'Stop-Service'   -MockWith {}
+                Mock -CommandName 'Start-Sleep'    -MockWith {}
+                Mock -CommandName 'Start-Service'  -MockWith {}
+                Mock -CommandName 'Get-ChildItem'  -MockWith { @() }
+                Mock -CommandName 'Remove-Item'    -MockWith {}
+                Mock -CommandName 'Rename-Item'    -MockWith {}
+                Mock -CommandName 'Invoke-NativeCommand' -MockWith {
+                    [PSCustomObject]@{ ExitCode = 0; Output = '' }
+                }
+                # Only .exe present (sc.exe, wuauclt.exe, etc.) — .dll absent
+                Mock -CommandName 'Test-Path' -MockWith {
+                    param($LiteralPath, $Path, $PathType)
+                    $t = if ($LiteralPath) { $LiteralPath } else { $Path }
+                    return ($t -match '\.exe$')
+                }
+                Invoke-WindowsUpdateReset -DoNetworkReset $false
             }
-            Mock -CommandName 'Stop-Service'  -ModuleName $script:ModuleName -MockWith {}
-            Mock -CommandName 'Start-Sleep'   -ModuleName $script:ModuleName -MockWith {}
-            Mock -CommandName 'Start-Service' -ModuleName $script:ModuleName -MockWith {}
-            Mock -CommandName 'Get-ChildItem' -ModuleName $script:ModuleName -MockWith { @() }
-            Mock -CommandName 'Remove-Item'   -ModuleName $script:ModuleName -MockWith {}
-            Mock -CommandName 'Rename-Item'   -ModuleName $script:ModuleName -MockWith {}
-            Mock -CommandName 'Invoke-NativeCommand' -ModuleName $script:ModuleName -MockWith {
-                [PSCustomObject]@{ ExitCode = 0; Output = '' }
-            }
-            # Only sc.exe and wuauclt/usoclient are .exe; DLLs are .dll — return false for .dll
-            Mock -CommandName 'Test-Path' -ModuleName $script:ModuleName -MockWith {
-                param($LiteralPath, $Path, $PathType)
-                $target = if ($LiteralPath) { $LiteralPath } else { $Path }
-                return ($target -match '\.exe$')
-            }
-
-            $script:result = script:Invoke-Private -Name 'Invoke-WindowsUpdateReset' -Params @{ DoNetworkReset = $false }
         }
 
         It 'Should have DllsFailed equal to 36' {
@@ -263,25 +249,24 @@ Describe 'Invoke-WindowsUpdateReset' {
     Context 'Folders absent - SoftwareDistribution and Catroot2 skipped gracefully' {
 
         BeforeAll {
-            Mock -CommandName 'Get-Service' -ModuleName $script:ModuleName -MockWith {
-                [PSCustomObject]@{ Status = 'Stopped' }
+            $script:result = & $script:mod {
+                Mock -CommandName 'Get-Service'    -MockWith { [PSCustomObject]@{ Status = 'Stopped' } }
+                Mock -CommandName 'Stop-Service'   -MockWith {}
+                Mock -CommandName 'Start-Sleep'    -MockWith {}
+                Mock -CommandName 'Start-Service'  -MockWith {}
+                Mock -CommandName 'Get-ChildItem'  -MockWith { @() }
+                Mock -CommandName 'Remove-Item'    -MockWith {}
+                Mock -CommandName 'Rename-Item'    -MockWith {}
+                Mock -CommandName 'Invoke-NativeCommand' -MockWith {
+                    [PSCustomObject]@{ ExitCode = 0; Output = '' }
+                }
+                Mock -CommandName 'Test-Path' -MockWith {
+                    param($LiteralPath, $Path, $PathType)
+                    $t = if ($LiteralPath) { $LiteralPath } else { $Path }
+                    return ($t -match '\.dll$|\.exe$')
+                }
+                Invoke-WindowsUpdateReset -DoNetworkReset $false
             }
-            Mock -CommandName 'Stop-Service'  -ModuleName $script:ModuleName -MockWith {}
-            Mock -CommandName 'Start-Sleep'   -ModuleName $script:ModuleName -MockWith {}
-            Mock -CommandName 'Start-Service' -ModuleName $script:ModuleName -MockWith {}
-            Mock -CommandName 'Get-ChildItem' -ModuleName $script:ModuleName -MockWith { @() }
-            Mock -CommandName 'Remove-Item'   -ModuleName $script:ModuleName -MockWith {}
-            Mock -CommandName 'Rename-Item'   -ModuleName $script:ModuleName -MockWith {}
-            Mock -CommandName 'Invoke-NativeCommand' -ModuleName $script:ModuleName -MockWith {
-                [PSCustomObject]@{ ExitCode = 0; Output = '' }
-            }
-            Mock -CommandName 'Test-Path' -ModuleName $script:ModuleName -MockWith {
-                param($LiteralPath, $Path, $PathType)
-                $target = if ($LiteralPath) { $LiteralPath } else { $Path }
-                return ($target -match '\.dll$|\.exe$')
-            }
-
-            $script:result = script:Invoke-Private -Name 'Invoke-WindowsUpdateReset' -Params @{ DoNetworkReset = $false }
         }
 
         It 'Should report SoftwareDistributionBackup as skipped' {
@@ -292,34 +277,33 @@ Describe 'Invoke-WindowsUpdateReset' {
             $script:result.Catroot2Backup | Should -Match 'Skipped'
         }
 
-        It 'Should not call Stop-Service for already stopped services' {
-            Should -Invoke -CommandName 'Stop-Service' -ModuleName $script:ModuleName -Times 0 -Exactly
+        It 'Should have empty ServicesStopped (services already stopped)' {
+            $script:result.ServicesStopped.Count | Should -Be 0
         }
     }
 
     Context 'wuauclt absent, usoclient present and succeeds' {
 
         BeforeAll {
-            Mock -CommandName 'Get-Service' -ModuleName $script:ModuleName -MockWith {
-                [PSCustomObject]@{ Status = 'Running' }
+            $script:result = & $script:mod {
+                Mock -CommandName 'Get-Service'    -MockWith { [PSCustomObject]@{ Status = 'Running' } }
+                Mock -CommandName 'Stop-Service'   -MockWith {}
+                Mock -CommandName 'Start-Sleep'    -MockWith {}
+                Mock -CommandName 'Start-Service'  -MockWith {}
+                Mock -CommandName 'Get-ChildItem'  -MockWith { @() }
+                Mock -CommandName 'Remove-Item'    -MockWith {}
+                Mock -CommandName 'Rename-Item'    -MockWith {}
+                Mock -CommandName 'Invoke-NativeCommand' -MockWith {
+                    [PSCustomObject]@{ ExitCode = 0; Output = '' }
+                }
+                # wuauclt absent, usoclient + sc.exe present, DLLs present
+                Mock -CommandName 'Test-Path' -MockWith {
+                    param($LiteralPath, $Path, $PathType)
+                    $t = if ($LiteralPath) { $LiteralPath } else { $Path }
+                    return ($t -match '\.dll$') -or ($t -match 'usoclient\.exe') -or ($t -match 'sc\.exe')
+                }
+                Invoke-WindowsUpdateReset -DoNetworkReset $false
             }
-            Mock -CommandName 'Stop-Service'  -ModuleName $script:ModuleName -MockWith {}
-            Mock -CommandName 'Start-Sleep'   -ModuleName $script:ModuleName -MockWith {}
-            Mock -CommandName 'Start-Service' -ModuleName $script:ModuleName -MockWith {}
-            Mock -CommandName 'Get-ChildItem' -ModuleName $script:ModuleName -MockWith { @() }
-            Mock -CommandName 'Remove-Item'   -ModuleName $script:ModuleName -MockWith {}
-            Mock -CommandName 'Rename-Item'   -ModuleName $script:ModuleName -MockWith {}
-            Mock -CommandName 'Invoke-NativeCommand' -ModuleName $script:ModuleName -MockWith {
-                [PSCustomObject]@{ ExitCode = 0; Output = '' }
-            }
-            # wuauclt absent, usoclient present; DLLs present
-            Mock -CommandName 'Test-Path' -ModuleName $script:ModuleName -MockWith {
-                param($LiteralPath, $Path, $PathType)
-                $target = if ($LiteralPath) { $LiteralPath } else { $Path }
-                return ($target -match '\.dll$') -or ($target -match 'usoclient\.exe') -or ($target -match 'sc\.exe')
-            }
-
-            $script:result = script:Invoke-Private -Name 'Invoke-WindowsUpdateReset' -Params @{ DoNetworkReset = $false }
         }
 
         It 'Should add a note about wuauclt not found' {
@@ -334,38 +318,35 @@ Describe 'Invoke-WindowsUpdateReset' {
     Context 'wuauclt present but fails, usoclient fallback triggered' {
 
         BeforeAll {
-            Mock -CommandName 'Get-Service' -ModuleName $script:ModuleName -MockWith {
-                [PSCustomObject]@{ Status = 'Running' }
-            }
-            Mock -CommandName 'Stop-Service'  -ModuleName $script:ModuleName -MockWith {}
-            Mock -CommandName 'Start-Sleep'   -ModuleName $script:ModuleName -MockWith {}
-            Mock -CommandName 'Start-Service' -ModuleName $script:ModuleName -MockWith {}
-            Mock -CommandName 'Get-ChildItem' -ModuleName $script:ModuleName -MockWith { @() }
-            Mock -CommandName 'Remove-Item'   -ModuleName $script:ModuleName -MockWith {}
-            Mock -CommandName 'Rename-Item'   -ModuleName $script:ModuleName -MockWith {}
-            # wuauclt fails, everything else succeeds
-            Mock -CommandName 'Invoke-NativeCommand' -ModuleName $script:ModuleName -MockWith {
-                param($FilePath, $ArgumentList)
-                if ($FilePath -match 'wuauclt') {
-                    return [PSCustomObject]@{ ExitCode = 1; Output = 'error' }
+            $script:result = & $script:mod {
+                Mock -CommandName 'Get-Service'    -MockWith { [PSCustomObject]@{ Status = 'Running' } }
+                Mock -CommandName 'Stop-Service'   -MockWith {}
+                Mock -CommandName 'Start-Sleep'    -MockWith {}
+                Mock -CommandName 'Start-Service'  -MockWith {}
+                Mock -CommandName 'Get-ChildItem'  -MockWith { @() }
+                Mock -CommandName 'Remove-Item'    -MockWith {}
+                Mock -CommandName 'Rename-Item'    -MockWith {}
+                Mock -CommandName 'Invoke-NativeCommand' -MockWith {
+                    param($FilePath, $ArgumentList)
+                    if ($FilePath -match 'wuauclt') {
+                        return [PSCustomObject]@{ ExitCode = 1; Output = 'error' }
+                    }
+                    return [PSCustomObject]@{ ExitCode = 0; Output = '' }
                 }
-                return [PSCustomObject]@{ ExitCode = 0; Output = '' }
+                Mock -CommandName 'Test-Path' -MockWith {
+                    param($LiteralPath, $Path, $PathType)
+                    $t = if ($LiteralPath) { $LiteralPath } else { $Path }
+                    return ($t -match '\.dll$|\.exe$')
+                }
+                Invoke-WindowsUpdateReset -DoNetworkReset $false
             }
-            # wuauclt present, usoclient present, DLLs present
-            Mock -CommandName 'Test-Path' -ModuleName $script:ModuleName -MockWith {
-                param($LiteralPath, $Path, $PathType)
-                $target = if ($LiteralPath) { $LiteralPath } else { $Path }
-                return ($target -match '\.dll$|\.exe$')
-            }
-
-            $script:result = script:Invoke-Private -Name 'Invoke-WindowsUpdateReset' -Params @{ DoNetworkReset = $false }
         }
 
-        It 'Should add a note about wuauclt failure and usoclient fallback' {
+        It 'Should add a note about usoclient fallback' {
             $script:result.Notes | Where-Object { $_ -match 'usoclient fallback' } | Should -Not -BeNullOrEmpty
         }
 
-        It 'Should add a note about usoclient detection triggered' {
+        It 'Should add a note about usoclient StartScan triggered' {
             $script:result.Notes | Where-Object { $_ -match 'usoclient StartScan' } | Should -Not -BeNullOrEmpty
         }
     }
@@ -373,25 +354,24 @@ Describe 'Invoke-WindowsUpdateReset' {
     Context 'Return type validation' {
 
         BeforeAll {
-            Mock -CommandName 'Get-Service' -ModuleName $script:ModuleName -MockWith {
-                [PSCustomObject]@{ Status = 'Running' }
+            $script:result = & $script:mod {
+                Mock -CommandName 'Get-Service'    -MockWith { [PSCustomObject]@{ Status = 'Running' } }
+                Mock -CommandName 'Stop-Service'   -MockWith {}
+                Mock -CommandName 'Start-Sleep'    -MockWith {}
+                Mock -CommandName 'Start-Service'  -MockWith {}
+                Mock -CommandName 'Get-ChildItem'  -MockWith { @() }
+                Mock -CommandName 'Remove-Item'    -MockWith {}
+                Mock -CommandName 'Rename-Item'    -MockWith {}
+                Mock -CommandName 'Invoke-NativeCommand' -MockWith {
+                    [PSCustomObject]@{ ExitCode = 0; Output = '' }
+                }
+                Mock -CommandName 'Test-Path' -MockWith {
+                    param($LiteralPath, $Path, $PathType)
+                    $t = if ($LiteralPath) { $LiteralPath } else { $Path }
+                    return ($t -match '\.dll$|\.exe$')
+                }
+                Invoke-WindowsUpdateReset -DoNetworkReset $false
             }
-            Mock -CommandName 'Stop-Service'  -ModuleName $script:ModuleName -MockWith {}
-            Mock -CommandName 'Start-Sleep'   -ModuleName $script:ModuleName -MockWith {}
-            Mock -CommandName 'Start-Service' -ModuleName $script:ModuleName -MockWith {}
-            Mock -CommandName 'Get-ChildItem' -ModuleName $script:ModuleName -MockWith { @() }
-            Mock -CommandName 'Remove-Item'   -ModuleName $script:ModuleName -MockWith {}
-            Mock -CommandName 'Rename-Item'   -ModuleName $script:ModuleName -MockWith {}
-            Mock -CommandName 'Invoke-NativeCommand' -ModuleName $script:ModuleName -MockWith {
-                [PSCustomObject]@{ ExitCode = 0; Output = '' }
-            }
-            Mock -CommandName 'Test-Path' -ModuleName $script:ModuleName -MockWith {
-                param($LiteralPath, $Path, $PathType)
-                $target = if ($LiteralPath) { $LiteralPath } else { $Path }
-                return ($target -match '\.dll$|\.exe$')
-            }
-
-            $script:result = script:Invoke-Private -Name 'Invoke-WindowsUpdateReset' -Params @{ DoNetworkReset = $false }
         }
 
         It 'Should return exactly one object' {
