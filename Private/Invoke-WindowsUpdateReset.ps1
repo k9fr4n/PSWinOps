@@ -1,4 +1,4 @@
-function Invoke-WindowsUpdateReset {
+﻿function Invoke-WindowsUpdateReset {
     <#
     .SYNOPSIS
         Performs the low-level Windows Update component reset operations on the local machine.
