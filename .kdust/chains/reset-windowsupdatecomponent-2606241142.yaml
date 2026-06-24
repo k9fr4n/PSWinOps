@@ -1,0 +1,7 @@
+chain: pswinops-function-author
+function: Reset-WindowsUpdateComponent
+domain: windowsupdate
+created: 2026-06-24T11:42:34Z
+created_by: pswinops-fn-spec-analyst
+chain_branch: kdust/chain/pswinops-fn-reset-windowsupdatecomponent-2606241142
+spec_path: work/reset-windowsupdatecomponent/spec.yaml

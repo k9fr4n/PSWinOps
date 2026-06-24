@@ -7383,5 +7383,79 @@
         </TableRowEntries>
       </TableControl>
     </View>
+    <!-- ============================================================ -->
+    <!-- PSWinOps.WindowsUpdateResetResult                            -->
+    <!-- Used by: Reset-WindowsUpdateComponent                        -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.WindowsUpdateResetResult.List</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.WindowsUpdateResetResult</TypeName>
+      </ViewSelectedBy>
+      <ListControl>
+        <ListEntries>
+          <ListEntry>
+            <ListItems>
+              <ListItem>
+                <Label>Computer name</Label>
+                <PropertyName>ComputerName</PropertyName>
+              </ListItem>
+              <ListItem>
+                <Label>Status</Label>
+                <PropertyName>Status</PropertyName>
+              </ListItem>
+              <ListItem>
+                <Label>Services stopped</Label>
+                <ScriptBlock>($_.ServicesStopped -join ', ')</ScriptBlock>
+              </ListItem>
+              <ListItem>
+                <Label>Services started</Label>
+                <ScriptBlock>($_.ServicesStarted -join ', ')</ScriptBlock>
+              </ListItem>
+              <ListItem>
+                <Label>SoftwareDistribution backup</Label>
+                <PropertyName>SoftwareDistributionBackup</PropertyName>
+              </ListItem>
+              <ListItem>
+                <Label>Catroot2 backup</Label>
+                <PropertyName>Catroot2Backup</PropertyName>
+              </ListItem>
+              <ListItem>
+                <Label>Qmgr files deleted</Label>
+                <PropertyName>QmgrFilesDeleted</PropertyName>
+              </ListItem>
+              <ListItem>
+                <Label>DLLs reregistered</Label>
+                <PropertyName>DllsReregistered</PropertyName>
+              </ListItem>
+              <ListItem>
+                <Label>DLLs failed</Label>
+                <PropertyName>DllsFailed</PropertyName>
+              </ListItem>
+              <ListItem>
+                <Label>Network reset performed</Label>
+                <PropertyName>NetworkResetPerformed</PropertyName>
+              </ListItem>
+              <ListItem>
+                <Label>Reboot required</Label>
+                <PropertyName>RebootRequired</PropertyName>
+              </ListItem>
+              <ListItem>
+                <Label>Failures</Label>
+                <ScriptBlock>if ($_.Failures.Count -eq 0) { 'None' } else { $_.Failures -join '; ' }</ScriptBlock>
+              </ListItem>
+              <ListItem>
+                <Label>Notes</Label>
+                <ScriptBlock>if ($_.Notes.Count -eq 0) { '' } else { $_.Notes -join '; ' }</ScriptBlock>
+              </ListItem>
+              <ListItem>
+                <Label>Timestamp</Label>
+                <PropertyName>Timestamp</PropertyName>
+              </ListItem>
+            </ListItems>
+          </ListEntry>
+        </ListEntries>
+      </ListControl>
+    </View>
   </ViewDefinitions>
 </Configuration>

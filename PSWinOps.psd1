@@ -12,7 +12,7 @@
     RootModule           = 'PSWinOps.psm1'
 
     # Version number of this module.
-    ModuleVersion        = '0.0.24'
+    ModuleVersion        = '0.1.0'
 
     # Supported PSEditions
     # Core is supported on Windows only; the module-level guard in PSWinOps.psm1 blocks
@@ -173,8 +173,10 @@
         'Remove-ProxyConfiguration',
         'Remove-RdpSession',
         'Remove-ShadowCopy',
+        'Remove-StringDiacritic',
         'Remove-UserProfile',
         'Reset-ADUserPassword',
+        'Reset-WindowsUpdateComponent',
         'Resolve-MACVendor',
         'Restore-ShadowCopyFile',
         'Save-WindowsUpdate',
@@ -265,7 +267,11 @@
             # IconUri = ''
 
             # ReleaseNotes of this module
-            ReleaseNotes = '## 0.0.24 - 2026-06-24
+            ReleaseNotes = '## 0.1.0 - 2026-06-24
+### Added
+- feat(windowsupdate): add Reset-WindowsUpdateComponent — resets the Windows Update service stack to a clean state (stop BITS/wuauserv/appidsvc/cryptsvc, delete qmgr*.dat, back up SoftwareDistribution & Catroot2, reset BITS/wuauserv SDDL, reregister Windows Update DLLs, restart services, trigger detection with usoclient fallback); optional -IncludeNetworkReset resets Winsock/WinHTTP (requires reboot, may drop remote sessions); SupportsShouldProcess (ConfirmImpact=High), Test-IsAdministrator guard, remote execution via Invoke-RemoteOrLocal; returns PSWinOps.WindowsUpdateResetResult.
+
+## 0.0.24 - 2026-06-24
 ### Added
 - feat(system): add Get-RebootHistory — correlates Windows System event log entries (1074, 1076, 6005, 6006, 6008, Kernel-Power 41) to reconstruct reboot/shutdown history per computer; classifies each event as Planned/Unexpected/Crash/PowerLoss/Unknown with DowntimeMinutes, Cause, Initiator, Comment; -MaxEvents, -After, -Before filters; remote execution via Invoke-RemoteOrLocal (#59).
 

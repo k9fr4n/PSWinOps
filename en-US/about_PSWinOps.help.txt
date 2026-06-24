@@ -181,7 +181,7 @@ FUNCTION DOMAINS
       Set-PageFile
       Show-SystemMonitor
 
-  windowsupdate (3 functions)
+  windowsupdate (4 functions)
     Functions for querying and managing Windows Update
     on local or remote machines via the COM API and
     registry.
@@ -189,13 +189,15 @@ FUNCTION DOMAINS
       Get-WindowsUpdate
       Get-WindowsUpdateConfiguration
       Get-WindowsUpdateHistory
+      Reset-WindowsUpdateComponent
 
-  utils (2 functions)
+  utils (3 functions)
     Pure utility functions that do not follow the standard
     ComputerName/Timestamp output convention.
 
       ConvertFrom-MisencodedString
       New-RandomPassword
+      Remove-StringDiacritic
 
   vss (6 functions)
     Volume Shadow Copy Service management. Create, list,
@@ -219,9 +221,10 @@ OUTPUT CONVENTIONS
       ComputerName   [string]  The target machine name.
       Timestamp      [string]  ISO 8601 date/time string.
 
-    Exception: the two utility functions listed above
-    (New-RandomPassword, ConvertFrom-MisencodedString) do
-    not include ComputerName or Timestamp fields.
+    Exception: the three utility functions listed above
+    (ConvertFrom-MisencodedString, New-RandomPassword,
+    Remove-StringDiacritic) do not include ComputerName
+    or Timestamp fields.
 
     Custom format views are defined in the file
     PSWinOps.Format.ps1xml, which ships with the module.
@@ -391,6 +394,7 @@ PSWINOPS TYPE REGISTRY
       PSWinOps.WindowsUpdate
       PSWinOps.WindowsUpdateConfiguration
       PSWinOps.WindowsUpdateHistory
+      PSWinOps.WindowsUpdateResetResult
       PSWinOps.WinRMTestResult
       PSWinOps.WSUSHealth
 
