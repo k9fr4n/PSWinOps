@@ -44,7 +44,7 @@ function Remove-StringDiacritic {
         .LINK
             https://learn.microsoft.com/en-us/dotnet/api/system.string.normalize
     #>
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess = $true)]
     [OutputType([string])]
     param(
         [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
