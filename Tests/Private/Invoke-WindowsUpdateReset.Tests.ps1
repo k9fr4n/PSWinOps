@@ -351,6 +351,115 @@ Describe 'Invoke-WindowsUpdateReset' {
         }
     }
 
+    Context 'SoftwareDistribution and Catroot2 folders present - renamed successfully' {
+
+        BeforeAll {
+            $script:result = & $script:mod {
+                Mock -CommandName 'Get-Service'    -MockWith { [PSCustomObject]@{ Status = 'Running' } }
+                Mock -CommandName 'Stop-Service'   -MockWith {}
+                Mock -CommandName 'Start-Sleep'    -MockWith {}
+                Mock -CommandName 'Start-Service'  -MockWith {}
+                Mock -CommandName 'Get-ChildItem'  -MockWith { @() }
+                Mock -CommandName 'Remove-Item'    -MockWith {}
+                Mock -CommandName 'Rename-Item'    -MockWith {}
+                Mock -CommandName 'Invoke-NativeCommand' -MockWith {
+                    [PSCustomObject]@{ ExitCode = 0; Output = '' }
+                }
+                # Folders and DLLs/exes exist; .bak files do not
+                Mock -CommandName 'Test-Path' -MockWith {
+                    param($LiteralPath, $Path, $PathType)
+                    $t = if ($LiteralPath) { $LiteralPath } else { $Path }
+                    return ($t -match '\.dll$|\.exe$') -or
+                           ($t -match 'SoftwareDistribution$') -or
+                           ($t -match 'Catroot2$')
+                }
+                Invoke-WindowsUpdateReset -DoNetworkReset $false
+            }
+        }
+
+        It 'Should have SoftwareDistributionBackup set (not skipped)' {
+            $script:result.SoftwareDistributionBackup | Should -Not -Match 'Skipped'
+            $script:result.SoftwareDistributionBackup | Should -Not -BeNullOrEmpty
+        }
+
+        It 'Should have Catroot2Backup set (not skipped)' {
+            $script:result.Catroot2Backup | Should -Not -Match 'Skipped'
+            $script:result.Catroot2Backup | Should -Not -BeNullOrEmpty
+        }
+
+        It 'Should have Status Succeeded' {
+            $script:result.Status | Should -Be 'Succeeded'
+        }
+    }
+
+    Context 'SoftwareDistribution backup already exists - removed then renamed' {
+
+        BeforeAll {
+            $script:result = & $script:mod {
+                Mock -CommandName 'Get-Service'    -MockWith { [PSCustomObject]@{ Status = 'Running' } }
+                Mock -CommandName 'Stop-Service'   -MockWith {}
+                Mock -CommandName 'Start-Sleep'    -MockWith {}
+                Mock -CommandName 'Start-Service'  -MockWith {}
+                Mock -CommandName 'Get-ChildItem'  -MockWith { @() }
+                Mock -CommandName 'Remove-Item'    -MockWith {}
+                Mock -CommandName 'Rename-Item'    -MockWith {}
+                Mock -CommandName 'Invoke-NativeCommand' -MockWith {
+                    [PSCustomObject]@{ ExitCode = 0; Output = '' }
+                }
+                # Folders, .bak files, DLLs/exes all exist
+                Mock -CommandName 'Test-Path' -MockWith {
+                    param($LiteralPath, $Path, $PathType)
+                    $t = if ($LiteralPath) { $LiteralPath } else { $Path }
+                    return ($t -match '\.dll$|\.exe$') -or
+                           ($t -match 'SoftwareDistribution') -or
+                           ($t -match 'Catroot2')
+                }
+                Invoke-WindowsUpdateReset -DoNetworkReset $false
+            }
+        }
+
+        It 'Should have SoftwareDistributionBackup set' {
+            $script:result.SoftwareDistributionBackup | Should -Not -BeNullOrEmpty
+        }
+
+        It 'Should have Status Succeeded' {
+            $script:result.Status | Should -Be 'Succeeded'
+        }
+    }
+
+    Context 'Neither wuauclt nor usoclient present' {
+
+        BeforeAll {
+            $script:result = & $script:mod {
+                Mock -CommandName 'Get-Service'    -MockWith { [PSCustomObject]@{ Status = 'Running' } }
+                Mock -CommandName 'Stop-Service'   -MockWith {}
+                Mock -CommandName 'Start-Sleep'    -MockWith {}
+                Mock -CommandName 'Start-Service'  -MockWith {}
+                Mock -CommandName 'Get-ChildItem'  -MockWith { @() }
+                Mock -CommandName 'Remove-Item'    -MockWith {}
+                Mock -CommandName 'Rename-Item'    -MockWith {}
+                Mock -CommandName 'Invoke-NativeCommand' -MockWith {
+                    [PSCustomObject]@{ ExitCode = 0; Output = '' }
+                }
+                # DLLs and sc.exe only - no wuauclt, no usoclient
+                Mock -CommandName 'Test-Path' -MockWith {
+                    param($LiteralPath, $Path, $PathType)
+                    $t = if ($LiteralPath) { $LiteralPath } else { $Path }
+                    return ($t -match '\.dll$') -or ($t -match 'sc\.exe')
+                }
+                Invoke-WindowsUpdateReset -DoNetworkReset $false
+            }
+        }
+
+        It 'Should add a note that neither wuauclt nor usoclient was found' {
+            $script:result.Notes | Where-Object { $_ -match 'Neither' } | Should -Not -BeNullOrEmpty
+        }
+
+        It 'Should have Status Succeeded (detection trigger is non-fatal)' {
+            $script:result.Status | Should -Be 'Succeeded'
+        }
+    }
+
     Context 'Return type validation' {
 
         BeforeAll {
