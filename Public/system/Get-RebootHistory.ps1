@@ -182,7 +182,7 @@ function Get-RebootHistory {
                             $shutdownTime    = $parsed
                             $downtimeMinutes = [math]::Round(($bootTime - $shutdownTime).TotalMinutes, 2)
                         }
-                    } catch { }
+                    } catch { Write-Verbose "Could not parse 6008 shutdown time: $_" }
 
                     # Look for 1076 (operator-supplied reason recorded after this boot)
                     $reason1076 = $reasonRecs | Where-Object {
@@ -195,7 +195,7 @@ function Get-RebootHistory {
                             $cause     = if ($reason1076.Properties.Count -ge 2) { [string]$reason1076.Properties[1].Value } else { '' }
                             $initiator = if ($reason1076.Properties.Count -ge 5) { [string]$reason1076.Properties[4].Value } else { '' }
                             $comment   = if ($reason1076.Properties.Count -ge 7) { [string]$reason1076.Properties[6].Value } else { '' }
-                        } catch { }
+                        } catch { Write-Verbose "Could not parse 1076 properties: $_" }
                     }
 
                 } elseif ($null -ne $precedingCrash) {
@@ -235,7 +235,7 @@ function Get-RebootHistory {
                             $initiator = if ($plan1074.Properties.Count -ge 7) { [string]$plan1074.Properties[6].Value } else { '' }
                             $cause     = if ($plan1074.Properties.Count -ge 3) { [string]$plan1074.Properties[2].Value } else { '' }
                             $comment   = if ($plan1074.Properties.Count -ge 9) { [string]$plan1074.Properties[8].Value } else { '' }
-                        } catch { }
+                        } catch { Write-Verbose "Could not parse 1074 properties: $_" }
                     }
                 }
 
