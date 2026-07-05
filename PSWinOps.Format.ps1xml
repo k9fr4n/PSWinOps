@@ -7457,5 +7457,75 @@
         </ListEntries>
       </ListControl>
     </View>
+    <!-- ============================================================ -->
+    <!-- PSWinOps.UnexpectedShutdown                                  -->
+    <!-- Used by: Get-UnexpectedShutdown                              -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.UnexpectedShutdown</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.UnexpectedShutdown</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <AutoSize />
+        <TableHeaders>
+          <TableColumnHeader>
+            <Label>EventTime</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>EventId</Label>
+            <Alignment>Right</Alignment>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>ShutdownType</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>IsExpected</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Cause</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Initiator</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>ReasonCode</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>ComputerName</Label>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem>
+                <PropertyName>EventTime</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>EventId</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>ShutdownType</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>IsExpected</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Cause</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Initiator</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>ReasonCode</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>ComputerName</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
   </ViewDefinitions>
 </Configuration>

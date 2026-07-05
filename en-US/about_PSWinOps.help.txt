@@ -12,7 +12,7 @@ LONG DESCRIPTION
     PSWinOps is a comprehensive toolbox designed for Windows
     system administrators running PowerShell 5.1 or later.
     It provides a curated collection of functions organized
-    into eleven functional domains, covering everything from
+    into twelve functional domains, covering everything from
     Active Directory inventory and security auditing,
     service health monitoring, network troubleshooting,
     NTP synchronization, proxy management, RDP session
@@ -31,7 +31,7 @@ LONG DESCRIPTION
     Requires    : PowerShell 5.1+ / Windows only
 
 FUNCTION DOMAINS
-    PSWinOps organizes its functions into eleven domains.
+    PSWinOps organizes its functions into twelve domains.
 
   activedirectory (21 functions)
     Functions for Active Directory inventory, user and
@@ -61,6 +61,13 @@ FUNCTION DOMAINS
       Reset-ADUserPassword
       Search-ADObject
       Unlock-ADUserAccount
+
+  eventlog (1 function)
+    Functions for correlating Windows System event log
+    entries into shutdown/restart history, cause and
+    initiator reporting.
+
+      Get-UnexpectedShutdown
 
   healthcheck (16 functions)
     Functions that evaluate the health of Windows roles and
@@ -297,7 +304,7 @@ REMOTE EXECUTION PATTERN
     in the pipeline continue to be processed.
 
 PSWINOPS TYPE REGISTRY
-    The following 94 PSTypeName values are defined by the
+    The following 95 PSTypeName values are defined by the
     module. Each corresponds to the output of one or more
     public functions.
 
@@ -390,6 +397,7 @@ PSWINOPS TYPE REGISTRY
       PSWinOps.SubnetInfo
       PSWinOps.SystemSummary
       PSWinOps.TraceRouteHop
+      PSWinOps.UnexpectedShutdown
       PSWinOps.UserProfileRemoval
       PSWinOps.WindowsUpdate
       PSWinOps.WindowsUpdateConfiguration

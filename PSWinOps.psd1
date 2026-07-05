@@ -158,6 +158,7 @@
         'Get-StartupProgram',
         'Get-SubnetInfo',
         'Get-SystemSummary',
+        'Get-UnexpectedShutdown',
         'Get-WindowsUpdate',
         'Get-WindowsUpdateConfiguration',
         'Get-WindowsUpdateHistory',
