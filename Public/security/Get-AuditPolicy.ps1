@@ -189,16 +189,8 @@ function Get-AuditPolicy {
                     # Local execution: use Invoke-NativeCommand for testable auditpol calls
                     $auditResult = Invoke-NativeCommand -FilePath $auditpolPath -ArgumentList @('/get', '/category:*', '/r')
                     if ($auditResult.ExitCode -ne 0) {
-                        $PSCmdlet.ThrowTerminatingError(
-                            [System.Management.Automation.ErrorRecord]::new(
-                                [System.InvalidOperationException]::new(
-                                    "auditpol /get /category:* /r failed (exit code $($auditResult.ExitCode)): $($auditResult.Output)"
-                                ),
-                                'AuditPolGetFailed',
-                                [System.Management.Automation.ErrorCategory]::InvalidOperation,
-                                $targetComputer
-                            )
-                        )
+                        Write-Error "[$($MyInvocation.MyCommand)] auditpol /get /category:* /r failed (exit code $($auditResult.ExitCode)) on '$targetComputer': $($auditResult.Output)"
+                        continue
                     }
                     $rawOutput = $auditResult.Output -split '\r?\n'
                 } else {
@@ -230,9 +222,9 @@ function Get-AuditPolicy {
 
                 foreach ($row in $rows) {
                     $subcategoryGuid = ($row.'Subcategory GUID' -replace '[{}]', '').Trim().ToUpperInvariant()
-                    $category = if ($categoryMap.ContainsKey($subcategoryGuid)) { $categoryMap[$subcategoryGuid] } else { 'Unknown' }
+                    $resolvedCategory = if ($categoryMap.ContainsKey($subcategoryGuid)) { $categoryMap[$subcategoryGuid] } else { 'Unknown' }
 
-                    if ($Category -and ($category -ne $Category)) {
+                    if ($Category -and ($resolvedCategory -ne $Category)) {
                         continue
                     }
 
@@ -253,7 +245,7 @@ function Get-AuditPolicy {
                     [PSCustomObject]@{
                         PSTypeName      = 'PSWinOps.AuditPolicy'
                         ComputerName    = $targetComputer
-                        Category        = $category
+                        Category        = $resolvedCategory
                         Subcategory     = $row.Subcategory
                         SubcategoryGuid = $subcategoryGuid
                         AuditSuccess    = $auditSuccess
