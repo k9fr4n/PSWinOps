@@ -12,7 +12,7 @@
     RootModule           = 'PSWinOps.psm1'
 
     # Version number of this module.
-    ModuleVersion        = '0.1.0'
+    ModuleVersion        = '0.2.0'
 
     # Supported PSEditions
     # Core is supported on Windows only; the module-level guard in PSWinOps.psm1 blocks
@@ -158,6 +158,7 @@
         'Get-StartupProgram',
         'Get-SubnetInfo',
         'Get-SystemSummary',
+        'Get-UnexpectedShutdown',
         'Get-WindowsUpdate',
         'Get-WindowsUpdateConfiguration',
         'Get-WindowsUpdateHistory',
@@ -267,7 +268,11 @@
             # IconUri = ''
 
             # ReleaseNotes of this module
-            ReleaseNotes = '## 0.1.0 - 2026-06-24
+            ReleaseNotes = '## 0.2.0 - 2026-07-05 UTC
+### Added
+- Get-UnexpectedShutdown: Reports shutdown and restart events with cause, expectedness and initiator
+
+## 0.1.0 - 2026-06-24
 ### Added
 - feat(windowsupdate): add Reset-WindowsUpdateComponent — resets the Windows Update service stack to a clean state (stop BITS/wuauserv/appidsvc/cryptsvc, delete qmgr*.dat, back up SoftwareDistribution & Catroot2, reset BITS/wuauserv SDDL, reregister Windows Update DLLs, restart services, trigger detection with usoclient fallback); optional -IncludeNetworkReset resets Winsock/WinHTTP (requires reboot, may drop remote sessions); SupportsShouldProcess (ConfirmImpact=High), Test-IsAdministrator guard, remote execution via Invoke-RemoteOrLocal; returns PSWinOps.WindowsUpdateResetResult.
 

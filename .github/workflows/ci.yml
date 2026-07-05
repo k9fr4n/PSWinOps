@@ -108,6 +108,7 @@ jobs:
           - "Public/utils"
           - "Public/vss"
           - "Public/windowsupdate"
+          - "Public/eventlog"
 
     steps:
       - name: Configure git line endings
