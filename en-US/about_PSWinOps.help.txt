@@ -168,12 +168,13 @@ FUNCTION DOMAINS
       Get-RdpSessionLock
       Remove-RdpSession
 
-  system (15 functions)
+  system (16 functions)
     Functions for general system information, state,
     disk cleanup, profile management, and real-time monitoring.
 
       Clear-DiskCleanup
       Get-ComputerUptime
+      Get-CrashDump
       Get-DiskCleanupInfo
       Get-DiskSpace
       Get-EnvironmentVariable
@@ -304,7 +305,7 @@ REMOTE EXECUTION PATTERN
     in the pipeline continue to be processed.
 
 PSWINOPS TYPE REGISTRY
-    The following 95 PSTypeName values are defined by the
+    The following 98 PSTypeName values are defined by the
     module. Each corresponds to the output of one or more
     public functions.
 
@@ -337,6 +338,7 @@ PSWINOPS TYPE REGISTRY
       PSWinOps.CertificateAuthorityHealth
       PSWinOps.ClusterHealth
       PSWinOps.ComputerUptime
+      PSWinOps.CrashDump
       PSWinOps.DfsNamespaceHealth
       PSWinOps.DfsReplicationHealth
       PSWinOps.DhcpServerHealth
