@@ -113,6 +113,7 @@
         'Get-CertificateAuthorityHealth',
         'Get-ClusterHealth',
         'Get-ComputerUptime',
+        'Get-CrashDump',
         'Get-DfsNamespaceHealth',
         'Get-DfsReplicationHealth',
         'Get-DhcpServerHealth',

@@ -7527,5 +7527,69 @@
         </TableRowEntries>
       </TableControl>
     </View>
+    <!-- ============================================================ -->
+    <!-- PSWinOps.CrashDump                                           -->
+    <!-- Used by: Get-CrashDump                                       -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.CrashDump</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.CrashDump</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <AutoSize />
+        <TableHeaders>
+          <TableColumnHeader>
+            <Label>ComputerName</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>DumpFile</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>DumpType</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>SizeMB</Label>
+            <Alignment>Right</Alignment>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>CreationTime</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>BugCheckCode</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>BugCheckSymbol</Label>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem>
+                <PropertyName>ComputerName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>DumpFile</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>DumpType</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>SizeMB</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>CreationTime</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>BugCheckCode</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>BugCheckSymbol</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
   </ViewDefinitions>
 </Configuration>
