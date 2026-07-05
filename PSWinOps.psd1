@@ -110,6 +110,7 @@
         'Get-ADUserGroupInventory',
         'Get-ADUserInventory',
         'Get-ARPTable',
+        'Get-AuditPolicy',
         'Get-CertificateAuthorityHealth',
         'Get-ClusterHealth',
         'Get-ComputerUptime',
