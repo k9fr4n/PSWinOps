@@ -1,0 +1,7 @@
+chain: pswinops-function-author
+function: Get-CrashDump
+domain: system
+created: 2026-07-05T21:28:03Z
+created_by: pswinops-fn-spec-analyst
+chain_branch: kdust/chain/pswinops-fn-get-crashdump-2607052126
+spec_path: work/get-crashdump/spec.yaml
