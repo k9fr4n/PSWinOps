@@ -1,0 +1,7 @@
+chain: pswinops-function-author
+function: Get-UnexpectedShutdown
+domain: eventlog
+created: 2026-07-05T21:00:04Z
+created_by: pswinops-fn-spec-analyst
+chain_branch: kdust/chain/pswinops-fn-get-unexpectedshutdown-2607052058
+spec_path: work/get-unexpectedshutdown/spec.yaml
