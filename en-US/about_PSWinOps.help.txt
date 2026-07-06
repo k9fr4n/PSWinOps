@@ -177,7 +177,7 @@ FUNCTION DOMAINS
 
       Get-AuditPolicy
 
-  system (16 functions)
+  system (17 functions)
     Functions for general system information, state,
     disk cleanup, profile management, and real-time monitoring.
 
@@ -195,6 +195,7 @@ FUNCTION DOMAINS
       Get-StartupProgram
       Get-SystemSummary
       Remove-UserProfile
+      Set-EnvironmentVariable
       Set-PageFile
       Show-SystemMonitor
 

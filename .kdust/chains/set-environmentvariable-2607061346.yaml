@@ -1,0 +1,7 @@
+chain: pswinops-function-author
+function: Set-EnvironmentVariable
+domain: system
+created: 2026-07-06T13:46:37Z
+created_by: pswinops-fn-spec-analyst
+chain_branch: kdust/chain/pswinops-fn-set-environmentvariable-2607061346
+spec_path: work/set-environmentvariable/spec.yaml

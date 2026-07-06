@@ -2549,7 +2549,7 @@
     </View>
     <!-- ============================================================ -->
     <!-- PSWinOps.EnvironmentVariable                                 -->
-    <!-- Used by: Get-EnvironmentVariable                             -->
+    <!-- Used by: Get-EnvironmentVariable, Set-EnvironmentVariable    -->
     <!-- ============================================================ -->
     <View>
       <Name>PSWinOps.EnvironmentVariable</Name>
