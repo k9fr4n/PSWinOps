@@ -181,6 +181,15 @@ function Stop-ProcessTree {
                             continue
                         }
 
+                        # Never descend into a protected system process: its descendants
+                        # are core kernel/session processes and terminating them would
+                        # crash the machine. The protected node itself is still emitted
+                        # as a refused row by the kill loop below.
+                        if ([int]$current.Process.ProcessId -in $protectedPids) {
+                            Write-Verbose -Message "[$($MyInvocation.MyCommand)] Protected PID $($current.Process.ProcessId) reached, not descending into its children"
+                            continue
+                        }
+
                         $children = $processList | Where-Object -Property ParentProcessId -eq $current.Process.ProcessId
                         foreach ($child in $children) {
                             $childPid = [int]$child.ProcessId
