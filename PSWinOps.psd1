@@ -156,6 +156,7 @@
         'Get-RDSHealth',
         'Get-ScheduledTaskDetail',
         'Get-ServiceAccount',
+        'Get-ServiceCrashEvent',
         'Get-ServiceHealth',
         'Get-ShadowCopy',
         'Get-ShadowCopyStorage',
