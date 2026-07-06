@@ -155,6 +155,7 @@
         'Get-RdpSessionLock',
         'Get-RDSHealth',
         'Get-ScheduledTaskDetail',
+        'Get-ServiceAccount',
         'Get-ServiceHealth',
         'Get-ShadowCopy',
         'Get-ShadowCopyStorage',
