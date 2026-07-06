@@ -114,7 +114,9 @@ function Get-ProcessByPort {
                     $tcpParams['State'] = $FilterState
                 }
 
-                $tcpConnections = Get-NetTCPConnection @tcpParams | Where-Object { $_.State -in @('Listen', 'Established') }
+                $tcpConnections = Get-NetTCPConnection @tcpParams | Where-Object {
+                    $_.State -in @('Listen', 'Established') -and (-not $FilterState -or $_.State.ToString() -eq $FilterState)
+                }
 
                 foreach ($conn in $tcpConnections) {
                     if ($FilterPorts -and $FilterPorts.Count -gt 0 -and $conn.LocalPort -notin $FilterPorts) {
