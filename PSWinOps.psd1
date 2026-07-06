@@ -12,7 +12,7 @@
     RootModule           = 'PSWinOps.psm1'
 
     # Version number of this module.
-    ModuleVersion        = '0.5.0'
+    ModuleVersion        = '0.6.0'
 
     # Supported PSEditions
     # Core is supported on Windows only; the module-level guard in PSWinOps.psm1 blocks
@@ -273,7 +273,11 @@
             # IconUri = ''
 
             # ReleaseNotes of this module
-            ReleaseNotes = '## 0.5.0 - 2026-07-06 UTC
+            ReleaseNotes = '## 0.6.0 - 2026-07-06 UTC
+### Added
+- Set-EnvironmentVariable: Sets or deletes a Machine- or User-scoped environment variable on local or remote computers
+
+## 0.5.0 - 2026-07-06 UTC
 ### Added
 - Get-ProcessByPort: Correlate TCP/UDP endpoints with their owning process details
 
