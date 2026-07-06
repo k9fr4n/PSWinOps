@@ -7603,6 +7603,75 @@
       </TableControl>
     </View>
     <!-- ============================================================ -->
+    <!-- PSWinOps.LogonFailure                                        -->
+    <!-- Used by: Get-LogonFailure                                    -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.LogonFailure</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.LogonFailure</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <AutoSize />
+        <TableHeaders>
+          <TableColumnHeader>
+            <Label>EventTime</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>TargetUserName</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>TargetDomain</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>LogonTypeName</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>FailureReason</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>SourceIpAddress</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>WorkstationName</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>ComputerName</Label>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem>
+                <PropertyName>EventTime</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>TargetUserName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>TargetDomain</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>LogonTypeName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>FailureReason</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>SourceIpAddress</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>WorkstationName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>ComputerName</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+    <!-- ============================================================ -->
     <!-- PSWinOps.CrashDump                                           -->
     <!-- Used by: Get-CrashDump                                       -->
     <!-- ============================================================ -->

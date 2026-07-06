@@ -12,7 +12,7 @@
     RootModule           = 'PSWinOps.psm1'
 
     # Version number of this module.
-    ModuleVersion        = '0.7.0'
+    ModuleVersion        = '0.8.0'
 
     # Supported PSEditions
     # Core is supported on Windows only; the module-level guard in PSWinOps.psm1 blocks
@@ -134,6 +134,7 @@
         'Get-IISWorkerProcess',
         'Get-InstalledSoftware',
         'Get-ListeningPort',
+        'Get-LogonFailure',
         'Get-NetworkAdapter',
         'Get-NetworkCIDR',
         'Get-NetworkConnection',
@@ -274,7 +275,11 @@
             # IconUri = ''
 
             # ReleaseNotes of this module
-            ReleaseNotes = '## 0.7.0 - 2026-07-06 UTC
+            ReleaseNotes = '## 0.8.0 - 2026-07-06 UTC
+### Added
+- Get-LogonFailure: Aggregate and decode Windows Security 4625 failed-logon events
+
+## 0.7.0 - 2026-07-06 UTC
 ### Added
 - Stop-ProcessTree: Terminate a process and its entire descendant tree, leaves first
 

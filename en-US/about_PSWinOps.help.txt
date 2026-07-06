@@ -62,11 +62,13 @@ FUNCTION DOMAINS
       Search-ADObject
       Unlock-ADUserAccount
 
-  eventlog (1 function)
+  eventlog (2 functions)
     Functions for correlating Windows System event log
     entries into shutdown/restart history, cause and
-    initiator reporting.
+    initiator reporting, and decoding Security log
+    failed-logon events.
 
+      Get-LogonFailure
       Get-UnexpectedShutdown
 
   healthcheck (16 functions)
@@ -316,7 +318,7 @@ REMOTE EXECUTION PATTERN
     in the pipeline continue to be processed.
 
 PSWINOPS TYPE REGISTRY
-    The following 100 PSTypeName values are defined by the
+    The following 101 PSTypeName values are defined by the
     module. Each corresponds to the output of one or more
     public functions.
 
@@ -374,6 +376,7 @@ PSWINOPS TYPE REGISTRY
       PSWinOps.IISWorkerProcess
       PSWinOps.InstalledSoftware
       PSWinOps.ListeningPort
+      PSWinOps.LogonFailure
       PSWinOps.MACVendor
       PSWinOps.NetworkAdapterInfo
       PSWinOps.NetworkCIDR
