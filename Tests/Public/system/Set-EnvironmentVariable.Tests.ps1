@@ -47,7 +47,7 @@ Describe 'Set-EnvironmentVariable' {
         }
 
         It -Name 'Should forward ComputerName and Credential to Invoke-RemoteOrLocal' -Test {
-            Should -Invoke -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -Times 1 -ParameterFilter {
+            Should -Invoke -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -Times 1 -Scope Context -ParameterFilter {
                 $ComputerName -eq 'SRV01' -and $Credential -eq $script:cred
             }
         }
@@ -83,7 +83,7 @@ Describe 'Set-EnvironmentVariable' {
         }
 
         It -Name 'Should call Invoke-RemoteOrLocal with DeleteRequested true in ArgumentList' -Test {
-            Should -Invoke -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -Times 1 -ParameterFilter {
+            Should -Invoke -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -Times 1 -Scope Context -ParameterFilter {
                 $ArgumentList[0] -eq 'FOO' -and $ArgumentList[3] -eq $true
             }
         }
@@ -103,7 +103,7 @@ Describe 'Set-EnvironmentVariable' {
         }
 
         It -Name 'Should not invoke Invoke-RemoteOrLocal' -Test {
-            Should -Invoke -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -Times 0
+            Should -Invoke -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -Times 0 -Scope Context
         }
 
         It -Name 'Should not return any output object' -Test {
