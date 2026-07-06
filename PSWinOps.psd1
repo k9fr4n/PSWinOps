@@ -12,7 +12,7 @@
     RootModule           = 'PSWinOps.psm1'
 
     # Version number of this module.
-    ModuleVersion        = '0.8.0'
+    ModuleVersion        = '0.9.0'
 
     # Supported PSEditions
     # Core is supported on Windows only; the module-level guard in PSWinOps.psm1 blocks
@@ -276,7 +276,11 @@
             # IconUri = ''
 
             # ReleaseNotes of this module
-            ReleaseNotes = '## 0.8.0 - 2026-07-06 UTC
+            ReleaseNotes = '## 0.9.0 - 2026-07-06 UTC
+### Added
+- Get-ServiceAccount: Audit service logon accounts across local or remote computers
+
+## 0.8.0 - 2026-07-06 UTC
 ### Added
 - Get-LogonFailure: Aggregate and decode Windows Security 4625 failed-logon events
 
