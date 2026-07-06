@@ -7761,5 +7761,71 @@
         </ListEntries>
       </ListControl>
     </View>
+    <!-- ============================================================ -->
+    <!-- PSWinOps.ProcessKillResult                                   -->
+    <!-- Used by: Stop-ProcessTree                                    -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.ProcessKillResult</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.ProcessKillResult</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <AutoSize />
+        <TableHeaders>
+          <TableColumnHeader>
+            <Label>ComputerName</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>ProcessId</Label>
+            <Alignment>Right</Alignment>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Name</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>ParentProcessId</Label>
+            <Alignment>Right</Alignment>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Depth</Label>
+            <Alignment>Right</Alignment>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Killed</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Error</Label>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem>
+                <PropertyName>ComputerName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>ProcessId</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Name</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>ParentProcessId</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Depth</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Killed</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Error</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
   </ViewDefinitions>
 </Configuration>
