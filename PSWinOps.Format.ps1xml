@@ -2710,6 +2710,75 @@
       </TableControl>
     </View>
     <!-- ============================================================ -->
+    <!-- PSWinOps.ServiceAccount                                      -->
+    <!-- Used by: Get-ServiceAccount                                  -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.ServiceAccount</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.ServiceAccount</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <AutoSize />
+        <TableHeaders>
+          <TableColumnHeader>
+            <Label>ComputerName</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>ServiceName</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>DisplayName</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>StartName</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>StartMode</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>DelayedAutoStart</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>State</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>PathName</Label>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem>
+                <PropertyName>ComputerName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>ServiceName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>DisplayName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>StartName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>StartMode</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>DelayedAutoStart</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>State</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>PathName</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+    <!-- ============================================================ -->
     <!-- PSWinOps.ScheduledTaskDetail                                 -->
     <!-- Used by: Get-ScheduledTaskDetail                             -->
     <!-- ============================================================ -->
