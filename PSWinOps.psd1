@@ -186,6 +186,7 @@
         'Restore-ShadowCopyFile',
         'Save-WindowsUpdate',
         'Search-ADObject',
+        'Set-EnvironmentVariable',
         'Set-IISBindingCertificate',
         'Set-NetworkRoute',
         'Set-NTPClient',
