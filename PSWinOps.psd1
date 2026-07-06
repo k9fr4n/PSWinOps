@@ -197,6 +197,7 @@
         'Show-PingMonitor',
         'Show-SystemMonitor',
         'Show-WindowsUpdate',
+        'Stop-ProcessTree',
         'Sync-NTPTime',
         'Test-DNSResolution',
         'Test-IISBindingCertificate',

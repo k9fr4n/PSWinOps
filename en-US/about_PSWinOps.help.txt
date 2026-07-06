@@ -177,7 +177,7 @@ FUNCTION DOMAINS
 
       Get-AuditPolicy
 
-  system (17 functions)
+  system (18 functions)
     Functions for general system information, state,
     disk cleanup, profile management, and real-time monitoring.
 
@@ -198,6 +198,7 @@ FUNCTION DOMAINS
       Set-EnvironmentVariable
       Set-PageFile
       Show-SystemMonitor
+      Stop-ProcessTree
 
   windowsupdate (4 functions)
     Functions for querying and managing Windows Update
@@ -390,6 +391,7 @@ PSWINOPS TYPE REGISTRY
       PSWinOps.PendingReboot
       PSWinOps.PortConnectivity
       PSWinOps.PrintServerHealth
+      PSWinOps.ProcessKillResult
       PSWinOps.ProcessPort
       PSWinOps.ProxyConfiguration
       PSWinOps.ProxyTestResult
