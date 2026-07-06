@@ -158,7 +158,7 @@ function Get-LogonFailure {
                 $statusHex = ''
                 if ($props.Count -gt 7) {
                     try {
-                        $statusHex = '0x{0:X8}' -f ([int64]$props[7].Value)
+                        $statusHex = '0x{0:X8}' -f (([int64]$props[7].Value) -band 0xFFFFFFFFL)
                     } catch {
                         $statusHex = [string]$props[7].Value
                     }
@@ -167,7 +167,7 @@ function Get-LogonFailure {
                 $subStatusHex = ''
                 if ($props.Count -gt 9) {
                     try {
-                        $subStatusHex = '0x{0:X8}' -f ([int64]$props[9].Value)
+                        $subStatusHex = '0x{0:X8}' -f (([int64]$props[9].Value) -band 0xFFFFFFFFL)
                     } catch {
                         $subStatusHex = [string]$props[9].Value
                     }
