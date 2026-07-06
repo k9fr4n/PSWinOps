@@ -136,9 +136,9 @@ function Stop-ProcessTree {
                 } else {
                     foreach ($rootName in $Name) {
                         $expectedName = if ($rootName -like '*.exe') { $rootName } else { "$rootName.exe" }
-                        $matches = $processList | Where-Object -Property Name -eq $expectedName
-                        if ($matches) {
-                            foreach ($match in $matches) {
+                        $nameMatches = $processList | Where-Object -Property Name -eq $expectedName
+                        if ($nameMatches) {
+                            foreach ($match in $nameMatches) {
                                 $rootProcesses.Add($match)
                             }
                         } else {
