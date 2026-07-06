@@ -1,0 +1,7 @@
+chain: pswinops-function-author
+function: Reset-NetworkStack
+domain: network
+created: 2026-07-06T12:39:37Z
+created_by: pswinops-fn-spec-analyst
+chain_branch: kdust/chain/pswinops-fn-reset-networkstack-2607061237
+spec_path: work/reset-networkstack/spec.yaml
