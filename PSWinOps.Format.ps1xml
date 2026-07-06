@@ -1930,6 +1930,81 @@
         </TableRowEntries>
       </TableControl>
     </View>
+    <!-- PSWinOps.ProcessPort - Table -->
+    <View>
+      <Name>PSWinOps.ProcessPort</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.ProcessPort</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <AutoSize />
+        <TableHeaders>
+          <TableColumnHeader>
+            <Label>ComputerName</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Protocol</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>LocalAddress</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>LocalPort</Label>
+            <Alignment>Right</Alignment>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>RemoteAddress</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>RemotePort</Label>
+            <Alignment>Right</Alignment>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>State</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>PID</Label>
+            <Alignment>Right</Alignment>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>ProcessName</Label>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem>
+                <PropertyName>ComputerName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Protocol</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>LocalAddress</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>LocalPort</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>RemoteAddress</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>RemotePort</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>State</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>ProcessId</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>ProcessName</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
     <!-- PSWinOps.MACVendor - Table -->
     <View>
       <Name>PSWinOps.MACVendor</Name>

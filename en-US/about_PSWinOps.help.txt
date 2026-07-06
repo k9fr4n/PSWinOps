@@ -109,7 +109,7 @@ FUNCTION DOMAINS
       Test-IISBindingCertificate
       Watch-IISLog
 
-  network (25 functions)
+  network (26 functions)
     Functions for network diagnostics, discovery,
     certificate inspection, and real-time monitoring.
 
@@ -123,6 +123,7 @@ FUNCTION DOMAINS
       Get-NetworkConnection
       Get-NetworkRoute
       Get-NetworkStatistic
+      Get-ProcessByPort
       Get-PublicIPAddress
       Get-SSLCertificate
       Get-SubnetInfo
@@ -388,6 +389,7 @@ PSWINOPS TYPE REGISTRY
       PSWinOps.PendingReboot
       PSWinOps.PortConnectivity
       PSWinOps.PrintServerHealth
+      PSWinOps.ProcessPort
       PSWinOps.ProxyConfiguration
       PSWinOps.ProxyTestResult
       PSWinOps.PublicIPAddress

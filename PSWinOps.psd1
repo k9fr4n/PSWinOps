@@ -146,6 +146,7 @@
         'Get-PendingReboot',
         'Get-RebootHistory',
         'Get-PrintServerHealth',
+        'Get-ProcessByPort',
         'Get-ProxyConfiguration',
         'Get-PublicIPAddress',
         'Get-RdpSession',
