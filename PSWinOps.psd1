@@ -12,7 +12,7 @@
     RootModule           = 'PSWinOps.psm1'
 
     # Version number of this module.
-    ModuleVersion        = '0.2.1'
+    ModuleVersion        = '0.3.0'
 
     # Supported PSEditions
     # Core is supported on Windows only; the module-level guard in PSWinOps.psm1 blocks
@@ -110,6 +110,7 @@
         'Get-ADUserGroupInventory',
         'Get-ADUserInventory',
         'Get-ARPTable',
+        'Get-AuditPolicy',
         'Get-CertificateAuthorityHealth',
         'Get-ClusterHealth',
         'Get-ComputerUptime',
@@ -269,7 +270,11 @@
             # IconUri = ''
 
             # ReleaseNotes of this module
-            ReleaseNotes = '## 0.2.1 - 2026-07-05 UTC
+            ReleaseNotes = '## 0.3.0 - 2026-07-05 UTC
+### Added
+- Get-AuditPolicy: Report advanced audit policy subcategory settings from auditpol.exe
+
+## 0.2.1 - 2026-07-05 UTC
 ### Added
 - Get-CrashDump: Inventory Windows crash memory dumps with size, type and BugCheck code
 

@@ -12,7 +12,7 @@ LONG DESCRIPTION
     PSWinOps is a comprehensive toolbox designed for Windows
     system administrators running PowerShell 5.1 or later.
     It provides a curated collection of functions organized
-    into twelve functional domains, covering everything from
+    into thirteen functional domains, covering everything from
     Active Directory inventory and security auditing,
     service health monitoring, network troubleshooting,
     NTP synchronization, proxy management, RDP session
@@ -31,7 +31,7 @@ LONG DESCRIPTION
     Requires    : PowerShell 5.1+ / Windows only
 
 FUNCTION DOMAINS
-    PSWinOps organizes its functions into twelve domains.
+    PSWinOps organizes its functions into thirteen domains.
 
   activedirectory (21 functions)
     Functions for Active Directory inventory, user and
@@ -167,6 +167,13 @@ FUNCTION DOMAINS
       Get-RdpSessionHistory
       Get-RdpSessionLock
       Remove-RdpSession
+
+  security (1 function)
+    Functions for auditing Windows security configuration,
+    starting with advanced audit policy subcategory
+    reporting via auditpol.exe.
+
+      Get-AuditPolicy
 
   system (16 functions)
     Functions for general system information, state,
@@ -305,7 +312,7 @@ REMOTE EXECUTION PATTERN
     in the pipeline continue to be processed.
 
 PSWINOPS TYPE REGISTRY
-    The following 98 PSTypeName values are defined by the
+    The following 99 PSTypeName values are defined by the
     module. Each corresponds to the output of one or more
     public functions.
 
@@ -335,6 +342,7 @@ PSWINOPS TYPE REGISTRY
       PSWinOps.ADUserGroupInventory
       PSWinOps.ADUserInventory
       PSWinOps.ArpEntry
+      PSWinOps.AuditPolicy
       PSWinOps.CertificateAuthorityHealth
       PSWinOps.ClusterHealth
       PSWinOps.ComputerUptime
@@ -420,4 +428,4 @@ SEE ALSO
 
 KEYWORDS
     PSWinOps, Windows, Administration, ActiveDirectory, DiskCleanup,
-    HealthCheck, Network, NTP, RDP, System, VSS, WindowsUpdate
+    HealthCheck, Network, NTP, RDP, Security, System, VSS, WindowsUpdate

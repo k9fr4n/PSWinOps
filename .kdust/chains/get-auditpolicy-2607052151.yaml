@@ -1,0 +1,7 @@
+chain: pswinops-function-author
+function: Get-AuditPolicy
+domain: security
+created: 2026-07-05T21:53:04Z
+created_by: pswinops-fn-spec-analyst
+chain_branch: kdust/chain/pswinops-fn-get-auditpolicy-2607052151
+spec_path: work/get-auditpolicy/spec.yaml

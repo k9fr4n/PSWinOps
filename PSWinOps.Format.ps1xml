@@ -7591,5 +7591,62 @@
         </TableRowEntries>
       </TableControl>
     </View>
+    <!-- ============================================================ -->
+    <!-- PSWinOps.AuditPolicy                                         -->
+    <!-- Used by: Get-AuditPolicy                                     -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.AuditPolicy</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.AuditPolicy</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <AutoSize />
+        <TableHeaders>
+          <TableColumnHeader>
+            <Label>ComputerName</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Category</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Subcategory</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>AuditSuccess</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>AuditFailure</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Setting</Label>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem>
+                <PropertyName>ComputerName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Category</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Subcategory</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>AuditSuccess</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>AuditFailure</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Setting</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
   </ViewDefinitions>
 </Configuration>

@@ -104,6 +104,7 @@ jobs:
           - "Public/ntp"
           - "Public/proxy"
           - "Public/rdp"
+          - "Public/security"
           - "Public/system"
           - "Public/utils"
           - "Public/vss"
