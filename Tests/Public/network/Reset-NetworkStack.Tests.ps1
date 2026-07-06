@@ -7,6 +7,7 @@ BeforeAll {
     $script:ModuleName = 'PSWinOps'
 
     function global:Clear-DnsClientCache {
+        [CmdletBinding()]
         param()
     }
 }
