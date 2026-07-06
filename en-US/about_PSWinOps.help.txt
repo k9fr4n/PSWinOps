@@ -109,7 +109,7 @@ FUNCTION DOMAINS
       Test-IISBindingCertificate
       Watch-IISLog
 
-  network (24 functions)
+  network (25 functions)
     Functions for network diagnostics, discovery,
     certificate inspection, and real-time monitoring.
 
@@ -129,6 +129,7 @@ FUNCTION DOMAINS
       Measure-NetworkLatency
       New-NetworkRoute
       Remove-NetworkRoute
+      Reset-NetworkStack
       Resolve-MACVendor
       Set-NetworkRoute
       Show-NetworkStatisticMonitor
@@ -312,7 +313,7 @@ REMOTE EXECUTION PATTERN
     in the pipeline continue to be processed.
 
 PSWINOPS TYPE REGISTRY
-    The following 99 PSTypeName values are defined by the
+    The following 100 PSTypeName values are defined by the
     module. Each corresponds to the output of one or more
     public functions.
 
@@ -377,6 +378,7 @@ PSWINOPS TYPE REGISTRY
       PSWinOps.NetworkConnection
       PSWinOps.NetworkLatency
       PSWinOps.NetworkRoute
+      PSWinOps.NetworkStackResetResult
       PSWinOps.NetworkStatistic
       PSWinOps.NtpConfiguration
       PSWinOps.NtpPeer
