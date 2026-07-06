@@ -1,0 +1,7 @@
+chain: pswinops-function-author
+function: Get-ProcessByPort
+domain: network
+created: 2026-07-06T13:11:48Z
+created_by: pswinops-fn-spec-analyst
+chain_branch: kdust/chain/pswinops-fn-get-processbyport-2607061309
+spec_path: work/get-processbyport/spec.yaml
