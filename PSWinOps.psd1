@@ -12,7 +12,7 @@
     RootModule           = 'PSWinOps.psm1'
 
     # Version number of this module.
-    ModuleVersion        = '0.3.0'
+    ModuleVersion        = '0.4.0'
 
     # Supported PSEditions
     # Core is supported on Windows only; the module-level guard in PSWinOps.psm1 blocks
@@ -271,7 +271,11 @@
             # IconUri = ''
 
             # ReleaseNotes of this module
-            ReleaseNotes = '## 0.3.0 - 2026-07-05 UTC
+            ReleaseNotes = '## 0.4.0 - 2026-07-06 UTC
+### Added
+- Reset-NetworkStack: Reset the Windows network stack (winsock, TCP/IP, DNS cache, ARP)
+
+## 0.3.0 - 2026-07-05 UTC
 ### Added
 - Get-AuditPolicy: Report advanced audit policy subcategory settings from auditpol.exe
 
