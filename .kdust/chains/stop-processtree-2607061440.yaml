@@ -1,0 +1,7 @@
+chain: pswinops-function-author
+function: Stop-ProcessTree
+domain: system
+created: 2026-07-06T14:43:59Z
+created_by: pswinops-fn-spec-analyst
+chain_branch: kdust/chain/pswinops-fn-stop-processtree-2607061440
+spec_path: work/stop-processtree/spec.yaml
