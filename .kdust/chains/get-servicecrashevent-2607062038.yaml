@@ -1,0 +1,7 @@
+chain: pswinops-function-author
+function: Get-ServiceCrashEvent
+domain: eventlog
+created: 2026-07-06T20:39:14Z
+created_by: pswinops-fn-spec-analyst
+chain_branch: kdust/chain/pswinops-fn-get-servicecrashevent-2607062038
+spec_path: work/get-servicecrashevent/spec.yaml
