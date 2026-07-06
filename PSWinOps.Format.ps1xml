@@ -7648,5 +7648,43 @@
         </TableRowEntries>
       </TableControl>
     </View>
+    <!-- ============================================================ -->
+    <!-- PSWinOps.NetworkStackResetResult                             -->
+    <!-- Used by: Reset-NetworkStack                                  -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.NetworkStackResetResult</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.NetworkStackResetResult</TypeName>
+      </ViewSelectedBy>
+      <ListControl>
+        <ListEntries>
+          <ListEntry>
+            <ListItems>
+              <ListItem>
+                <Label>Computer name</Label>
+                <PropertyName>ComputerName</PropertyName>
+              </ListItem>
+              <ListItem>
+                <Label>Steps run</Label>
+                <ScriptBlock>(($_.StepsRun | ForEach-Object { "$($_.Step)=$($_.ExitCode)" }) -join ', ')</ScriptBlock>
+              </ListItem>
+              <ListItem>
+                <Label>Success</Label>
+                <PropertyName>Success</PropertyName>
+              </ListItem>
+              <ListItem>
+                <Label>Reboot required</Label>
+                <PropertyName>RebootRequired</PropertyName>
+              </ListItem>
+              <ListItem>
+                <Label>Timestamp</Label>
+                <PropertyName>Timestamp</PropertyName>
+              </ListItem>
+            </ListItems>
+          </ListEntry>
+        </ListEntries>
+      </ListControl>
+    </View>
   </ViewDefinitions>
 </Configuration>

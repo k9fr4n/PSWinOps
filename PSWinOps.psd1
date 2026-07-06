@@ -179,6 +179,7 @@
         'Remove-StringDiacritic',
         'Remove-UserProfile',
         'Reset-ADUserPassword',
+        'Reset-NetworkStack',
         'Reset-WindowsUpdateComponent',
         'Resolve-MACVendor',
         'Restore-ShadowCopyFile',
