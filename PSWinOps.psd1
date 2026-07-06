@@ -134,6 +134,7 @@
         'Get-IISWorkerProcess',
         'Get-InstalledSoftware',
         'Get-ListeningPort',
+        'Get-LogonFailure',
         'Get-NetworkAdapter',
         'Get-NetworkCIDR',
         'Get-NetworkConnection',

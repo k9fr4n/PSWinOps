@@ -1,0 +1,7 @@
+chain: pswinops-function-author
+function: Get-LogonFailure
+domain: eventlog
+created: 2026-07-06T17:55:22Z
+created_by: pswinops-fn-spec-analyst
+chain_branch: kdust/chain/pswinops-fn-get-logonfailure-2607061754
+spec_path: work/get-logonfailure/spec.yaml
