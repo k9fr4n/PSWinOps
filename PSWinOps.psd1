@@ -12,7 +12,7 @@
     RootModule           = 'PSWinOps.psm1'
 
     # Version number of this module.
-    ModuleVersion        = '0.4.0'
+    ModuleVersion        = '0.5.0'
 
     # Supported PSEditions
     # Core is supported on Windows only; the module-level guard in PSWinOps.psm1 blocks
@@ -272,7 +272,11 @@
             # IconUri = ''
 
             # ReleaseNotes of this module
-            ReleaseNotes = '## 0.4.0 - 2026-07-06 UTC
+            ReleaseNotes = '## 0.5.0 - 2026-07-06 UTC
+### Added
+- Get-ProcessByPort: Correlate TCP/UDP endpoints with their owning process details
+
+## 0.4.0 - 2026-07-06 UTC
 ### Added
 - Reset-NetworkStack: Reset the Windows network stack (winsock, TCP/IP, DNS cache, ARP)
 
