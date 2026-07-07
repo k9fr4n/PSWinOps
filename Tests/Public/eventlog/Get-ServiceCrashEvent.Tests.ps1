@@ -55,6 +55,9 @@ Describe -Name 'Get-ServiceCrashEvent' -Fixture {
             Mock -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -MockWith {
                 return @($script:evt7024, $script:evt7031, $script:evt7034, $script:evt7000)
             }
+            Mock -CommandName 'Get-ItemProperty' -ModuleName 'PSWinOps' -MockWith {
+                throw 'FailureActions not configured'
+            }
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
                 return @(
                     (New-FakeServiceCimEntry -Name 'Spooler' -DisplayName 'Print Spooler'),
@@ -136,6 +139,9 @@ Describe -Name 'Get-ServiceCrashEvent' -Fixture {
         BeforeAll {
             Mock -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -MockWith {
                 return $null
+            }
+            Mock -CommandName 'Get-ItemProperty' -ModuleName 'PSWinOps' -MockWith {
+                throw 'FailureActions not configured'
             }
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
                 return @()
@@ -264,6 +270,9 @@ Describe -Name 'Get-ServiceCrashEvent' -Fixture {
             Mock -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -MockWith {
                 return @($script:evtSpooler, $script:evtW3svc)
             }
+            Mock -CommandName 'Get-ItemProperty' -ModuleName 'PSWinOps' -MockWith {
+                throw 'FailureActions not configured'
+            }
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
                 return @(
                     (New-FakeServiceCimEntry -Name 'Spooler' -DisplayName 'Print Spooler'),
@@ -304,6 +313,9 @@ Describe -Name 'Get-ServiceCrashEvent' -Fixture {
 
             Mock -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -MockWith {
                 return @($script:evtSpooler1, $script:evtSpooler2, $script:evtSpooler3, $script:evtW3svc)
+            }
+            Mock -CommandName 'Get-ItemProperty' -ModuleName 'PSWinOps' -MockWith {
+                throw 'FailureActions not configured'
             }
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
                 return @(

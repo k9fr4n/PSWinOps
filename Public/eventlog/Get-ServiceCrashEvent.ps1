@@ -147,10 +147,13 @@ function Get-ServiceCrashEvent {
             # Cache the configured SCM recovery action per distinct resolved ServiceName
             $recoveryActionCache = @{}
 
-            function Get-ScmRecoveryAction {
+            # Resolve only the SCM-configured recovery action from the registry. This value
+            # is per-service, so it is safe to cache by name. The per-event fallback code is
+            # deliberately NOT handled here: caching it would let one event's (absent) code
+            # poison a later event for the same service.
+            function Get-ScmConfiguredRecoveryAction {
                 param(
-                    [string]$Name,
-                    [int]$FallbackCode
+                    [string]$Name
                 )
 
                 if ([string]::IsNullOrEmpty($Name)) { return '' }
@@ -171,11 +174,23 @@ function Get-ServiceCrashEvent {
                     Write-Verbose "Could not resolve configured recovery action for '$Name': $_"
                 }
 
+                $recoveryActionCache[$Name] = $resolvedAction
+                return $resolvedAction
+            }
+
+            # Combine the cached SCM-configured action with the per-event fallback code.
+            function Get-ScmRecoveryAction {
+                param(
+                    [string]$Name,
+                    [int]$FallbackCode
+                )
+
+                $resolvedAction = Get-ScmConfiguredRecoveryAction -Name $Name
+
                 if ([string]::IsNullOrEmpty($resolvedAction) -and $FallbackCode -ge 0) {
                     $resolvedAction = if ($recoveryActionTypeMap.ContainsKey($FallbackCode)) { $recoveryActionTypeMap[$FallbackCode] } else { "Unknown($FallbackCode)" }
                 }
 
-                $recoveryActionCache[$Name] = $resolvedAction
                 return $resolvedAction
             }
 
