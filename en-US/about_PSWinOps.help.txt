@@ -62,13 +62,15 @@ FUNCTION DOMAINS
       Search-ADObject
       Unlock-ADUserAccount
 
-  eventlog (2 functions)
+  eventlog (3 functions)
     Functions for correlating Windows System event log
     entries into shutdown/restart history, cause and
-    initiator reporting, and decoding Security log
-    failed-logon events.
+    initiator reporting, decoding Security log
+    failed-logon events, and aggregating Service Control
+    Manager crash events per service.
 
       Get-LogonFailure
+      Get-ServiceCrashEvent
       Get-UnexpectedShutdown
 
   healthcheck (16 functions)
@@ -407,6 +409,7 @@ PSWINOPS TYPE REGISTRY
       PSWinOps.RebootHistory
       PSWinOps.ScheduledTaskDetail
       PSWinOps.ServiceAccount
+      PSWinOps.ServiceCrashEvent
       PSWinOps.ServiceHealth
       PSWinOps.ShadowCopy
       PSWinOps.ShadowCopyRemoveResult

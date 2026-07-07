@@ -7741,6 +7741,71 @@
       </TableControl>
     </View>
     <!-- ============================================================ -->
+    <!-- PSWinOps.ServiceCrashEvent                                   -->
+    <!-- Used by: Get-ServiceCrashEvent                               -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.ServiceCrashEvent</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.ServiceCrashEvent</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <AutoSize />
+        <TableHeaders>
+          <TableColumnHeader>
+            <Label>ComputerName</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>EventTime</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>EventId</Label>
+            <Alignment>Right</Alignment>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>ServiceName</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>ExitCode</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>CrashCount</Label>
+            <Alignment>Right</Alignment>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>RecoveryAction</Label>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem>
+                <PropertyName>ComputerName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>EventTime</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>EventId</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>ServiceName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>ExitCode</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>CrashCount</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>RecoveryAction</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+    <!-- ============================================================ -->
     <!-- PSWinOps.CrashDump                                           -->
     <!-- Used by: Get-CrashDump                                       -->
     <!-- ============================================================ -->
