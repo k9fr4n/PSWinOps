@@ -12,7 +12,7 @@
     RootModule           = 'PSWinOps.psm1'
 
     # Version number of this module.
-    ModuleVersion        = '0.9.1'
+    ModuleVersion        = '0.10.0'
 
     # Supported PSEditions
     # Core is supported on Windows only; the module-level guard in PSWinOps.psm1 blocks
@@ -121,6 +121,7 @@
         'Get-DiskCleanupInfo',
         'Get-DiskSpace',
         'Get-DnsServerHealth',
+        'Get-DriverInventory',
         'Get-EnvironmentVariable',
         'Get-ExchangeServerHealth',
         'Get-FileServerHealth',
@@ -277,7 +278,11 @@
             # IconUri = ''
 
             # ReleaseNotes of this module
-            ReleaseNotes = '## 0.9.1 - 2026-07-06 UTC
+            ReleaseNotes = '## 0.10.0 - 2026-08-11 UTC
+### Added
+- Get-DriverInventory: Structured signed-driver inventory via Win32_PnPSignedDriver, filterable by class or unsigned-only, local or remote
+
+## 0.9.1 - 2026-07-06 UTC
 ### Added
 - Get-ServiceCrashEvent: Aggregate Service Control Manager crash events per service with counts and exit codes
 
