@@ -208,7 +208,11 @@ function Get-WindowsUpdateFailure {
                         [Globalization.NumberStyles]::Integer,
                         [Globalization.CultureInfo]::InvariantCulture,
                         [ref]$signedNumber)) {
-                    return ('0x{0:X8}' -f ([uint32]$signedNumber))
+                    $unsignedValue = $signedNumber
+                    if ($signedNumber -lt 0) {
+                        $unsignedValue += 4294967296
+                    }
+                    return ('0x{0:X8}' -f $unsignedValue)
                 }
 
                 $hexValue = $rawValue -replace '^0x', ''
