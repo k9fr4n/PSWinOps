@@ -124,6 +124,7 @@
         'Get-DriverInventory',
         'Get-EnvironmentVariable',
         'Get-ExchangeServerHealth',
+        'Get-ExpiringCertificate',
         'Get-FileServerHealth',
         'Get-HyperVHostHealth',
         'Get-IISAppPoolHistory',

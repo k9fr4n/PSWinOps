@@ -8099,5 +8099,81 @@
         </TableRowEntries>
       </TableControl>
     </View>
+    <!-- ============================================================ -->
+    <!-- PSWinOps.ExpiringCertificate                                 -->
+    <!-- Used by: Get-ExpiringCertificate                             -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.ExpiringCertificate</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.ExpiringCertificate</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <AutoSize />
+        <TableHeaders>
+          <TableColumnHeader>
+            <Label>ComputerName</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>StoreName</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Subject</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Issuer</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Thumbprint</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>NotAfter</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>DaysRemaining</Label>
+            <Alignment>Right</Alignment>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>HasPrivateKey</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>EnhancedKeyUsage</Label>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem>
+                <PropertyName>ComputerName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>StoreName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Subject</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Issuer</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Thumbprint</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>NotAfter</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>DaysRemaining</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>HasPrivateKey</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>$_.EnhancedKeyUsage -join ', '</ScriptBlock>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
   </ViewDefinitions>
 </Configuration>
