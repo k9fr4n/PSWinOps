@@ -5240,6 +5240,57 @@
       </TableControl>
     </View>
     <!-- ============================================================ -->
+    <!-- PSWinOps.ADLockoutSource                                     -->
+    <!-- Used by: Get-ADLockoutSource                                 -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.ADLockoutSource</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.ADLockoutSource</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <AutoSize />
+        <TableHeaders>
+          <TableColumnHeader>
+            <Label>DomainController</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>UserName</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>SamAccountName</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>LockoutSource</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>LockoutTime</Label>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem>
+                <PropertyName>DomainController</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>UserName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>SamAccountName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>LockoutSource</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>if ($_.LockoutTime) { $_.LockoutTime.ToString('yyyy-MM-dd HH:mm:ss') } else { '' }</ScriptBlock>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+    <!-- ============================================================ -->
     <!-- PSWinOps.ADPasswordStatus                                    -->
     <!-- Used by: Get-ADPasswordStatus                                -->
     <!-- ============================================================ -->
@@ -8176,4 +8227,4 @@
       </TableControl>
     </View>
   </ViewDefinitions>
-</Configuration>
+</Configuration>

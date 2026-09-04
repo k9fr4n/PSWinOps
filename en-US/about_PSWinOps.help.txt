@@ -68,13 +68,12 @@ FUNCTION DOMAINS
 
       Get-ExpiringCertificate
 
-  eventlog (3 functions)
-    Functions for correlating Windows System event log
-    entries into shutdown/restart history, cause and
-    initiator reporting, decoding Security log
-    failed-logon events, and aggregating Service Control
-    Manager crash events per service.
+  eventlog (4 functions)
+    Functions for correlating Windows System and Security
+    event log entries into lockout-source, shutdown/restart,
+    failed-logon, and Service Control Manager crash reports.
 
+      Get-ADLockoutSource
       Get-LogonFailure
       Get-ServiceCrashEvent
       Get-UnexpectedShutdown
@@ -344,6 +343,7 @@ PSWINOPS TYPE REGISTRY
       PSWinOps.ADGroupInventory
       PSWinOps.ADGroupMember
       PSWinOps.ADLockedAccount
+      PSWinOps.ADLockoutSource
       PSWinOps.ADNestedGroupMembership
       PSWinOps.ADPasswordResetResult
       PSWinOps.ADPasswordStatus
