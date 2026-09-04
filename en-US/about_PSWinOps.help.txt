@@ -33,7 +33,7 @@ LONG DESCRIPTION
 FUNCTION DOMAINS
     PSWinOps organizes its functions into fourteen domains.
 
-  activedirectory (22 functions)
+  activedirectory (21 functions)
     Functions for Active Directory inventory, user and
     computer management, group membership analysis,
     replication monitoring, and security auditing.
@@ -47,7 +47,6 @@ FUNCTION DOMAINS
       Get-ADGroupInventory
       Get-ADGroupMembership
       Get-ADLockedAccount
-      Get-ADLockoutSource
       Get-ADNestedGroupMembership
       Get-ADPasswordStatus
       Get-ADPrivilegedAccount
@@ -69,13 +68,12 @@ FUNCTION DOMAINS
 
       Get-ExpiringCertificate
 
-  eventlog (3 functions)
-    Functions for correlating Windows System event log
-    entries into shutdown/restart history, cause and
-    initiator reporting, decoding Security log
-    failed-logon events, and aggregating Service Control
-    Manager crash events per service.
+  eventlog (4 functions)
+    Functions for correlating Windows System and Security
+    event log entries into lockout-source, shutdown/restart,
+    failed-logon, and Service Control Manager crash reports.
 
+      Get-ADLockoutSource
       Get-LogonFailure
       Get-ServiceCrashEvent
       Get-UnexpectedShutdown

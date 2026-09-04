@@ -190,14 +190,14 @@ function Get-ADLockoutSource {
 
             $results = [System.Collections.Generic.List[object]]::new()
 
-            foreach ($event in $events) {
+            foreach ($lockoutEvent in $events) {
                 try {
-                    if ($event.Properties.Count -lt 3) {
+                    if ($lockoutEvent.Properties.Count -lt 3) {
                         Write-Verbose -Message "[$($MyInvocation.MyCommand)] Skipping event with unexpected property count on '$targetServer'"
                         continue
                     }
 
-                    $eventSid = $event.Properties[2].Value
+                    $eventSid = $lockoutEvent.Properties[2].Value
                     if (-not $eventSid -or $eventSid.ToString() -ne $targetSid) {
                         continue
                     }
@@ -205,13 +205,13 @@ function Get-ADLockoutSource {
                     $results.Add([PSCustomObject]@{
                         PSTypeName       = 'PSWinOps.ADLockoutSource'
                         ComputerName     = $targetServer
-                        DomainController = $event.MachineName
-                        UserName         = $event.Properties[0].Value
+                        DomainController = $lockoutEvent.MachineName
+                        UserName         = $lockoutEvent.Properties[0].Value
                         SamAccountName   = $userDetail.SamAccountName
-                        LockoutSource    = $event.Properties[1].Value
-                        LockoutTime      = [datetime]$event.TimeCreated
-                        EventId          = [int]$event.Id
-                        Timestamp        = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
+                        LockoutSource    = $lockoutEvent.Properties[1].Value
+                        LockoutTime      = [datetime]$lockoutEvent.TimeCreated
+                        EventId          = [int]$lockoutEvent.Id
+                        Timestamp        = Get-Date -Format 'o'
                     })
                 }
                 catch {

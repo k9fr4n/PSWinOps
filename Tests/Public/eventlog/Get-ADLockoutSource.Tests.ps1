@@ -89,7 +89,7 @@ Describe -Name 'Get-ADLockoutSource' -Fixture {
             $row.LockoutSource | Should -Be 'WKS01'
             $row.EventId | Should -Be 4740
             $row.LockoutTime | Should -BeOfType [datetime]
-            $row.Timestamp | Should -Match "^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$"
+            $row.Timestamp | Should -Match "^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{7}[+-]\d{2}:\d{2}$"
         }
 
         It -Name 'Should sort results by LockoutTime descending' -Test {
