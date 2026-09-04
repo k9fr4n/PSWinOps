@@ -1,0 +1,7 @@
+chain: pswinops-function-author
+function: Get-ExpiringCertificate
+domain: certificate
+created: 2026-09-04T14:54:16Z
+created_by: pswinops-fn-spec-analyst
+chain_branch: kdust/chain/pswinops-fn-get-expiringcertificate-2609041454
+spec_path: work/get-expiringcertificate/spec.yaml
