@@ -137,11 +137,12 @@ Describe -Name 'Get-ADLockoutSource' -Fixture {
                     SID            = [PSCustomObject]@{ Value = 'S-1-5-21-1111-2222-3333-1001' }
                 }
             }
-            $script:capturedFilterHashtable = $null
-            $script:capturedMaxEvents = $null
+            $global:PSWinOpsLockoutFilterHashtable = $null
+            $global:PSWinOpsLockoutMaxEvents = $null
             Mock -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -MockWith {
-                $script:capturedFilterHashtable = $FilterHashtable
-                $script:capturedMaxEvents = $MaxEvents
+                param($ComputerName, $FilterHashtable, $MaxEvents, $Credential)
+                $global:PSWinOpsLockoutFilterHashtable = $FilterHashtable
+                $global:PSWinOpsLockoutMaxEvents = $MaxEvents
                 @()
             }
         }
@@ -149,16 +150,10 @@ Describe -Name 'Get-ADLockoutSource' -Fixture {
         It -Name 'Should pass After as FilterHashtable StartTime and MaxEvents through' -Test {
             $afterDate = Get-Date '2026-01-01 00:00:00'
             Get-ADLockoutSource -Identity 'jsmith' -After $afterDate -MaxEvents 50
-            $captured = & (Get-Module -Name 'PSWinOps') {
-                [PSCustomObject]@{
-                    FilterHashtable = $script:capturedFilterHashtable
-                    MaxEvents       = $script:capturedMaxEvents
-                }
-            }
-            $captured.MaxEvents | Should -Be 50
-            $captured.FilterHashtable['LogName'] | Should -Be 'Security'
-            $captured.FilterHashtable['Id'] | Should -Be 4740
-            $captured.FilterHashtable['StartTime'] | Should -Be $afterDate
+            $global:PSWinOpsLockoutMaxEvents | Should -Be 50
+            $global:PSWinOpsLockoutFilterHashtable['LogName'] | Should -Be 'Security'
+            $global:PSWinOpsLockoutFilterHashtable['Id'] | Should -Be 4740
+            $global:PSWinOpsLockoutFilterHashtable['StartTime'] | Should -Be $afterDate
         }
     }
 
