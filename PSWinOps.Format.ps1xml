@@ -7996,6 +7996,90 @@
       </TableControl>
     </View>
     <!-- ============================================================ -->
+    <!-- PSWinOps.DiskErrorEvent                                      -->
+    <!-- Used by: Get-DiskErrorEvent                                  -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.DiskErrorEvent</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.DiskErrorEvent</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <AutoSize />
+        <TableHeaders>
+          <TableColumnHeader>
+            <Label>ComputerName</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>EventTime</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>ProviderName</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>EventId</Label>
+            <Alignment>Right</Alignment>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>ErrorType</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Critical</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>DiskNumber</Label>
+            <Alignment>Right</Alignment>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>DeviceName</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>ErrorCode</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>EventCount</Label>
+            <Alignment>Right</Alignment>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem>
+                <PropertyName>ComputerName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>EventTime</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>ProviderName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>EventId</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>ErrorType</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>IsCritical</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>DiskNumber</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>DeviceName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>ErrorCode</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>EventCount</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+    <!-- ============================================================ -->
     <!-- PSWinOps.CrashDump                                           -->
     <!-- Used by: Get-CrashDump                                       -->
     <!-- ============================================================ -->
