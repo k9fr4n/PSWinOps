@@ -141,13 +141,13 @@ Describe -Name 'Get-ADLockoutSource' -Fixture {
         }
 
         It -Name 'Should pass After as FilterHashtable StartTime and MaxEvents through' -Test {
-            $afterDate = Get-Date '2026-01-01 00:00:00'
-            Get-ADLockoutSource -Identity 'jsmith' -After $afterDate -MaxEvents 50
+            $script:afterDate = Get-Date '2026-01-01 00:00:00'
+            Get-ADLockoutSource -Identity 'jsmith' -After $script:afterDate -MaxEvents 50
             Should -Invoke -CommandName 'Get-WinEvent' -ModuleName 'PSWinOps' -Times 1 -Exactly -ParameterFilter {
                 $MaxEvents -eq 50 -and
                 $FilterHashtable['LogName'] -eq 'Security' -and
                 $FilterHashtable['Id'] -eq 4740 -and
-                $FilterHashtable['StartTime'] -eq $afterDate
+                $FilterHashtable['StartTime'].Ticks -eq $script:afterDate.Ticks
             }
         }
     }
