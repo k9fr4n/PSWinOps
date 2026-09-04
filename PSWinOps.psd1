@@ -12,7 +12,7 @@
     RootModule           = 'PSWinOps.psm1'
 
     # Version number of this module.
-    ModuleVersion        = '0.10.0'
+    ModuleVersion        = '0.11.0'
 
     # Supported PSEditions
     # Core is supported on Windows only; the module-level guard in PSWinOps.psm1 blocks
@@ -124,6 +124,7 @@
         'Get-DriverInventory',
         'Get-EnvironmentVariable',
         'Get-ExchangeServerHealth',
+        'Get-ExpiringCertificate',
         'Get-FileServerHealth',
         'Get-HyperVHostHealth',
         'Get-IISAppPoolHistory',
@@ -278,7 +279,11 @@
             # IconUri = ''
 
             # ReleaseNotes of this module
-            ReleaseNotes = '## 0.10.0 - 2026-08-11 UTC
+            ReleaseNotes = '## 0.11.0 - 2026-09-04 UTC
+### Added
+- Get-ExpiringCertificate: Find local-store certificates expiring within a threshold of days
+
+## 0.10.0 - 2026-08-11 UTC
 ### Added
 - Get-DriverInventory: Structured signed-driver inventory via Win32_PnPSignedDriver, filterable by class or unsigned-only, local or remote
 
