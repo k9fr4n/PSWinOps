@@ -2485,6 +2485,75 @@
       </TableControl>
     </View>
     <!-- ============================================================ -->
+    <!-- PSWinOps.DriverInventory                                     -->
+    <!-- Used by: Get-DriverInventory                                -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.DriverInventory</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.DriverInventory</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <AutoSize />
+        <TableHeaders>
+          <TableColumnHeader>
+            <Label>ComputerName</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>DeviceName</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Class</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Manufacturer</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Version</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Date</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Signed</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>InfName</Label>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem>
+                <PropertyName>ComputerName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>DeviceName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>DeviceClass</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Manufacturer</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>DriverVersion</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>DriverDate</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>IsSigned</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>InfName</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+    <!-- ============================================================ -->
     <!-- PSWinOps.ServiceHealth                                       -->
     <!-- Used by: Get-ServiceHealth                                   -->
     <!-- ============================================================ -->
