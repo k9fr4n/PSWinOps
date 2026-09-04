@@ -8143,6 +8143,89 @@
       </TableControl>
     </View>
     <!-- ============================================================ -->
+    <!-- PSWinOps.SchannelError                                        -->
+    <!-- Used by: Get-SchannelError                                    -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.SchannelError</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.SchannelError</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <AutoSize />
+        <TableHeaders>
+          <TableColumnHeader>
+            <Label>ComputerName</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>EventTime</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>EventId</Label>
+            <Alignment>Right</Alignment>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>ErrorType</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Severity</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Role</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Protocol</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>AlertDescription</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>RemoteHost</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>FailureCount</Label>
+            <Alignment>Right</Alignment>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem>
+                <PropertyName>ComputerName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>EventTime</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>EventId</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>ErrorType</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Severity</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Role</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Protocol</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>AlertDescription</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>RemoteHost</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>FailureCount</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+    <!-- ============================================================ -->
     <!-- PSWinOps.ScheduledTaskFailure                                -->
     <!-- Used by: Get-ScheduledTaskFailure                            -->
     <!-- ============================================================ -->
