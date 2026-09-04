@@ -8080,6 +8080,76 @@
       </TableControl>
     </View>
     <!-- ============================================================ -->
+    <!-- PSWinOps.ScheduledTaskFailure                                -->
+    <!-- Used by: Get-ScheduledTaskFailure                            -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.ScheduledTaskFailure</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.ScheduledTaskFailure</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <AutoSize />
+        <TableHeaders>
+          <TableColumnHeader>
+            <Label>ComputerName</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>EventTime</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>FailureReason</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>TaskName</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>TaskPath</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>ActionName</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>ResultCodeHex</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>FailureCount</Label>
+            <Alignment>Right</Alignment>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem>
+                <PropertyName>ComputerName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>EventTime</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>FailureReason</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>TaskName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>TaskPath</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>ActionName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>ResultCodeHex</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>FailureCount</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+    <!-- ============================================================ -->
     <!-- PSWinOps.CrashDump                                           -->
     <!-- Used by: Get-CrashDump                                       -->
     <!-- ============================================================ -->
