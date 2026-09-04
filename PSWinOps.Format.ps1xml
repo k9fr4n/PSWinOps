@@ -7926,6 +7926,76 @@
       </TableControl>
     </View>
     <!-- ============================================================ -->
+    <!-- PSWinOps.ProcessCrashEvent                                   -->
+    <!-- Used by: Get-ProcessCrashEvent                               -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.ProcessCrashEvent</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.ProcessCrashEvent</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <AutoSize />
+        <TableHeaders>
+          <TableColumnHeader>
+            <Label>ComputerName</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>EventTime</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Type</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>ProcessName</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>FaultingModule</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>ExceptionCode</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>CrashCount</Label>
+            <Alignment>Right</Alignment>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>ReportId</Label>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem>
+                <PropertyName>ComputerName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>EventTime</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>EventType</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>ProcessName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>FaultingModule</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>ExceptionCode</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>CrashCount</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>ReportId</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+    <!-- ============================================================ -->
     <!-- PSWinOps.CrashDump                                           -->
     <!-- Used by: Get-CrashDump                                       -->
     <!-- ============================================================ -->

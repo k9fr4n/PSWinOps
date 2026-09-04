@@ -151,6 +151,7 @@
         'Get-RebootHistory',
         'Get-PrintServerHealth',
         'Get-ProcessByPort',
+        'Get-ProcessCrashEvent',
         'Get-ProxyConfiguration',
         'Get-PublicIPAddress',
         'Get-RdpSession',
@@ -283,6 +284,7 @@
             ReleaseNotes = '## 0.12.0 - 2026-09-04 UTC
 ### Added
 - Get-ADLockoutSource: Trace the source machine of an AD account lockout via event 4740 on the PDC Emulator
+- Get-ProcessCrashEvent: Correlate Application Error, Windows Error Reporting, and optional Application Hang events with per-process counts
 
 ## 0.11.0 - 2026-09-04 UTC
 ### Added
