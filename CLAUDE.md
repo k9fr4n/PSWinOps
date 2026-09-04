@@ -327,6 +327,7 @@ its `<View>` in `PSWinOps.Format.ps1xml`. This table is the reference list; keep
 | Get-PageFileConfiguration | PSWinOps.PageFileConfiguration | Table |
 | Get-PendingReboot | PSWinOps.PendingReboot | List |
 | Get-ScheduledTaskDetail | PSWinOps.ScheduledTaskDetail | Table |
+| Get-ScheduledTaskFailure | PSWinOps.ScheduledTaskFailure | Table |
 | Get-StartupProgram | PSWinOps.StartupProgram | Table |
 | Set-PageFile | PSWinOps.PageFileConfiguration | List |
 | Clear-Arp | PSWinOps.ArpEntry | Table |
