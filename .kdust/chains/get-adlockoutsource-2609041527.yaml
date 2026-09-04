@@ -1,0 +1,7 @@
+chain: pswinops-function-author
+function: Get-ADLockoutSource
+domain: activedirectory
+created: 2026-09-04T15:27:26Z
+created_by: pswinops-fn-spec-analyst
+chain_branch: kdust/chain/pswinops-fn-get-adlockoutsource-2609041527
+spec_path: work/get-adlockoutsource/spec.yaml
