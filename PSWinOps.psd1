@@ -12,7 +12,7 @@
     RootModule           = 'PSWinOps.psm1'
 
     # Version number of this module.
-    ModuleVersion        = '0.11.0'
+    ModuleVersion        = '0.12.0'
 
     # Supported PSEditions
     # Core is supported on Windows only; the module-level guard in PSWinOps.psm1 blocks
@@ -280,7 +280,11 @@
             # IconUri = ''
 
             # ReleaseNotes of this module
-            ReleaseNotes = '## 0.11.0 - 2026-09-04 UTC
+            ReleaseNotes = '## 0.12.0 - 2026-09-04 UTC
+### Added
+- Get-ADLockoutSource: Trace the source machine of an AD account lockout via event 4740 on the PDC Emulator
+
+## 0.11.0 - 2026-09-04 UTC
 ### Added
 - Get-ExpiringCertificate: Find local-store certificates expiring within a threshold of days
 
