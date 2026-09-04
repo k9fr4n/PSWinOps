@@ -6492,6 +6492,69 @@
       </TableControl>
     </View>
     <!-- ============================================================ -->
+    <!-- PSWinOps.WindowsUpdateFailure                                -->
+    <!-- Used by: Get-WindowsUpdateFailure                            -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.WindowsUpdateFailure</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.WindowsUpdateFailure</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <AutoSize />
+        <TableHeaders>
+          <TableColumnHeader>
+            <Label>ComputerName</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>EventTime</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Status</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>KBArticle</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>UpdateTitle</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>ErrorCodeHex</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>RebootRequired</Label>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem>
+                <PropertyName>ComputerName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>EventTime</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Status</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>KBArticle</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>UpdateTitle</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>ErrorCodeHex</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>RebootRequired</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+    <!-- ============================================================ -->
     <!-- PSWinOps.DiskCleanupInfo                                     -->
     <!-- Used by: Get-DiskCleanupInfo                                 -->
     <!-- ============================================================ -->

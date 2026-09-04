@@ -173,6 +173,7 @@
         'Get-UnexpectedShutdown',
         'Get-WindowsUpdate',
         'Get-WindowsUpdateConfiguration',
+        'Get-WindowsUpdateFailure',
         'Get-WindowsUpdateHistory',
         'Get-WSUSHealth',
         'Hide-WindowsUpdate',
