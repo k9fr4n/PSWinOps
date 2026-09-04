@@ -33,7 +33,7 @@ LONG DESCRIPTION
 FUNCTION DOMAINS
     PSWinOps organizes its functions into fourteen domains.
 
-  activedirectory (21 functions)
+  activedirectory (22 functions)
     Functions for Active Directory inventory, user and
     computer management, group membership analysis,
     replication monitoring, and security auditing.
@@ -47,6 +47,7 @@ FUNCTION DOMAINS
       Get-ADGroupInventory
       Get-ADGroupMembership
       Get-ADLockedAccount
+      Get-ADLockoutSource
       Get-ADNestedGroupMembership
       Get-ADPasswordStatus
       Get-ADPrivilegedAccount
@@ -344,6 +345,7 @@ PSWINOPS TYPE REGISTRY
       PSWinOps.ADGroupInventory
       PSWinOps.ADGroupMember
       PSWinOps.ADLockedAccount
+      PSWinOps.ADLockoutSource
       PSWinOps.ADNestedGroupMembership
       PSWinOps.ADPasswordResetResult
       PSWinOps.ADPasswordStatus

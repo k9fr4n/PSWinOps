@@ -99,6 +99,7 @@
         'Get-ADGroupInventory',
         'Get-ADGroupMembership',
         'Get-ADLockedAccount',
+        'Get-ADLockoutSource',
         'Get-ADNestedGroupMembership',
         'Get-ADPasswordStatus',
         'Get-ADPrivilegedAccount',
