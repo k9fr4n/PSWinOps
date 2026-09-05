@@ -8,7 +8,7 @@ All notable changes to PSWinOps are documented in this file. Versions follow
 > released as `0.0.24`/`0.1.x`/`0.12.x` — those version numbers never shipped. That
 > accumulated work is released here as `1.0.0`.
 
-## [1.0.0] - Unreleased
+## [1.0.0] - 2026-09-05
 
 First stable release. Consolidates everything merged to `main` since `0.0.23`
 (2026-05-21), none of which was previously published to the PowerShell Gallery.
