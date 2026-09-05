@@ -281,5 +281,47 @@ Describe -Name 'PSWinOps Module Loader' -Fixture {
             $aboutFile = Get-ChildItem -Path $helpPath -Filter 'about_PSWinOps*' -ErrorAction SilentlyContinue
             $aboutFile | Should -Not -BeNullOrEmpty
         }
+
+        It -Name 'Should list every public function exactly once in its documented domain' -Test {
+            $aboutPath = Join-Path -Path $script:modulePath -ChildPath 'en-US/about_PSWinOps.help.txt'
+            $content = Get-Content -Path $aboutPath -Raw
+            $domainSection = [regex]::Match(
+                $content,
+                '(?ms)^FUNCTION DOMAINS\r?\n(?<section>.*?)^OUTPUT CONVENTIONS'
+            ).Groups['section'].Value
+            $documentedDomains = @{}
+            $currentDomain = $null
+
+            foreach ($line in ($domainSection -split '\r?\n')) {
+                if ($line -match '^\s{2}(\S+) \((\d+) function(s)?\)$') {
+                    $currentDomain = $Matches[1]
+                    $documentedDomains[$currentDomain] = @{
+                        Count     = [int]$Matches[2]
+                        Functions = @()
+                    }
+                }
+                elseif ($currentDomain -and $line -match '^\s{6}([A-Za-z][\w-]+)$') {
+                    $documentedDomains[$currentDomain].Functions += $Matches[1]
+                }
+            }
+
+            $publicRoot = Join-Path -Path $script:modulePath -ChildPath 'Public'
+            $actualDomains = @(Get-ChildItem -Path $publicRoot -Directory | Select-Object -ExpandProperty Name)
+
+            (@($documentedDomains.Keys | Sort-Object) -join "`n") |
+                Should -Be ((@($actualDomains | Sort-Object)) -join "`n")
+
+            foreach ($domain in $actualDomains) {
+                $actualFunctions = @(
+                    Get-ChildItem -Path (Join-Path -Path $publicRoot -ChildPath $domain) -Filter '*.ps1' -File |
+                        Select-Object -ExpandProperty BaseName |
+                        Sort-Object
+                )
+                $documentedFunctions = @($documentedDomains[$domain].Functions | Sort-Object)
+
+                $documentedDomains[$domain].Count | Should -Be $actualFunctions.Count
+                ($documentedFunctions -join "`n") | Should -Be ($actualFunctions -join "`n")
+            }
+        }
     }
 }

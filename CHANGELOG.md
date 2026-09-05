@@ -8,4 +8,5 @@
 
 ### Fixed
 
+- Synchronized the documented public-function inventories and counts in `about_PSWinOps.help.txt`.
 - Added default format views for Windows Update result objects.
