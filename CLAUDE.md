@@ -35,9 +35,9 @@ en-US/about_PSWinOps.help.txt   Conceptual help topic — keep in sync (Rule 14)
 output/PSWinOps/        Build artifact (assembled module), git-ignored
 ```
 
-Public domains: `activedirectory`, `healthcheck`, `iis`, `network`, `ntp`, `proxy`,
-`rdp`, `system`, `utils`, `vss`, `windowsupdate`. New domain → new folder under both
-`Public/` and `Tests/Public/`.
+Public domains: `activedirectory`, `certificate`, `eventlog`, `healthcheck`, `iis`, `network`,
+`ntp`, `proxy`, `rdp`, `security`, `system`, `utils`, `vss`, `windowsupdate`. New domain → new
+folder under both `Public/` and `Tests/Public/`.
 
 ## Coding rules (1–14)
 
@@ -312,44 +312,8 @@ its `<View>` in `PSWinOps.Format.ps1xml`. This table is the reference list; keep
 
 | Function | PSTypeName | View |
 |---|---|---|
-| Get-RdpSession | PSWinOps.ActiveRdpSession | Table |
-| Get-RdpSessionHistory | PSWinOps.RdpSessionHistory | Table |
-| Get-RdpSessionLock | PSWinOps.RdpSessionLock | Table |
-| Get-NTPConfiguration | PSWinOps.NtpConfiguration | List |
-| Get-NTPPeer | PSWinOps.NtpPeer | Table |
-| Get-NTPSyncStatus | PSWinOps.NtpSyncResult | List |
-| Sync-NTPTime | PSWinOps.NtpResyncResult | List |
-| Get-SystemSummary | PSWinOps.SystemSummary | List |
-| Get-ComputerUptime | PSWinOps.ComputerUptime | Table |
-| Get-DiskSpace | PSWinOps.DiskSpace | Table |
-| Get-EnvironmentVariable | PSWinOps.EnvironmentVariable | Table |
-| Get-InstalledSoftware | PSWinOps.InstalledSoftware | Table |
-| Get-PageFileConfiguration | PSWinOps.PageFileConfiguration | Table |
-| Get-PendingReboot | PSWinOps.PendingReboot | List |
-| Get-ScheduledTaskDetail | PSWinOps.ScheduledTaskDetail | Table |
-| Get-ScheduledTaskFailure | PSWinOps.ScheduledTaskFailure | Table |
-| Get-StartupProgram | PSWinOps.StartupProgram | Table |
-| Set-PageFile | PSWinOps.PageFileConfiguration | List |
-| Clear-Arp | PSWinOps.ArpEntry | Table |
-| Get-ARPTable | PSWinOps.ArpEntry | Table |
-| Get-ListeningPort | PSWinOps.ListeningPort | Table |
-| Get-NetworkAdapter | PSWinOps.NetworkAdapterInfo | Table |
-| Get-NetworkCIDR | PSWinOps.NetworkCIDR | Table |
-| Get-NetworkConnection | PSWinOps.NetworkConnection | Table |
-| Get-NetworkRoute | PSWinOps.NetworkRoute | Table |
-| Get-NetworkStatistic | PSWinOps.NetworkStatistic | Table |
-| Get-PublicIPAddress | PSWinOps.PublicIPAddress | List |
-| Get-SSLCertificate | PSWinOps.SSLCertificate | List |
-| Get-SubnetInfo | PSWinOps.SubnetInfo | List |
-| Export-NetworkConfig | PSWinOps.NetworkConfig | List |
-| Measure-NetworkLatency | PSWinOps.NetworkLatency | Table |
-| Resolve-MACVendor | PSWinOps.MACVendor | Table |
-| Test-DNSResolution | PSWinOps.DnsResolution | Table |
-| Test-PortConnectivity | PSWinOps.PortConnectivity | Table |
-| Test-WinRM | PSWinOps.WinRMTestResult | Table |
-| Trace-NetworkRoute | PSWinOps.TraceRouteHop | Table |
-| Get-ProxyConfiguration | PSWinOps.ProxyConfiguration | List |
-| Test-ProxyConnection | PSWinOps.ProxyTestResult | Table |
+| Disable-ADUserAccount | PSWinOps.ADAccountDisableResult | Table |
+| Enable-ADUserAccount | PSWinOps.ADAccountEnableResult | Table |
 | Get-ADComputerDetail | PSWinOps.ADComputerDetail | List |
 | Get-ADComputerInventory | PSWinOps.ADComputerInventory | Table |
 | Get-ADDomainInfo | PSWinOps.ADDomainInfo | List |
@@ -367,38 +331,123 @@ its `<View>` in `PSWinOps.Format.ps1xml`. This table is the reference list; keep
 | Get-ADUserGroupInventory | PSWinOps.ADUserGroupInventory | Table |
 | Get-ADUserInventory | PSWinOps.ADUserInventory | Table |
 | Invoke-ADSecurityAudit | PSWinOps.ADSecurityFinding | Table |
-| Search-ADObject | PSWinOps.ADSearchResult | Table |
-| Disable-ADUserAccount | PSWinOps.ADAccountDisableResult | Table |
-| Enable-ADUserAccount | PSWinOps.ADAccountEnableResult | Table |
 | Reset-ADUserPassword | PSWinOps.ADPasswordResetResult | Table |
+| Search-ADObject | PSWinOps.ADSearchResult | Table |
 | Unlock-ADUserAccount | PSWinOps.ADAccountUnlockResult | Table |
+| Get-ExpiringCertificate | PSWinOps.ExpiringCertificate | Table |
+| Get-ADLockoutSource | PSWinOps.ADLockoutSource | Table |
+| Get-DiskErrorEvent | PSWinOps.DiskErrorEvent | Table |
+| Get-LogonFailure | PSWinOps.LogonFailure | Table |
+| Get-ProcessCrashEvent | PSWinOps.ProcessCrashEvent | Table |
+| Get-SchannelError | PSWinOps.SchannelError | Table |
+| Get-ScheduledTaskFailure | PSWinOps.ScheduledTaskFailure | Table |
+| Get-ServiceCrashEvent | PSWinOps.ServiceCrashEvent | Table |
+| Get-UnexpectedShutdown | PSWinOps.UnexpectedShutdown | Table |
+| Get-WindowsUpdateFailure | PSWinOps.WindowsUpdateFailure | Table |
 | Get-AdDomainControllerHealth | PSWinOps.AdDomainControllerHealth | List |
 | Get-ADFSHealth | PSWinOps.ADFSHealth | List |
 | Get-CertificateAuthorityHealth | PSWinOps.CertificateAuthorityHealth | List |
 | Get-ClusterHealth | PSWinOps.ClusterHealth | List |
-| Get-DfsNamespaceHealth | PSWinOps.DfsNamespaceHealth | List |
-| Get-DfsReplicationHealth | PSWinOps.DfsReplicationHealth | List |
-| Get-DhcpServerHealth | PSWinOps.DhcpServerHealth | List |
+| Get-DfsNamespaceHealth | PSWinOps.DfsNamespaceHealth | Table |
+| Get-DfsReplicationHealth | PSWinOps.DfsReplicationHealth | Table |
+| Get-DhcpServerHealth | PSWinOps.DhcpServerHealth | Table |
 | Get-DnsServerHealth | PSWinOps.DnsServerHealth | List |
 | Get-ExchangeServerHealth | PSWinOps.ExchangeServerHealth | List |
 | Get-FileServerHealth | PSWinOps.FileServerHealth | List |
 | Get-HyperVHostHealth | PSWinOps.HyperVHostHealth | List |
-| Get-IISHealth | PSWinOps.IISHealth | List |
+| Get-IISHealth | PSWinOps.IISHealth | Table |
 | Get-PrintServerHealth | PSWinOps.PrintServerHealth | List |
 | Get-RDSHealth | PSWinOps.RDSHealth | List |
-| Get-ServiceHealth | PSWinOps.ServiceHealth | List |
+| Get-ServiceHealth | PSWinOps.ServiceHealth | Table |
 | Get-WSUSHealth | PSWinOps.WSUSHealth | List |
+| Get-IISAppPoolHistory | PSWinOps.IISAppPoolHistoryEvent | Table |
+| Get-IISCertificateBinding | PSWinOps.IISCertificateBinding | Table |
+| Get-IISCurrentRequest | PSWinOps.IISCurrentRequest | Table |
+| Get-IISFailedRequestTrace | PSWinOps.IISFailedRequestTrace | Table |
+| Get-IISParsedLog | PSWinOps.IISLogEntry | Table |
+| Get-IISWorkerProcess | PSWinOps.IISWorkerProcess | Table |
+| Set-IISBindingCertificate | PSWinOps.IISBindingCertificateResult | Table |
+| Test-IISBindingCertificate | PSWinOps.IISCertificateBindingTestResult | Table |
+| Watch-IISLog | PSWinOps.IISLogEntry | Table |
+| Clear-Arp | PSWinOps.ActionResult | Table |
+| Edit-HostsFile | PSWinOps.ActionResult | Table |
+| Export-NetworkConfig | PSWinOps.NetworkConfig | List |
+| Get-ARPTable | PSWinOps.ArpEntry | Table |
+| Get-ListeningPort | PSWinOps.ListeningPort | Table |
+| Get-NetworkAdapter | PSWinOps.NetworkAdapterInfo | Table |
+| Get-NetworkCIDR | PSWinOps.NetworkCIDR | Table |
+| Get-NetworkConnection | PSWinOps.NetworkConnection | Table |
+| Get-NetworkRoute | PSWinOps.NetworkRoute | Table |
+| Get-NetworkStatistic | PSWinOps.NetworkStatistic | Table |
+| Get-ProcessByPort | PSWinOps.ProcessPort | Table |
+| Get-PublicIPAddress | PSWinOps.PublicIPAddress | Table |
+| Get-SSLCertificate | PSWinOps.SSLCertificate | Table |
+| Get-SubnetInfo | PSWinOps.SubnetInfo | List |
+| Measure-NetworkLatency | PSWinOps.NetworkLatency | Table |
+| New-NetworkRoute | PSWinOps.NetworkRoute | Table |
+| Remove-NetworkRoute | PSWinOps.ActionResult | Table |
+| Reset-NetworkStack | PSWinOps.NetworkStackResetResult | List |
+| Resolve-MACVendor | PSWinOps.MACVendor | Table |
+| Set-NetworkRoute | PSWinOps.NetworkRoute | Table |
+| Test-DNSResolution | PSWinOps.DnsResolution | Table |
+| Test-PortConnectivity | PSWinOps.PortConnectivity | Table |
+| Test-WinRM | PSWinOps.WinRMTestResult | Table |
+| Trace-NetworkRoute | PSWinOps.TraceRouteHop | Table |
+| Get-NTPConfiguration | PSWinOps.NtpConfiguration | List |
+| Get-NTPPeer | PSWinOps.NtpPeer | Table |
+| Get-NTPSyncStatus | PSWinOps.NtpSyncResult | Table |
+| Set-NTPClient | PSWinOps.ActionResult | Table |
+| Sync-NTPTime | PSWinOps.NtpResyncResult | Table |
+| Get-ProxyConfiguration | PSWinOps.ProxyConfiguration | List |
+| Remove-ProxyConfiguration | PSWinOps.ActionResult | Table |
+| Set-ProxyConfiguration | PSWinOps.ActionResult | Table |
+| Test-ProxyConnection | PSWinOps.ProxyTestResult | Table |
+| Get-RdpSession | PSWinOps.ActiveRdpSession | Table |
+| Get-RdpSessionHistory | PSWinOps.RdpSessionHistory | Table |
+| Get-RdpSessionLock | PSWinOps.RdpSessionLock | Table |
+| Get-AuditPolicy | PSWinOps.AuditPolicy | Table |
+| Clear-DiskCleanup | PSWinOps.DiskCleanupResult | Table |
+| Get-ComputerUptime | PSWinOps.ComputerUptime | Table |
+| Get-CrashDump | PSWinOps.CrashDump | Table |
+| Get-DiskCleanupInfo | PSWinOps.DiskCleanupInfo | Table |
+| Get-DiskSpace | PSWinOps.DiskSpace | Table |
+| Get-DriverInventory | PSWinOps.DriverInventory | Table |
+| Get-EnvironmentVariable | PSWinOps.EnvironmentVariable | Table |
+| Get-InstalledSoftware | PSWinOps.InstalledSoftware | Table |
+| Get-PageFileConfiguration | PSWinOps.PageFileConfiguration | Table |
+| Get-PendingReboot | PSWinOps.PendingReboot | List |
+| Get-RebootHistory | PSWinOps.RebootHistory | Table |
+| Get-ScheduledTaskDetail | PSWinOps.ScheduledTaskDetail | Table |
+| Get-ServiceAccount | PSWinOps.ServiceAccount | Table |
+| Get-StartupProgram | PSWinOps.StartupProgram | Table |
+| Get-SystemSummary | PSWinOps.SystemSummary | List |
+| Remove-UserProfile | PSWinOps.UserProfileRemoval | Table |
+| Set-EnvironmentVariable | PSWinOps.EnvironmentVariable | Table |
+| Set-PageFile | PSWinOps.PageFileConfiguration | List |
+| Stop-ProcessTree | PSWinOps.ProcessKillResult | Table |
+| Get-ShadowCopy | PSWinOps.ShadowCopy | Table |
+| Get-ShadowCopyStorage | PSWinOps.ShadowCopyStorage | Table |
+| New-ShadowCopy | PSWinOps.ShadowCopyResult | List |
+| Remove-ShadowCopy | PSWinOps.ShadowCopyRemoveResult | Table |
+| Restore-ShadowCopyFile | PSWinOps.ShadowCopyRestoreResult | Table |
+| Set-ShadowCopyStorage | PSWinOps.ShadowCopyStorageResult | List |
+| Clear-WindowsUpdateCache | PSWinOps.WindowsUpdateCacheResult | Table |
+| Get-WindowsUpdate | PSWinOps.WindowsUpdate | Table |
+| Get-WindowsUpdateConfiguration | PSWinOps.WindowsUpdateConfiguration | List |
+| Get-WindowsUpdateHistory | PSWinOps.WindowsUpdateHistory | Table |
+| Hide-WindowsUpdate | PSWinOps.WindowsUpdateHideResult | Table |
+| Install-WindowsUpdate | PSWinOps.WindowsUpdateInstallResult | Table |
+| Reset-WindowsUpdateComponent | PSWinOps.WindowsUpdateResetResult | List |
+| Save-WindowsUpdate | PSWinOps.WindowsUpdateDownloadResult | Table |
+| Show-WindowsUpdate | PSWinOps.WindowsUpdateShowResult | Table |
+| Uninstall-WindowsUpdate | PSWinOps.WindowsUpdateUninstallResult | Table |
 
 **Exempted — return a plain string, no PSTypeName:** `New-RandomPassword`,
-`ConvertFrom-MisencodedString`.
+`ConvertFrom-MisencodedString`, `ConvertTo-Markdown`, `Remove-StringDiacritic`.
 **Exempted — RDP action functions return `PSWinOps.RdpSessionAction`:** `Connect-RdpSession`,
 `Disconnect-RdpSession`, `Remove-RdpSession`.
 **Exempted — interactive monitors, no structured return:** `Show-PingMonitor`,
 `Show-NetworkStatisticMonitor`, `Show-SystemMonitor`.
-
-> The `iis`, `vss`, and `windowsupdate` domains were added after this registry was first
-> compiled — read each function's source `[PSCustomObject]` and its `PSWinOps.Format.ps1xml`
-> `<View>` for their authoritative `PSTypeName` values, and add them here when you touch them.
 
 ## Optional dependencies
 
