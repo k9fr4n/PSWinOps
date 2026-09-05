@@ -341,7 +341,7 @@ REMOTE EXECUTION PATTERN
     in the pipeline continue to be processed.
 
 PSWINOPS TYPE REGISTRY
-    The following 107 PSTypeName values are defined by the
+    The following 119 PSTypeName values are defined by the
     module. Each corresponds to the output of one or more
     public functions.
 
@@ -452,10 +452,16 @@ PSWINOPS TYPE REGISTRY
       PSWinOps.UnexpectedShutdown
       PSWinOps.UserProfileRemoval
       PSWinOps.WindowsUpdate
+      PSWinOps.WindowsUpdateCacheResult
       PSWinOps.WindowsUpdateConfiguration
+      PSWinOps.WindowsUpdateDownloadResult
       PSWinOps.WindowsUpdateFailure
+      PSWinOps.WindowsUpdateHideResult
       PSWinOps.WindowsUpdateHistory
+      PSWinOps.WindowsUpdateInstallResult
       PSWinOps.WindowsUpdateResetResult
+      PSWinOps.WindowsUpdateShowResult
+      PSWinOps.WindowsUpdateUninstallResult
       PSWinOps.WinRMTestResult
       PSWinOps.WSUSHealth
 
