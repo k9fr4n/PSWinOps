@@ -33,7 +33,7 @@ LONG DESCRIPTION
 FUNCTION DOMAINS
     PSWinOps organizes its functions into fourteen domains.
 
-  activedirectory (21 functions)
+  activedirectory (22 functions)
     Functions for Active Directory inventory, user and
     computer management, group membership analysis,
     replication monitoring, and security auditing.
@@ -218,15 +218,21 @@ FUNCTION DOMAINS
       Show-SystemMonitor
       Stop-ProcessTree
 
-  windowsupdate (4 functions)
+  windowsupdate (10 functions)
     Functions for querying and managing Windows Update
     on local or remote machines via the COM API and
     registry.
 
+      Clear-WindowsUpdateCache
       Get-WindowsUpdate
       Get-WindowsUpdateConfiguration
       Get-WindowsUpdateHistory
+      Hide-WindowsUpdate
+      Install-WindowsUpdate
       Reset-WindowsUpdateComponent
+      Save-WindowsUpdate
+      Show-WindowsUpdate
+      Uninstall-WindowsUpdate
 
   utils (4 functions)
     Pure utility functions that do not follow the standard
