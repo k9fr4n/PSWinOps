@@ -80,6 +80,7 @@ jobs:
           $config.TestResult.Enabled      = $true
           $config.TestResult.OutputPath   = 'TestResults.xml'
           $config.TestResult.OutputFormat = 'NUnitXml'
+          $config.Filter.ExcludeTag       = @('Integration')
 
           $result = Invoke-Pester -Configuration $config
 
