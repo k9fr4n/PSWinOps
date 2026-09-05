@@ -1,174 +1,288 @@
 # Changelog
 
-## [Unreleased]
+All notable changes to PSWinOps are documented in this file. Versions follow
+[Semantic Versioning](https://semver.org/). Dates are UTC.
 
-### Fixed
+> **Note on history**: only `0.0.1` through `0.0.23` were ever published to the
+> PowerShell Gallery. Work merged to `main` after `0.0.23` (2026-05-21) was never
+> released as `0.0.24`/`0.1.x`/`0.12.x` — those version numbers never shipped. That
+> accumulated work is released here as `1.0.0`.
 
-- Synchronized `CLAUDE.md` domain list and `PSTypeName` registry with the current `Public/` structure and `PSWinOps.Format.ps1xml` views.
-- Synchronized the documented public-function inventories and counts in `about_PSWinOps.help.txt`.
-- Completed the `PSTypeName` registry in `about_PSWinOps.help.txt` and corrected its count to 119.
-- Added default format views for Windows Update result objects.
-- Excluded `Integration`-tagged tests from the release publication workflow.
-- Standardized action-function output with typed `PSWinOps.ActionResult` objects for status, target, errors, and timestamps.
+## [1.0.0] - Unreleased
 
-## 0.12.0 - 2026-09-04 UTC
+First stable release. Consolidates everything merged to `main` since `0.0.23`
+(2026-05-21), none of which was previously published to the PowerShell Gallery.
+
 ### Added
-- ConvertTo-Markdown: Convert PowerShell objects to deterministic GitHub-Flavored Markdown tables with stable column and row ordering
-- Get-ADLockoutSource: Trace the source machine of an AD account lockout via event 4740 on the PDC Emulator
-- Get-DiskErrorEvent: Classify and aggregate Disk, Ntfs, storahci, and storport storage errors from the System log
-- Get-ProcessCrashEvent: Correlate Application Error, Windows Error Reporting, and optional Application Hang events with per-process counts
-- Get-SchannelError: Normalize Schannel TLS, certificate, and negotiation failures from the System log
-- Get-ScheduledTaskFailure: Report Task Scheduler task-start and action failures with XML field extraction and per-task counts
-- Get-WindowsUpdateFailure: Report Windows Update failures, restart requirements, and optional successful installations from the System log
 
-## 0.11.0 - 2026-09-04 UTC
-### Added
-- Get-ExpiringCertificate: Find local-store certificates expiring within a threshold of days
+- **New `eventlog` domain**: `Get-UnexpectedShutdown`, `Get-LogonFailure`,
+  `Get-ServiceCrashEvent`, `Get-ProcessCrashEvent`, `Get-DiskErrorEvent`,
+  `Get-ScheduledTaskFailure`, `Get-WindowsUpdateFailure`, `Get-SchannelError`
+  (#63, #81, #83, #88, #89, #90, #91, #92).
+- **New `security` domain**: `Get-AuditPolicy` — advanced audit policy subcategories
+  via `auditpol.exe` (#76).
+- **New `certificate` domain**: `Get-ExpiringCertificate` — local-store certificates
+  expiring within a threshold (#85).
+- **`activedirectory`**: `Get-ADLockoutSource` — traces account lockouts to their
+  source machine via event 4740 on the PDC Emulator (#87).
+- **`system`**: `Get-RebootHistory` (reboot/shutdown reconstruction from event log)
+  (#61), `Get-CrashDump` (crash dump inventory) (#75), `Get-DriverInventory`
+  (signed-driver inventory) (#84).
+- **`network`**: `Reset-NetworkStack` (Winsock/TCP-IP/DNS/ARP reset) (#77),
+  `Get-ProcessByPort` (TCP/UDP endpoint-to-process correlation) (#78).
+- **`system`**: `Set-EnvironmentVariable` (#79), `Stop-ProcessTree` (#80),
+  `Get-ServiceAccount` (service logon account audit) (#82).
+- **`windowsupdate`**: `Reset-WindowsUpdateComponent` — resets the Windows Update
+  service stack, with `-IncludeNetworkReset` (#62).
+- **`utils`**: `ConvertTo-Markdown` — deterministic GitHub-Flavored Markdown table
+  export (#100).
 
-## 0.10.0 - 2026-08-11 UTC
-### Added
-- Get-DriverInventory: Structured signed-driver inventory via Win32_PnPSignedDriver, filterable by class or unsigned-only, local or remote
-
-## 0.9.1 - 2026-07-06 UTC
-### Added
-- Get-ServiceCrashEvent: Aggregate Service Control Manager crash events per service with counts and exit codes
-
-## 0.9.0 - 2026-07-06 UTC
-### Added
-- Get-ServiceAccount: Audit service logon accounts across local or remote computers
-
-## 0.8.0 - 2026-07-06 UTC
-### Added
-- Get-LogonFailure: Aggregate and decode Windows Security 4625 failed-logon events
-
-## 0.7.0 - 2026-07-06 UTC
-### Added
-- Stop-ProcessTree: Terminate a process and its entire descendant tree, leaves first
-
-## 0.6.0 - 2026-07-06 UTC
-### Added
-- Set-EnvironmentVariable: Sets or deletes a Machine- or User-scoped environment variable on local or remote computers
-
-## 0.5.0 - 2026-07-06 UTC
-### Added
-- Get-ProcessByPort: Correlate TCP/UDP endpoints with their owning process details
-
-## 0.4.0 - 2026-07-06 UTC
-### Added
-- Reset-NetworkStack: Reset the Windows network stack (winsock, TCP/IP, DNS cache, ARP)
-
-## 0.3.0 - 2026-07-05 UTC
-### Added
-- Get-AuditPolicy: Report advanced audit policy subcategory settings from auditpol.exe
-
-## 0.2.1 - 2026-07-05 UTC
-### Added
-- Get-CrashDump: Inventory Windows crash memory dumps with size, type and BugCheck code
-
-## 0.2.0 - 2026-07-05 UTC
-### Added
-- Get-UnexpectedShutdown: Reports shutdown and restart events with cause, expectedness and initiator
-
-## 0.1.0 - 2026-06-24
-### Added
-- feat(windowsupdate): add Reset-WindowsUpdateComponent — resets the Windows Update service stack to a clean state (stop BITS/wuauserv/appidsvc/cryptsvc, delete qmgr*.dat, back up SoftwareDistribution & Catroot2, reset BITS/wuauserv SDDL, reregister Windows Update DLLs, restart services, trigger detection with usoclient fallback); optional -IncludeNetworkReset resets Winsock/WinHTTP (requires reboot, may drop remote sessions); SupportsShouldProcess (ConfirmImpact=High), Test-IsAdministrator guard, remote execution via Invoke-RemoteOrLocal; returns PSWinOps.WindowsUpdateResetResult.
-
-## 0.0.24 - 2026-06-24
-### Added
-- feat(system): add Get-RebootHistory — correlates Windows System event log entries (1074, 1076, 6005, 6006, 6008, Kernel-Power 41) to reconstruct reboot/shutdown history per computer; classifies each event as Planned/Unexpected/Crash/PowerLoss/Unknown with DowntimeMinutes, Cause, Initiator, Comment; -MaxEvents, -After, -Before filters; remote execution via Invoke-RemoteOrLocal (#59).
-
-## 0.0.23 - 2026-05-21
-### Added
-- feat(iis): introduce new public domain Public/iis/ (registered in CI matrix and about_PSWinOps).
-- feat(iis): add Set-IISBindingCertificate — replace SSL/TLS certificate on IIS HTTPS bindings with idempotent rotation, -WhatIf/-Confirm (ConfirmImpact=High), remote execution via WinRM, pipeline-by-property-name from Get-SSLCertificate / Get-IISHealth (#47).
-- feat(iis): add Get-IISParsedLog — stream-parse IIS W3C log files into typed PSWinOps.IISLogEntry objects; header re-detection, dash-normalisation, UserAgent "+"-to-space decoding; -After/-Before window, -Method/-Status/-ClientIP multi-value OR filters, -UriLike wildcard, -Tail circular buffer, pipeline-by-property-name FullName (#49).
-- feat(iis): add Get-IISWorkerProcess — inventory IIS w3wp.exe processes joined with AppPoolName, Sites/Applications, identity, PID, uptime, CPU, working/private/virtual memory, thread/handle counts; WebAdministration → IISAdministration → appcmd/CIM fallback; -AppPoolName/-ProcessId filters; Status enum (Running/Orphaned/Failed/IISNotInstalled/NoWorkerProcess) (#50).
-- feat(iis): add Get-IISCurrentRequest — list HTTP requests currently executing in IIS (typed equivalent of `appcmd list requests`) with ComputerName, ProcessId, AppPoolName, SiteName, Url, Verb, ClientIPAddress, TimeElapsed/TimeElapsedMs, PipelineState; -AppPoolName/-SiteName wildcards and -MinElapsedMs threshold (#51).
-- feat(iis): add Watch-IISLog — real-time IIS W3C log tailer emitting typed PSWinOps.IISLogEntry objects; FileShare.ReadWrite|Delete; -InitialLines, -FollowRollover, -PollIntervalMs, -Duration, -MaxEntries; in-stream filters -Method/-Status/-UriLike/-ClientIP/-MinStatus (#52).
-- feat(iis): add Get-IISFailedRequestTrace — parse FREB fr######.xml files into typed PSWinOps.IISFailedRequestTrace objects; auto-resolves FREB folder per site; surfaces URL/verb/statusCode/subStatus/timeTaken/appPool/worker PID/failureReason plus first ERROR/WARNING event; -After/-Before/-StatusCode/-FailureReason filters, -Tail, -IncludeEvents (#53).
-- feat(iis): add Get-IISCertificateBinding — read-only inventory of IIS HTTPS bindings joined to their presented X509 certificate; SiteName, BindingInformation, Protocol, SslFlags (SNI/CCS), Thumbprint, Subject, SAN, Issuer, NotBefore/NotAfter, DaysUntilExpiration, Expired, CertificateStore, HasPrivateKey; -SiteName/-HostHeader/-Thumbprint/-Port filters, -ExpiringInDays, -IncludeExpired (#54).
-- feat(iis): add Test-IISBindingCertificate — read-only auditor running six independent checks per binding (expiration vs Warning/Critical thresholds, X509Chain.Build, hostname/SAN match, HasPrivateKey, signature/key-algorithm strength, CertStoreName alignment); emits PSWinOps.IISCertificateBindingTestResult with OverallStatus and Findings array; -WarningDays/-CriticalDays, -SkipChainValidation, -IncludeRevocationCheck (#55).
-- feat(iis): add Get-IISAppPoolHistory — reconstructs app pool lifecycle (recycles, rapid-fail shutdowns, crashes, start/stop, identity changes, orphaned workers) by mining System (Microsoft-Windows-WAS), Application (W3SVC-WP) and optionally IIS-W3SVC-WP/Operational event logs; classifies events via a 16-entry EventId map into typed PSWinOps.IISAppPoolHistoryEvent rows with AppPoolName, WorkerPid, normalised ReasonCode, UTC/local timestamps; server-side -After/-Before/-EventId, client-side -AppPoolName wildcard, -Tail, -IncludeOperationalLog (#56).
-- feat(format): TableControl views for all new typed outputs in PSWinOps.Format.ps1xml.
 ### Changed
-- refactor: automated remediation chain — quality, testability & monitor extraction (ITER 1-8).
+
+- Standardized action-function output on a typed `PSWinOps.ActionResult` shape
+  (status, target, errors, timestamp) across `Clear-Arp`, `Edit-HostsFile`,
+  `Remove-NetworkRoute`, `Set-NTPClient`, `Remove-ProxyConfiguration`,
+  `Set-ProxyConfiguration`, `Clear-WindowsUpdateCache` (#108).
+- `Remove-UserProfile` now reconciles registry profile entries against actual
+  `C:\Users` folders instead of trusting the registry alone (#58).
+
 ### Fixed
-- fix(tests): import PSWinOps.psd1 explicitly in Set-NTPClient.Tests.
 
-## 0.0.17 - 2026-04-02
-- refactor: Invoke-RemoteOrLocal rewrite (#30)
-- refactor: move OverallHealth computation to process{} block (#31)
-- fix: misc cleanup — synopsis, #Requires, module-scoped local names (#32)
-- feat: add about_PSWinOps help file and PSWinOpsHealthStatus enum (#33)
-- feat: add Get-ExchangeServerHealth healthcheck function (#34)
-- fix: replace Clear-Host with Console.SetCursorPosition (#35)
-- fix/docs: audit coherence documentation (#36)
-- docs: fix documentation audit findings - Axis 1 (#37)
-- fix: coherence Axis 2 (#38)
+- Excluded `Integration`-tagged Pester tests from the Gallery publish workflow
+  (#106).
+- Added missing `PSWinOps.Format.ps1xml` default views for the new Windows Update
+  result types (#101).
 
-## 0.0.16 - 2026-03-31
-- feat(format): add TableControl default views for all typed outputs (#29)
+### Documentation
 
-## 0.0.15 - 2026-03-31
-- fix: miscellaneous fixes (#25)
-- fix(ntp): NTP function fixes (#27)
-- feat: new functions and expanded test coverage (#28)
+- Synced the public-function inventories and counts in `about_PSWinOps.help.txt`
+  with the current `Public/` tree (#102).
+- Completed the `PSTypeName` registry in `about_PSWinOps.help.txt` (#103).
+- Synced `CLAUDE.md` domain list and `PSTypeName` registry with the current
+  codebase (#109).
 
-## 0.0.14 - 2026-03-26
-- fix: miscellaneous fixes (#25)
+## [0.0.23] - 2026-05-21
 
-## 0.0.13 - 2026-03-25
-- refactor: rename folder structure (#19)
-- feat(tests): new Pester tests (#20)
-- perf: optimization pass (#22)
-- feat: general improvements (#23)
-- refactor: coherence pass (#24)
+### Added
 
-## 0.0.12 - 2026-03-24
-- refactor: rename folder structure (#19)
-- feat(tests): new Pester tests (#20)
-- perf: optimization pass (#22)
+- **New `iis` domain**, registered in CI and `about_PSWinOps`:
+  - `Set-IISBindingCertificate` — idempotent HTTPS binding certificate rotation,
+    `-WhatIf`/`-Confirm` (#47).
+  - `Get-IISParsedLog` — typed streaming parser for IIS W3C log files (#49).
+  - `Get-IISWorkerProcess` — `w3wp.exe` inventory joined with app pool/site data
+    (#50).
+  - `Get-IISCurrentRequest` — currently executing HTTP requests (#51).
+  - `Watch-IISLog` — real-time IIS log tailer (#52).
+  - `Get-IISFailedRequestTrace` — FREB trace file parser (#53).
+  - `Get-IISCertificateBinding` — HTTPS binding-to-certificate inventory (#54).
+  - `Test-IISBindingCertificate` — six-check binding certificate auditor (#55).
+  - `Get-IISAppPoolHistory` — app pool lifecycle reconstruction from event logs
+    (#56).
 
-## 0.0.11 - 2026-03-24
-- refactor: rename folder structure (#19)
+### Changed
 
-## 0.0.10 - 2026-03-23
-- perf: optimization pass (#15)
-- feat(proxy): add Get-ProxyConfiguration (#16)
-- feat: general improvements (#17)
-- feat: first audit commit (#18)
+- Automated remediation pass: code quality, testability, and monitor-function
+  extraction across the module (#48).
 
-## 0.0.9 - 2026-03-23
-- perf: optimization pass (#15)
+## [0.0.22] - 2026-04-11
 
-## 0.0.8 - 2026-03-22
-- fix: minor fixes (#14)
+### Changed
 
-## 0.0.7 - 2026-03-22
-- fix: remove useless property (#8)
-- feat(system): add Get-ComputerUptime (#9)
-- feat(system): add Get-SystemSummary (#10)
-- feat: general improvements (#11)
-- feat(system): add Get-PendingReboot (#12)
-- feat: PSTypeName on all outputs (#13)
+- General improvements across existing functions (#44).
 
-## 0.0.6 - 2026-03-21
-- fix: remove useless property (#8)
-- feat(system): add Get-ComputerUptime (#9)
+## [0.0.21] - 2026-04-10
 
-## 0.0.5 - 2026-03-21
-- Minor improvements
+### Fixed
 
-## 0.0.4 - 2026-03-20
-- fix: fixed function (#5)
-- fix(rdp): fixed sessions functions (#6)
-- feat(ntp): add Test-NTPSync (#7)
+- `Set-PageFile`: fixed a "Generic failure" error (#43).
 
-## 0.0.3 - 2026-03-20
-- Minor improvements
+## [0.0.20] - 2026-04-08
 
-## 0.0.2 - 2026-03-19
-- feat(ci): new CI pipeline (#1)
-- feat(utils): add ConvertFrom-MisencodedString (#2)
-- feat(rdp): add Get-RdpSessionHistory (#3)
-- feat(rdp): add sessions functions (#4)
+### Added
+
+- **New `windowsupdate` domain** with its first functions (#42).
+- General improvements across existing functions (#41).
+
+## [0.0.19] - 2026-04-06
+
+### Changed
+
+- `Get-ADPasswordStatus` rewritten with Fine-Grained Password Policy (FGPP)
+  support (#40).
+
+### Fixed
+
+- Corrected `.gitattributes` line-ending handling (`eol=crlf` → `text auto`).
+
+## [0.0.18] - 2026-04-04
+
+### Added
+
+- **New `activedirectory` domain**: 9 AD functions with tests and format views
+  (#39).
+
+### Fixed
+
+- `Get-ClusterHealth`: PowerShell 7 compatibility (quorum resource resolution,
+  `WinPSCompatSession` warning, string normalization) and exclusion of system
+  groups from health scoring.
+- `Get-DnsServerHealth`: use `127.0.0.1` instead of `localhost` for
+  self-resolution; removed `-DnsOnly` from the self-resolution test.
+- `Get-CertificateAuthorityHealth`: unknown certificate expiry now reports
+  `Degraded` instead of `Healthy`; falls back to the certificate store when
+  `certutil` has no expiry data.
+- `Get-WSUSHealth`: use a proportional error rate instead of an absolute count.
+
+## [0.0.17] - 2026-04-02
+
+### Added
+
+- **New healthcheck functions**, including `Get-ExchangeServerHealth` (#34), and
+  the `PSWinOpsHealthStatus` enum plus the `about_PSWinOps` help topic (#33).
+
+### Changed
+
+- `Invoke-RemoteOrLocal` rewritten (#30).
+- `OverallHealth` computation moved into the `process {}` block for health-check
+  functions (#31).
+
+### Fixed
+
+- Miscellaneous cleanup: synopsis text, `#Requires` statements, module-scoped
+  local names (#32).
+- Replaced `Clear-Host` with `Console.SetCursorPosition` in monitor functions to
+  eliminate terminal flicker (#35).
+- Documentation coherence pass across two audit axes (#36, #37, #38).
+
+## [0.0.16] - 2026-03-31
+
+### Added
+
+- Default `TableControl` format views for all typed outputs (#29).
+
+## [0.0.15] - 2026-03-31
+
+### Added
+
+- New functions with expanded test coverage (#28).
+
+### Fixed
+
+- NTP function fixes (#27).
+
+## [0.0.14] - 2026-03-26
+
+### Fixed
+
+- Miscellaneous fixes (#25).
+
+## [0.0.13] - 2026-03-26
+
+### Changed
+
+- General improvements (#23) and a coherence pass across the module (#24).
+
+## [0.0.12] - 2026-03-23
+
+### Added
+
+- `Get-NetworkStatistic`, `Get-NetworkConnection`.
+
+### Changed
+
+- Optimization pass (#22); expanded Pester test coverage (#20).
+
+## [0.0.11] - 2026-03-22
+
+### Changed
+
+- Repository folder structure renamed to the current `Public/<domain>/` layout
+  (#19).
+
+## [0.0.10] - 2026-03-20
+
+### Added
+
+- `Get-ProxyConfiguration` formalized with tests (#16).
+- First documentation/coherence audit pass (#18).
+
+### Changed
+
+- General improvements (#17).
+
+## [0.0.9] - 2026-03-20
+
+### Added
+
+- **New `proxy` domain**: `Get-ProxyConfiguration`, `Set-ProxyConfiguration`,
+  `Remove-ProxyConfiguration`, `Test-ProxyConnection`.
+
+### Changed
+
+- Optimization pass (#15).
+
+## [0.0.8] - 2026-03-18
+
+### Fixed
+
+- Minor fixes (#14).
+
+## [0.0.7] - 2026-03-18
+
+### Added
+
+- `Get-SystemSummary` (#10), `Get-PendingReboot` (#12).
+- `PSTypeName` added to all typed outputs (#13).
+
+### Changed
+
+- General improvements (#11).
+
+## [0.0.6] - 2026-03-16
+
+### Added
+
+- `Get-ComputerUptime` (#9).
+
+### Fixed
+
+- Removed a useless property from session output (#8).
+
+## [0.0.5] - 2026-03-12
+
+### Added
+
+- `Get-NTPPeer`.
+
+## [0.0.4] - 2026-03-12
+
+### Added
+
+- `Get-NTPSyncStatus`, `Sync-NTPTime` (#7).
+
+### Fixed
+
+- Session function fixes (#5, #6).
+
+## [0.0.3] - 2026-03-12
+
+### Fixed
+
+- `Connect-RdpSession` fix.
+
+## [0.0.2] - 2026-03-11
+
+### Added
+
+- CI pipeline (#1).
+- `Get-RandomPassword`.
+- `ConvertFrom-MisencodedString` (#2).
+- **New `sessions` domain** (now `rdp`): `Get-RdpSession`, `Connect-RdpSession`,
+  `Disconnect-RdpSession`, `Remove-RdpSession`, `Get-RdpSessionHistory` (#3, #4).
+
+## [0.0.1] - 2026-02-26
+
+### Added
+
+- Initial release: module scaffolding, manifest, and the first `ntp` functions
+  (`Get-NTPConfiguration`, `Set-NTPClient`).
