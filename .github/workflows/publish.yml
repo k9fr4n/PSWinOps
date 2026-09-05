@@ -67,39 +67,6 @@ jobs:
 
           Write-Output "[OK] Linting passed"
 
-      - name: Run Pester Tests
-        shell: pwsh
-        run: |
-          if (-not (Get-Module -ListAvailable -Name Pester | Where-Object { $_.Version -ge '5.7' })) {
-            Install-Module -Name Pester -MinimumVersion 5.7 -Force -SkipPublisherCheck
-          }
-
-          $config = New-PesterConfiguration
-          $config.Run.Path                = '.\Tests'
-          $config.Output.Verbosity        = 'Normal'
-          $config.TestResult.Enabled      = $true
-          $config.TestResult.OutputPath   = 'TestResults.xml'
-          $config.TestResult.OutputFormat = 'NUnitXml'
-          $config.Filter.ExcludeTag       = @('Integration')
-
-          $result = Invoke-Pester -Configuration $config
-
-          Write-Output "[INFO] $($result.PassedCount) passed, $($result.FailedCount) failed"
-
-          if ($result.FailedCount -gt 0) {
-            throw "[FAIL] $($result.FailedCount) test(s) failed"
-          }
-
-          Write-Output "[OK] All tests passed"
-
-      - name: Upload test results
-        uses: actions/upload-artifact@v4.6.2
-        if: always()
-        with:
-          name: test-results
-          path: TestResults.xml
-          retention-days: 30
-
       - name: Validate Module Manifest
         shell: pwsh
         run: |
@@ -109,10 +76,87 @@ jobs:
           Write-Output "Author : $($result.Author)"
 
   # ─────────────────────────────────────────
-  # JOB 2 — PUBLICATION
+  # JOB 2 — TESTS (parallel matrix by category, mirrors ci.yml)
+  # ─────────────────────────────────────────
+  test:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        suite:
+          - "Private"
+          - "Public/activedirectory"
+          - "Public/certificate"
+          - "Public/healthcheck"
+          - "Public/iis"
+          - "Public/network"
+          - "Public/ntp"
+          - "Public/proxy"
+          - "Public/rdp"
+          - "Public/security"
+          - "Public/system"
+          - "Public/utils"
+          - "Public/vss"
+          - "Public/windowsupdate"
+          - "Public/eventlog"
+
+    steps:
+      - name: Configure git line endings
+        run: git config --global core.autocrlf true
+
+      - uses: actions/checkout@v4.2.2
+
+      - name: Cache PowerShell modules
+        uses: actions/cache@v4.2.3
+        with:
+          path: C:\Users\runneradmin\Documents\PowerShell\Modules
+          key: psmodules-pester5-${{ runner.os }}
+
+      - name: Install Pester
+        shell: pwsh
+        run: |
+          if (-not (Get-Module -ListAvailable -Name Pester | Where-Object { $_.Version -ge '5.7' })) {
+            Install-Module -Name Pester -MinimumVersion 5.7 -Force -SkipPublisherCheck
+          }
+
+      - name: Run tests - ${{ matrix.suite }}
+        shell: pwsh
+        run: |
+          $suiteName = "${{ matrix.suite }}"
+          $suitePath = ".\Tests\$($suiteName -replace '/', '\')"
+          $safeName  = $suiteName -replace '[/\\]', '-'
+
+          $config = New-PesterConfiguration
+          $config.Run.Path                = $suitePath
+          $config.Output.Verbosity        = 'Normal'
+          $config.TestResult.Enabled      = $true
+          $config.TestResult.OutputPath   = "TestResults-$safeName.xml"
+          $config.TestResult.OutputFormat = 'NUnitXml'
+          $config.Filter.ExcludeTag       = @('Integration')
+
+          $result = Invoke-Pester -Configuration $config
+
+          Write-Output "[INFO] [$suiteName] $($result.PassedCount) passed, $($result.FailedCount) failed"
+
+          if ($result.FailedCount -gt 0) {
+            throw "[FAIL] $($result.FailedCount) test(s) failed in suite '$suiteName'"
+          }
+
+          Write-Output "[OK] Suite '$suiteName' passed"
+
+      - name: Upload test results - ${{ matrix.suite }}
+        uses: actions/upload-artifact@v4.6.2
+        if: always()
+        with:
+          name: test-results-${{ strategy.job-index }}
+          path: TestResults-*.xml
+          retention-days: 30
+
+  # ─────────────────────────────────────────
+  # JOB 3 — PUBLICATION
   # ─────────────────────────────────────────
   publish:
-    needs: validate
+    needs: [validate, test]
     runs-on: windows-latest
     permissions:
       contents: write
