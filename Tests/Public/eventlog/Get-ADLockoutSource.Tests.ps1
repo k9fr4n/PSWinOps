@@ -10,14 +10,14 @@ BeforeAll {
         function global:Get-ADUser { param($Identity, $Properties, $Server, $Credential) }
     }
     if (-not (Get-Command -Name 'Get-ADDomainController' -ErrorAction SilentlyContinue)) {
-        function global:Get-ADDomainController { param([switch]$Discover, $Service) }
+        function global:Get-ADDomainController { param([switch]$Discover, $Service, $Filter, $Server, $Credential) }
     }
     & (Get-Module -Name 'PSWinOps') {
         if (-not (Get-Command -Name 'Get-ADUser' -ErrorAction SilentlyContinue)) {
             function script:Get-ADUser { param($Identity, $Properties, $Server, $Credential) }
         }
         if (-not (Get-Command -Name 'Get-ADDomainController' -ErrorAction SilentlyContinue)) {
-            function script:Get-ADDomainController { param([switch]$Discover, $Service) }
+            function script:Get-ADDomainController { param([switch]$Discover, $Service, $Filter, $Server, $Credential) }
         }
     }
 

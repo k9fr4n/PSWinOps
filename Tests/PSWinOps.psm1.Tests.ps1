@@ -326,7 +326,8 @@ Describe -Name 'PSWinOps Module Loader' -Fixture {
 
         It -Name 'Should keep PSTypeName registry synchronized with sources and format views' -Test {
             $sourceTypes = @(
-                Get-ChildItem -Path (Join-Path -Path $script:modulePath -ChildPath 'Public') -Filter '*.ps1' -Recurse -File |
+                Get-ChildItem -Path $script:modulePath -Filter '*.ps1' -Recurse -File |
+                    Where-Object { $_.FullName -match '[\\/](Public|Private)[\\/]' } |
                     ForEach-Object {
                         $source = Get-Content -Path $_.FullName -Raw
                         [regex]::Matches(
@@ -359,7 +360,7 @@ Describe -Name 'PSWinOps Module Loader' -Fixture {
                     Sort-Object -Unique
             )
 
-            $sourceTypes.Count | Should -Be 119
+            $sourceTypes.Count | Should -Be 120
             ($documentedTypes -join "`n") | Should -Be ($sourceTypes -join "`n")
             ($formatTypes -join "`n") | Should -Be ($sourceTypes -join "`n")
         }

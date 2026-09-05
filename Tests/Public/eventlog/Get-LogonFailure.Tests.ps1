@@ -23,8 +23,10 @@ BeforeAll {
         }
     }
 
-    function global:Get-WinEvent {
-        param($FilterHashtable, $MaxEvents, $ErrorAction)
+    if (-not (Get-Command -Name 'Get-WinEvent' -ErrorAction SilentlyContinue)) {
+        function global:Get-WinEvent {
+            param($FilterHashtable, $MaxEvents, $ErrorAction, $ComputerName, $Credential, $LogName)
+        }
     }
 }
 
