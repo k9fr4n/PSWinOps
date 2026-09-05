@@ -5,6 +5,7 @@
 ### Added
 
 - `ConvertTo-Markdown`: Convert PowerShell objects into deterministic GitHub-Flavored Markdown tables with stable column and row ordering.
+- `Get-WindowsUpdateFailure`: Report Windows Update failures, restart requirements, and optional successful installations from the System event log.
 
 ### Fixed
 
