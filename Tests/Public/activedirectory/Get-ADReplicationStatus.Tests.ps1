@@ -13,7 +13,7 @@ BeforeAll {
         function global:Get-ADReplicationFailure { }
     }
     if (-not (Get-Command -Name 'Get-ADDomainController' -ErrorAction SilentlyContinue)) {
-        function global:Get-ADDomainController { }
+        function global:Get-ADDomainController { param([switch]$Discover, $Service, $Filter, $Server, $Credential) }
     }
 
     Import-Module -Name (Join-Path -Path $script:modulePath -ChildPath 'PSWinOps.psd1') -Force
@@ -26,7 +26,7 @@ BeforeAll {
             function script:Get-ADReplicationFailure { }
         }
         if (-not (Get-Command -Name 'Get-ADDomainController' -ErrorAction SilentlyContinue)) {
-            function script:Get-ADDomainController { }
+            function script:Get-ADDomainController { param([switch]$Discover, $Service, $Filter, $Server, $Credential) }
         }
     }
 }
