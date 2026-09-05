@@ -89,19 +89,21 @@ function ConvertTo-Markdown {
     }
 
     process {
-        foreach ($item in @($InputObject)) {
-            [void]$rows.Add($item)
+        if ($PSBoundParameters.ContainsKey('InputObject')) {
+            foreach ($item in @($InputObject)) {
+                [void]$rows.Add($item)
+            }
         }
     }
 
     end {
         $lines = [System.Collections.Generic.List[string]]::new()
 
-        if ($null -ne $Title) {
+        if ($PSBoundParameters.ContainsKey('Title')) {
             [void]$lines.Add("# $Title")
         }
 
-        if ($null -ne $PreContent) {
+        if ($PSBoundParameters.ContainsKey('PreContent')) {
             foreach ($line in $PreContent) {
                 [void]$lines.Add($line)
             }
@@ -204,7 +206,7 @@ function ConvertTo-Markdown {
             }
         }
 
-        if ($null -ne $PostContent) {
+        if ($PSBoundParameters.ContainsKey('PostContent')) {
             foreach ($line in $PostContent) {
                 [void]$lines.Add($line)
             }
