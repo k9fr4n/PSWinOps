@@ -8955,5 +8955,64 @@
         </TableRowEntries>
       </TableControl>
     </View>
+    <!-- ============================================================ -->
+    <!-- PSWinOps.ActionResult                                         -->
+    <!-- Used by: Clear-Arp, Edit-HostsFile, Remove-NetworkRoute,     -->
+    <!--          Set-NTPClient, Set-ProxyConfiguration,               -->
+    <!--          Remove-ProxyConfiguration                             -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.ActionResult</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.ActionResult</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <AutoSize />
+        <TableHeaders>
+          <TableColumnHeader>
+            <Label>ComputerName</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Action</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Target</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Status</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Error</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Timestamp</Label>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem>
+                <PropertyName>ComputerName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Action</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Target</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Status</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Error</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Timestamp</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
   </ViewDefinitions>
 </Configuration>

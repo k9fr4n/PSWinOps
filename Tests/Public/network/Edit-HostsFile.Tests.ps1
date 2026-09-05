@@ -17,9 +17,9 @@ Describe 'Edit-HostsFile' {
             $meta.SupportsShouldProcess | Should -BeTrue
         }
 
-        It 'Should have OutputType void' {
+        It 'Should have OutputType ActionResult' {
             $cmd = Get-Command -Name 'Edit-HostsFile'
-            $cmd.OutputType.Type | Should -Contain ([void])
+            $cmd.OutputType.Name | Should -Contain 'PSWinOps.ActionResult'
         }
 
         It 'Should have Editor parameter with default notepad.exe' {
@@ -59,6 +59,13 @@ Describe 'Edit-HostsFile' {
             Should -Invoke -CommandName 'Start-Process' -ModuleName $script:ModuleName -Times 1 -Exactly -ParameterFilter {
                 $ArgumentList -like '*drivers*etc*hosts'
             }
+        }
+
+        It 'Should return a successful ActionResult' {
+            $result = Edit-HostsFile -Confirm:$false
+            $result.PSTypeNames | Should -Contain 'PSWinOps.ActionResult'
+            $result.Status | Should -Be 'Succeeded'
+            $result.Target | Should -Match 'drivers.*etc.*hosts'
         }
     }
 

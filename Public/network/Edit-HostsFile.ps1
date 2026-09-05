@@ -32,8 +32,8 @@ function Edit-HostsFile {
             Opens the hosts file in VS Code as Administrator.
 
         .OUTPUTS
-            None
-            This function does not produce pipeline output.
+            PSWinOps.ActionResult
+            Returns the action status, target, error details, and timestamp.
 
         .NOTES
             Author:        Franck SALLET
@@ -46,7 +46,7 @@ function Edit-HostsFile {
             https://github.com/k9fr4n/PSWinOps
     #>
     [CmdletBinding(SupportsShouldProcess)]
-    [OutputType([void])]
+    [OutputType('PSWinOps.ActionResult')]
     param(
         [Parameter(Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
@@ -69,15 +69,20 @@ function Edit-HostsFile {
             )
         }
 
-        if (-not $PSCmdlet.ShouldProcess($hostsPath, "Open with '$Editor' as Administrator")) {
+        $target = $hostsPath
+        if (-not $PSCmdlet.ShouldProcess($target, "Open with '$Editor' as Administrator")) {
+            ConvertTo-ActionResult -Action $MyInvocation.MyCommand -Target $target -Status 'WhatIf'
             return
         }
 
         try {
             Write-Verbose "[$($MyInvocation.MyCommand)] Opening '$hostsPath' with '$Editor' as Administrator"
             Start-Process -FilePath $Editor -ArgumentList $hostsPath -Verb RunAs -ErrorAction Stop
+            ConvertTo-ActionResult -Action $MyInvocation.MyCommand -Target $target -Status 'Succeeded'
         } catch {
-            Write-Error "[$($MyInvocation.MyCommand)] Failed to open hosts file: $_"
+            $errorMessage = "[$($MyInvocation.MyCommand)] Failed to open hosts file: $_"
+            Write-Error $errorMessage
+            ConvertTo-ActionResult -Action $MyInvocation.MyCommand -Target $target -Status 'Failed' -ErrorMessage $errorMessage
         }
     }
 }

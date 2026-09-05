@@ -41,8 +41,8 @@ function Remove-ProxyConfiguration {
             Clears proxy environment variables without confirmation prompt.
 
         .OUTPUTS
-            None
-            This function does not produce pipeline output.
+            PSWinOps.ActionResult
+            Returns one action result per targeted proxy scope.
 
         .NOTES
             Author: Franck SALLET
@@ -61,7 +61,7 @@ function Remove-ProxyConfiguration {
             https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/netsh-winhttp
     #>
     [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'Medium')]
-    [OutputType([void])]
+    [OutputType('PSWinOps.ActionResult')]
     param (
         [Parameter(Mandatory = $false)]
         [ValidateSet('WinINET', 'WinHTTP', 'Environment', 'All')]
@@ -85,6 +85,7 @@ function Remove-ProxyConfiguration {
         # -- WinINET (HKCU Internet Settings) --
         if ($resolvedScopes -contains 'WinINET') {
             $winInetPath = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings'
+            $target = 'WinINET'
 
             if ($PSCmdlet.ShouldProcess('WinINET (Internet Settings registry)', 'Remove proxy configuration')) {
                 try {
@@ -98,14 +99,20 @@ function Remove-ProxyConfiguration {
                     }
 
                     Write-Information -MessageData '[OK] WinINET proxy configuration removed'
+                    ConvertTo-ActionResult -Action $MyInvocation.MyCommand -Target $target -Status 'Succeeded'
                 } catch {
-                    Write-Error "[$($MyInvocation.MyCommand)] Failed to remove WinINET proxy configuration: $_"
+                    $errorMessage = "[$($MyInvocation.MyCommand)] Failed to remove WinINET proxy configuration: $_"
+                    Write-Error $errorMessage
+                    ConvertTo-ActionResult -Action $MyInvocation.MyCommand -Target $target -Status 'Failed' -ErrorMessage $errorMessage
                 }
+            } else {
+                ConvertTo-ActionResult -Action $MyInvocation.MyCommand -Target $target -Status 'WhatIf'
             }
         }
 
         # -- WinHTTP (netsh winhttp) --
         if ($resolvedScopes -contains 'WinHTTP') {
+            $target = 'WinHTTP'
             if ($PSCmdlet.ShouldProcess('WinHTTP (netsh winhttp)', 'Reset proxy to direct access')) {
                 try {
                     if (-not (Test-IsAdministrator)) {
@@ -125,18 +132,26 @@ function Remove-ProxyConfiguration {
 
                     if ($netshExitCode -ne 0) {
                         $outputText = $netshResult.Output
-                        Write-Error "[$($MyInvocation.MyCommand)] netsh winhttp reset proxy failed (exit code $netshExitCode): $outputText"
+                        $errorMessage = "[$($MyInvocation.MyCommand)] netsh winhttp reset proxy failed (exit code $netshExitCode): $outputText"
+                        Write-Error $errorMessage
+                        ConvertTo-ActionResult -Action $MyInvocation.MyCommand -Target $target -Status 'Failed' -ErrorMessage $errorMessage
                     } else {
                         Write-Information -MessageData '[OK] WinHTTP proxy configuration reset to direct access'
+                        ConvertTo-ActionResult -Action $MyInvocation.MyCommand -Target $target -Status 'Succeeded'
                     }
                 } catch {
-                    Write-Error "[$($MyInvocation.MyCommand)] Failed to reset WinHTTP proxy: $_"
+                    $errorMessage = "[$($MyInvocation.MyCommand)] Failed to reset WinHTTP proxy: $_"
+                    Write-Error $errorMessage
+                    ConvertTo-ActionResult -Action $MyInvocation.MyCommand -Target $target -Status 'Failed' -ErrorMessage $errorMessage
                 }
+            } else {
+                ConvertTo-ActionResult -Action $MyInvocation.MyCommand -Target $target -Status 'WhatIf'
             }
         }
 
         # -- Environment variables --
         if ($resolvedScopes -contains 'Environment') {
+            $target = 'Environment'
             if ($PSCmdlet.ShouldProcess('Environment variables (HTTP_PROXY, HTTPS_PROXY, NO_PROXY)', 'Remove proxy configuration')) {
                 try {
                     Write-Verbose "[$($MyInvocation.MyCommand)] Clearing proxy environment variables"
@@ -157,9 +172,14 @@ function Remove-ProxyConfiguration {
                     }
 
                     Write-Information -MessageData '[OK] Proxy environment variables cleared'
+                    ConvertTo-ActionResult -Action $MyInvocation.MyCommand -Target $target -Status 'Succeeded'
                 } catch {
-                    Write-Error "[$($MyInvocation.MyCommand)] Failed to clear proxy environment variables: $_"
+                    $errorMessage = "[$($MyInvocation.MyCommand)] Failed to clear proxy environment variables: $_"
+                    Write-Error $errorMessage
+                    ConvertTo-ActionResult -Action $MyInvocation.MyCommand -Target $target -Status 'Failed' -ErrorMessage $errorMessage
                 }
+            } else {
+                ConvertTo-ActionResult -Action $MyInvocation.MyCommand -Target $target -Status 'WhatIf'
             }
         }
     }

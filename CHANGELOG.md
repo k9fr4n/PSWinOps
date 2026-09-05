@@ -8,6 +8,7 @@
 - Completed the `PSTypeName` registry in `about_PSWinOps.help.txt` and corrected its count to 119.
 - Added default format views for Windows Update result objects.
 - Excluded `Integration`-tagged tests from the release publication workflow.
+- Standardized action-function output with typed `PSWinOps.ActionResult` objects for status, target, errors, and timestamps.
 
 ## 0.12.0 - 2026-09-04 UTC
 ### Added

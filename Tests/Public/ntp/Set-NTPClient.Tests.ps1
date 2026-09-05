@@ -52,8 +52,11 @@ Describe -Name 'Set-NTPClient' -Fixture {
             Mock -CommandName 'Invoke-NativeCommand' -ModuleName 'PSWinOps' -MockWith { [PSCustomObject]@{ Output = ($script:mockSyncOutputEN -join "`r`n"); ExitCode = 0 } } -ParameterFilter { ($ArgumentList -join ' ') -match '/resync' }
         }
 
-        It -Name 'Should complete without throwing' -Test {
-            { Set-NTPClient -NtpServers 'ntp1.example.com', 'ntp2.example.com' -Confirm:$false } | Should -Not -Throw
+        It -Name 'Should return a successful ActionResult' -Test {
+            $result = Set-NTPClient -NtpServers 'ntp1.example.com', 'ntp2.example.com' -Confirm:$false
+            $result.PSTypeNames | Should -Contain 'PSWinOps.ActionResult'
+            $result.Status | Should -Be 'Succeeded'
+            $result.Target | Should -Be 'Windows Time Service (W32Time)'
         }
         It -Name 'Should call Set-ItemProperty for NtpServer registry key' -Test {
             Set-NTPClient -NtpServers 'ntp1.example.com' -Confirm:$false
@@ -279,8 +282,11 @@ Describe -Name 'Set-NTPClient' -Fixture {
             Mock -CommandName 'Invoke-NativeCommand' -ModuleName 'PSWinOps' -MockWith { [PSCustomObject]@{ Output = 'ntp1.example.com'; ExitCode = 0 } } -ParameterFilter { ($ArgumentList -join ' ') -match '/query.*source' }
         }
 
-        It -Name 'Should not throw when sync fails but should emit warnings' -Test {
-            { Set-NTPClient -NtpServers 'ntp1.example.com' -Confirm:$false } | Should -Not -Throw
+        It -Name 'Should return a failed ActionResult when sync fails' -Test {
+            $result = Set-NTPClient -NtpServers 'ntp1.example.com' -Confirm:$false
+            $result.PSTypeNames | Should -Contain 'PSWinOps.ActionResult'
+            $result.Status | Should -Be 'Failed'
+            $result.Error | Should -Match 'Time synchronization failed'
         }
     }
 

@@ -341,10 +341,11 @@ REMOTE EXECUTION PATTERN
     in the pipeline continue to be processed.
 
 PSWINOPS TYPE REGISTRY
-    The following 119 PSTypeName values are defined by the
+    The following 120 PSTypeName values are defined by the
     module. Each corresponds to the output of one or more
     public functions.
 
+      PSWinOps.ActionResult
       PSWinOps.ActiveRdpSession
       PSWinOps.ADAccountDisableResult
       PSWinOps.ADAccountEnableResult

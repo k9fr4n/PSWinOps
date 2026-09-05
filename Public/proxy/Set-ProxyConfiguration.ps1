@@ -55,8 +55,8 @@ function Set-ProxyConfiguration {
             Configures WinINET to use a PAC auto-configuration URL (no static proxy).
 
         .OUTPUTS
-            None
-            This function does not produce pipeline output.
+            PSWinOps.ActionResult
+            Returns one action result per targeted proxy scope.
 
         .NOTES
             Author: Franck SALLET
@@ -81,7 +81,7 @@ function Set-ProxyConfiguration {
             https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/netsh-winhttp
     #>
     [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'Medium')]
-    [OutputType([void])]
+    [OutputType('PSWinOps.ActionResult')]
     param (
         [Parameter(Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
@@ -130,6 +130,7 @@ function Set-ProxyConfiguration {
         # -- WinINET (HKCU Internet Settings) --
         if ($resolvedScopes -contains 'WinINET') {
             $winInetPath = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings'
+            $target = 'WinINET'
 
             if ($PSCmdlet.ShouldProcess('WinINET (Internet Settings registry)', 'Set proxy configuration')) {
                 try {
@@ -152,93 +153,112 @@ function Set-ProxyConfiguration {
                     }
 
                     Write-Information -MessageData '[OK] WinINET proxy configured successfully'
+                    ConvertTo-ActionResult -Action $MyInvocation.MyCommand -Target $target -Status 'Succeeded'
                 } catch {
-                    Write-Error "[$($MyInvocation.MyCommand)] Failed to configure WinINET proxy: $_"
+                    $errorMessage = "[$($MyInvocation.MyCommand)] Failed to configure WinINET proxy: $_"
+                    Write-Error $errorMessage
+                    ConvertTo-ActionResult -Action $MyInvocation.MyCommand -Target $target -Status 'Failed' -ErrorMessage $errorMessage
                 }
+            } else {
+                ConvertTo-ActionResult -Action $MyInvocation.MyCommand -Target $target -Status 'WhatIf'
             }
         }
 
         # -- WinHTTP (netsh winhttp) --
         if ($resolvedScopes -contains 'WinHTTP') {
+            $target = 'WinHTTP'
             if (-not $ProxyServer) {
-                Write-Warning "[$($MyInvocation.MyCommand)] WinHTTP scope requires -ProxyServer. Skipping WinHTTP configuration."
-            } else {
-                if ($PSCmdlet.ShouldProcess('WinHTTP (netsh winhttp)', 'Set proxy configuration')) {
-                    try {
-                        if (-not (Test-IsAdministrator)) {
-                            throw [System.UnauthorizedAccessException]::new('WinHTTP scope requires Administrator privileges.')
-                        }
-
-                        Write-Verbose "[$($MyInvocation.MyCommand)] Configuring WinHTTP proxy settings"
-
-                        $netshPath = Join-Path -Path $env:SystemRoot -ChildPath 'System32\netsh.exe'
-                        if (-not (Test-Path -Path $netshPath -PathType Leaf)) {
-                            throw "netsh.exe not found at '$netshPath'"
-                        }
-
-                        $netshArgs = @('winhttp', 'set', 'proxy', "proxy-server=$ProxyServer")
-                        if ($BypassList) {
-                            $netshArgs += "bypass-list=$BypassList"
-                        }
-
-                        Write-Verbose "[$($MyInvocation.MyCommand)] Running: netsh $($netshArgs -join ' ')"
-                        $netshResult = Invoke-NativeCommand -FilePath $netshPath -ArgumentList $netshArgs
-                        $netshExitCode = $netshResult.ExitCode
-
-                        if ($netshExitCode -ne 0) {
-                            $outputText = $netshResult.Output
-                            Write-Error "[$($MyInvocation.MyCommand)] netsh winhttp set proxy failed (exit code $netshExitCode): $outputText"
-                        } else {
-                            Write-Information -MessageData '[OK] WinHTTP proxy configured successfully'
-                        }
-                    } catch {
-                        Write-Error "[$($MyInvocation.MyCommand)] Failed to configure WinHTTP proxy: $_"
+                $errorMessage = "[$($MyInvocation.MyCommand)] WinHTTP scope requires -ProxyServer. Skipping WinHTTP configuration."
+                Write-Warning $errorMessage
+                ConvertTo-ActionResult -Action $MyInvocation.MyCommand -Target $target -Status 'Failed' -ErrorMessage $errorMessage
+            } elseif ($PSCmdlet.ShouldProcess('WinHTTP (netsh winhttp)', 'Set proxy configuration')) {
+                try {
+                    if (-not (Test-IsAdministrator)) {
+                        throw [System.UnauthorizedAccessException]::new('WinHTTP scope requires Administrator privileges.')
                     }
+
+                    Write-Verbose "[$($MyInvocation.MyCommand)] Configuring WinHTTP proxy settings"
+
+                    $netshPath = Join-Path -Path $env:SystemRoot -ChildPath 'System32\netsh.exe'
+                    if (-not (Test-Path -Path $netshPath -PathType Leaf)) {
+                        throw "netsh.exe not found at '$netshPath'"
+                    }
+
+                    $netshArgs = @('winhttp', 'set', 'proxy', "proxy-server=$ProxyServer")
+                    if ($BypassList) {
+                        $netshArgs += "bypass-list=$BypassList"
+                    }
+
+                    Write-Verbose "[$($MyInvocation.MyCommand)] Running: netsh $($netshArgs -join ' ')"
+                    $netshResult = Invoke-NativeCommand -FilePath $netshPath -ArgumentList $netshArgs
+                    $netshExitCode = $netshResult.ExitCode
+
+                    if ($netshExitCode -ne 0) {
+                        $outputText = $netshResult.Output
+                        $errorMessage = "[$($MyInvocation.MyCommand)] netsh winhttp set proxy failed (exit code $netshExitCode): $outputText"
+                        Write-Error $errorMessage
+                        ConvertTo-ActionResult -Action $MyInvocation.MyCommand -Target $target -Status 'Failed' -ErrorMessage $errorMessage
+                    } else {
+                        Write-Information -MessageData '[OK] WinHTTP proxy configured successfully'
+                        ConvertTo-ActionResult -Action $MyInvocation.MyCommand -Target $target -Status 'Succeeded'
+                    }
+                } catch {
+                    $errorMessage = "[$($MyInvocation.MyCommand)] Failed to configure WinHTTP proxy: $_"
+                    Write-Error $errorMessage
+                    ConvertTo-ActionResult -Action $MyInvocation.MyCommand -Target $target -Status 'Failed' -ErrorMessage $errorMessage
                 }
+            } else {
+                ConvertTo-ActionResult -Action $MyInvocation.MyCommand -Target $target -Status 'WhatIf'
             }
         }
 
         # -- Environment variables --
         if ($resolvedScopes -contains 'Environment') {
+            $target = 'Environment'
             if (-not $ProxyServer) {
-                Write-Warning "[$($MyInvocation.MyCommand)] Environment scope requires -ProxyServer. Skipping environment configuration."
-            } else {
-                if ($PSCmdlet.ShouldProcess('Environment variables (HTTP_PROXY, HTTPS_PROXY, NO_PROXY)', 'Set proxy configuration')) {
-                    try {
-                        Write-Verbose "[$($MyInvocation.MyCommand)] Configuring proxy environment variables"
+                $errorMessage = "[$($MyInvocation.MyCommand)] Environment scope requires -ProxyServer. Skipping environment configuration."
+                Write-Warning $errorMessage
+                ConvertTo-ActionResult -Action $MyInvocation.MyCommand -Target $target -Status 'Failed' -ErrorMessage $errorMessage
+            } elseif ($PSCmdlet.ShouldProcess('Environment variables (HTTP_PROXY, HTTPS_PROXY, NO_PROXY)', 'Set proxy configuration')) {
+                try {
+                    Write-Verbose "[$($MyInvocation.MyCommand)] Configuring proxy environment variables"
 
-                        # Build proxy URL (add http:// scheme if not present)
-                        $proxyUrl = if ($ProxyServer -match '^https?://') { $ProxyServer } else { "http://$ProxyServer" }
+                    # Build proxy URL (add http:// scheme if not present)
+                    $proxyUrl = if ($ProxyServer -match '^https?://') { $ProxyServer } else { "http://$ProxyServer" }
 
-                        # Set Process-level (immediate effect)
-                        $env:HTTP_PROXY  = $proxyUrl
-                        $env:HTTPS_PROXY = $proxyUrl
-                        Write-Verbose "[$($MyInvocation.MyCommand)] HTTP_PROXY and HTTPS_PROXY set to: $proxyUrl"
+                    # Set Process-level (immediate effect)
+                    $env:HTTP_PROXY  = $proxyUrl
+                    $env:HTTPS_PROXY = $proxyUrl
+                    Write-Verbose "[$($MyInvocation.MyCommand)] HTTP_PROXY and HTTPS_PROXY set to: $proxyUrl"
 
-                        if ($BypassList) {
-                            # Convert semicolon-separated WinINET format to comma-separated NO_PROXY format
-                            $noProxy = ($BypassList -replace '<local>', 'localhost' -replace ';', ',').Trim()
-                            $env:NO_PROXY = $noProxy
-                            Write-Verbose "[$($MyInvocation.MyCommand)] NO_PROXY set to: $noProxy"
-                        }
-
-                        # Set User-level (persistent across sessions)
-                        try {
-                            [System.Environment]::SetEnvironmentVariable('HTTP_PROXY', $proxyUrl, [System.EnvironmentVariableTarget]::User)
-                            [System.Environment]::SetEnvironmentVariable('HTTPS_PROXY', $proxyUrl, [System.EnvironmentVariableTarget]::User)
-                            if ($BypassList) {
-                                [System.Environment]::SetEnvironmentVariable('NO_PROXY', $noProxy, [System.EnvironmentVariableTarget]::User)
-                            }
-                            Write-Verbose "[$($MyInvocation.MyCommand)] User-level environment variables persisted"
-                        } catch {
-                            Write-Warning "[$($MyInvocation.MyCommand)] Failed to persist User-level environment variables: $_. Process-level variables were set successfully."
-                        }
-
-                        Write-Information -MessageData '[OK] Proxy environment variables configured successfully'
-                    } catch {
-                        Write-Error "[$($MyInvocation.MyCommand)] Failed to configure proxy environment variables: $_"
+                    if ($BypassList) {
+                        # Convert semicolon-separated WinINET format to comma-separated NO_PROXY format
+                        $noProxy = ($BypassList -replace '<local>', 'localhost' -replace ';', ',').Trim()
+                        $env:NO_PROXY = $noProxy
+                        Write-Verbose "[$($MyInvocation.MyCommand)] NO_PROXY set to: $noProxy"
                     }
+
+                    # Set User-level (persistent across sessions)
+                    try {
+                        [System.Environment]::SetEnvironmentVariable('HTTP_PROXY', $proxyUrl, [System.EnvironmentVariableTarget]::User)
+                        [System.Environment]::SetEnvironmentVariable('HTTPS_PROXY', $proxyUrl, [System.EnvironmentVariableTarget]::User)
+                        if ($BypassList) {
+                            [System.Environment]::SetEnvironmentVariable('NO_PROXY', $noProxy, [System.EnvironmentVariableTarget]::User)
+                        }
+                        Write-Verbose "[$($MyInvocation.MyCommand)] User-level environment variables persisted"
+                    } catch {
+                        Write-Warning "[$($MyInvocation.MyCommand)] Failed to persist User-level environment variables: $_. Process-level variables were set successfully."
+                    }
+
+                    Write-Information -MessageData '[OK] Proxy environment variables configured successfully'
+                    ConvertTo-ActionResult -Action $MyInvocation.MyCommand -Target $target -Status 'Succeeded'
+                } catch {
+                    $errorMessage = "[$($MyInvocation.MyCommand)] Failed to configure proxy environment variables: $_"
+                    Write-Error $errorMessage
+                    ConvertTo-ActionResult -Action $MyInvocation.MyCommand -Target $target -Status 'Failed' -ErrorMessage $errorMessage
                 }
+            } else {
+                ConvertTo-ActionResult -Action $MyInvocation.MyCommand -Target $target -Status 'WhatIf'
             }
         }
     }
