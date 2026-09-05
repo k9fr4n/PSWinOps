@@ -323,5 +323,45 @@ Describe -Name 'PSWinOps Module Loader' -Fixture {
                 ($documentedFunctions -join "`n") | Should -Be ($actualFunctions -join "`n")
             }
         }
+
+        It -Name 'Should keep PSTypeName registry synchronized with sources and format views' -Test {
+            $sourceTypes = @(
+                Get-ChildItem -Path (Join-Path -Path $script:modulePath -ChildPath 'Public') -Filter '*.ps1' -Recurse -File |
+                    ForEach-Object {
+                        $source = Get-Content -Path $_.FullName -Raw
+                        [regex]::Matches(
+                            $source,
+                            'PSTypeName\s*=\s*[''"](?<Type>PSWinOps\.[A-Za-z0-9]+)'
+                        ) | ForEach-Object { $_.Groups['Type'].Value }
+                    } |
+                    Sort-Object -Unique
+            )
+            $aboutPath = Join-Path -Path $script:modulePath -ChildPath 'en-US/about_PSWinOps.help.txt'
+            $aboutContent = Get-Content -Path $aboutPath -Raw
+            $registrySection = [regex]::Match(
+                $aboutContent,
+                '(?ms)^PSWINOPS TYPE REGISTRY\r?\n(?<section>.*?)^SEE ALSO'
+            ).Groups['section'].Value
+            $documentedTypes = @(
+                [regex]::Matches(
+                    $registrySection,
+                    '(?m)^\s{6}(?<Type>PSWinOps\.[A-Za-z0-9]+)\s*$'
+                ) | ForEach-Object { $_.Groups['Type'].Value } |
+                    Sort-Object -Unique
+            )
+            $formatPath = Join-Path -Path $script:modulePath -ChildPath 'PSWinOps.Format.ps1xml'
+            $formatContent = Get-Content -Path $formatPath -Raw
+            $formatTypes = @(
+                [regex]::Matches(
+                    $formatContent,
+                    '(?<Type>PSWinOps\.[A-Za-z0-9]+)'
+                ) | ForEach-Object { $_.Groups['Type'].Value } |
+                    Sort-Object -Unique
+            )
+
+            $sourceTypes.Count | Should -Be 119
+            ($documentedTypes -join "`n") | Should -Be ($sourceTypes -join "`n")
+            ($formatTypes -join "`n") | Should -Be ($sourceTypes -join "`n")
+        }
     }
 }
