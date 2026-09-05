@@ -52,8 +52,8 @@ function Remove-NetworkRoute {
             Removes the route on two remote servers via pipeline.
 
         .OUTPUTS
-            None
-            This function does not produce pipeline output.
+            PSWinOps.ActionResult
+            Returns one action result per target computer.
 
         .NOTES
             Author:        Franck SALLET
@@ -70,7 +70,7 @@ function Remove-NetworkRoute {
             https://learn.microsoft.com/en-us/powershell/module/nettcpip/remove-netroute
     #>
     [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
-    [OutputType([void])]
+    [OutputType('PSWinOps.ActionResult')]
     param(
         [Parameter(Mandatory = $false,
             ValueFromPipeline = $true,
@@ -132,12 +132,13 @@ function Remove-NetworkRoute {
 
     process {
         foreach ($targetComputer in $ComputerName) {
-            try {
-                $shouldProcessTarget = "Route $DestinationPrefix on '$targetComputer'"
+            $shouldProcessTarget = "Route $DestinationPrefix on '$targetComputer'"
 
+            try {
                 Write-Verbose "[$($MyInvocation.MyCommand)] Removing route on '$targetComputer'"
 
                 if (-not $PSCmdlet.ShouldProcess($shouldProcessTarget, 'Remove network route')) {
+                    ConvertTo-ActionResult -ComputerName $targetComputer -Action $MyInvocation.MyCommand -Target $shouldProcessTarget -Status 'WhatIf'
                     continue
                 }
 
@@ -163,8 +164,11 @@ function Remove-NetworkRoute {
                 $null = Invoke-RemoteOrLocal -ComputerName $targetComputer -ScriptBlock $queryScriptBlock -ArgumentList $queryArgs -Credential $Credential
 
                 Write-Verbose "[$($MyInvocation.MyCommand)] Route '$DestinationPrefix' removed successfully on '$targetComputer'"
+                ConvertTo-ActionResult -ComputerName $targetComputer -Action $MyInvocation.MyCommand -Target $shouldProcessTarget -Status 'Succeeded'
             } catch {
-                Write-Error "[$($MyInvocation.MyCommand)] Failed on '$targetComputer': $_"
+                $errorMessage = "[$($MyInvocation.MyCommand)] Failed on '$targetComputer': $_"
+                Write-Error $errorMessage
+                ConvertTo-ActionResult -ComputerName $targetComputer -Action $MyInvocation.MyCommand -Target $shouldProcessTarget -Status 'Failed' -ErrorMessage $errorMessage
             }
         }
     }

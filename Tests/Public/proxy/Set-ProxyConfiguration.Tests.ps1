@@ -257,9 +257,11 @@ Describe 'Set-ProxyConfiguration' {
             } -MockWith { 'C:\Windows\System32\netsh.exe' }
         }
 
-        It 'Should return void (no output object)' {
+        It 'Should return a successful ActionResult' {
             $result = Set-ProxyConfiguration -ProxyServer 'proxy.example.com:8080' -Scope WinINET -Confirm:$false 6>&1 | Where-Object { $_ -isnot [System.Management.Automation.InformationRecord] }
-            $result | Should -BeNullOrEmpty
+            $result.PSTypeNames | Should -Contain 'PSWinOps.ActionResult'
+            $result.Status | Should -Be 'Succeeded'
+            $result.Target | Should -Be 'WinINET'
         }
     }
 

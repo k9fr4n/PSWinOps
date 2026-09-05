@@ -308,9 +308,11 @@ Describe 'Remove-ProxyConfiguration' {
             Mock -ModuleName $script:ModuleName -CommandName 'Remove-ItemProperty' -MockWith {}
         }
 
-        It 'Should return void (no output object)' {
+        It 'Should return a successful ActionResult' {
             $result = Remove-ProxyConfiguration -Scope WinINET -Confirm:$false 6>&1 | Where-Object { $_ -isnot [System.Management.Automation.InformationRecord] }
-            $result | Should -BeNullOrEmpty
+            $result.PSTypeNames | Should -Contain 'PSWinOps.ActionResult'
+            $result.Status | Should -Be 'Succeeded'
+            $result.Target | Should -Be 'WinINET'
         }
     }
 

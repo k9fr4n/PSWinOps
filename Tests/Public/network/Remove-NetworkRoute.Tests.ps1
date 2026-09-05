@@ -22,9 +22,9 @@ Describe 'Remove-NetworkRoute' {
             $meta.ConfirmImpact | Should -Be 'High'
         }
 
-        It 'Should have OutputType void' {
+        It 'Should have OutputType ActionResult' {
             $cmd = Get-Command -Name 'Remove-NetworkRoute'
-            $cmd.OutputType.Type | Should -Contain ([void])
+            $cmd.OutputType.Name | Should -Contain 'PSWinOps.ActionResult'
         }
 
         It 'Should require DestinationPrefix parameter' {
@@ -53,9 +53,11 @@ Describe 'Remove-NetworkRoute' {
             Should -Invoke -CommandName 'Remove-NetRoute' -ModuleName $script:ModuleName -Times 1 -Exactly
         }
 
-        It 'Should not produce pipeline output' {
+        It 'Should produce a successful ActionResult' {
             $result = Remove-NetworkRoute -DestinationPrefix '10.10.0.0/16' -InterfaceAlias 'Ethernet' -Confirm:$false
-            $result | Should -BeNullOrEmpty
+            $result.PSTypeNames | Should -Contain 'PSWinOps.ActionResult'
+            $result.Status | Should -Be 'Succeeded'
+            $result.ComputerName | Should -Be $env:COMPUTERNAME
         }
 
         It 'Should respect -WhatIf and not call Remove-NetRoute' {

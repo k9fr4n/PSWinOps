@@ -27,8 +27,8 @@ function Clear-Arp {
             Clears the ARP cache with verbose output showing execution details.
 
         .OUTPUTS
-            None
-            This function does not produce pipeline output.
+            PSWinOps.ActionResult
+            Returns the action status, target, error details, and timestamp.
 
         .NOTES
             Author: Franck SALLET
@@ -44,7 +44,7 @@ function Clear-Arp {
             https://learn.microsoft.com/en-us/windows-server/networking/technologies/netsh/netsh-interface-ip
     #>
     [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'Medium')]
-    [OutputType([void])]
+    [OutputType('PSWinOps.ActionResult')]
     param()
 
     begin {
@@ -75,20 +75,30 @@ function Clear-Arp {
     }
 
     process {
-        if ($PSCmdlet.ShouldProcess('Local ARP cache', 'Delete all entries')) {
-            try {
-                Write-Verbose "[$($MyInvocation.MyCommand)] Running: netsh interface ip delete arpcache"
-                $result = Invoke-NativeCommand -FilePath $netshPath -ArgumentList @('interface', 'ip', 'delete', 'arpcache')
+        $target = 'Local ARP cache'
 
-                if ($result.ExitCode -ne 0) {
-                    Write-Error "[$($MyInvocation.MyCommand)] netsh interface ip delete arpcache failed (exit code $($result.ExitCode)): $($result.Output)"
-                } else {
-                    Write-Verbose "[$($MyInvocation.MyCommand)] ARP cache cleared successfully"
-                    Write-Information -MessageData '[OK] ARP cache cleared successfully'
-                }
-            } catch {
-                Write-Error "[$($MyInvocation.MyCommand)] Failed to clear ARP cache: $_"
+        if (-not $PSCmdlet.ShouldProcess($target, 'Delete all entries')) {
+            ConvertTo-ActionResult -Action $MyInvocation.MyCommand -Target $target -Status 'WhatIf'
+            return
+        }
+
+        try {
+            Write-Verbose "[$($MyInvocation.MyCommand)] Running: netsh interface ip delete arpcache"
+            $result = Invoke-NativeCommand -FilePath $netshPath -ArgumentList @('interface', 'ip', 'delete', 'arpcache')
+
+            if ($result.ExitCode -ne 0) {
+                $errorMessage = "[$($MyInvocation.MyCommand)] netsh interface ip delete arpcache failed (exit code $($result.ExitCode)): $($result.Output)"
+                Write-Error $errorMessage
+                ConvertTo-ActionResult -Action $MyInvocation.MyCommand -Target $target -Status 'Failed' -ErrorMessage $errorMessage
+            } else {
+                Write-Verbose "[$($MyInvocation.MyCommand)] ARP cache cleared successfully"
+                Write-Information -MessageData '[OK] ARP cache cleared successfully'
+                ConvertTo-ActionResult -Action $MyInvocation.MyCommand -Target $target -Status 'Succeeded'
             }
+        } catch {
+            $errorMessage = "[$($MyInvocation.MyCommand)] Failed to clear ARP cache: $_"
+            Write-Error $errorMessage
+            ConvertTo-ActionResult -Action $MyInvocation.MyCommand -Target $target -Status 'Failed' -ErrorMessage $errorMessage
         }
     }
 

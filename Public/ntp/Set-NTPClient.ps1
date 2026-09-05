@@ -48,8 +48,8 @@ function Set-NTPClient {
             Shows what would happen if the configuration were applied with custom poll intervals.
 
         .OUTPUTS
-            None
-            This function does not produce pipeline output.
+            PSWinOps.ActionResult
+            Returns the NTP configuration action status and any error details.
 
         .NOTES
             Author: Franck SALLET
@@ -65,7 +65,7 @@ function Set-NTPClient {
             https://learn.microsoft.com/en-us/windows-server/networking/windows-time-service/windows-time-service-tools-and-settings
     #>
     [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
-    [OutputType([void])]
+    [OutputType('PSWinOps.ActionResult')]
     param (
         [Parameter(Mandatory = $true, Position = 0)]
         [ValidateNotNullOrEmpty()]
@@ -128,7 +128,10 @@ function Set-NTPClient {
     }
 
     process {
-        if (-not $PSCmdlet.ShouldProcess('Windows Time Service (W32Time)', 'Configure NTP synchronization')) {
+        $target = 'Windows Time Service (W32Time)'
+
+        if (-not $PSCmdlet.ShouldProcess($target, 'Configure NTP synchronization')) {
+            ConvertTo-ActionResult -Action $MyInvocation.MyCommand -Target $target -Status 'WhatIf'
             return
         }
 
@@ -253,14 +256,27 @@ function Set-NTPClient {
             }
 
             Write-Information -MessageData '[OK] Windows Time Service configuration completed successfully'
+            $actionStatus = if ($isSyncSuccessful) { 'Succeeded' } else { 'Failed' }
+            $actionError = if ($isSyncSuccessful) {
+                $null
+            } else {
+                "Time synchronization failed (exit code $syncExitCode): $($syncResult.Output)"
+            }
+            ConvertTo-ActionResult -Action $MyInvocation.MyCommand -Target $target -Status $actionStatus -ErrorMessage $actionError
         } catch [System.UnauthorizedAccessException] {
-            Write-Error "[$($MyInvocation.MyCommand)] Access denied - Administrator privileges required: $_"
+            $errorMessage = "[$($MyInvocation.MyCommand)] Access denied - Administrator privileges required: $_"
+            Write-Error $errorMessage
+            ConvertTo-ActionResult -Action $MyInvocation.MyCommand -Target $target -Status 'Failed' -ErrorMessage $errorMessage
             throw
         } catch [System.InvalidOperationException] {
-            Write-Error "[$($MyInvocation.MyCommand)] Service operation failed: $_"
+            $errorMessage = "[$($MyInvocation.MyCommand)] Service operation failed: $_"
+            Write-Error $errorMessage
+            ConvertTo-ActionResult -Action $MyInvocation.MyCommand -Target $target -Status 'Failed' -ErrorMessage $errorMessage
             throw
         } catch {
-            Write-Error "[$($MyInvocation.MyCommand)] Unexpected error during NTP configuration: $_"
+            $errorMessage = "[$($MyInvocation.MyCommand)] Unexpected error during NTP configuration: $_"
+            Write-Error $errorMessage
+            ConvertTo-ActionResult -Action $MyInvocation.MyCommand -Target $target -Status 'Failed' -ErrorMessage $errorMessage
             throw
         }
     }

@@ -33,9 +33,9 @@ Describe 'Clear-Arp' {
             $mandatoryParams | Should -BeNullOrEmpty
         }
 
-        It 'Should have OutputType of void' {
+        It 'Should have OutputType of ActionResult' {
             $cmd = Get-Command -Name 'Clear-Arp'
-            $cmd.OutputType.Type | Should -Contain ([void])
+            $cmd.OutputType.Name | Should -Contain 'PSWinOps.ActionResult'
         }
     }
 
@@ -105,9 +105,11 @@ Describe 'Clear-Arp' {
             { Clear-Arp -Confirm:$false -ErrorAction SilentlyContinue } | Should -Not -Throw
         }
 
-        It 'Should return void (no output object)' {
+        It 'Should return a successful ActionResult' {
             $result = Clear-Arp -Confirm:$false 6>&1 | Where-Object { $_ -isnot [System.Management.Automation.InformationRecord] }
-            $result | Should -BeNullOrEmpty
+            $result.PSTypeNames | Should -Contain 'PSWinOps.ActionResult'
+            $result.Status | Should -Be 'Succeeded'
+            $result.Error | Should -BeNullOrEmpty
         }
 
         It 'Should call Invoke-NativeCommand with netsh arguments' {
