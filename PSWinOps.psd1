@@ -288,11 +288,13 @@
             # ReleaseNotes of this module
             ReleaseNotes = '## 0.12.0 - 2026-09-04 UTC
 ### Added
+- ConvertTo-Markdown: Convert PowerShell objects to deterministic GitHub-Flavored Markdown tables with stable column and row ordering
 - Get-ADLockoutSource: Trace the source machine of an AD account lockout via event 4740 on the PDC Emulator
 - Get-DiskErrorEvent: Classify and aggregate Disk, Ntfs, storahci, and storport storage errors from the System log
 - Get-ProcessCrashEvent: Correlate Application Error, Windows Error Reporting, and optional Application Hang events with per-process counts
 - Get-SchannelError: Normalize Schannel TLS, certificate, and negotiation failures from the System log
 - Get-ScheduledTaskFailure: Report Task Scheduler task-start and action failures with XML field extraction and per-task counts
+- Get-WindowsUpdateFailure: Report Windows Update failures, restart requirements, and optional successful installations from the System log
 
 ## 0.11.0 - 2026-09-04 UTC
 ### Added
