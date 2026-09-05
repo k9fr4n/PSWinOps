@@ -7785,6 +7785,365 @@
       </ListControl>
     </View>
     <!-- ============================================================ -->
+    <!-- PSWinOps.WindowsUpdateCacheResult                            -->
+    <!-- Used by: Clear-WindowsUpdateCache                            -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.WindowsUpdateCacheResult</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.WindowsUpdateCacheResult</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <AutoSize />
+        <TableHeaders>
+          <TableColumnHeader>
+            <Label>ComputerName</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>CachePath</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>FileCount</Label>
+            <Alignment>Right</Alignment>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>SizeFreedMB</Label>
+            <Alignment>Right</Alignment>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>DataStoreCleared</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Result</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Timestamp</Label>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem>
+                <PropertyName>ComputerName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>CachePath</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>FileCount</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>SizeFreedMB</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>DataStoreCleared</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Result</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Timestamp</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+    <!-- ============================================================ -->
+    <!-- PSWinOps.WindowsUpdateDownloadResult                         -->
+    <!-- Used by: Save-WindowsUpdate                                  -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.WindowsUpdateDownloadResult</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.WindowsUpdateDownloadResult</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <AutoSize />
+        <TableHeaders>
+          <TableColumnHeader>
+            <Label>ComputerName</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Title</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>KBArticle</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>SizeMB</Label>
+            <Alignment>Right</Alignment>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Result</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>HResult</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Timestamp</Label>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem>
+                <PropertyName>ComputerName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Title</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>KBArticle</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>SizeMB</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Result</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>HResult</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Timestamp</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+    <!-- ============================================================ -->
+    <!-- PSWinOps.WindowsUpdateHideResult                              -->
+    <!-- Used by: Hide-WindowsUpdate                                   -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.WindowsUpdateHideResult</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.WindowsUpdateHideResult</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <AutoSize />
+        <TableHeaders>
+          <TableColumnHeader>
+            <Label>ComputerName</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Title</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>KBArticle</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Result</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Timestamp</Label>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem>
+                <PropertyName>ComputerName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Title</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>KBArticle</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Result</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Timestamp</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+    <!-- ============================================================ -->
+    <!-- PSWinOps.WindowsUpdateInstallResult                           -->
+    <!-- Used by: Install-WindowsUpdate                                -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.WindowsUpdateInstallResult</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.WindowsUpdateInstallResult</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <AutoSize />
+        <TableHeaders>
+          <TableColumnHeader>
+            <Label>ComputerName</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Title</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>KBArticle</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>SizeMB</Label>
+            <Alignment>Right</Alignment>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Result</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>HResult</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>RebootRequired</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Timestamp</Label>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem>
+                <PropertyName>ComputerName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Title</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>KBArticle</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>SizeMB</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Result</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>HResult</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>RebootRequired</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Timestamp</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+    <!-- ============================================================ -->
+    <!-- PSWinOps.WindowsUpdateShowResult                              -->
+    <!-- Used by: Show-WindowsUpdate                                   -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.WindowsUpdateShowResult</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.WindowsUpdateShowResult</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <AutoSize />
+        <TableHeaders>
+          <TableColumnHeader>
+            <Label>ComputerName</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Title</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>KBArticle</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Result</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Timestamp</Label>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem>
+                <PropertyName>ComputerName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Title</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>KBArticle</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Result</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Timestamp</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+    <!-- ============================================================ -->
+    <!-- PSWinOps.WindowsUpdateUninstallResult                         -->
+    <!-- Used by: Uninstall-WindowsUpdate                              -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.WindowsUpdateUninstallResult</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.WindowsUpdateUninstallResult</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <AutoSize />
+        <TableHeaders>
+          <TableColumnHeader>
+            <Label>ComputerName</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>KBArticle</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Result</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>ExitCode</Label>
+            <Alignment>Right</Alignment>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>RebootRequired</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Timestamp</Label>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem>
+                <PropertyName>ComputerName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>KBArticle</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Result</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>ExitCode</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>RebootRequired</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Timestamp</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+    <!-- ============================================================ -->
     <!-- PSWinOps.UnexpectedShutdown                                  -->
     <!-- Used by: Get-UnexpectedShutdown                              -->
     <!-- ============================================================ -->
