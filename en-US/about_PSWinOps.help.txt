@@ -68,17 +68,18 @@ FUNCTION DOMAINS
 
       Get-ExpiringCertificate
 
-  eventlog (8 functions)
+  eventlog (9 functions)
     Functions for correlating Windows System and Security
     event log entries into lockout-source, shutdown/restart,
     failed-logon, application-crash, storage-error,
-    scheduled-task, Service Control Manager crash, and
-    Windows Update failure reports.
+    Schannel TLS, scheduled-task, Service Control Manager
+    crash, and Windows Update failure reports.
 
       Get-ADLockoutSource
       Get-DiskErrorEvent
       Get-LogonFailure
       Get-ProcessCrashEvent
+      Get-SchannelError
       Get-ScheduledTaskFailure
       Get-ServiceCrashEvent
       Get-UnexpectedShutdown
@@ -333,7 +334,7 @@ REMOTE EXECUTION PATTERN
     in the pipeline continue to be processed.
 
 PSWINOPS TYPE REGISTRY
-    The following 106 PSTypeName values are defined by the
+    The following 107 PSTypeName values are defined by the
     module. Each corresponds to the output of one or more
     public functions.
 
@@ -424,6 +425,7 @@ PSWINOPS TYPE REGISTRY
       PSWinOps.RdpSessionLock
       PSWinOps.RDSHealth
       PSWinOps.RebootHistory
+      PSWinOps.SchannelError
       PSWinOps.ScheduledTaskDetail
       PSWinOps.ScheduledTaskFailure
       PSWinOps.ServiceAccount
