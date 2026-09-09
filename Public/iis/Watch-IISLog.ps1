@@ -336,7 +336,8 @@ function Watch-IISLog {
                     -ErrorAction SilentlyContinue |
                     Sort-Object -Property Name -Descending |
                     Select-Object -First 1
-                return if ($found) { $found.FullName } else { $null }
+                if ($found) { return $found.FullName }
+                return $null
             }
 
             # -----------------------------------------------------------------
