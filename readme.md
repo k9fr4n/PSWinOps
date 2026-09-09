@@ -39,8 +39,8 @@ its surface. Install only what you use.
 | Domain | PSWinOps Functions | Module(s) | How to install |
 |---|---|---|---|
 | Active Directory | `Get-AD*`, `Enable/Disable/Unlock-ADUserAccount`, `Reset-ADUserPassword`, `Invoke-ADSecurityAudit`, `Search-ADObject`, `Get-AdDomainControllerHealth` | `ActiveDirectory` | `Install-WindowsFeature RSAT-AD-PowerShell` |
-| IIS (classic pipeline) | `Get-IISHealth`, `Set-IISBindingCertificate` | `WebAdministration` | `Install-WindowsFeature Web-Scripting-Tools` (Server) |
-| IIS (modern) | `Get-IISHealth`, `Set-IISBindingCertificate` | `IISAdministration` | `Install-Module IISAdministration` (PSGallery) |
+| IIS (classic pipeline) | `Get-IISHealth`, `Set-IISCertificateBinding` | `WebAdministration` | `Install-WindowsFeature Web-Scripting-Tools` (Server) |
+| IIS (modern) | `Get-IISHealth`, `Set-IISCertificateBinding` | `IISAdministration` | `Install-Module IISAdministration` (PSGallery) |
 | Hyper-V | `Get-HyperVHostHealth` | `Hyper-V` | `Install-WindowsFeature Hyper-V-PowerShell` |
 | Failover Clusters | `Get-ClusterHealth` | `FailoverClusters` | `Install-WindowsFeature RSAT-Clustering-PowerShell` |
 | DHCP | `Get-DhcpServerHealth` | `DhcpServer` | `Install-WindowsFeature RSAT-DHCP` |

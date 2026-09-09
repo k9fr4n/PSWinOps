@@ -25,7 +25,7 @@ BeforeAll {
 
     # PSWinOps is Windows-only. On Linux/macOS the psm1 guard throws, so we build an
     # in-memory 'PSWinOps' module containing Invoke-RemoteOrLocal and
-    # Test-IISBindingCertificate so that Pester's -ModuleName 'PSWinOps' mock scope
+    # Test-IISCertificateBinding so that Pester's -ModuleName 'PSWinOps' mock scope
     # works on all platforms (same pattern as Watch-IISLog.Tests.ps1).
     if ($IsWindows -or $PSEdition -eq 'Desktop') {
         Import-Module -Name (Join-Path -Path $script:modulePath -ChildPath 'PSWinOps.psd1') -Force
@@ -34,7 +34,7 @@ BeforeAll {
         $invokeRolSrc  = & $stripRequires (Get-Content -Raw -Path (
             [IO.Path]::Combine($script:modulePath, 'Private', 'Invoke-RemoteOrLocal.ps1')))
         $funcSrc       = & $stripRequires (Get-Content -Raw -Path (
-            [IO.Path]::Combine($script:modulePath, 'Public', 'iis', 'Test-IISBindingCertificate.ps1')))
+            [IO.Path]::Combine($script:modulePath, 'Public', 'iis', 'Test-IISCertificateBinding.ps1')))
         $moduleBody    = "`$script:LocalComputerNames = @(`$env:COMPUTERNAME, 'localhost', '.')`r`n" +
                          $invokeRolSrc + "`r`n" + $funcSrc + "`r`nExport-ModuleMember -Function '*'"
         New-Module -Name 'PSWinOps' -ScriptBlock ([scriptblock]::Create($moduleBody)) |
@@ -424,7 +424,7 @@ BeforeAll {
     )
 }
 
-Describe 'Test-IISBindingCertificate' {
+Describe 'Test-IISCertificateBinding' {
 
     # ─────────────────────────────────────────────────────────────────────────────
     # Context 1: Happy path -- Status=Tested, OverallStatus=Pass
@@ -434,7 +434,7 @@ Describe 'Test-IISBindingCertificate' {
         It 'Should return Status=Tested and OverallStatus=Pass for a fully healthy binding' {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName `
                 -MockWith { return $script:mockPass }
-            $result = Test-IISBindingCertificate -ComputerName $script:Host1
+            $result = Test-IISCertificateBinding -ComputerName $script:Host1
             $result.Status        | Should -Be 'Tested'
             $result.OverallStatus | Should -Be 'Pass'
             Should -Invoke -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName -Times 1 -Exactly
@@ -443,7 +443,7 @@ Describe 'Test-IISBindingCertificate' {
         It 'Should set PSTypeName to PSWinOps.IISCertificateBindingTestResult' {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName `
                 -MockWith { return $script:mockPass }
-            $result = Test-IISBindingCertificate -ComputerName $script:Host1
+            $result = Test-IISCertificateBinding -ComputerName $script:Host1
             $result.PSObject.TypeNames[0] | Should -Be 'PSWinOps.IISCertificateBindingTestResult'
             Should -Invoke -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName -Times 1 -Exactly
         }
@@ -451,7 +451,7 @@ Describe 'Test-IISBindingCertificate' {
         It 'Should populate certificate metadata (Subject, Thumbprint, Issuer, KeySize)' {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName `
                 -MockWith { return $script:mockPass }
-            $result = Test-IISBindingCertificate -ComputerName $script:Host1
+            $result = Test-IISCertificateBinding -ComputerName $script:Host1
             $result.Thumbprint | Should -Be $script:ValidThumb
             $result.Subject    | Should -Be 'CN=web01.contoso.com, O=Contoso, C=US'
             $result.Issuer     | Should -Not -BeNullOrEmpty
@@ -462,7 +462,7 @@ Describe 'Test-IISBindingCertificate' {
         It 'Should report ChainValid=$true, HostnameMatch=$true, HasPrivateKey=$true, StoreAligned=$true' {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName `
                 -MockWith { return $script:mockPass }
-            $result = Test-IISBindingCertificate -ComputerName $script:Host1
+            $result = Test-IISCertificateBinding -ComputerName $script:Host1
             $result.ChainValid    | Should -BeTrue
             $result.HostnameMatch | Should -BeTrue
             $result.HasPrivateKey | Should -BeTrue
@@ -473,7 +473,7 @@ Describe 'Test-IISBindingCertificate' {
         It 'Should have an empty Findings array when OverallStatus=Pass' {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName `
                 -MockWith { return $script:mockPass }
-            $result = Test-IISBindingCertificate -ComputerName $script:Host1
+            $result = Test-IISCertificateBinding -ComputerName $script:Host1
             $result.Findings | Should -BeNullOrEmpty
             Should -Invoke -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName -Times 1 -Exactly
         }
@@ -481,7 +481,7 @@ Describe 'Test-IISBindingCertificate' {
         It 'Should set Timestamp matching the yyyy-MM-dd HH:mm:ss format pattern' {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName `
                 -MockWith { return $script:mockPass }
-            $result = Test-IISBindingCertificate -ComputerName $script:Host1
+            $result = Test-IISCertificateBinding -ComputerName $script:Host1
             "$($result.Timestamp)" | Should -Match "^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$"
             Should -Invoke -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName -Times 1 -Exactly
         }
@@ -489,7 +489,7 @@ Describe 'Test-IISBindingCertificate' {
         It 'Should report AlgorithmStrength=Strong, SignatureAlgorithm=sha256RSA and KeyAlgorithm=RSA' {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName `
                 -MockWith { return $script:mockPass }
-            $result = Test-IISBindingCertificate -ComputerName $script:Host1
+            $result = Test-IISCertificateBinding -ComputerName $script:Host1
             $result.AlgorithmStrength  | Should -Be 'Strong'
             $result.SignatureAlgorithm | Should -Be 'sha256RSA'
             $result.KeyAlgorithm       | Should -Be 'RSA'
@@ -499,7 +499,7 @@ Describe 'Test-IISBindingCertificate' {
         It 'Should populate SubjectAlternativeName as a non-empty array for a Pass result' {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName `
                 -MockWith { return $script:mockPass }
-            $result = Test-IISBindingCertificate -ComputerName $script:Host1
+            $result = Test-IISCertificateBinding -ComputerName $script:Host1
             $result.SubjectAlternativeName | Should -Contain 'web01.contoso.com'
             Should -Invoke -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName -Times 1 -Exactly
         }
@@ -513,7 +513,7 @@ Describe 'Test-IISBindingCertificate' {
         It 'Should return OverallStatus=Warning when ExpirationStatus=Warning' {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName `
                 -MockWith { return $script:mockWarningExpiry }
-            $result = Test-IISBindingCertificate -ComputerName $script:Host1
+            $result = Test-IISCertificateBinding -ComputerName $script:Host1
             $result.OverallStatus    | Should -Be 'Warning'
             $result.ExpirationStatus | Should -Be 'Warning'
             Should -Invoke -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName -Times 1 -Exactly
@@ -522,7 +522,7 @@ Describe 'Test-IISBindingCertificate' {
         It 'Should retain Status=Tested when only the expiration is in Warning range' {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName `
                 -MockWith { return $script:mockWarningExpiry }
-            $result = Test-IISBindingCertificate -ComputerName $script:Host1
+            $result = Test-IISCertificateBinding -ComputerName $script:Host1
             $result.Status              | Should -Be 'Tested'
             $result.DaysUntilExpiration | Should -BeLessThan 30
             $result.DaysUntilExpiration | Should -BeGreaterThan 7
@@ -532,7 +532,7 @@ Describe 'Test-IISBindingCertificate' {
         It 'Should include an expiration finding message when ExpirationStatus=Warning' {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName `
                 -MockWith { return $script:mockWarningExpiry }
-            $result = Test-IISBindingCertificate -ComputerName $script:Host1
+            $result = Test-IISCertificateBinding -ComputerName $script:Host1
             $result.Findings | Should -Not -BeNullOrEmpty
             ($result.Findings -join ' ') | Should -Match "expires in"
             Should -Invoke -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName -Times 1 -Exactly
@@ -541,7 +541,7 @@ Describe 'Test-IISBindingCertificate' {
         It 'Should return OverallStatus=Warning when AlgorithmStrength=Acceptable (2048-bit RSA)' {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName `
                 -MockWith { return $script:mockWarningAlgo }
-            $result = Test-IISBindingCertificate -ComputerName $script:Host1
+            $result = Test-IISCertificateBinding -ComputerName $script:Host1
             $result.OverallStatus     | Should -Be 'Warning'
             $result.AlgorithmStrength | Should -Be 'Acceptable'
             $result.KeySize           | Should -Be 2048
@@ -557,7 +557,7 @@ Describe 'Test-IISBindingCertificate' {
         It 'Should return OverallStatus=Critical and ExpirationStatus=Expired for a past-due certificate' {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName `
                 -MockWith { return $script:mockExpired }
-            $result = Test-IISBindingCertificate -ComputerName $script:Host1
+            $result = Test-IISCertificateBinding -ComputerName $script:Host1
             $result.OverallStatus    | Should -Be 'Critical'
             $result.ExpirationStatus | Should -Be 'Expired'
             Should -Invoke -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName -Times 1 -Exactly
@@ -566,7 +566,7 @@ Describe 'Test-IISBindingCertificate' {
         It 'Should report a negative DaysUntilExpiration for an expired certificate' {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName `
                 -MockWith { return $script:mockExpired }
-            $result = Test-IISBindingCertificate -ComputerName $script:Host1
+            $result = Test-IISCertificateBinding -ComputerName $script:Host1
             $result.DaysUntilExpiration | Should -BeLessThan 0
             Should -Invoke -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName -Times 1 -Exactly
         }
@@ -574,7 +574,7 @@ Describe 'Test-IISBindingCertificate' {
         It 'Should include an expiry finding message for an Expired certificate' {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName `
                 -MockWith { return $script:mockExpired }
-            $result = Test-IISBindingCertificate -ComputerName $script:Host1
+            $result = Test-IISCertificateBinding -ComputerName $script:Host1
             ($result.Findings -join ' ') | Should -Match "expired"
             Should -Invoke -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName -Times 1 -Exactly
         }
@@ -582,7 +582,7 @@ Describe 'Test-IISBindingCertificate' {
         It 'Should set Status=Tested even when the certificate is expired' {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName `
                 -MockWith { return $script:mockExpired }
-            $result = Test-IISBindingCertificate -ComputerName $script:Host1
+            $result = Test-IISCertificateBinding -ComputerName $script:Host1
             $result.Status | Should -Be 'Tested'
             Should -Invoke -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName -Times 1 -Exactly
         }
@@ -590,7 +590,7 @@ Describe 'Test-IISBindingCertificate' {
         It 'Should return OverallStatus=Critical when HostnameMatch=$false (SAN mismatch)' {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName `
                 -MockWith { return $script:mockHostnameMismatch }
-            $result = Test-IISBindingCertificate -ComputerName $script:Host1
+            $result = Test-IISCertificateBinding -ComputerName $script:Host1
             $result.OverallStatus | Should -Be 'Critical'
             $result.HostnameMatch | Should -BeFalse
             Should -Invoke -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName -Times 1 -Exactly
@@ -599,7 +599,7 @@ Describe 'Test-IISBindingCertificate' {
         It 'Should include a hostname-mismatch finding when HostnameMatch=$false' {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName `
                 -MockWith { return $script:mockHostnameMismatch }
-            $result = Test-IISBindingCertificate -ComputerName $script:Host1
+            $result = Test-IISCertificateBinding -ComputerName $script:Host1
             ($result.Findings -join ' ') | Should -Match "does not match"
             Should -Invoke -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName -Times 1 -Exactly
         }
@@ -613,7 +613,7 @@ Describe 'Test-IISBindingCertificate' {
         It 'Should return Status=IISNotInstalled when W3SVC is absent' {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName `
                 -MockWith { return $script:mockIISNotInstalled }
-            $result = Test-IISBindingCertificate -ComputerName $script:Host1
+            $result = Test-IISCertificateBinding -ComputerName $script:Host1
             $result.Status | Should -Be 'IISNotInstalled'
             Should -Invoke -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName -Times 1 -Exactly
         }
@@ -621,7 +621,7 @@ Describe 'Test-IISBindingCertificate' {
         It 'Should set OverallStatus=Fail and include a non-null ErrorMessage for IISNotInstalled' {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName `
                 -MockWith { return $script:mockIISNotInstalled }
-            $result = Test-IISBindingCertificate -ComputerName $script:Host1
+            $result = Test-IISCertificateBinding -ComputerName $script:Host1
             $result.OverallStatus | Should -Be 'Fail'
             $result.ErrorMessage  | Should -Not -BeNullOrEmpty
             Should -Invoke -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName -Times 1 -Exactly
@@ -630,7 +630,7 @@ Describe 'Test-IISBindingCertificate' {
         It 'Should carry the PSTypeName even for a Status=IISNotInstalled row' {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName `
                 -MockWith { return $script:mockIISNotInstalled }
-            $result = Test-IISBindingCertificate -ComputerName $script:Host1
+            $result = Test-IISCertificateBinding -ComputerName $script:Host1
             $result.PSObject.TypeNames[0] | Should -Be 'PSWinOps.IISCertificateBindingTestResult'
             Should -Invoke -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName -Times 1 -Exactly
         }
@@ -644,7 +644,7 @@ Describe 'Test-IISBindingCertificate' {
         It 'Should return Status=BindingNotFound when no https bindings exist on the host' {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName `
                 -MockWith { return $script:mockBindingNotFound }
-            $result = Test-IISBindingCertificate -ComputerName $script:Host1
+            $result = Test-IISCertificateBinding -ComputerName $script:Host1
             $result.Status | Should -Be 'BindingNotFound'
             Should -Invoke -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName -Times 1 -Exactly
         }
@@ -652,7 +652,7 @@ Describe 'Test-IISBindingCertificate' {
         It 'Should set OverallStatus=Fail and a non-null ErrorMessage for BindingNotFound' {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName `
                 -MockWith { return $script:mockBindingNotFound }
-            $result = Test-IISBindingCertificate -ComputerName $script:Host1
+            $result = Test-IISCertificateBinding -ComputerName $script:Host1
             $result.OverallStatus | Should -Be 'Fail'
             $result.ErrorMessage  | Should -Not -BeNullOrEmpty
             Should -Invoke -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName -Times 1 -Exactly
@@ -667,7 +667,7 @@ Describe 'Test-IISBindingCertificate' {
         It 'Should return Status=CertNotFound when the thumbprint is not found in any store' {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName `
                 -MockWith { return $script:mockCertNotFound }
-            $result = Test-IISBindingCertificate -ComputerName $script:Host1
+            $result = Test-IISCertificateBinding -ComputerName $script:Host1
             $result.Status | Should -Be 'CertNotFound'
             Should -Invoke -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName -Times 1 -Exactly
         }
@@ -675,7 +675,7 @@ Describe 'Test-IISBindingCertificate' {
         It 'Should preserve the orphan Thumbprint in the CertNotFound row' {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName `
                 -MockWith { return $script:mockCertNotFound }
-            $result = Test-IISBindingCertificate -ComputerName $script:Host1
+            $result = Test-IISCertificateBinding -ComputerName $script:Host1
             $result.Thumbprint | Should -Be $script:OrphanThumb
             Should -Invoke -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName -Times 1 -Exactly
         }
@@ -683,7 +683,7 @@ Describe 'Test-IISBindingCertificate' {
         It 'Should leave certificate-derived properties null for a CertNotFound row' {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName `
                 -MockWith { return $script:mockCertNotFound }
-            $result = Test-IISBindingCertificate -ComputerName $script:Host1
+            $result = Test-IISCertificateBinding -ComputerName $script:Host1
             $result.OverallStatus | Should -Be 'Fail'
             $result.Subject       | Should -BeNullOrEmpty
             $result.NotAfter      | Should -BeNullOrEmpty
@@ -699,7 +699,7 @@ Describe 'Test-IISBindingCertificate' {
         It 'Should surface ChainValid=$null and empty ChainStatus when -SkipChainValidation is used' {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName `
                 -MockWith { return $script:mockSkipChain }
-            $result = Test-IISBindingCertificate -ComputerName $script:Host1 -SkipChainValidation
+            $result = Test-IISCertificateBinding -ComputerName $script:Host1 -SkipChainValidation
             $result.ChainValid  | Should -BeNullOrEmpty
             $result.ChainStatus | Should -BeNullOrEmpty
             Should -Invoke -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName -Times 1 -Exactly
@@ -708,7 +708,7 @@ Describe 'Test-IISBindingCertificate' {
         It 'Should still produce Status=Tested and OverallStatus=Pass with -SkipChainValidation' {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName `
                 -MockWith { return $script:mockSkipChain }
-            $result = Test-IISBindingCertificate -ComputerName $script:Host1 -SkipChainValidation
+            $result = Test-IISCertificateBinding -ComputerName $script:Host1 -SkipChainValidation
             $result.Status        | Should -Be 'Tested'
             $result.OverallStatus | Should -Be 'Pass'
             Should -Invoke -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName -Times 1 -Exactly
@@ -718,16 +718,16 @@ Describe 'Test-IISBindingCertificate' {
     # ─────────────────────────────────────────────────────────────────────────────
     # Context 8: Read-only / ShouldProcess semantics
     # ─────────────────────────────────────────────────────────────────────────────
-    Context 'Read-only semantics: Test-IISBindingCertificate never mutates state (ShouldProcess not implemented)' {
+    Context 'Read-only semantics: Test-IISCertificateBinding never mutates state (ShouldProcess not implemented)' {
 
         It 'Should not accept -WhatIf (function is read-only; SupportsShouldProcess is not declared)' {
-            { Test-IISBindingCertificate -ComputerName $script:Host1 -WhatIf } | Should -Throw
+            { Test-IISCertificateBinding -ComputerName $script:Host1 -WhatIf } | Should -Throw
         }
 
         It 'Should invoke Invoke-RemoteOrLocal exactly once and produce no write side-effects' {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName `
                 -MockWith { return $script:mockPass }
-            $result = Test-IISBindingCertificate -ComputerName $script:Host1
+            $result = Test-IISCertificateBinding -ComputerName $script:Host1
             $result.Status | Should -Be 'Tested'
             Should -Invoke -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName -Times 1 -Exactly
         }
@@ -742,7 +742,7 @@ Describe 'Test-IISBindingCertificate' {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName `
                 -MockWith { return $script:mockPass }
             $pipeInput = [PSCustomObject]@{ ComputerName = $script:Host1 }
-            $result = $pipeInput | Test-IISBindingCertificate
+            $result = $pipeInput | Test-IISCertificateBinding
             $result | Should -Not -BeNullOrEmpty
             Should -Invoke -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName -Times 1 -Exactly
         }
@@ -751,7 +751,7 @@ Describe 'Test-IISBindingCertificate' {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName `
                 -MockWith { return $script:mockPass }
             $pipeInput = [PSCustomObject]@{ DNSHostName = $script:Host1 }
-            $result = $pipeInput | Test-IISBindingCertificate
+            $result = $pipeInput | Test-IISCertificateBinding
             $result | Should -Not -BeNullOrEmpty
             Should -Invoke -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName -Times 1 -Exactly
         }
@@ -760,7 +760,7 @@ Describe 'Test-IISBindingCertificate' {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName `
                 -MockWith { return $script:mockPass }
             $pipeInput = [PSCustomObject]@{ ComputerName = $script:Host1; SiteName = 'Default Web Site' }
-            $result = $pipeInput | Test-IISBindingCertificate
+            $result = $pipeInput | Test-IISCertificateBinding
             $result | Should -Not -BeNullOrEmpty
             Should -Invoke -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName -Times 1 -Exactly
         }
@@ -772,7 +772,7 @@ Describe 'Test-IISBindingCertificate' {
                 ComputerName       = $script:Host1
                 BindingInformation = '*:443:'
             }
-            $result = $pipeInput | Test-IISBindingCertificate
+            $result = $pipeInput | Test-IISCertificateBinding
             $result | Should -Not -BeNullOrEmpty
             Should -Invoke -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName -Times 1 -Exactly
         }
@@ -784,7 +784,7 @@ Describe 'Test-IISBindingCertificate' {
                 ComputerName = $script:Host1
                 Thumbprint   = $script:ValidThumb
             }
-            $result = $pipeInput | Test-IISBindingCertificate
+            $result = $pipeInput | Test-IISCertificateBinding
             $result | Should -Not -BeNullOrEmpty
             Should -Invoke -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName -Times 1 -Exactly
         }
@@ -802,7 +802,7 @@ Describe 'Test-IISBindingCertificate' {
                 'domain\svcaccount',
                 (ConvertTo-SecureString -String 'P@ssw0rd!' -AsPlainText -Force)
             )
-            $result = Test-IISBindingCertificate -ComputerName $script:Host1 -Credential $cred
+            $result = Test-IISCertificateBinding -ComputerName $script:Host1 -Credential $cred
             $result.Status | Should -Be 'Tested'
             Should -Invoke -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName -Times 1 -Exactly
         }
@@ -810,7 +810,7 @@ Describe 'Test-IISBindingCertificate' {
         It 'Should return valid results when no Credential is supplied (local or integrated auth)' {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName `
                 -MockWith { return $script:mockPass }
-            $result = Test-IISBindingCertificate -ComputerName $script:Host1
+            $result = Test-IISCertificateBinding -ComputerName $script:Host1
             $result.Status | Should -Be 'Tested'
             Should -Invoke -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName -Times 1 -Exactly
         }
@@ -824,7 +824,7 @@ Describe 'Test-IISBindingCertificate' {
         It 'Should invoke Invoke-RemoteOrLocal once per computer when two hosts are supplied' {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName `
                 -MockWith { return $script:mockPass }
-            $null = Test-IISBindingCertificate -ComputerName @($script:Host1, $script:Host2)
+            $null = Test-IISCertificateBinding -ComputerName @($script:Host1, $script:Host2)
             Should -Invoke -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName -Times 2 -Exactly
         }
 
@@ -835,7 +835,7 @@ Describe 'Test-IISBindingCertificate' {
                 if ($script:fanOutCallIdx -ge 2) { return $script:mockPassHost2 }
                 return $script:mockPass
             }
-            $results = @(Test-IISBindingCertificate -ComputerName @($script:Host1, $script:Host2))
+            $results = @(Test-IISCertificateBinding -ComputerName @($script:Host1, $script:Host2))
             $results.Count | Should -Be 2
             Should -Invoke -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName -Times 2 -Exactly
         }
@@ -843,7 +843,7 @@ Describe 'Test-IISBindingCertificate' {
         It 'Should invoke Invoke-RemoteOrLocal three times when three hosts are piped in' {
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName `
                 -MockWith { return $script:mockPass }
-            $null = @($script:Host1, $script:Host2, $script:FailHost) | Test-IISBindingCertificate
+            $null = @($script:Host1, $script:Host2, $script:FailHost) | Test-IISCertificateBinding
             Should -Invoke -CommandName 'Invoke-RemoteOrLocal' -ModuleName $script:ModuleName -Times 3 -Exactly
         }
     }
@@ -861,7 +861,7 @@ Describe 'Test-IISBindingCertificate' {
                 return $script:mockPass
             }
             $results = @(
-                Test-IISBindingCertificate -ComputerName @($script:Host1, $script:FailHost) `
+                Test-IISCertificateBinding -ComputerName @($script:Host1, $script:FailHost) `
                     -ErrorAction SilentlyContinue
             )
             $results.Count    | Should -BeGreaterOrEqual 1

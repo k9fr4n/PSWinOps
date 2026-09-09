@@ -1,5 +1,5 @@
 ﻿#Requires -Version 5.1
-function Test-IISBindingCertificate {
+function Test-IISCertificateBinding {
     <#
         .SYNOPSIS
             Validates each IIS HTTPS binding certificate and emits a per-binding verdict (expiration, chain, hostname, key, store).
@@ -68,37 +68,37 @@ function Test-IISBindingCertificate {
             for speed/offline-friendliness).
 
         .EXAMPLE
-            Test-IISBindingCertificate
+            Test-IISCertificateBinding
 
             Audit every HTTPS binding on the local host with default thresholds.
 
         .EXAMPLE
-            'WEB01','WEB02','WEB03' | Test-IISBindingCertificate -Credential (Get-Credential)
+            'WEB01','WEB02','WEB03' | Test-IISCertificateBinding -Credential (Get-Credential)
 
             Audit a web farm using alternate credentials.
 
         .EXAMPLE
-            Test-IISBindingCertificate -ComputerName WEB01 | Where-Object OverallStatus -ne 'Pass'
+            Test-IISCertificateBinding -ComputerName WEB01 | Where-Object OverallStatus -ne 'Pass'
 
             Surface only actionable verdicts.
 
         .EXAMPLE
-            Test-IISBindingCertificate -ComputerName WEB01 -WarningDays 60 -CriticalDays 14
+            Test-IISCertificateBinding -ComputerName WEB01 -WarningDays 60 -CriticalDays 14
 
             Tighten the expiration window for a renewal sweep.
 
         .EXAMPLE
-            Test-IISBindingCertificate -ComputerName WEB01 -SkipChainValidation
+            Test-IISCertificateBinding -ComputerName WEB01 -SkipChainValidation
 
             Skip chain build on an offline / air-gapped host.
 
         .EXAMPLE
-            Get-IISCertificateBinding -ComputerName WEB01 -SiteName www | Test-IISBindingCertificate
+            Get-IISCertificateBinding -ComputerName WEB01 -SiteName www | Test-IISCertificateBinding
 
             Re-test a specific binding piped from the inventory cmdlet.
 
         .EXAMPLE
-            Test-IISBindingCertificate -ComputerName WEB01 -IncludeRevocationCheck
+            Test-IISCertificateBinding -ComputerName WEB01 -IncludeRevocationCheck
 
             Enable online revocation (CRL/OCSP) for a compliance run.
 

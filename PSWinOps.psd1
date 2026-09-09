@@ -12,7 +12,7 @@
     RootModule           = 'PSWinOps.psm1'
 
     # Version number of this module.
-    ModuleVersion        = '1.1.0'
+    ModuleVersion        = '1.2.0'
 
     # Supported PSEditions
     # Core is supported on Windows only; the module-level guard in PSWinOps.psm1 blocks
@@ -199,7 +199,7 @@
         'Save-WindowsUpdate',
         'Search-ADObject',
         'Set-EnvironmentVariable',
-        'Set-IISBindingCertificate',
+        'Set-IISCertificateBinding',
         'Set-NetworkRoute',
         'Set-NTPClient',
         'Set-PageFile',
@@ -212,7 +212,7 @@
         'Stop-ProcessTree',
         'Sync-NTPTime',
         'Test-DNSResolution',
-        'Test-IISBindingCertificate',
+        'Test-IISCertificateBinding',
         'Test-PortConnectivity',
         'Test-ProxyConnection',
         'Test-WinRM',
@@ -351,7 +351,7 @@
         'shpm',
         'shsm',
         'shwu',
-        'sibc',
+        'sicb',
         'snc',
         'snr',
         'spc',
@@ -361,7 +361,7 @@
         'svwu',
         'synt',
         'tdr',
-        'tibc',
+        'ticb',
         'tpc',
         'tpco',
         'trnr',
@@ -426,7 +426,12 @@
             # IconUri = ''
 
             # ReleaseNotes of this module
-            ReleaseNotes = '## 1.1.0 - 2026-09-05 UTC
+            ReleaseNotes = '## 1.2.0 - 2026-09-09 UTC
+
+### Changed
+- Breaking: renamed Set-IISBindingCertificate to Set-IISCertificateBinding and Test-IISBindingCertificate to Test-IISCertificateBinding for consistency with Get-IISCertificateBinding (#125). The PSWinOps.IISBindingCertificateResult PSTypeName is renamed to PSWinOps.IISCertificateBindingResult. Aliases sibc/tibc are renamed to sicb/ticb. No compatibility aliases are provided for the old function names.
+
+## 1.1.0 - 2026-09-05 UTC
 
 ### Added
 - Short aliases for all 139 public functions (e.g. gwu for Get-WindowsUpdate, gaui for Get-ADUserInventory), registered via AliasesToExport.

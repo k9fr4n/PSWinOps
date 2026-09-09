@@ -1,5 +1,5 @@
 ﻿#Requires -Version 5.1
-function Set-IISBindingCertificate {
+function Set-IISCertificateBinding {
     <#
         .SYNOPSIS
             Replaces the SSL/TLS certificate on one or more IIS https site bindings.
@@ -40,27 +40,27 @@ function Set-IISBindingCertificate {
             Bypass the ConfirmImpact=High prompt (equivalent to -Confirm:$false).
 
         .EXAMPLE
-            Set-IISBindingCertificate -SiteName 'www.contoso.com' -Thumbprint 'A1B2C3D4E5F6A1B2C3D4E5F6A1B2C3D4E5F6A1B2' -Confirm:$false
+            Set-IISCertificateBinding -SiteName 'www.contoso.com' -Thumbprint 'A1B2C3D4E5F6A1B2C3D4E5F6A1B2C3D4E5F6A1B2' -Confirm:$false
 
             Replaces the cert on every https binding of the site without prompting.
 
         .EXAMPLE
-            Set-IISBindingCertificate -SiteName 'Default Web Site' -BindingInformation '*:443:portal.contoso.com' -Thumbprint $newTp
+            Set-IISCertificateBinding -SiteName 'Default Web Site' -BindingInformation '*:443:portal.contoso.com' -Thumbprint $newTp
 
             Targets one specific binding by its ip:port:hostheader selector.
 
         .EXAMPLE
-            'WEB01','WEB02','WEB03' | Set-IISBindingCertificate -SiteName 'api' -Thumbprint $newTp -Credential (Get-Credential) -WhatIf
+            'WEB01','WEB02','WEB03' | Set-IISCertificateBinding -SiteName 'api' -Thumbprint $newTp -Credential (Get-Credential) -WhatIf
 
             Previews certificate rotation across a fleet via pipeline with explicit credentials.
 
         .EXAMPLE
-            Get-SSLCertificate -ComputerName WEB01 -Port 443 | Set-IISBindingCertificate -SiteName 'www' -Thumbprint $newTp
+            Get-SSLCertificate -ComputerName WEB01 -Port 443 | Set-IISCertificateBinding -SiteName 'www' -Thumbprint $newTp
 
             Pipeline-by-property-name from Get-SSLCertificate.
 
         .OUTPUTS
-            PSCustomObject (PSTypeName='PSWinOps.IISBindingCertificateResult')
+            PSCustomObject (PSTypeName='PSWinOps.IISCertificateBindingResult')
             Returns one object per (ComputerName, binding) pair.
 
         .NOTES
@@ -78,7 +78,7 @@ function Set-IISBindingCertificate {
             https://learn.microsoft.com/en-us/iis/manage/powershell/powershell-snap-in-changing-simple-settings-at-the-command-line
     #>
     [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
-    [OutputType('PSWinOps.IISBindingCertificateResult')]
+    [OutputType('PSWinOps.IISCertificateBindingResult')]
     param(
         [Parameter(Mandatory = $false, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
@@ -497,7 +497,7 @@ function Set-IISBindingCertificate {
                             }
 
                             [PSCustomObject]@{
-                                PSTypeName         = 'PSWinOps.IISBindingCertificateResult'
+                                PSTypeName         = 'PSWinOps.IISCertificateBindingResult'
                                 ComputerName       = $cn.ToUpper()
                                 SiteName           = $entry.SiteName
                                 BindingInformation = $entryBindInfo
@@ -516,7 +516,7 @@ function Set-IISBindingCertificate {
                     else {
                         # AlreadyUpToDate, CertNotFound, BindingNotFound, Failed: emit directly.
                         [PSCustomObject]@{
-                            PSTypeName         = 'PSWinOps.IISBindingCertificateResult'
+                            PSTypeName         = 'PSWinOps.IISCertificateBindingResult'
                             ComputerName       = $cn.ToUpper()
                             SiteName           = $entry.SiteName
                             BindingInformation = $entryBindInfo
