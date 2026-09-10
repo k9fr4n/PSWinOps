@@ -12,7 +12,7 @@
     RootModule           = 'PSWinOps.psm1'
 
     # Version number of this module.
-    ModuleVersion        = '1.2.0'
+    ModuleVersion        = '1.2.1'
 
     # Supported PSEditions
     # Core is supported on Windows only; the module-level guard in PSWinOps.psm1 blocks
@@ -198,6 +198,7 @@
         'Restore-ShadowCopyFile',
         'Save-WindowsUpdate',
         'Search-ADObject',
+        'Set-DisplayLanguage',
         'Set-EnvironmentVariable',
         'Set-IISCertificateBinding',
         'Set-NetworkRoute',
@@ -426,7 +427,12 @@
             # IconUri = ''
 
             # ReleaseNotes of this module
-            ReleaseNotes = '## 1.2.0 - 2026-09-09 UTC
+            ReleaseNotes = '## 1.2.1 - 2026-09-10 UTC
+
+### Added
+- New system domain function: Set-DisplayLanguage, changes the Windows UI display language for the current user (and optionally the system account / new user profiles) via Set-WinUILanguageOverride, installing the language pack automatically through LanguagePackManagement when missing.
+
+## 1.2.0 - 2026-09-09 UTC
 
 ### Changed
 - Breaking: renamed Set-IISBindingCertificate to Set-IISCertificateBinding and Test-IISBindingCertificate to Test-IISCertificateBinding for consistency with Get-IISCertificateBinding (#125). The PSWinOps.IISBindingCertificateResult PSTypeName is renamed to PSWinOps.IISCertificateBindingResult. Aliases sibc/tibc are renamed to sicb/ticb. No compatibility aliases are provided for the old function names.
