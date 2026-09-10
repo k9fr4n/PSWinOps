@@ -9,10 +9,10 @@ function Get-IISCertificateBinding {
             to the X509 certificate it points at, surfacing site, ip:port:hostheader,
             SNI/CCS flags, thumbprint, subject, SAN, issuer, validity window, days until
             expiration, certificate store of record and presence of the private key.
-            Provides the read-only typed counterpart of Set-IISBindingCertificate that
+            Provides the read-only typed counterpart of Set-IISCertificateBinding that
             IISAdministration does not expose in a single cmdlet. Falls back gracefully
             from WebAdministration to IISAdministration to appcmd, and pipes cleanly into
-            Set-IISBindingCertificate for rotation workflows.
+            Set-IISCertificateBinding for rotation workflows.
 
         .PARAMETER ComputerName
             One or more computer names to query. Defaults to the local machine.
@@ -65,7 +65,7 @@ function Get-IISCertificateBinding {
             Filters by site name wildcard and host header wildcard.
 
         .EXAMPLE
-            Get-IISCertificateBinding -ComputerName WEB01 -ExpiringInDays 15 | Set-IISBindingCertificate -Thumbprint $newTp -Confirm:$false
+            Get-IISCertificateBinding -ComputerName WEB01 -ExpiringInDays 15 | Set-IISCertificateBinding -Thumbprint $newTp -Confirm:$false
 
             Pipes expiring bindings directly into the rotation cmdlet.
 

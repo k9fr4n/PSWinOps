@@ -366,8 +366,8 @@ its `<View>` in `PSWinOps.Format.ps1xml`. This table is the reference list; keep
 | Get-IISFailedRequestTrace | PSWinOps.IISFailedRequestTrace | Table |
 | Get-IISParsedLog | PSWinOps.IISLogEntry | Table |
 | Get-IISWorkerProcess | PSWinOps.IISWorkerProcess | Table |
-| Set-IISBindingCertificate | PSWinOps.IISBindingCertificateResult | Table |
-| Test-IISBindingCertificate | PSWinOps.IISCertificateBindingTestResult | Table |
+| Set-IISCertificateBinding | PSWinOps.IISCertificateBindingResult | Table |
+| Test-IISCertificateBinding | PSWinOps.IISCertificateBindingTestResult | Table |
 | Watch-IISLog | PSWinOps.IISLogEntry | Table |
 | Clear-Arp | PSWinOps.ActionResult | Table |
 | Edit-HostsFile | PSWinOps.ActionResult | Table |

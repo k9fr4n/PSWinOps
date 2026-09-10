@@ -116,7 +116,7 @@ BeforeAll {
     )
 }
 
-Describe 'Set-IISBindingCertificate' {
+Describe 'Set-IISCertificateBinding' {
 
     # -----------------------------------------------------------------------
     # Context 1: Happy path — certificate successfully replaced
@@ -128,7 +128,7 @@ Describe 'Set-IISBindingCertificate' {
                 if ($ArgumentList.Count -eq 4) { return $script:queryReplaced }
                 return $script:applySuccess
             }
-            $result = Set-IISBindingCertificate -ComputerName $script:RemoteHost `
+            $result = Set-IISCertificateBinding -ComputerName $script:RemoteHost `
                 -SiteName $script:SiteName -Thumbprint $script:ValidThumb -Force
             $result.Status | Should -Be 'Replaced'
             Should -Invoke -CommandName 'Invoke-Command' -ModuleName $script:ModuleName -Times 2 -Exactly
@@ -139,7 +139,7 @@ Describe 'Set-IISBindingCertificate' {
                 if ($ArgumentList.Count -eq 4) { return $script:queryReplaced }
                 return $script:applySuccess
             }
-            $result = Set-IISBindingCertificate -ComputerName $script:RemoteHost `
+            $result = Set-IISCertificateBinding -ComputerName $script:RemoteHost `
                 -SiteName $script:SiteName -Thumbprint $script:ValidThumb -Force
             $result.PreviousThumbprint | Should -Be $script:OldThumb
             Should -Invoke -CommandName 'Invoke-Command' -ModuleName $script:ModuleName -Times 2 -Exactly
@@ -150,20 +150,20 @@ Describe 'Set-IISBindingCertificate' {
                 if ($ArgumentList.Count -eq 4) { return $script:queryReplaced }
                 return $script:applySuccess
             }
-            $result = Set-IISBindingCertificate -ComputerName $script:RemoteHost `
+            $result = Set-IISCertificateBinding -ComputerName $script:RemoteHost `
                 -SiteName $script:SiteName -Thumbprint $script:ValidThumb -Force
             $result.NewThumbprint | Should -Be $script:ValidThumb
             Should -Invoke -CommandName 'Invoke-Command' -ModuleName $script:ModuleName -Times 2 -Exactly
         }
 
-        It 'Should set PSTypeName to PSWinOps.IISBindingCertificateResult' {
+        It 'Should set PSTypeName to PSWinOps.IISCertificateBindingResult' {
             Mock -CommandName 'Invoke-Command' -ModuleName $script:ModuleName -MockWith {
                 if ($ArgumentList.Count -eq 4) { return $script:queryReplaced }
                 return $script:applySuccess
             }
-            $result = Set-IISBindingCertificate -ComputerName $script:RemoteHost `
+            $result = Set-IISCertificateBinding -ComputerName $script:RemoteHost `
                 -SiteName $script:SiteName -Thumbprint $script:ValidThumb -Force
-            $result.PSObject.TypeNames[0] | Should -Be 'PSWinOps.IISBindingCertificateResult'
+            $result.PSObject.TypeNames[0] | Should -Be 'PSWinOps.IISCertificateBindingResult'
             Should -Invoke -CommandName 'Invoke-Command' -ModuleName $script:ModuleName -Times 2 -Exactly
         }
 
@@ -172,7 +172,7 @@ Describe 'Set-IISBindingCertificate' {
                 if ($ArgumentList.Count -eq 4) { return $script:queryReplaced }
                 return $script:applySuccess
             }
-            $result = Set-IISBindingCertificate -ComputerName $script:RemoteHost `
+            $result = Set-IISCertificateBinding -ComputerName $script:RemoteHost `
                 -SiteName $script:SiteName -Thumbprint $script:ValidThumb -Force
             $result.Timestamp | Should -Match "^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$"
             Should -Invoke -CommandName 'Invoke-Command' -ModuleName $script:ModuleName -Times 2 -Exactly
@@ -183,7 +183,7 @@ Describe 'Set-IISBindingCertificate' {
                 if ($ArgumentList.Count -eq 4) { return $script:queryReplaced }
                 return $script:applySuccess
             }
-            $result = Set-IISBindingCertificate -ComputerName $script:RemoteHostLower `
+            $result = Set-IISCertificateBinding -ComputerName $script:RemoteHostLower `
                 -SiteName $script:SiteName -Thumbprint $script:ValidThumb -Force
             $result.ComputerName | Should -Be 'WEB01'
             Should -Invoke -CommandName 'Invoke-Command' -ModuleName $script:ModuleName -Times 2 -Exactly
@@ -199,7 +199,7 @@ Describe 'Set-IISBindingCertificate' {
             Mock -CommandName 'Invoke-Command' -ModuleName $script:ModuleName -MockWith {
                 return $script:queryAlreadyUpToDate
             }
-            $result = Set-IISBindingCertificate -ComputerName $script:RemoteHost `
+            $result = Set-IISCertificateBinding -ComputerName $script:RemoteHost `
                 -SiteName $script:SiteName -Thumbprint $script:ValidThumb -Force
             $result.Status | Should -Be 'AlreadyUpToDate'
             Should -Invoke -CommandName 'Invoke-Command' -ModuleName $script:ModuleName -Times 1 -Exactly
@@ -209,7 +209,7 @@ Describe 'Set-IISBindingCertificate' {
             Mock -CommandName 'Invoke-Command' -ModuleName $script:ModuleName -MockWith {
                 return $script:queryAlreadyUpToDate
             }
-            $result = Set-IISBindingCertificate -ComputerName $script:RemoteHost `
+            $result = Set-IISCertificateBinding -ComputerName $script:RemoteHost `
                 -SiteName $script:SiteName -Thumbprint $script:ValidThumb -Force
             $result.NewThumbprint | Should -Be $script:ValidThumb
             Should -Invoke -CommandName 'Invoke-Command' -ModuleName $script:ModuleName -Times 1 -Exactly
@@ -219,7 +219,7 @@ Describe 'Set-IISBindingCertificate' {
             Mock -CommandName 'Invoke-Command' -ModuleName $script:ModuleName -MockWith {
                 return $script:queryAlreadyUpToDate
             }
-            Set-IISBindingCertificate -ComputerName $script:RemoteHost `
+            Set-IISCertificateBinding -ComputerName $script:RemoteHost `
                 -SiteName $script:SiteName -Thumbprint $script:ValidThumb -Force
             Should -Invoke -CommandName 'Invoke-Command' -ModuleName $script:ModuleName -Times 1 -Exactly
         }
@@ -234,7 +234,7 @@ Describe 'Set-IISBindingCertificate' {
             Mock -CommandName 'Invoke-Command' -ModuleName $script:ModuleName -MockWith {
                 return $script:queryCertNotFound
             }
-            $result = Set-IISBindingCertificate -ComputerName $script:RemoteHost `
+            $result = Set-IISCertificateBinding -ComputerName $script:RemoteHost `
                 -SiteName $script:SiteName -Thumbprint $script:ValidThumb -Force
             $result.Status | Should -Be 'CertNotFound'
             Should -Invoke -CommandName 'Invoke-Command' -ModuleName $script:ModuleName -Times 1 -Exactly
@@ -244,7 +244,7 @@ Describe 'Set-IISBindingCertificate' {
             Mock -CommandName 'Invoke-Command' -ModuleName $script:ModuleName -MockWith {
                 return $script:queryCertNotFound
             }
-            Set-IISBindingCertificate -ComputerName $script:RemoteHost `
+            Set-IISCertificateBinding -ComputerName $script:RemoteHost `
                 -SiteName $script:SiteName -Thumbprint $script:ValidThumb -Force
             Should -Invoke -CommandName 'Invoke-Command' -ModuleName $script:ModuleName -Times 1 -Exactly
         }
@@ -259,7 +259,7 @@ Describe 'Set-IISBindingCertificate' {
             Mock -CommandName 'Invoke-Command' -ModuleName $script:ModuleName -MockWith {
                 return $script:queryBindingNotFound
             }
-            $result = Set-IISBindingCertificate -ComputerName $script:RemoteHost `
+            $result = Set-IISCertificateBinding -ComputerName $script:RemoteHost `
                 -SiteName $script:SiteName -Thumbprint $script:ValidThumb -Force
             $result.Status | Should -Be 'BindingNotFound'
             Should -Invoke -CommandName 'Invoke-Command' -ModuleName $script:ModuleName -Times 1 -Exactly
@@ -269,7 +269,7 @@ Describe 'Set-IISBindingCertificate' {
             Mock -CommandName 'Invoke-Command' -ModuleName $script:ModuleName -MockWith {
                 return $script:queryBindingNotFound
             }
-            $result = Set-IISBindingCertificate -ComputerName $script:RemoteHost `
+            $result = Set-IISCertificateBinding -ComputerName $script:RemoteHost `
                 -SiteName $script:SiteName -Thumbprint $script:ValidThumb -Force
             $result.ErrorMessage | Should -Not -BeNullOrEmpty
             Should -Invoke -CommandName 'Invoke-Command' -ModuleName $script:ModuleName -Times 1 -Exactly
@@ -285,7 +285,7 @@ Describe 'Set-IISBindingCertificate' {
             Mock -CommandName 'Invoke-Command' -ModuleName $script:ModuleName -MockWith {
                 return $script:queryFailed
             }
-            $result = Set-IISBindingCertificate -ComputerName $script:RemoteHost `
+            $result = Set-IISCertificateBinding -ComputerName $script:RemoteHost `
                 -SiteName $script:SiteName -Thumbprint $script:ValidThumb -Force
             $result.Status | Should -Be 'Failed'
             Should -Invoke -CommandName 'Invoke-Command' -ModuleName $script:ModuleName -Times 1 -Exactly
@@ -295,7 +295,7 @@ Describe 'Set-IISBindingCertificate' {
             Mock -CommandName 'Invoke-Command' -ModuleName $script:ModuleName -MockWith {
                 return $script:queryFailed
             }
-            $result = Set-IISBindingCertificate -ComputerName $script:RemoteHost `
+            $result = Set-IISCertificateBinding -ComputerName $script:RemoteHost `
                 -SiteName $script:SiteName -Thumbprint $script:ValidThumb -Force
             $result.ErrorMessage | Should -Not -BeNullOrEmpty
             Should -Invoke -CommandName 'Invoke-Command' -ModuleName $script:ModuleName -Times 1 -Exactly
@@ -306,7 +306,7 @@ Describe 'Set-IISBindingCertificate' {
                 if ($ArgumentList.Count -eq 4) { return $script:queryReplaced }
                 throw 'SSL binding update failed on target'
             }
-            $result = Set-IISBindingCertificate -ComputerName $script:RemoteHost `
+            $result = Set-IISCertificateBinding -ComputerName $script:RemoteHost `
                 -SiteName $script:SiteName -Thumbprint $script:ValidThumb -Force
             $result.Status | Should -Be 'Failed'
             $result.ErrorMessage | Should -Not -BeNullOrEmpty
@@ -324,7 +324,7 @@ Describe 'Set-IISBindingCertificate' {
                 if ($ArgumentList.Count -eq 4) { return $script:queryReplaced }
                 return $script:applySuccess
             }
-            Set-IISBindingCertificate -ComputerName $script:RemoteHost `
+            Set-IISCertificateBinding -ComputerName $script:RemoteHost `
                 -SiteName $script:SiteName -Thumbprint $script:ValidThumb -WhatIf
             Should -Invoke -CommandName 'Invoke-Command' -ModuleName $script:ModuleName -Times 1 -Exactly
         }
@@ -334,7 +334,7 @@ Describe 'Set-IISBindingCertificate' {
                 if ($ArgumentList.Count -eq 4) { return $script:queryReplaced }
                 return $script:applySuccess
             }
-            $result = Set-IISBindingCertificate -ComputerName $script:RemoteHost `
+            $result = Set-IISCertificateBinding -ComputerName $script:RemoteHost `
                 -SiteName $script:SiteName -Thumbprint $script:ValidThumb -WhatIf
             $result | Should -BeNullOrEmpty
             Should -Invoke -CommandName 'Invoke-Command' -ModuleName $script:ModuleName -Times 1 -Exactly
@@ -355,7 +355,7 @@ Describe 'Set-IISBindingCertificate' {
                 SiteName     = $script:SiteName
                 Thumbprint   = $script:ValidThumb
             }
-            $result = $pipelineInput | Set-IISBindingCertificate -Force
+            $result = $pipelineInput | Set-IISCertificateBinding -Force
             $result | Should -Not -BeNullOrEmpty
             $result.Status | Should -Be 'AlreadyUpToDate'
             Should -Invoke -CommandName 'Invoke-Command' -ModuleName $script:ModuleName -Times 1 -Exactly
@@ -371,7 +371,7 @@ Describe 'Set-IISBindingCertificate' {
                 Thumbprint         = $script:ValidThumb
                 BindingInformation = '*:443:'
             }
-            $result = $pipelineInput | Set-IISBindingCertificate -Force
+            $result = $pipelineInput | Set-IISCertificateBinding -Force
             $result | Should -Not -BeNullOrEmpty
             Should -Invoke -CommandName 'Invoke-Command' -ModuleName $script:ModuleName -Times 1 -Exactly
         }
@@ -389,7 +389,7 @@ Describe 'Set-IISBindingCertificate' {
             Mock -CommandName 'Invoke-Command' -ModuleName $script:ModuleName -MockWith {
                 return $script:queryAlreadyUpToDate
             }
-            Set-IISBindingCertificate -ComputerName $script:RemoteHost `
+            Set-IISCertificateBinding -ComputerName $script:RemoteHost `
                 -SiteName $script:SiteName -Thumbprint $script:ValidThumb `
                 -Credential $cred -Force
             Should -Invoke -CommandName 'Invoke-Command' -ModuleName $script:ModuleName -Times 1 -Exactly -ParameterFilter {
@@ -407,7 +407,7 @@ Describe 'Set-IISBindingCertificate' {
             Mock -CommandName 'Invoke-Command' -ModuleName $script:ModuleName -MockWith {
                 return $script:queryAlreadyUpToDate
             }
-            $results = Set-IISBindingCertificate -ComputerName $script:RemoteHost, $script:Host2 `
+            $results = Set-IISCertificateBinding -ComputerName $script:RemoteHost, $script:Host2 `
                 -SiteName $script:SiteName -Thumbprint $script:ValidThumb -Force
             @($results).Count | Should -Be 2
             Should -Invoke -CommandName 'Invoke-Command' -ModuleName $script:ModuleName -Times 2 -Exactly
@@ -417,7 +417,7 @@ Describe 'Set-IISBindingCertificate' {
             Mock -CommandName 'Invoke-Command' -ModuleName $script:ModuleName -MockWith {
                 return $script:queryAlreadyUpToDate
             }
-            $results = Set-IISBindingCertificate -ComputerName $script:RemoteHost, $script:Host2 `
+            $results = Set-IISCertificateBinding -ComputerName $script:RemoteHost, $script:Host2 `
                 -SiteName $script:SiteName -Thumbprint $script:ValidThumb -Force
             $computerNames = @($results).ComputerName
             $computerNames | Should -Contain 'WEB01'
@@ -436,7 +436,7 @@ Describe 'Set-IISBindingCertificate' {
                 if ($ComputerName -eq 'FAILHOST') { throw 'Connection refused' }
                 return $script:queryAlreadyUpToDate
             }
-            $results = Set-IISBindingCertificate -ComputerName $script:FailHost, $script:RemoteHost `
+            $results = Set-IISCertificateBinding -ComputerName $script:FailHost, $script:RemoteHost `
                 -SiteName $script:SiteName -Thumbprint $script:ValidThumb -Force `
                 -ErrorAction SilentlyContinue
             @($results).Count | Should -Be 1
@@ -449,7 +449,7 @@ Describe 'Set-IISBindingCertificate' {
                 throw 'Connection refused'
             }
             $errorVar = @()
-            $null = Set-IISBindingCertificate -ComputerName $script:FailHost `
+            $null = Set-IISCertificateBinding -ComputerName $script:FailHost `
                 -SiteName $script:SiteName -Thumbprint $script:ValidThumb `
                 -Force -ErrorAction SilentlyContinue -ErrorVariable errorVar
             $errorVar | Should -Not -BeNullOrEmpty
@@ -463,7 +463,7 @@ Describe 'Set-IISBindingCertificate' {
     Context 'BOM and CRLF line-ending sentinel (encoding contract)' {
 
         It 'Should have a UTF-8 BOM (EF BB BF) as the first three bytes of the test file' {
-            $filePath = Join-Path -Path $PSScriptRoot -ChildPath 'Set-IISBindingCertificate.Tests.ps1'
+            $filePath = Join-Path -Path $PSScriptRoot -ChildPath 'Set-IISCertificateBinding.Tests.ps1'
             $bytes = [System.IO.File]::ReadAllBytes($filePath)
             $bytes[0] | Should -Be 0xEF
             $bytes[1] | Should -Be 0xBB
@@ -471,7 +471,7 @@ Describe 'Set-IISBindingCertificate' {
         }
 
         It 'Should use CRLF line endings throughout the test file source' {
-            $filePath = Join-Path -Path $PSScriptRoot -ChildPath 'Set-IISBindingCertificate.Tests.ps1'
+            $filePath = Join-Path -Path $PSScriptRoot -ChildPath 'Set-IISCertificateBinding.Tests.ps1'
             $content = Get-Content -Path $filePath -Raw
             $content | Should -Match "`r`n"
         }
@@ -483,21 +483,21 @@ Describe 'Set-IISBindingCertificate' {
     Context 'Parameter validation and CmdletBinding attributes' {
 
         It 'Should have CmdletBinding with SupportsShouldProcess enabled' {
-            $cmd = Get-Command -Name 'Set-IISBindingCertificate'
+            $cmd = Get-Command -Name 'Set-IISCertificateBinding'
             $attr = $cmd.ScriptBlock.Attributes |
                 Where-Object { $_ -is [System.Management.Automation.CmdletBindingAttribute] }
             $attr.SupportsShouldProcess | Should -BeTrue
         }
 
         It 'Should have ConfirmImpact set to High' {
-            $cmd = Get-Command -Name 'Set-IISBindingCertificate'
+            $cmd = Get-Command -Name 'Set-IISCertificateBinding'
             $attr = $cmd.ScriptBlock.Attributes |
                 Where-Object { $_ -is [System.Management.Automation.CmdletBindingAttribute] }
             $attr.ConfirmImpact | Should -Be 'High'
         }
 
         It 'Should reject a Thumbprint that is not 40 hexadecimal characters' {
-            { Set-IISBindingCertificate -SiteName 'TestSite' -Thumbprint 'TOOSHORT' -Force } |
+            { Set-IISCertificateBinding -SiteName 'TestSite' -Thumbprint 'TOOSHORT' -Force } |
                 Should -Throw
         }
 
@@ -505,7 +505,7 @@ Describe 'Set-IISBindingCertificate' {
             Mock -CommandName 'Invoke-Command' -ModuleName $script:ModuleName -MockWith {
                 return $script:queryAlreadyUpToDate
             }
-            { Set-IISBindingCertificate -ComputerName $script:RemoteHost `
+            { Set-IISCertificateBinding -ComputerName $script:RemoteHost `
                 -SiteName $script:SiteName -Thumbprint $script:ValidThumb -Force } |
                 Should -Not -Throw
             Should -Invoke -CommandName 'Invoke-Command' -ModuleName $script:ModuleName -Times 1 -Exactly

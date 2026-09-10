@@ -8,6 +8,16 @@ All notable changes to PSWinOps are documented in this file. Versions follow
 > released as `0.0.24`/`0.1.x`/`0.12.x` — those version numbers never shipped. That
 > accumulated work is released here as `1.0.0`.
 
+## [1.2.0] - 2026-09-09
+
+### Changed
+
+- **Breaking**: renamed `Set-IISBindingCertificate` → `Set-IISCertificateBinding` and
+  `Test-IISBindingCertificate` → `Test-IISCertificateBinding` for consistency with
+  `Get-IISCertificateBinding` (#125). The `PSWinOps.IISBindingCertificateResult` PSTypeName
+  is renamed to `PSWinOps.IISCertificateBindingResult`. Aliases `sibc`/`tibc` are renamed to
+  `sicb`/`ticb`. No compatibility aliases are provided for the old function names.
+
 ## [1.1.0] - 2026-09-05
 
 ### Added

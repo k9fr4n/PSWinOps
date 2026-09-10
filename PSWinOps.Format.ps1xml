@@ -7025,13 +7025,13 @@
       </TableControl>
     </View>
     <!-- ============================================================ -->
-    <!-- PSWinOps.IISBindingCertificateResult                        -->
-    <!-- Used by: Set-IISBindingCertificate                          -->
+    <!-- PSWinOps.IISCertificateBindingResult                         -->
+    <!-- Used by: Set-IISCertificateBinding                          -->
     <!-- ============================================================ -->
     <View>
-      <Name>PSWinOps.IISBindingCertificateResult</Name>
+      <Name>PSWinOps.IISCertificateBindingResult</Name>
       <ViewSelectedBy>
-        <TypeName>PSWinOps.IISBindingCertificateResult</TypeName>
+        <TypeName>PSWinOps.IISCertificateBindingResult</TypeName>
       </ViewSelectedBy>
       <TableControl>
         <AutoSize />
@@ -7480,7 +7480,7 @@
 
     <!-- ============================================================ -->
     <!-- PSWinOps.IISCertificateBindingTestResult                     -->
-    <!-- Used by: Test-IISBindingCertificate                          -->
+    <!-- Used by: Test-IISCertificateBinding                          -->
     <!-- ============================================================ -->
     <View>
       <Name>PSWinOps.IISCertificateBindingTestResult</Name>
