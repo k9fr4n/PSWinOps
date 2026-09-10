@@ -422,6 +422,7 @@ its `<View>` in `PSWinOps.Format.ps1xml`. This table is the reference list; keep
 | Get-StartupProgram | PSWinOps.StartupProgram | Table |
 | Get-SystemSummary | PSWinOps.SystemSummary | List |
 | Remove-UserProfile | PSWinOps.UserProfileRemoval | Table |
+| Set-DisplayLanguage | PSWinOps.DisplayLanguageResult | Table |
 | Set-EnvironmentVariable | PSWinOps.EnvironmentVariable | Table |
 | Set-PageFile | PSWinOps.PageFileConfiguration | List |
 | Stop-ProcessTree | PSWinOps.ProcessKillResult | Table |

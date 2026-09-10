@@ -193,7 +193,7 @@ FUNCTION DOMAINS
 
       Get-AuditPolicy
 
-  system (20 functions)
+  system (21 functions)
     Functions for general system information, state,
     disk cleanup, profile management, and real-time monitoring.
 
@@ -213,6 +213,7 @@ FUNCTION DOMAINS
       Get-StartupProgram
       Get-SystemSummary
       Remove-UserProfile
+      Set-DisplayLanguage
       Set-EnvironmentVariable
       Set-PageFile
       Show-SystemMonitor
@@ -341,7 +342,7 @@ REMOTE EXECUTION PATTERN
     in the pipeline continue to be processed.
 
 PSWINOPS TYPE REGISTRY
-    The following 120 PSTypeName values are defined by the
+    The following 121 PSTypeName values are defined by the
     module. Each corresponds to the output of one or more
     public functions.
 
@@ -385,6 +386,7 @@ PSWINOPS TYPE REGISTRY
       PSWinOps.DiskCleanupResult
       PSWinOps.DiskErrorEvent
       PSWinOps.DiskSpace
+      PSWinOps.DisplayLanguageResult
       PSWinOps.DnsResolution
       PSWinOps.DnsServerHealth
       PSWinOps.DriverInventory

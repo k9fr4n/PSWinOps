@@ -2617,6 +2617,64 @@
       </TableControl>
     </View>
     <!-- ============================================================ -->
+    <!-- PSWinOps.DisplayLanguageResult                               -->
+    <!-- Used by: Set-DisplayLanguage                                 -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.DisplayLanguageResult</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.DisplayLanguageResult</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <AutoSize />
+        <TableHeaders>
+          <TableColumnHeader>
+            <Label>ComputerName</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Language</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>PackAction</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>AppliedToSystem</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>AppliedToNewUsers</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Status</Label>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem>
+                <PropertyName>ComputerName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Language</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>PackAction</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>AppliedToSystem</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>AppliedToNewUsers</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Status</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <!-- ============================================================ -->
     <!-- PSWinOps.EnvironmentVariable                                 -->
     <!-- Used by: Get-EnvironmentVariable, Set-EnvironmentVariable    -->
     <!-- ============================================================ -->
