@@ -201,8 +201,11 @@ Describe 'Set-DisplayLanguage' {
         It -Name 'Should write an error for the failing machine and continue to the next one' -Test {
             $script:isolationResults = 'SRV01', 'SRV02' | Set-DisplayLanguage -Language 'en-US' -Confirm:$false -ErrorVariable errVar -ErrorAction SilentlyContinue
             $errVar | Should -Not -BeNullOrEmpty
-            @($script:isolationResults).Count | Should -Be 1
-            $script:isolationResults[0].ComputerName | Should -Be 'SRV02'
+            @($script:isolationResults).Count | Should -Be 2
+            $script:isolationResults[0].ComputerName | Should -Be 'SRV01'
+            $script:isolationResults[0].Status | Should -Be 'Failed'
+            $script:isolationResults[1].ComputerName | Should -Be 'SRV02'
+            $script:isolationResults[1].Status | Should -Be 'Success'
         }
     }
 }
