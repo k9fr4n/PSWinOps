@@ -34,6 +34,14 @@ The script polls until no check is pending and emits JSON with `verdict`
 branch-protection-discovered `required` contexts, and `failed_required` vs
 `failed_optional`.
 
+`ciTimeoutSeconds` is the budget for **one** invocation, and it is deliberately
+under the Bash tool's 600s ceiling: a longer value is unreachable because the
+tool call is killed before the script returns. A CI run that outlasts it is
+normal — return `PENDING` and let the orchestrator re-enter this phase (up to
+`maxCiWaitRounds` times). Do not raise the timeout past the ceiling to "wait
+harder"; that just loses the verdict. This repo's full matrix is ~20 checks and
+`coverage` finishes last, so more than one round is expected.
+
 Handle each non-FAILURE verdict on its own terms rather than collapsing them:
 
 - **`TIMEOUT`** — CI is still running past the budget. Not a failure. Return

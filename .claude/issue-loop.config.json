@@ -8,8 +8,10 @@
   "autoMerge": true,
   "mergeStrategy": "squash",
 
-  "ciPollIntervalSeconds": 45,
-  "ciTimeoutSeconds": 2700,
+  "$comment_ci": "ciTimeoutSeconds is the budget for ONE ci-wait.sh invocation and MUST stay under the Bash tool's 600s ceiling — a longer value can never be reached, the tool call is killed first. Longer CI runs are covered by the orchestrator re-entering the CI phase on a PENDING verdict, up to maxCiWaitRounds times (480s x 6 = 48min of total waiting).",
+  "ciPollIntervalSeconds": 30,
+  "ciTimeoutSeconds": 480,
+  "maxCiWaitRounds": 6,
 
   "eligibility": {
     "$comment": "Label-based gating. requiredAnyLabels empty = no positive label requirement. An issue carrying ANY blockingLabel is never auto-processed.",
