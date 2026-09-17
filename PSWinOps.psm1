@@ -169,6 +169,7 @@ $script:AliasMap = @{
     'rstns' = 'Reset-NetworkStack'
     'rstwuc' = 'Reset-WindowsUpdateComponent'
     'rup' = 'Remove-UserProfile'
+    'sdl' = 'Set-DisplayLanguage'
     'seao' = 'Search-ADObject'
     'sev' = 'Set-EnvironmentVariable'
     'shnsm' = 'Show-NetworkStatisticMonitor'
