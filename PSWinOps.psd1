@@ -346,6 +346,7 @@
         'rstns',
         'rstwuc',
         'rup',
+        'sdl',
         'seao',
         'sev',
         'shnsm',

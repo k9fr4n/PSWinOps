@@ -39,7 +39,7 @@ Public domains: `activedirectory`, `certificate`, `eventlog`, `healthcheck`, `ii
 `ntp`, `proxy`, `rdp`, `security`, `system`, `utils`, `vss`, `windowsupdate`. New domain → new
 folder under both `Public/` and `Tests/Public/`.
 
-## Coding rules (1–14)
+## Coding rules (1–15)
 
 **Rule 1 — Sub-folder structure.** One function per file in its domain folder. Test file
 mirrors the source path: `Public\<domain>\Foo.ps1` → `Tests\Public\<domain>\Foo.Tests.ps1`;
@@ -148,6 +148,15 @@ left-aligned UPPERCASE; content indented 4 spaces; domain sub-headers indented 2
 function lists indented 6 spaces, one per line, alphabetical; type-registry entries indented
 6 spaces, alphabetical.
 
+**Rule 15 — Short alias.** Every public function gets exactly one lowercase short alias derived
+from its verb-noun initials (`Set-DisplayLanguage` → `sdl`, `Get-WindowsUpdate` → `gwu`). The
+alias lives in **two** places, both kept alphabetically sorted by key: `$script:AliasMap` in
+`PSWinOps.psm1` (the runtime registration source, dot-sourced into `Set-Alias`) and
+`AliasesToExport` in `PSWinOps.psd1` (the exported-alias list). When the verb-noun initials
+would collide with an existing entry or a built-in PowerShell alias (e.g. `gc`, `sc`, `rp`),
+extend the alias with additional letters from the noun until it is unique. Adding, removing, or
+renaming a public function therefore also adds, removes, or renames its alias in both lists.
+
 ## Comment-based help (mandatory)
 
 Every public function MUST include all **7 fields** below, one `.PARAMETER` block **per declared
@@ -220,8 +229,10 @@ line between sections.
 3. Add the mirrored test `Tests/Public/<domain>/Verb-Noun.Tests.ps1` (full Pester v5).
 4. Update `FunctionsToExport` in `PSWinOps.psd1` (explicit, alphabetical) — or run
    `.\build.ps1 -Task SyncManifest`.
-5. Update `en-US/about_PSWinOps.help.txt` (domain list, counts, type registry — Rule 14).
-6. Provide usage examples (local, remote single, pipeline) and note permissions / Windows
+5. Add the function's short alias (Rule 15) to `$script:AliasMap` in `PSWinOps.psm1` and to
+   `AliasesToExport` in `PSWinOps.psd1` — both alphabetical by key, unique, no built-in clash.
+6. Update `en-US/about_PSWinOps.help.txt` (domain list, counts, type registry — Rule 14).
+7. Provide usage examples (local, remote single, pipeline) and note permissions / Windows
    features / edge cases.
 
 ## Build & test (`build.ps1`)
@@ -303,6 +314,7 @@ continues and writes error); parameter validation (empty/null/invalid → error)
 | Fewer than 3 `.EXAMPLE` blocks | Minimum 3: local, remote, pipeline |
 | Missing a `.PARAMETER` for a declared param | One `.PARAMETER` block per param |
 | `about_PSWinOps.help.txt` not updated | Update domain list, counts, type registry |
+| Public function with no short alias | Add it to `$script:AliasMap` and `AliasesToExport` (Rule 15) |
 
 ## Type registry (canonical `PSTypeName` per function — Rule 7)
 

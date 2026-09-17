@@ -94,6 +94,34 @@ Describe -Name 'PSWinOps Module Loader' -Fixture {
         }
     }
 
+    Context -Name 'Alias coverage' -Fixture {
+
+        BeforeAll {
+            $script:module = Get-Module -Name 'PSWinOps'
+            $script:exportedFunctions = $script:module.ExportedFunctions.Keys
+            $script:exportedAliases = $script:module.ExportedAliases
+            $script:aliasTargets = @($script:exportedAliases.Values | ForEach-Object { $_.Definition })
+        }
+
+        It -Name 'Should export exactly one alias per public function' -Test {
+            $script:exportedAliases.Count | Should -Be @($script:exportedFunctions).Count
+        }
+
+        It -Name 'Should give every public function an exported alias' -Test {
+            $uncovered = @($script:exportedFunctions | Where-Object { $script:aliasTargets -notcontains $_ })
+            $uncovered | Should -BeNullOrEmpty
+        }
+
+        It -Name 'Should not point two aliases at the same function' -Test {
+            $uniqueTargets = @($script:aliasTargets | Sort-Object -Unique)
+            $uniqueTargets.Count | Should -Be $script:aliasTargets.Count
+        }
+
+        It -Name 'Should resolve Set-DisplayLanguage from the sdl alias' -Test {
+            (Get-Alias -Name 'sdl').ResolvedCommandName | Should -Be 'Set-DisplayLanguage'
+        }
+    }
+
     Context -Name 'Private function isolation' -Fixture {
 
         BeforeAll {
