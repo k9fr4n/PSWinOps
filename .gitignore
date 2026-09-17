@@ -37,3 +37,6 @@ secrets.json
 
 # KDust per-run sandbox (ADR-0009)
 work/
+
+# /issue-loop local state (resumable workflow bookkeeping, never shared)
+.claude/state/
