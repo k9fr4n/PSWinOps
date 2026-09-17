@@ -222,9 +222,17 @@ Route its `RESULT:`:
   fault. Do **not** consume the fix budget. Re-run the failed workflow once
   (`gh run rerun <id> --failed`) and return to Step 4. Track re-runs separately
   and cap them at two, so a broken runner cannot spin forever.
-- **`PENDING`** → CI outran the poll budget. Keep the phase at `CI_RUNNING` and
-  re-enter Step 4. Under `--once`, it is legitimate to stop and report the PR as
-  still building — the state store lets a later run resume it.
+- **`PENDING`** → CI outran one wait window. This is routine, not a problem:
+  each `ci-wait.sh` call is capped below the Bash tool's 600s ceiling, so a long
+  matrix needs several rounds. Keep the phase at `CI_RUNNING`, bump the round
+  counter, and re-enter Step 4 while it is under `maxCiWaitRounds`:
+  ```bash
+  R=$(.claude/scripts/issue-state.sh bump <n> ci_wait_rounds)
+  ```
+  Past that budget, stop waiting and park the issue as `EXHAUSTED` with the PR
+  left open and still building — do **not** merge an unfinished run. Under
+  `--once`, it is also legitimate to stop and report the PR as still building;
+  the state store lets a later run resume it.
 - **`ESCALATE`** → park `BLOCKED`, leave the PR open, release, next issue.
 
 Never merge on a red or pending verdict, and never route around a failure by
