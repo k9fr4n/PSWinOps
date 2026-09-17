@@ -465,3 +465,46 @@ corresponding module/role being present (e.g. `ActiveDirectory`, `WebAdministrat
   (`LicenseUri`, `ProjectUri`, `Tags`, `ReleaseNotes`, `LICENSE`), PSScriptAnalyzer lint (fails
   on any error/warning), Pester suites per domain (Pester ≥ 5.7, Integration excluded).
 - `publish.yml` — publishes to PowerShell Gallery.
+
+## Claude Code automation (`.claude/`)
+
+Two workflows exist; pick by what the task is.
+
+**`/pswinops-function`** — authors a brand-new public function from a one-line
+description. A four-hop chain (`pswinops-fn-spec-analyst` → `pswinops-fn-author` →
+`pswinops-fn-test-engineer` → `pswinops-fn-quality-gate`) that produces spec, source, Format
+view, Pester suite and manifest/help updates, then opens a PR and **stops** — a human merges.
+
+**`/issue-loop`** — processes eligible open GitHub issues one at a time, end to end:
+triage → implement → PR → CI → fix loop → merge → next issue. Four agents
+(`issue-triage`, `issue-implementer`, `ci-analyzer`, `pr-merger`) orchestrated by the command
+itself, which owns the state machine. It delegates new-function issues to
+`/pswinops-function` rather than duplicating it.
+
+- `.claude/issue-loop.config.json` — all tunables (attempt budgets, `autoMerge`,
+  merge strategy, eligibility labels, selection ranking). Nothing is hardcoded in the agents;
+  the default branch, required checks and CI job names are discovered from GitHub at runtime.
+- `.claude/state/` — per-issue phase records + the single-issue claim that makes a re-run
+  resumable and idempotent. Git-ignored; GitHub stays the source of truth.
+- `.claude/scripts/pswinops-audit.sh [base-ref]` — the conformance gate. Run it before any
+  push: it checks encoding, forbidden constructs (`Write-Host`, WMI, `$ErrorActionPreference`),
+  `FunctionsToExport` sorting/completeness, Format `<View>` and type-registry coverage for new
+  PSTypeNames, test mirroring, comment-based-help completeness, and the CI matrix. `FAIL:`
+  blocks, `WARN:` advises.
+- `.claude/scripts/ci-wait.sh <pr>` — polls a PR's checks to a terminal state and emits JSON
+  (`SUCCESS`/`FAILURE`/`CANCELLED`/`TIMEOUT`/`NO_CHECKS`), splitting failures into required vs
+  optional using the branch-protection contexts.
+- `.claude/scripts/issue-state.sh` — the state store CLI.
+
+> **This dev host cannot validate PowerShell.** It is Linux/ARM with no `pwsh`, so
+> `Invoke-Pester`, `Invoke-ScriptAnalyzer`, `Test-ModuleManifest` and `build.ps1` run **only**
+> in the Windows CI. `pswinops-audit.sh` is the local gate; the CI is the dynamic one. Never
+> report tests as passing locally — they did not run.
+
+### Encoding note (supersedes older assumptions)
+
+`.gitattributes` marks `*.ps1`/`*.psm1`/`*.psd1`/`*.ps1xml` as `text`, so git normalises to LF
+in the repo and CI sets `core.autocrlf=true` for PS 5.1. **Do not force CRLF into the working
+tree** — it fights that configuration. A UTF-8 BOM is required only for files containing
+non-ASCII bytes (PS 5.1 reads BOM-less files as ANSI); 20 of the 140 files on `main` are
+BOM-less pure ASCII and correct as they are.

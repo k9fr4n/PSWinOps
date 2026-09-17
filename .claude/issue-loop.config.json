@@ -1,0 +1,43 @@
+{
+  "$comment": "Configuration for the /issue-loop autonomous issue→PR→merge workflow. Nothing in the workflow hardcodes these values; agents and the orchestrator read them from here. Everything else (default branch, required checks, merge strategy availability, CI job names, test suites) is DISCOVERED at runtime from GitHub and must never be duplicated here.",
+
+  "maxCiAttempts": 3,
+  "maxLocalFixAttempts": 3,
+  "maxIssuesPerRun": 0,
+
+  "autoMerge": true,
+  "mergeStrategy": "squash",
+
+  "ciPollIntervalSeconds": 45,
+  "ciTimeoutSeconds": 2700,
+
+  "eligibility": {
+    "$comment": "Label-based gating. requiredAnyLabels empty = no positive label requirement. An issue carrying ANY blockingLabel is never auto-processed.",
+    "requiredAnyLabels": [],
+    "blockingLabels": [
+      "question",
+      "wontfix",
+      "invalid",
+      "duplicate",
+      "help wanted",
+      "blocked",
+      "needs-decision"
+    ],
+    "skipAssignedToOthers": true,
+    "skipIfLinkedPrOpen": true,
+    "newDomainLabel": "new-domain"
+  },
+
+  "selection": {
+    "$comment": "Deterministic ordering. The repo has no priority-label scheme, so ordering is by issue kind then FIFO on creation date — both facts are readable from GitHub. labelRank lists kinds highest-priority first; an unlabelled issue sorts after every ranked label.",
+    "labelRank": ["bug", "documentation", "enhancement"],
+    "tieBreak": "oldest-createdAt-first"
+  },
+
+  "stateDir": ".claude/state",
+
+  "delegation": {
+    "$comment": "Issues that ask for a brand-new public function are handled by the pre-existing /pswinops-function chain instead of the generic implementer. Detected by the orchestrator from the issue title/body.",
+    "newFunctionCommand": "/pswinops-function"
+  }
+}
