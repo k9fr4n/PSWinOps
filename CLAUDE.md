@@ -429,6 +429,7 @@ its `<View>` in `PSWinOps.Format.ps1xml`. This table is the reference list; keep
 | Get-PageFileConfiguration | PSWinOps.PageFileConfiguration | Table |
 | Get-PendingReboot | PSWinOps.PendingReboot | List |
 | Get-RebootHistory | PSWinOps.RebootHistory | Table |
+| Get-RecycleBinSize | PSWinOps.RecycleBinSize | Table |
 | Get-ScheduledTaskDetail | PSWinOps.ScheduledTaskDetail | Table |
 | Get-ServiceAccount | PSWinOps.ServiceAccount | Table |
 | Get-StartupProgram | PSWinOps.StartupProgram | Table |

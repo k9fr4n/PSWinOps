@@ -193,7 +193,7 @@ FUNCTION DOMAINS
 
       Get-AuditPolicy
 
-  system (21 functions)
+  system (22 functions)
     Functions for general system information, state,
     disk cleanup, profile management, and real-time monitoring.
 
@@ -208,6 +208,7 @@ FUNCTION DOMAINS
       Get-PageFileConfiguration
       Get-PendingReboot
       Get-RebootHistory
+      Get-RecycleBinSize
       Get-ScheduledTaskDetail
       Get-ServiceAccount
       Get-StartupProgram
@@ -435,6 +436,7 @@ PSWINOPS TYPE REGISTRY
       PSWinOps.RdpSessionLock
       PSWinOps.RDSHealth
       PSWinOps.RebootHistory
+      PSWinOps.RecycleBinSize
       PSWinOps.SchannelError
       PSWinOps.ScheduledTaskDetail
       PSWinOps.ScheduledTaskFailure

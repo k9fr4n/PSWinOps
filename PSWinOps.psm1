@@ -128,6 +128,7 @@ $script:AliasMap = @{
     'gpia' = 'Get-PublicIPAddress'
     'gpr' = 'Get-PendingReboot'
     'gpsh' = 'Get-PrintServerHealth'
+    'grbs' = 'Get-RecycleBinSize'
     'grh' = 'Get-RDSHealth'
     'grhi' = 'Get-RebootHistory'
     'grs' = 'Get-RdpSession'

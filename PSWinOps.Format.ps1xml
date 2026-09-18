@@ -9072,5 +9072,59 @@
         </TableRowEntries>
       </TableControl>
     </View>
+    <!-- ============================================================ -->
+    <!-- PSWinOps.RecycleBinSize                                      -->
+    <!-- Used by: Get-RecycleBinSize                                  -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.RecycleBinSize</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.RecycleBinSize</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <AutoSize />
+        <TableHeaders>
+          <TableColumnHeader>
+            <Label>ComputerName</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Drive</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Size(GB)</Label>
+            <Alignment>Right</Alignment>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Items</Label>
+            <Alignment>Right</Alignment>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>%Volume</Label>
+            <Alignment>Right</Alignment>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem>
+                <PropertyName>ComputerName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>DriveLetter</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>SizeGB</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>ItemCount</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>PercentOfVolume</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
   </ViewDefinitions>
 </Configuration>
