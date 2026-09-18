@@ -125,12 +125,12 @@ Describe 'Measure-FolderSize' {
         It 'writes an error and returns nothing for a non-existent path' {
             $missing = Join-Path -Path $TestDrive -ChildPath 'DoesNotExist'
             $out = & (Get-Module -Name 'PSWinOps') {
-                param($p) Measure-FolderSize -Path $p 2>$null
+                param($p) Measure-FolderSize -Path $p -ErrorAction SilentlyContinue
             } $missing
             $out | Should -BeNullOrEmpty
 
             $errs = & (Get-Module -Name 'PSWinOps') {
-                param($p) Measure-FolderSize -Path $p 2>&1
+                param($p) Measure-FolderSize -Path $p -ErrorAction Continue 2>&1
             } $missing | Where-Object { $_ -is [System.Management.Automation.ErrorRecord] }
             $errs.Count | Should -BeGreaterThan 0
         }
@@ -139,20 +139,20 @@ Describe 'Measure-FolderSize' {
             $missing = Join-Path -Path $TestDrive -ChildPath 'DoesNotExist'
             {
                 & (Get-Module -Name 'PSWinOps') {
-                    param($p) Measure-FolderSize -Path $p
-                } $missing 2>$null
+                    param($p) Measure-FolderSize -Path $p -ErrorAction SilentlyContinue
+                } $missing
             } | Should -Not -Throw
         }
 
         It 'writes an error and returns nothing when Path points at a file' {
             $filePath = Join-Path -Path $script:root -ChildPath 'loose1.txt'
             $out = & (Get-Module -Name 'PSWinOps') {
-                param($p) Measure-FolderSize -Path $p 2>$null
+                param($p) Measure-FolderSize -Path $p -ErrorAction SilentlyContinue
             } $filePath
             $out | Should -BeNullOrEmpty
 
             $errs = & (Get-Module -Name 'PSWinOps') {
-                param($p) Measure-FolderSize -Path $p 2>&1
+                param($p) Measure-FolderSize -Path $p -ErrorAction Continue 2>&1
             } $filePath | Where-Object { $_ -is [System.Management.Automation.ErrorRecord] }
             $errs.Count | Should -BeGreaterThan 0
         }
@@ -176,7 +176,7 @@ Describe 'Measure-FolderSize' {
             # Get-ChildItem call falls through to the real command (real fixture data).
             Mock -CommandName 'Get-ChildItem' -ModuleName 'PSWinOps' `
                 -ParameterFilter { $Recurse -and $LiteralPath -like '*ChildA*' } `
-                -MockWith { Write-Error 'Access to the path is denied.' }
+                -MockWith { Write-Error 'Access to the path is denied.' -ErrorAction Continue }
 
             $result = script:InvokeMeasure @{ Path = $script:root }
 
