@@ -127,8 +127,11 @@ Describe 'Get-RecycleBinSize' {
     Context 'Zero-size volume' {
 
         BeforeAll {
+            # DeviceID must be a drive that exists on the runner (C:), otherwise
+            # Pester cannot resolve Get-ChildItem's FileSystem provider dynamic
+            # parameters (-File) from the -LiteralPath and mocking -File fails.
             Mock -CommandName 'Get-CimInstance' -ModuleName 'PSWinOps' -MockWith {
-                [PSCustomObject]@{ DeviceID = 'Z:'; Size = 0; DriveType = 3 }
+                [PSCustomObject]@{ DeviceID = 'C:'; Size = 0; DriveType = 3 }
             }
             Mock -CommandName 'Get-ChildItem' -ModuleName 'PSWinOps' -MockWith { }
             Mock -CommandName 'Invoke-RemoteOrLocal' -ModuleName 'PSWinOps' -MockWith $script:runInline
