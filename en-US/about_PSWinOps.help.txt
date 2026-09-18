@@ -193,7 +193,7 @@ FUNCTION DOMAINS
 
       Get-AuditPolicy
 
-  system (22 functions)
+  system (23 functions)
     Functions for general system information, state,
     disk cleanup, profile management, and real-time monitoring.
 
@@ -217,6 +217,7 @@ FUNCTION DOMAINS
       Set-DisplayLanguage
       Set-EnvironmentVariable
       Set-PageFile
+      Show-DriveUsage
       Show-SystemMonitor
       Stop-ProcessTree
 
@@ -391,6 +392,7 @@ PSWINOPS TYPE REGISTRY
       PSWinOps.DnsResolution
       PSWinOps.DnsServerHealth
       PSWinOps.DriverInventory
+      PSWinOps.DriveUsage
       PSWinOps.EnvironmentVariable
       PSWinOps.ExchangeServerHealth
       PSWinOps.ExpiringCertificate

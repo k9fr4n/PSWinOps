@@ -171,6 +171,7 @@ $script:AliasMap = @{
     'rstwuc' = 'Reset-WindowsUpdateComponent'
     'rup' = 'Remove-UserProfile'
     'sdl' = 'Set-DisplayLanguage'
+    'sdu' = 'Show-DriveUsage'
     'seao' = 'Search-ADObject'
     'sev' = 'Set-EnvironmentVariable'
     'shnsm' = 'Show-NetworkStatisticMonitor'
