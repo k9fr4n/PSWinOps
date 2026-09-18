@@ -12,6 +12,10 @@ All notable changes to PSWinOps are documented in this file. Versions follow
 
 ### Added
 
+- `Show-DriveUsage` (system domain, alias `sdu`): renders per-volume disk usage as a
+  fixed-width bar via its format view. A presentation wrapper over `Get-DiskSpace` that
+  re-emits the same data under the `PSWinOps.DriveUsage` type; it owns no CIM code and
+  keeps every property data-only (no ANSI or pre-rendered text) (#133).
 - `Get-RecycleBinSize` (system domain, alias `grbs`): reports Recycle Bin size and
   item count per fixed volume, with exact bytes, rounded MB/GB, and size as a
   percentage of the volume. Local calls need no WinRM; a missing or unreadable

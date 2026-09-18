@@ -2485,6 +2485,76 @@
       </TableControl>
     </View>
     <!-- ============================================================ -->
+    <!-- PSWinOps.DriveUsage                                          -->
+    <!-- Used by: Show-DriveUsage                                     -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.DriveUsage</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.DriveUsage</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <AutoSize />
+        <TableHeaders>
+          <TableColumnHeader>
+            <Label>Drive</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Volume</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Size(GB)</Label>
+            <Alignment>Right</Alignment>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Used(GB)</Label>
+            <Alignment>Right</Alignment>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Free(GB)</Label>
+            <Alignment>Right</Alignment>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Usage</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Status</Label>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem>
+                <PropertyName>DriveLetter</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>VolumeName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>SizeGB</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>UsedGB</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>FreeGB</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>
+                  $__cells = 20
+                  $__filled = [math]::Max(0, [math]::Min($__cells, [int][math]::Round(($_.PercentUsed / 100) * $__cells)))
+                  '[{0}{1}] {2,5:N1}%' -f ('#' * $__filled), ('-' * ($__cells - $__filled)), $_.PercentUsed
+                </ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Status</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+    <!-- ============================================================ -->
     <!-- PSWinOps.DriverInventory                                     -->
     <!-- Used by: Get-DriverInventory                                -->
     <!-- ============================================================ -->
@@ -9127,4 +9197,4 @@
       </TableControl>
     </View>
   </ViewDefinitions>
-</Configuration>
+</Configuration>
