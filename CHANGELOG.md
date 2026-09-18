@@ -8,6 +8,15 @@ All notable changes to PSWinOps are documented in this file. Versions follow
 > released as `0.0.24`/`0.1.x`/`0.12.x` — those version numbers never shipped. That
 > accumulated work is released here as `1.0.0`.
 
+## [Unreleased]
+
+### Added
+
+- `Get-RecycleBinSize` (system domain, alias `grbs`): reports Recycle Bin size and
+  item count per fixed volume, with exact bytes, rounded MB/GB, and size as a
+  percentage of the volume. Local calls need no WinRM; a missing or unreadable
+  Recycle Bin reports zero rather than erroring (#132).
+
 ## [1.2.0] - 2026-09-09
 
 ### Changed
