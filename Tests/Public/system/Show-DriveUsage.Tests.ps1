@@ -78,7 +78,7 @@ Describe 'Show-DriveUsage' {
         }
 
         It -Name 'Should own no CIM call' -Test {
-            Should -Invoke -CommandName 'Get-DiskSpace' -ModuleName 'PSWinOps' -Times 1 -Exactly
+            Should -Invoke -CommandName 'Get-DiskSpace' -ModuleName 'PSWinOps' -Times 1 -Exactly -Scope Context
         }
     }
 
@@ -129,7 +129,7 @@ Describe 'Show-DriveUsage' {
         }
 
         It -Name 'Should forward ComputerName to Get-DiskSpace' -Test {
-            Should -Invoke -CommandName 'Get-DiskSpace' -ModuleName 'PSWinOps' -Times 1 -Exactly -ParameterFilter {
+            Should -Invoke -CommandName 'Get-DiskSpace' -ModuleName 'PSWinOps' -Times 1 -Exactly -Scope Context -ParameterFilter {
                 $ComputerName -eq 'SRV01'
             }
         }
@@ -167,7 +167,7 @@ Describe 'Show-DriveUsage' {
         }
 
         It -Name 'Should forward WarningThreshold and CriticalThreshold to Get-DiskSpace' -Test {
-            Should -Invoke -CommandName 'Get-DiskSpace' -ModuleName 'PSWinOps' -Times 1 -Exactly -ParameterFilter {
+            Should -Invoke -CommandName 'Get-DiskSpace' -ModuleName 'PSWinOps' -Times 1 -Exactly -Scope Context -ParameterFilter {
                 $WarningThreshold -eq 30 -and $CriticalThreshold -eq 15
             }
         }
