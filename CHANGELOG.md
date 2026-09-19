@@ -12,6 +12,12 @@ All notable changes to PSWinOps are documented in this file. Versions follow
 
 ### Added
 
+- `Show-FolderUsage` (system domain, alias `sfu`): aggregates one folder tree by file
+  extension and emits one row per extension with its file count, byte/MB size and share
+  of the tree total, sorted descending by size, rendered with a fixed-width bar via its
+  format view. The tree is walked and aggregated on the target machine, so only the
+  per-extension summary rows cross the wire; unreadable subfolders are counted in
+  `InaccessibleCount` instead of failing the tree.
 - `Show-DriveUsage` (system domain, alias `sdu`): renders per-volume disk usage as a
   fixed-width bar via its format view. A presentation wrapper over `Get-DiskSpace` that
   re-emits the same data under the `PSWinOps.DriveUsage` type; it owns no CIM code and
