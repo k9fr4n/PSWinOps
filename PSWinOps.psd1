@@ -12,7 +12,7 @@
     RootModule           = 'PSWinOps.psm1'
 
     # Version number of this module.
-    ModuleVersion        = '1.2.1'
+    ModuleVersion        = '1.3.0'
 
     # Supported PSEditions
     # Core is supported on Windows only; the module-level guard in PSWinOps.psm1 blocks
@@ -434,7 +434,12 @@
             # IconUri = ''
 
             # ReleaseNotes of this module
-            ReleaseNotes = '## 1.2.1 - 2026-09-10 UTC
+            ReleaseNotes = '## 1.3.0 - 2026-09-19 UTC
+
+### Added
+- Show-FolderUsage: Shows folder tree disk usage by file extension with a usage bar
+
+## 1.2.1 - 2026-09-10 UTC
 
 ### Added
 - New system domain function: Set-DisplayLanguage, changes the Windows UI display language for the current user (and optionally the system account / new user profiles) via Set-WinUILanguageOverride, installing the language pack automatically through LanguagePackManagement when missing.
