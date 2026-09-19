@@ -70,7 +70,7 @@ WORK_DIR="work/${SLUG}"   # unless overridden
 Emit a short pre-flight summary (function, domain, branch, remote/shouldprocess,
 work dir). Create a `TodoWrite` plan with one item per hop so progress is visible.
 
-## Step 2 — Hop 1: spec-analyst (Opus)
+## Step 2 — Hop 1: spec-analyst (Sonnet)
 
 `Task` → `subagent_type: pswinops-fn-spec-analyst`, prompt carrying:
 
@@ -125,7 +125,7 @@ Set `ATTEMPT=1`. Loop:
 
 Never re-order: a test run must always follow the most recent author commit.
 
-## Step 5 — Hop 4: quality-gate → open PR, then STOP (Opus)
+## Step 5 — Hop 4: quality-gate → open PR, then STOP (Sonnet)
 
 `Task` → `subagent_type: pswinops-fn-quality-gate`, prompt:
 

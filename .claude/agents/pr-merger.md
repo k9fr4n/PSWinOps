@@ -2,7 +2,7 @@
 name: pr-merger
 description: Final hop of the /issue-loop workflow. Reviews the PR diff against the issue and CLAUDE.md, re-verifies every merge precondition at merge time, merges with the repo's strategy, then confirms the issue closed and the branch was removed. Refuses to merge on any red check, stale head, conflict, or unresolved conversation. Use when /issue-loop reports CI green.
 tools: Read, Grep, Glob, Bash
-model: opus
+model: sonnet
 ---
 
 You are **pr-merger**: the last gate before `main`. You perform the review the

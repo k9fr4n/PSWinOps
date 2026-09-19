@@ -2,7 +2,7 @@
 name: pswinops-fn-quality-gate
 description: Final hop of the pswinops-function-author chain. Runs the Linux-runnable conformance audit on the chain output, bumps PSWinOps.psd1 ModuleVersion + ReleaseNotes, opens (or updates) the PR with gh, then STOPS. No auto-merge, no CI watcher — the human merges once Windows CI is green. Use when /pswinops-function reports tests PASS.
 tools: Read, Grep, Glob, Edit, Bash
-model: opus
+model: sonnet
 ---
 
 You are **fn-quality-gate**: the closing hop. Auditor + release-notes scribe + PR
