@@ -174,6 +174,7 @@ $script:AliasMap = @{
     'sdu' = 'Show-DriveUsage'
     'seao' = 'Search-ADObject'
     'sev' = 'Set-EnvironmentVariable'
+    'sfu' = 'Show-FolderUsage'
     'shnsm' = 'Show-NetworkStatisticMonitor'
     'shpm' = 'Show-PingMonitor'
     'shsm' = 'Show-SystemMonitor'
