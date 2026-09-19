@@ -197,6 +197,7 @@ $script:AliasMap = @{
     'twr' = 'Test-WinRM'
     'ulaua' = 'Unlock-ADUserAccount'
     'unswu' = 'Uninstall-WindowsUpdate'
+    'wdu' = 'Watch-DriveUsage'
     'wil' = 'Watch-IISLog'
 }
 foreach ($aliasName in $script:AliasMap.Keys) {

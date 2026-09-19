@@ -65,8 +65,8 @@ minimum: `ComputerName` `[string]` (`$env:COMPUTERNAME` for local), `Timestamp` 
 (ISO 8601: `Get-Date -Format 'o'`), plus domain-specific fields.
 *Exceptions:* pure utilities (`New-RandomPassword`, `ConvertFrom-MisencodedString`) are exempt
 from `ComputerName`/`Timestamp` but still return `[PSCustomObject]`; interactive monitors
-(`Show-PingMonitor`, `Show-NetworkStatisticMonitor`, `Show-SystemMonitor`) render to the console
-and return nothing structured.
+(`Show-PingMonitor`, `Show-NetworkStatisticMonitor`, `Show-SystemMonitor`, `Watch-DriveUsage`)
+render to the console and return nothing structured.
 
 **Rule 7 — PSTypeName.** Every `[PSCustomObject]` output includes a `PSTypeName` of the form
 `PSWinOps.<ObjectType>` (see the Type Registry below). This drives the format file.
@@ -464,7 +464,7 @@ its `<View>` in `PSWinOps.Format.ps1xml`. This table is the reference list; keep
 **Exempted — RDP action functions return `PSWinOps.RdpSessionAction`:** `Connect-RdpSession`,
 `Disconnect-RdpSession`, `Remove-RdpSession`.
 **Exempted — interactive monitors, no structured return:** `Show-PingMonitor`,
-`Show-NetworkStatisticMonitor`, `Show-SystemMonitor`.
+`Show-NetworkStatisticMonitor`, `Show-SystemMonitor`, `Watch-DriveUsage`.
 
 ## Optional dependencies
 

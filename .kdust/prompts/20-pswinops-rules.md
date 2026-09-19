@@ -52,7 +52,7 @@ All public functions return `[PSCustomObject]` with at minimum:
 - + domain fields (function-specific)
 
 **Exception:** pure utility functions (`New-RandomPassword`, `ConvertFrom-MisencodedString`) are exempt from `ComputerName`/`Timestamp` but must still return `[PSCustomObject]`.
-**Exception:** interactive monitor functions (`Show-PingMonitor`, `Show-NetworkStatisticMonitor`, `Show-SystemMonitor`) render directly to the console and do not return structured output.
+**Exception:** interactive monitor functions (`Show-PingMonitor`, `Show-NetworkStatisticMonitor`, `Show-SystemMonitor`, `Watch-DriveUsage`) render directly to the console and do not return structured output.
 
 ### Rule 7 — PSTypeName on output objects
 All `[PSCustomObject]` outputs must include a `PSTypeName` matching the format `PSWinOps.<ObjectType>`.
