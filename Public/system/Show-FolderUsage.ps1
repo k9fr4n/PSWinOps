@@ -59,8 +59,10 @@ function Show-FolderUsage {
     .OUTPUTS
         PSWinOps.FolderUsage
         One object per file extension with the file count, the exact byte and
-        rounded MB size, the share of the tree total, and the number of
-        unreadable subfolders. The default view renders a fixed-width usage bar.
+        rounded MB size, the share of the tree total, the tree totals
+        (TotalSizeBytes and TotalFileCount, repeated on every row), and the
+        number of unreadable subfolders. The default view renders a fixed-width
+        usage bar.
 
     .NOTES
         Author: Franck SALLET
@@ -69,7 +71,9 @@ function Show-FolderUsage {
         Requires: PowerShell 5.1+ / Windows only
         Requires: Read access to Path on the target machine. Subfolders the
         caller cannot read are counted in InaccessibleCount rather than failing
-        the whole tree; this is not gated on elevation.
+        the whole tree, so non-elevated callers may under-report totals. This
+        command walks every file in the tree, so runtime grows with the number
+        of files and can be long on very large trees.
 
     .LINK
         https://github.com/k9fr4n/PSWinOps
@@ -122,20 +126,47 @@ function Show-FolderUsage {
             }
             $rootPath = $rootItem.FullName
 
-            # One recursive pass. A subfolder we cannot read raises a
-            # non-terminating error that is counted rather than thrown, so the
-            # accessible remainder of the tree is still reported.
-            $enumerationErrors = $null
-            $files = Get-ChildItem -LiteralPath $rootPath -Force -Recurse -File `
-                -ErrorAction SilentlyContinue -ErrorVariable enumerationErrors
-            $inaccessible = @($enumerationErrors).Count
+            # Manual traversal instead of a single -Recurse -File pass so
+            # reparse-point directories (junctions, mount points, symlinks) are
+            # skipped: following them could double-count files or loop. A
+            # subfolder we cannot read raises a non-terminating error that is
+            # counted rather than thrown, so the accessible remainder of the
+            # tree is still reported.
+            $files = [System.Collections.Generic.List[object]]::new()
+            $inaccessible = [long]0
+            $directoryStack = [System.Collections.Generic.Stack[string]]::new()
+            $directoryStack.Push($rootPath)
+
+            while ($directoryStack.Count -gt 0) {
+                $directoryPath = $directoryStack.Pop()
+                $directoryErrors = $null
+                $items = Get-ChildItem -LiteralPath $directoryPath -Force `
+                    -ErrorAction SilentlyContinue -ErrorVariable directoryErrors
+                $inaccessible += [long]@($directoryErrors).Count
+
+                foreach ($item in $items) {
+                    if ($item.PSIsContainer) {
+                        $reparsePoint = [int][System.IO.FileAttributes]::ReparsePoint
+                        if (([int]$item.Attributes -band $reparsePoint) -eq $reparsePoint) {
+                            Write-Verbose -Message "[$($MyInvocation.MyCommand)] Skipping reparse-point directory '$($item.FullName)'."
+                            continue
+                        }
+                        $directoryStack.Push($item.FullName)
+                    }
+                    else {
+                        $files.Add($item)
+                    }
+                }
+            }
 
             $stats = @{}
             $totalBytes = [long]0
+            $totalFiles = [long]0
 
             foreach ($file in $files) {
                 $length = [long]$file.Length
                 $totalBytes += $length
+                $totalFiles++
 
                 $extension = if ([string]::IsNullOrEmpty($file.Extension)) {
                     '(none)'
@@ -156,6 +187,10 @@ function Show-FolderUsage {
                 }
             }
 
+            if ($totalFiles -eq 0) {
+                Write-Verbose -Message "[$($MyInvocation.MyCommand)] The folder '$rootPath' contained no files."
+            }
+
             $rows = foreach ($extension in $stats.Keys) {
                 $sizeBytes = [long]$stats[$extension].SizeBytes
 
@@ -173,7 +208,9 @@ function Show-FolderUsage {
                     SizeBytes         = $sizeBytes
                     SizeMB            = [math]::Round($sizeBytes / 1MB, 2)
                     PercentOfTotal    = $percentOfTotal
-                    InaccessibleCount = [int]$inaccessible
+                    TotalSizeBytes    = $totalBytes
+                    TotalFileCount    = $totalFiles
+                    InaccessibleCount = [long]$inaccessible
                 }
             }
 
@@ -207,7 +244,9 @@ function Show-FolderUsage {
                         SizeBytes         = [long]$row.SizeBytes
                         SizeMB            = [double]$row.SizeMB
                         PercentOfTotal    = [double]$row.PercentOfTotal
-                        InaccessibleCount = [int]$row.InaccessibleCount
+                        TotalSizeBytes    = [long]$row.TotalSizeBytes
+                        TotalFileCount    = [long]$row.TotalFileCount
+                        InaccessibleCount = [long]$row.InaccessibleCount
                         Timestamp         = Get-Date -Format 'o'
                     }
                 }

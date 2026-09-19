@@ -47,17 +47,20 @@ BeforeAll {
             [PSCustomObject]@{
                 Path = $TargetPath; Extension = '.log'; FileCount = [long]2
                 SizeBytes = [long]3145728; SizeMB = [double]3
-                PercentOfTotal = [double]60; InaccessibleCount = [int]2
+                PercentOfTotal = [double]60; TotalSizeBytes = [long]4718592
+                TotalFileCount = [long]7; InaccessibleCount = [long]2
             }
             [PSCustomObject]@{
                 Path = $TargetPath; Extension = '.txt'; FileCount = [long]1
                 SizeBytes = [long]1048576; SizeMB = [double]1
-                PercentOfTotal = [double]20; InaccessibleCount = [int]2
+                PercentOfTotal = [double]20; TotalSizeBytes = [long]4718592
+                TotalFileCount = [long]7; InaccessibleCount = [long]2
             }
             [PSCustomObject]@{
                 Path = $TargetPath; Extension = '.png'; FileCount = [long]4
                 SizeBytes = [long]524288; SizeMB = [double]0.5
-                PercentOfTotal = [double]20; InaccessibleCount = [int]2
+                PercentOfTotal = [double]20; TotalSizeBytes = [long]4718592
+                TotalFileCount = [long]7; InaccessibleCount = [long]2
             }
         )
 
@@ -92,13 +95,16 @@ Describe 'Show-FolderUsage' {
 
         It -Name 'Should emit one row per extension' -Test {
             $script:result | Should -HaveCount 3
-            ($script:result.Extension | Sort-Object) | Should -Be @('(none)', '.log', '.txt')
+            $script:result.Extension | Should -Contain '(none)'
+            $script:result.Extension | Should -Contain '.log'
+            $script:result.Extension | Should -Contain '.txt'
         }
 
         It -Name 'Should expose exactly the documented property set' -Test {
             $expected = @(
                 'ComputerName', 'Path', 'Extension', 'FileCount', 'SizeBytes',
-                'SizeMB', 'PercentOfTotal', 'InaccessibleCount', 'Timestamp'
+                'SizeMB', 'PercentOfTotal', 'TotalSizeBytes', 'TotalFileCount',
+                'InaccessibleCount', 'Timestamp'
             )
             $actual = @($script:result[0].PSObject.Properties.Name)
             ($actual | Sort-Object) | Should -Be ($expected | Sort-Object)
@@ -147,6 +153,13 @@ Describe 'Show-FolderUsage' {
             }
         }
 
+        It -Name 'Should repeat the exact tree totals on every row' -Test {
+            foreach ($row in $script:result) {
+                $row.TotalSizeBytes | Should -Be 5242880
+                $row.TotalFileCount | Should -Be 4
+            }
+        }
+
         It -Name 'Should report InaccessibleCount 0 for a fully readable tree' -Test {
             ($script:result.InaccessibleCount | Sort-Object -Unique) | Should -Be @(0)
         }
@@ -177,6 +190,12 @@ Describe 'Show-FolderUsage' {
         It -Name 'Should emit no rows for a tree without files and not throw' -Test {
             { Show-FolderUsage -Path $script:emptyRoot -ErrorAction Stop } | Should -Not -Throw
             @(Show-FolderUsage -Path $script:emptyRoot) | Should -HaveCount 0
+        }
+
+        It -Name 'Should Write-Verbose that the tree held no files' -Test {
+            $verboseMessages = $null
+            $null = Show-FolderUsage -Path $script:emptyRoot -Verbose -VerboseVariable verboseMessages
+            ($verboseMessages | Out-String) | Should -Match 'contained no files'
         }
     }
 
@@ -309,6 +328,14 @@ Describe 'Show-FolderUsage' {
         It -Name 'Should pass InaccessibleCount from the target through unchanged' -Test {
             $result = @(Show-FolderUsage -Path 'C:\Data' -ComputerName 'SRV01')
             ($result.InaccessibleCount | Sort-Object -Unique) | Should -Be @(2)
+        }
+
+        It -Name 'Should map the tree totals onto every row' -Test {
+            $result = @(Show-FolderUsage -Path 'C:\Data' -ComputerName 'SRV01')
+            foreach ($row in $result) {
+                $row.TotalSizeBytes | Should -Be 4718592
+                $row.TotalFileCount | Should -Be 7
+            }
         }
 
         It -Name 'Should carry a per-row Timestamp' -Test {
@@ -525,7 +552,7 @@ Describe 'Show-FolderUsage' {
 
         It -Name 'Should label the columns per the spec' -Test {
             $labels = @($script:view[0].TableControl.TableHeaders.TableColumnHeader |
-                    ForEach-Object -FilterScript { [string]$_.Label })
+                    ForEach-Object -Process { [string]$_.Label })
             $labels | Should -Be @('Extension', 'FileCount', 'Size(MB)', 'Percent', 'Usage')
         }
 
