@@ -193,9 +193,8 @@ Describe 'Show-FolderUsage' {
         }
 
         It -Name 'Should Write-Verbose that the tree held no files' -Test {
-            $verboseMessages = $null
-            $null = Show-FolderUsage -Path $script:emptyRoot -Verbose -VerboseVariable verboseMessages
-            ($verboseMessages | Out-String) | Should -Match 'contained no files'
+            $verboseOutput = Show-FolderUsage -Path $script:emptyRoot -Verbose 4>&1
+            ($verboseOutput | Out-String) | Should -Match 'contained no files'
         }
     }
 
