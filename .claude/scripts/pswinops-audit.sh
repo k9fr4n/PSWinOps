@@ -113,7 +113,57 @@ else
     || ok "no wildcard in FunctionsToExport"
 fi
 
-# ── 4. Format file: valid XML, and a <View> for every new PSTypeName ─────────
+# ── 4. Short aliases: AliasMap / AliasesToExport / FunctionsToExport (Rule 15) ─
+ALIAS_LINES=$(awk '/^\$script:AliasMap = @\{/,/^\}/' PSWinOps.psm1 \
+              | grep -E "^[[:space:]]*'[^']+'[[:space:]]*=[[:space:]]*'[^']+'" || true)
+ALIAS_MAP=$(sed -E "s/^[[:space:]]*'([^']+)'[[:space:]]*=[[:space:]]*'([^']+)'$/\1 \2/" <<<"$ALIAS_LINES")
+ALIAS_KEYS=$(awk '{print $1}' <<<"$ALIAS_MAP")
+ALIAS_VALUES=$(awk '{print $2}' <<<"$ALIAS_MAP")
+MANIFEST_ALIASES=$(psd1_array AliasesToExport)
+
+if [[ -z "$ALIAS_MAP" ]]; then
+  fail "aliasmap-parse" "could not parse \$script:AliasMap entries from PSWinOps.psm1 (CLAUDE.md Rule 15)"
+else
+  if [[ -n "$EXPORTED" ]]; then
+    # 1) every exported function has an AliasMap value
+    missing_aliases=$(comm -23 <(sort -u <<<"$EXPORTED") <(sort -u <<<"$ALIAS_VALUES"))
+    [[ -z "$missing_aliases" ]] && ok "every exported function has an AliasMap entry" \
+      || fail "aliasmap-missing" "exported functions missing from \$script:AliasMap: $(tr '\n' ' ' <<<"$missing_aliases") (CLAUDE.md Rule 15)"
+
+    # 2) every AliasMap value is an exported function
+    orphan_aliases=$(comm -13 <(sort -u <<<"$EXPORTED") <(sort -u <<<"$ALIAS_VALUES"))
+    [[ -z "$orphan_aliases" ]] && ok "every AliasMap value is exported" \
+      || fail "aliasmap-orphan" "AliasMap values that are not exported functions: $(tr '\n' ' ' <<<"$orphan_aliases") (CLAUDE.md Rule 15)"
+  else
+    fail "aliasmap-missing" "FunctionsToExport could not be parsed; AliasMap value coverage could not be verified"
+  fi
+
+  # 3) no duplicate alias keys
+  alias_dupe_keys=$(sort <<<"$ALIAS_KEYS" | uniq -d)
+  [[ -z "$alias_dupe_keys" ]] && ok "AliasMap has no duplicate keys" \
+    || fail "aliasmap-dupe-key" "duplicated alias keys: $(tr '\n' ' ' <<<"$alias_dupe_keys") (CLAUDE.md Rule 15)"
+
+  # 4) no two alias keys mapping to the same function
+  alias_dupe_values=$(sort <<<"$ALIAS_VALUES" | uniq -d)
+  [[ -z "$alias_dupe_values" ]] && ok "no two alias keys map to the same function" \
+    || fail "aliasmap-dupe-value" "functions with more than one alias: $(tr '\n' ' ' <<<"$alias_dupe_values") (CLAUDE.md Rule 15)"
+
+  # 5) AliasMap keys and AliasesToExport are a symmetric match
+  aliases_missing_export=$(comm -23 <(sort -u <<<"$ALIAS_KEYS") <(sort -u <<<"$MANIFEST_ALIASES"))
+  aliases_extra_export=$(comm -23 <(sort -u <<<"$MANIFEST_ALIASES") <(sort -u <<<"$ALIAS_KEYS"))
+  [[ -z "$aliases_missing_export" ]] && ok "every AliasMap key is in AliasesToExport" \
+    || fail "aliases-to-export-missing" "AliasMap keys missing from AliasesToExport: $(tr '\n' ' ' <<<"$aliases_missing_export") (CLAUDE.md Rule 15)"
+  [[ -z "$aliases_extra_export" ]] && ok "every AliasesToExport entry has an AliasMap key" \
+    || fail "aliases-to-export-extra" "AliasesToExport entries with no AliasMap key: $(tr '\n' ' ' <<<"$aliases_extra_export") (CLAUDE.md Rule 15)"
+
+  # 6) AliasesToExport alphabetically sorted (case-insensitive, like FunctionsToExport)
+  if sort -c -f <<<"$MANIFEST_ALIASES" 2>/dev/null; then ok "AliasesToExport alphabetically sorted"
+  else
+    warn "aliases-to-export-sort" "AliasesToExport is not alphabetically sorted, case-insensitively (CLAUDE.md Rule 15): $(sort -c -f <<<"$MANIFEST_ALIASES" 2>&1 | head -1)"
+  fi
+fi
+
+# ── 5. Format file: valid XML, and a <View> for every new PSTypeName ─────────
 if yq -p=xml -o=xml '.' PSWinOps.Format.ps1xml >/dev/null 2>&1; then
   ok "PSWinOps.Format.ps1xml is well-formed XML"
 else
@@ -135,7 +185,7 @@ else
   ok "no new PSTypeName introduced"
 fi
 
-# ── 5. Test mirroring: a touched Public/ function has a mirrored test ────────
+# ── 6. Test mirroring: a touched Public/ function has a mirrored test ────────
 while IFS= read -r f; do
   [[ "$f" == Public/*/*.ps1 ]] || continue
   t="Tests/${f%.ps1}.Tests.ps1"
@@ -143,7 +193,7 @@ while IFS= read -r f; do
     || fail "test-mirror" "missing $t for $f (CLAUDE.md Rule 1)"
 done <<<"$CHANGED"
 
-# ── 6. Comment-based help completeness on touched public functions ──────────
+# ── 7. Comment-based help completeness on touched public functions ──────────
 while IFS= read -r f; do
   [[ "$f" == Public/*/*.ps1 && -f "$f" ]] || continue
   for tag in .SYNOPSIS .DESCRIPTION .OUTPUTS .NOTES .LINK; do
@@ -156,7 +206,7 @@ while IFS= read -r f; do
     || fail "help-author" "$f .NOTES Author must be 'Franck SALLET' (CLAUDE.md Rule 13)"
 done <<<"$CHANGED"
 
-# ── 7. New domain ⇒ CI matrix entry exists ──────────────────────────────────
+# ── 8. New domain ⇒ CI matrix entry exists ──────────────────────────────────
 while IFS= read -r f; do
   [[ "$f" == Public/*/*.ps1 ]] || continue
   d=$(basename "$(dirname "$f")")
