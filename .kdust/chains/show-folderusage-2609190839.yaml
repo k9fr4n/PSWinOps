@@ -1,0 +1,7 @@
+chain: pswinops-function-author
+function: Show-FolderUsage
+domain: system
+created: 2026-09-19T08:41:49Z
+created_by: pswinops-fn-spec-analyst
+chain_branch: kdust/chain/pswinops-fn-show-folderusage-2609190839
+spec_path: work/show-folderusage/spec.yaml

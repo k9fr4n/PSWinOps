@@ -439,6 +439,7 @@ its `<View>` in `PSWinOps.Format.ps1xml`. This table is the reference list; keep
 | Set-EnvironmentVariable | PSWinOps.EnvironmentVariable | Table |
 | Set-PageFile | PSWinOps.PageFileConfiguration | List |
 | Show-DriveUsage | PSWinOps.DriveUsage | Table |
+| Show-FolderUsage | PSWinOps.FolderUsage | Table |
 | Stop-ProcessTree | PSWinOps.ProcessKillResult | Table |
 | Get-ShadowCopy | PSWinOps.ShadowCopy | Table |
 | Get-ShadowCopyStorage | PSWinOps.ShadowCopyStorage | Table |
