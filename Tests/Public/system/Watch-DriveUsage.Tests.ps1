@@ -123,10 +123,11 @@ Describe 'Watch-DriveUsage' {
             $alias.Definition | Should -Be $script:FunctionName
         }
 
-        It 'Should expose Path, Top and NoColor as its whole surface' {
+        It 'Should expose Path, Top, NoColor and IncludeFiles as its whole surface' {
             $script:command.Parameters.Keys | Should -Contain 'Path'
             $script:command.Parameters.Keys | Should -Contain 'Top'
             $script:command.Parameters.Keys | Should -Contain 'NoColor'
+            $script:command.Parameters.Keys | Should -Contain 'IncludeFiles'
         }
 
         It 'Should accept no pipeline input and no fan-out parameters' {
@@ -182,10 +183,21 @@ Describe 'Watch-DriveUsage' {
             $paramAttr.Mandatory | Should -BeFalse
         }
 
-        It 'Should declare exactly Path, Top and NoColor' {
+        It 'Should declare IncludeFiles as a switch and initialise the session mode from it' {
+            $param = $script:command.Parameters['IncludeFiles']
+            $param | Should -Not -BeNullOrEmpty
+            $param.ParameterType | Should -Be ([switch])
+            $paramAttr = $param.Attributes | Where-Object {
+                $_ -is [System.Management.Automation.ParameterAttribute]
+            }
+            $paramAttr.Mandatory | Should -BeFalse
+            $script:source | Should -Match '\$includeFiles\s*=\s*\$IncludeFiles\.IsPresent'
+        }
+
+        It 'Should declare exactly Path, Top, NoColor and IncludeFiles' {
             $script:declaredParameters | Should -Not -Contain $null
-            $script:declaredParameters.Count | Should -Be 3
-            ($script:declaredParameters | Sort-Object) | Should -Be @('NoColor', 'Path', 'Top')
+            $script:declaredParameters.Count | Should -Be 4
+            ($script:declaredParameters | Sort-Object) | Should -Be @('IncludeFiles', 'NoColor', 'Path', 'Top')
         }
 
         It 'Should expose no remote parameter - local machine only by design' {
@@ -351,8 +363,24 @@ Describe 'Watch-DriveUsage' {
             $script:source | Should -Not -Match '(Start-Job|Start-ThreadJob|RunspaceFactory)'
         }
 
-        It 'Should not implement the out-of-scope file visibility toggle' {
-            $script:source | Should -Not -Match '-IncludeFiles'
+        It 'Should pass the file-visibility switch through to Measure-FolderSize' {
+            $script:source | Should -Match 'Measure-FolderSize -Path \$currentPath -ErrorAction SilentlyContinue -ErrorVariable scanErrors -IncludeFiles:\$includeFiles'
+        }
+
+        It 'Should filter the (files) aggregate before the sort and Top merge in files mode' {
+            $script:source | Should -Match '\$measured\s*=\s*@\(\$measured\s*\|'
+            $script:source | Should -Match 'Where-Object'
+            $script:source | Should -Match '\(files\)'
+            $script:source | Should -Match '\$_\.FullName -eq \$currentPath'
+            $filterIndex = $script:source.IndexOf('Where-Object')
+            $sortIndex   = $script:source.IndexOf("Sort-Object -Property 'SizeBytes' -Descending")
+            $filterIndex | Should -BeLessThan $sortIndex
+        }
+
+        It 'Should key the cache by path and visibility mode' {
+            $script:source | Should -Match '\$cacheKey\s*=\s*.*\$includeFiles'
+            $script:source | Should -Match '\$cache\.ContainsKey\(\$cacheKey\)'
+            $script:source | Should -Match '\$cache\[\$cacheKey\]\s*=\s*\$entries'
         }
 
         It 'Should announce a scan before measuring so a slow level is not a hang' {
@@ -367,7 +395,7 @@ Describe 'Watch-DriveUsage' {
         }
 
         It 'Should serve a revisit from the cache without rescanning' {
-            $script:source | Should -Match '\$cache\.ContainsKey\(\$currentPath\)'
+            $script:source | Should -Match '\$cache\.ContainsKey\(\$cacheKey\)'
         }
 
         It 'Should force a recompute on R' {
@@ -469,6 +497,7 @@ Describe 'Watch-DriveUsage' {
                     '[ConsoleKey]::Enter',
                     '[ConsoleKey]::Backspace',
                     '[ConsoleKey]::R',
+                    '[ConsoleKey]::F',
                     '[ConsoleKey]::Q',
                     '[ConsoleKey]::Escape')) {
                 $script:source.IndexOf($key) | Should -BeGreaterOrEqual 0
@@ -496,6 +525,17 @@ Describe 'Watch-DriveUsage' {
             $script:source | Should -Match '\$selectedIndex\s*--'
             $script:source | Should -Match '\$selectedIndex\s*\+\+'
             $script:source | Should -Match '\[math\]::Max\(0, \$entries\.Count - 1\)'
+        }
+
+        It 'Should toggle file visibility on F and force a recompute' {
+            $script:source | Should -Match '\[ConsoleKey\]::F'
+            $script:source | Should -Match '\$includeFiles\s*=\s*-not\s*\$includeFiles'
+            $script:source | Should -Match '\$needCompute\s*=\s*\$true'
+        }
+
+        It 'Should keep Enter a no-op for non-container rows' {
+            $script:source | Should -Match '\$target\.IsContainer'
+            $script:source | Should -Match 'Not a folder'
         }
 
         It 'Should push and pop the folder stack for drill-down and back' {

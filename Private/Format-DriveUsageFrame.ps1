@@ -13,11 +13,14 @@ function Format-DriveUsageFrame {
             based and can be suppressed with -NoColor.
 
             The renderer draws a header (current path, optional drive label, drive
-            usage bar, scanning indicator), a width and height aware list of rows
-            with a '>' marker on the selected entry, an optional one-line status
-            message, and a key bar. Entry objects must already be sorted by the
-            caller and are expected to expose Name, SizeBytes, FileCount,
-            IsContainer and Inaccessible, exactly as Measure-FolderSize emits them.
+            usage bar, scanning indicator, current file-visibility mode), a width
+            and height aware list of rows with a '>' marker on the selected entry,
+            an optional one-line status message, and a key bar. Entry objects must
+            already be sorted by the caller and are expected to expose Name,
+            SizeBytes, FileCount, IsContainer and Inaccessible, exactly as
+            Measure-FolderSize emits them. Rows whose IsContainer is false are
+            drawn with a [file] marker so loose files stay distinguishable from
+            folders in both colour and NoColor modes.
 
         .PARAMETER CurrentPath
             The path being explored. Shown in the header and truncated with an
@@ -65,6 +68,11 @@ function Format-DriveUsageFrame {
         .PARAMETER StatusMessage
             Optional one-line transient message (for example 'Access denied')
             drawn above the key bar.
+
+        .PARAMETER IncludeFiles
+            When set, the header shows the files mode. Loose-file rows are still
+            recognised from their IsContainer property alone; this switch only
+            advertises the current mode in the header.
 
         .PARAMETER NoColor
             When set, every ANSI escape sequence is suppressed and the frame is
@@ -141,6 +149,9 @@ function Format-DriveUsageFrame {
 
         [Parameter(Mandatory = $false)]
         [string]$StatusMessage = '',
+
+        [Parameter(Mandatory = $false)]
+        [switch]$IncludeFiles,
 
         [Parameter(Mandatory = $false)]
         [switch]$NoColor
@@ -237,7 +248,19 @@ function Format-DriveUsageFrame {
         $isSelected = ($Index -eq $selIndex)
 
         $namePlain = if ($null -eq $Entry.Name) { '' } else { [string]$Entry.Name }
-        $nameText  = ConvertTo-Truncated -Text $namePlain -MaxWidth $nameWidth
+
+        $isFile = $false
+        if ($null -ne $Entry.IsContainer -and -not [bool]$Entry.IsContainer) {
+            $isFile = $true
+        }
+
+        # A literal marker keeps files distinguishable even with -NoColor; colour
+        # mode additionally dims the whole name below. Reserve its width first so
+        # the truncated name plus marker never overflows the name column.
+        $fileMarker = if ($isFile) { ' [file]' } else { '' }
+        $nameMax    = [math]::Max(1, $nameWidth - $fileMarker.Length)
+        $nameText   = ConvertTo-Truncated -Text $namePlain -MaxWidth $nameMax
+        $nameText   = $nameText + $fileMarker
         $namePadded = $nameText.PadRight($nameWidth)
 
         $sizeBytes = [double]0
@@ -271,6 +294,9 @@ function Format-DriveUsageFrame {
 
         if ($isSelected -and $useColor) {
             $nameStr = "${bold}${white}${bgSel}${namePadded}${reset}"
+        }
+        elseif ($isFile -and $useColor) {
+            $nameStr = "${dim}${namePadded}${reset}"
         }
         elseif ($useColor) {
             $nameStr = "${white}${namePadded}${reset}"
@@ -350,6 +376,10 @@ function Format-DriveUsageFrame {
         $rightPlain += 'Scanning...'
     }
 
+    $modePlain = if ($IncludeFiles) { 'Files' } else { 'Folders' }
+    if ($rightPlain) { $rightPlain += '   ' }
+    $rightPlain += $modePlain
+
     $rightVisual = if ($rightPlain) { Get-VisualWidth -Text $rightPlain } else { 0 }
     $maxLeft     = $Width - $rightVisual - 1
     if ($maxLeft -lt 3) { $maxLeft = 3 }
@@ -418,7 +448,7 @@ function Format-DriveUsageFrame {
         $lines.Add((ConvertTo-PaddedLine -Text $statusLine -TargetWidth $Width))
     }
 
-    $keyBar = '[Enter] Open   [Backspace] Parent   [R] Refresh   [Q] Quit'
+    $keyBar = '[Enter] Open   [Backspace] Parent   [F] Files   [R] Refresh   [Q] Quit'
     $lines.Add((ConvertTo-PaddedLine -Text $keyBar -TargetWidth $Width))
 
     return ($lines -join ([Environment]::NewLine))
