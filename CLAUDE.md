@@ -504,7 +504,8 @@ itself, which owns the state machine. It delegates new-function issues to
   resumable and idempotent. Git-ignored; GitHub stays the source of truth.
 - `.claude/scripts/pswinops-audit.sh [base-ref]` — the conformance gate. Run it before any
   push: it checks encoding, forbidden constructs (`Write-Host`, WMI, `$ErrorActionPreference`),
-  `FunctionsToExport` sorting/completeness, Format `<View>` and type-registry coverage for new
+  `FunctionsToExport` sorting/completeness, short-alias map coverage (`$script:AliasMap` and
+  `AliasesToExport`, CLAUDE.md Rule 15), Format `<View>` and type-registry coverage for new
   PSTypeNames, test mirroring, comment-based-help completeness, and the CI matrix. `FAIL:`
   blocks, `WARN:` advises.
 - `.claude/scripts/ci-wait.sh <pr>` — polls a PR's checks to a terminal state and emits JSON
