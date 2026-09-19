@@ -233,7 +233,7 @@ function Format-DriveUsageFrame {
 
     # Build one entry row with the selection marker and per-row percentage.
     function Format-EntryRow {
-        param($Entry, [int]$Index)
+        param($Entry, [int]$Index, [long]$TotalBytes)
         $isSelected = ($Index -eq $selIndex)
 
         $namePlain = if ($null -eq $Entry.Name) { '' } else { [string]$Entry.Name }
@@ -402,7 +402,7 @@ function Format-DriveUsageFrame {
         }
 
         for ($i = $start; $i -lt ($start + $showCount); $i++) {
-            $lines.Add((Format-EntryRow -Entry $Entries[$i] -Index $i))
+            $lines.Add((Format-EntryRow -Entry $Entries[$i] -Index $i -TotalBytes $TotalBytes))
         }
 
         if ($showMore) {
