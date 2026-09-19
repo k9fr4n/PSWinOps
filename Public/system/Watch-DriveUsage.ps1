@@ -61,6 +61,8 @@ function Watch-DriveUsage {
         https://learn.microsoft.com/en-us/windows/win32/cimwin32prov/win32-logicaldisk
     #>
     [CmdletBinding()]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWriteHost', '',
+        Justification = 'Interactive TUI monitor: rendering a frame to the console is the function''s purpose. Requires a live console host (ISE is rejected in begin{}); console state is restored in finally. The Show-* monitors are exempted from this rule by function-name prefix; this function is equivalent and needs the exemption stated explicitly.')]
     param(
         [Parameter(Mandatory = $false, Position = 0)]
         [ValidateNotNullOrEmpty()]
