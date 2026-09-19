@@ -92,6 +92,7 @@ Describe -Name 'Format-DriveUsageFrame' -Fixture {
         It -Name 'Should contain the key bar' -Test {
             $script:frame | Should -Match '\[Enter\]'
             $script:frame | Should -Match '\[Backspace\]'
+            $script:frame | Should -Match '\[F\]'
             $script:frame | Should -Match '\[R\]'
             $script:frame | Should -Match '\[Q\]'
         }
@@ -101,6 +102,65 @@ Describe -Name 'Format-DriveUsageFrame' -Fixture {
             $markerLines = @($lines | Where-Object { $_ -match '^  > ' })
             $markerLines.Count | Should -Be 1
             $markerLines[0]      | Should -Match 'Users'
+        }
+    }
+
+    Context -Name 'File and folder rows' -Fixture {
+
+        BeforeAll {
+            $script:mixedEntries = @(
+                (script:NewEntry -Name 'BigFolder'     -SizeBytes 3000 -FileCount 3 -IsContainer $true),
+                (script:NewEntry -Name 'bigfile.bin'   -SizeBytes 2000 -FileCount 1 -IsContainer $false),
+                (script:NewEntry -Name 'smallfile.txt' -SizeBytes 1000 -FileCount 1 -IsContainer $false)
+            )
+        }
+
+        It -Name 'Should mark file rows with a literal [file] glyph in NoColor mode' -Test {
+            $frame = script:InvokeFrame @{
+                CurrentPath   = 'C:\Data'
+                Entries       = $script:mixedEntries
+                SelectedIndex = 0
+                NoColor       = $true
+            }
+            $lines = @($frame -split "`r?`n")
+            ($lines | Where-Object { $_ -match 'bigfile\.bin' }) | Should -Match '\[file\]'
+            ($lines | Where-Object { $_ -match 'smallfile\.txt' }) | Should -Match '\[file\]'
+            ($lines | Where-Object { $_ -match 'BigFolder' }) | Should -Not -Match '\[file\]'
+        }
+
+        It -Name 'Should keep file rows distinguishable in colour mode as well' -Test {
+            $frame = script:InvokeFrame @{
+                CurrentPath   = 'C:\Data'
+                Entries       = $script:mixedEntries
+                SelectedIndex = 0
+                NoColor       = $false
+            }
+            $frame | Should -Match ([regex]::Escape([string][char]27))
+            $lines = @($frame -split "`r?`n")
+            ($lines | Where-Object { $_ -match 'bigfile\.bin' }) | Should -Match '\[file\]'
+            ($lines | Where-Object { $_ -match 'BigFolder' }) | Should -Not -Match '\[file\]'
+        }
+    }
+
+    Context -Name 'File visibility mode indicator' -Fixture {
+
+        It -Name 'Should show Folders in the header by default' -Test {
+            $frame = script:InvokeFrame @{
+                CurrentPath   = 'C:\Data'
+                Entries       = @((script:NewEntry -Name 'FolderA'))
+                SelectedIndex = 0
+            }
+            @($frame -split "`r?`n")[0] | Should -Match 'Folders'
+        }
+
+        It -Name 'Should show Files in the header when -IncludeFiles is set' -Test {
+            $frame = script:InvokeFrame @{
+                CurrentPath   = 'C:\Data'
+                Entries       = @((script:NewEntry -Name 'FolderA'))
+                SelectedIndex = 0
+                IncludeFiles  = $true
+            }
+            @($frame -split "`r?`n")[0] | Should -Match 'Files'
         }
     }
 
@@ -139,6 +199,7 @@ Describe -Name 'Format-DriveUsageFrame' -Fixture {
         BeforeAll {
             $script:widthEntries = @(
                 (script:NewEntry -Name 'A-reasonably-long-folder-name' -SizeBytes 20971520 -FileCount 400),
+                (script:NewEntry -Name 'A-long-loose-file-name.iso' -SizeBytes 209715200 -FileCount 1 -IsContainer $false),
                 (script:NewEntry -Name 'Short' -SizeBytes 1024 -FileCount 1)
             )
         }
@@ -444,7 +505,11 @@ Describe -Name 'Format-DriveUsageFrame' -Fixture {
 
         It -Name 'Should provide one .PARAMETER block per declared parameter' -Test {
             $count = ([regex]::Matches($script:sourceText, '(?m)^\s*\.PARAMETER\b')).Count
-            $count | Should -Be 12
+            $count | Should -Be 13
+        }
+
+        It -Name 'Should document the IncludeFiles renderer switch' -Test {
+            $script:sourceText | Should -Match '(?m)^\s*\.PARAMETER\s+IncludeFiles\b'
         }
 
         It -Name 'Should provide at least three .EXAMPLE blocks' -Test {

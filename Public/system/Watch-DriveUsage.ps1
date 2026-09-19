@@ -8,8 +8,12 @@ function Watch-DriveUsage {
     .DESCRIPTION
         Renders a keyboard-driven console view of disk usage for the local machine.
         Move with the arrow keys, press Enter to drill into a folder and Backspace to
-        go back up, R to recompute the current level and Q to quit. Folder sizes come
-        from Measure-FolderSize and the frame is drawn by Format-DriveUsageFrame.
+        go back up, R to recompute the current level, F to toggle loose-file
+        visibility and Q to quit. Folder sizes come from Measure-FolderSize and the
+        frame is drawn by Format-DriveUsageFrame. In folders-only mode the explorer
+        shows directories plus the '(files)' aggregate row; in files mode the loose
+        files of the current level are shown as first-class rows sorted together with
+        the directories.
 
         Exactly one level is measured at a time, on entering a folder, and the result
         is cached for the rest of the session so going back up does not rescan. This
@@ -27,6 +31,11 @@ function Watch-DriveUsage {
     .PARAMETER NoColor
         Disables ANSI color output for terminals that do not support escape sequences.
 
+    .PARAMETER IncludeFiles
+        When set, starts the explorer with loose files shown as first-class rows
+        alongside folders, sorted together by size. Press F at any time to toggle
+        the mode for the rest of the session.
+
     .EXAMPLE
         Watch-DriveUsage
 
@@ -41,6 +50,11 @@ function Watch-DriveUsage {
         Watch-DriveUsage -Top 80 -NoColor
 
         Starts on the volume picker, keeps 80 rows per folder and emits no ANSI color.
+
+    .EXAMPLE
+        Watch-DriveUsage -Path 'C:\Users' -IncludeFiles
+
+        Opens C:\Users with loose files and folders merged in one size-sorted list.
 
     .OUTPUTS
         None. This function renders an interactive TUI and returns nothing to the
@@ -73,7 +87,10 @@ function Watch-DriveUsage {
         [int]$Top = 50,
 
         [Parameter(Mandatory = $false)]
-        [switch]$NoColor
+        [switch]$NoColor,
+
+        [Parameter(Mandatory = $false)]
+        [switch]$IncludeFiles
     )
 
     begin {
@@ -164,6 +181,7 @@ function Watch-DriveUsage {
         $needCompute = $true
         $scanningPending = $false
         $forceRefresh = $false
+        $includeFiles = $IncludeFiles.IsPresent
         $running = $true
 
         $previousCtrlC = [Console]::TreatControlCAsInput
@@ -180,15 +198,19 @@ function Watch-DriveUsage {
                 $height = [math]::Max(24, [Console]::WindowHeight)
 
                 # ---- Phase 1: choose the level to draw, one level at a time ----
+                # The cache key embeds the visibility mode so a toggle can never
+                # reuse the folder-only rows from before the F key was pressed.
+                $cacheKey = '{0}|{1}' -f $currentPath, $includeFiles
+
                 if ($needCompute -and -not $scanningPending) {
                     if ($pickerMode) {
                         $entries = $volumeRows
                         $needCompute = $false
                         $forceRefresh = $false
                     }
-                    elseif (-not $forceRefresh -and $cache.ContainsKey($currentPath)) {
+                    elseif (-not $forceRefresh -and $cache.ContainsKey($cacheKey)) {
                         # Revisit: served from the cache, no rescan, no scanning indicator.
-                        $entries = @($cache[$currentPath])
+                        $entries = @($cache[$cacheKey])
                         $statusMessage = ''
                         $needCompute = $false
                     }
@@ -252,6 +274,7 @@ function Watch-DriveUsage {
                     Height         = $height
                     StatusMessage  = $statusMessage
                     NoColor        = $NoColor
+                    IncludeFiles   = $includeFiles
                 }
 
                 if ($scanningPending) {
@@ -278,15 +301,21 @@ function Watch-DriveUsage {
                 # ---- Phase 3: run the announced scan, then redraw with the result ----
                 if ($scanningPending) {
                     $scanErrors = @()
-                    $measured = @(Measure-FolderSize -Path $currentPath -ErrorAction SilentlyContinue -ErrorVariable scanErrors)
+                    $measured = @(Measure-FolderSize -Path $currentPath -ErrorAction SilentlyContinue -ErrorVariable scanErrors -IncludeFiles:$includeFiles)
+                    if ($includeFiles) {
+                        # The aggregate row already summarises the same loose bytes as
+                        # the per-file rows, so it must not also join the size-sorted
+                        # list or every file's percentage would be deflated.
+                        $measured = @($measured | Where-Object { -not ($_.IsContainer -and $_.Name -eq '(files)' -and $_.FullName -eq $currentPath) })
+                    }
                     $entries = @($measured | Sort-Object -Property 'SizeBytes' -Descending | Select-Object -First $Top)
 
                     # Cache this level, evicting the oldest entry past the cap.
-                    if ($cache.ContainsKey($currentPath)) {
-                        $null = $cacheOrder.Remove($currentPath)
+                    if ($cache.ContainsKey($cacheKey)) {
+                        $null = $cacheOrder.Remove($cacheKey)
                     }
-                    $cache[$currentPath] = $entries
-                    $cacheOrder.Add($currentPath)
+                    $cache[$cacheKey] = $entries
+                    $cacheOrder.Add($cacheKey)
                     while ($cacheOrder.Count -gt $cacheLimit) {
                         $oldest = $cacheOrder[0]
                         $cacheOrder.RemoveAt(0)
@@ -371,6 +400,10 @@ function Watch-DriveUsage {
                             $needCompute = $true
                             $forceRefresh = $false
                         }
+                        elseif ($null -ne $target -and -not $target.IsContainer) {
+                            # Files are first-class rows but cannot be opened.
+                            $statusMessage = 'Not a folder'
+                        }
                     }
                 }
                 elseif ($key.Key -eq [ConsoleKey]::Backspace) {
@@ -385,6 +418,12 @@ function Watch-DriveUsage {
                 elseif ($key.Key -eq [ConsoleKey]::R) {
                     # Force a recompute of the current level, cache included.
                     $forceRefresh = $true
+                    $needCompute = $true
+                }
+                elseif ($key.Key -eq [ConsoleKey]::F) {
+                    # Toggle loose-file visibility. The mode-aware cache key forces a
+                    # rescan of the current level instead of serving stale rows.
+                    $includeFiles = -not $includeFiles
                     $needCompute = $true
                 }
                 elseif ($key.Key -eq [ConsoleKey]::Q -or $key.Key -eq [ConsoleKey]::Escape) {

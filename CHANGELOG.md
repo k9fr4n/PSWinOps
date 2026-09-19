@@ -21,6 +21,12 @@ All notable changes to PSWinOps are documented in this file. Versions follow
   from `Measure-FolderSize` and the frame from `Format-DriveUsageFrame` - no second data
   or rendering path. Local-only by design: no `-ComputerName`, no `-Credential`, no WinRM,
   and nothing is returned to the pipeline (interactive-monitor exemption, Rule 6) (#137).
+- `Watch-DriveUsage`: added an `-IncludeFiles` switch and an `F` key that toggles loose-file
+  visibility for the rest of the session. Files mode merges each level's immediate files
+  and folders into the same `SizeBytes`-descending, `-Top`-capped list, filters the
+  `(files)` aggregate so those bytes are not double-counted, marks file rows with a
+  `[file]` glyph, keeps `Enter` a no-op on file rows and advertises the current mode in
+  the header and key bar (#139).
 - `Show-FolderUsageAge` (system domain, alias `sfua`): walks one folder tree and emits
   one row per fixed file-age bucket (`0-7d` through `>2y`), oldest first, always
   returning all seven even when empty, with the file count, byte/MB size and share of
