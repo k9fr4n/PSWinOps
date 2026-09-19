@@ -12,6 +12,15 @@ All notable changes to PSWinOps are documented in this file. Versions follow
 
 ### Added
 
+- `Watch-DriveUsage` (system domain, alias `wdu`): interactive disk-space explorer for
+  the local machine. Renders a keyboard-driven console view: arrow keys move, `Enter`
+  drills into the selected folder, `Backspace` goes back up, `R` recomputes the current
+  level and `Q` quits. Only one level is measured at a time, on entering a folder, and
+  every level is cached for the rest of the session, so a cache miss draws a
+  `Scanning...` frame before the scan starts instead of looking like a hang. Sizing comes
+  from `Measure-FolderSize` and the frame from `Format-DriveUsageFrame` - no second data
+  or rendering path. Local-only by design: no `-ComputerName`, no `-Credential`, no WinRM,
+  and nothing is returned to the pipeline (interactive-monitor exemption, Rule 6) (#137).
 - `Show-FolderUsageAge` (system domain, alias `sfua`): walks one folder tree and emits
   one row per fixed file-age bucket (`0-7d` through `>2y`), oldest first, always
   returning all seven even when empty, with the file count, byte/MB size and share of

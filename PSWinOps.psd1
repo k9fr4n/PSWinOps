@@ -12,7 +12,7 @@
     RootModule           = 'PSWinOps.psm1'
 
     # Version number of this module.
-    ModuleVersion        = '1.3.1'
+    ModuleVersion        = '1.4.0'
 
     # Supported PSEditions
     # Core is supported on Windows only; the module-level guard in PSWinOps.psm1 blocks
@@ -224,6 +224,7 @@
         'Trace-NetworkRoute',
         'Uninstall-WindowsUpdate',
         'Unlock-ADUserAccount',
+        'Watch-DriveUsage',
         'Watch-IISLog'
     )
 
@@ -378,6 +379,7 @@
         'twr',
         'ulaua',
         'unswu',
+        'wdu',
         'wil'
     )
 
@@ -436,7 +438,12 @@
             # IconUri = ''
 
             # ReleaseNotes of this module
-            ReleaseNotes = '## 1.3.1 - 2026-09-19 UTC
+            ReleaseNotes = '## 1.4.0 - 2026-09-19 UTC
+
+### Added
+- Watch-DriveUsage: Interactive disk-space explorer for the local machine with drill-down navigation (alias wdu). Local-only: it takes no -ComputerName and no -Credential. Adds the 145th public function and short alias.
+
+## 1.3.1 - 2026-09-19 UTC
 
 ### Added
 - Show-FolderUsageAge: Shows folder tree disk usage by file age with a usage bar

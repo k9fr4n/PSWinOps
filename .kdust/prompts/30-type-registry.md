@@ -80,4 +80,4 @@
 
 **Exempted** (return plain string, no PSTypeName required): `New-RandomPassword`, `ConvertFrom-MisencodedString`
 **Exempted** (action functions, return `PSWinOps.RdpSessionAction`): `Connect-RdpSession`, `Disconnect-RdpSession`, `Remove-RdpSession`
-**Exempted** (interactive monitors, no structured return): `Show-PingMonitor`, `Show-NetworkStatisticMonitor`, `Show-SystemMonitor`
+**Exempted** (interactive monitors, no structured return): `Show-PingMonitor`, `Show-NetworkStatisticMonitor`, `Show-SystemMonitor`, `Watch-DriveUsage`

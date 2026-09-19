@@ -193,7 +193,7 @@ FUNCTION DOMAINS
 
       Get-AuditPolicy
 
-  system (25 functions)
+  system (26 functions)
     Functions for general system information, state,
     disk cleanup, profile management, and real-time monitoring.
 
@@ -222,6 +222,7 @@ FUNCTION DOMAINS
       Show-FolderUsageAge
       Show-SystemMonitor
       Stop-ProcessTree
+      Watch-DriveUsage
 
   windowsupdate (10 functions)
     Functions for querying and managing Windows Update
@@ -274,6 +275,11 @@ OUTPUT CONVENTIONS
     (ConvertFrom-MisencodedString, ConvertTo-Markdown,
     New-RandomPassword, Remove-StringDiacritic) do not include
     ComputerName or Timestamp fields.
+
+    Second exception: the interactive monitors
+    (Show-NetworkStatisticMonitor, Show-PingMonitor,
+    Show-SystemMonitor, Watch-DriveUsage) render a console UI
+    and return nothing to the pipeline.
 
     Custom format views are defined in the file
     PSWinOps.Format.ps1xml, which ships with the module.
