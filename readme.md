@@ -30,6 +30,22 @@ Import-Module PSWinOps
 Get-Command -Module PSWinOps
 ```
 
+## Disk-Space Analysis Commands
+
+The disk-analysis command set covers Recycle Bin reporting, per-volume usage,
+folder-tree breakdowns by extension and age, and an interactive drill-down
+explorer.
+
+- `Get-RecycleBinSize` - reports Recycle Bin size and item count per fixed volume.
+- `Show-DriveUsage` - renders per-volume disk usage as a fixed-width bar.
+- `Show-FolderUsage` - aggregates one folder tree by file extension with a usage bar.
+- `Show-FolderUsageAge` - aggregates one folder tree by file age with a usage bar.
+- `Watch-DriveUsage` - interactive, keyboard-driven disk-space explorer.
+
+`Watch-DriveUsage` is local-only (no `-ComputerName` or `-Credential`) and needs
+an interactive console; it renders to the console and returns nothing to the
+pipeline.
+
 ## Optional Dependencies
 
 PSWinOps lazy-imports the following modules on demand. They are **not** listed in

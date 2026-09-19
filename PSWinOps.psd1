@@ -441,6 +441,8 @@
             ReleaseNotes = '## 1.4.0 - 2026-09-19 UTC
 
 ### Added
+- Get-RecycleBinSize: Reports Recycle Bin size and item count per fixed volume, with exact bytes, rounded MB/GB, and size as a percentage of the volume. Local calls need no WinRM; a missing or unreadable Recycle Bin reports zero rather than erroring (alias grbs).
+- Show-DriveUsage: Renders per-volume disk usage as a fixed-width bar via its format view. A presentation wrapper over Get-DiskSpace that re-emits the same data under the PSWinOps.DriveUsage type (alias sdu).
 - Watch-DriveUsage: Interactive disk-space explorer for the local machine with drill-down navigation (alias wdu). Local-only: it takes no -ComputerName and no -Credential. Adds the 145th public function and short alias.
 
 ## 1.3.1 - 2026-09-19 UTC

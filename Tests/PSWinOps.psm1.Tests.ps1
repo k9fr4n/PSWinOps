@@ -392,5 +392,19 @@ Describe -Name 'PSWinOps Module Loader' -Fixture {
             ($documentedTypes -join "`n") | Should -Be ($sourceTypes -join "`n")
             ($formatTypes -join "`n") | Should -Be ($sourceTypes -join "`n")
         }
+
+        It -Name 'Should mention every exported function in the about help file' -Test {
+            $manifestPath = Join-Path -Path $script:modulePath -ChildPath 'PSWinOps.psd1'
+            $manifest = Test-ModuleManifest -Path $manifestPath
+            $exportedFunctions = @($manifest.ExportedFunctions.Keys | Sort-Object)
+            $aboutPath = Join-Path -Path $script:modulePath -ChildPath 'en-US/about_PSWinOps.help.txt'
+            $content = Get-Content -Path $aboutPath -Raw
+            $missing = @(
+                $exportedFunctions |
+                    Where-Object { $content -notmatch "(?m)(^|\s)$([regex]::Escape($_))(\s|$)" }
+            )
+
+            $missing.Count | Should -Be 0
+        }
     }
 }
