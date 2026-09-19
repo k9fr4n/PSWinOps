@@ -1,0 +1,7 @@
+chain: pswinops-function-author
+function: Show-FolderUsageAge
+domain: system
+created: 2026-09-19T09:47:56Z
+created_by: pswinops-fn-spec-analyst
+chain_branch: kdust/chain/pswinops-fn-show-folderusageage-2609190946
+spec_path: work/show-folderusageage/spec.yaml
