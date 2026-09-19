@@ -271,23 +271,21 @@ Describe -Name 'Format-DriveUsageFrame' -Fixture {
         }
 
         It -Name 'Should zero percentages and not throw when -TotalBytes is 0' -Test {
-            $frame = $null
-            { $frame = script:InvokeFrame @{
+            $frame = script:InvokeFrame @{
                 CurrentPath   = 'C:\'
                 Entries       = @((script:NewEntry -Name 'Big' -SizeBytes 268435456000 -FileCount 1))
                 SelectedIndex = 0
                 TotalBytes    = 0
-            } } | Should -Not -Throw
+            }
             $frame | Should -Match '0\.0%'
         }
 
         It -Name 'Should zero percentages and not throw when -TotalBytes is absent' -Test {
-            $frame = $null
-            { $frame = script:InvokeFrame @{
+            $frame = script:InvokeFrame @{
                 CurrentPath   = 'C:\'
                 Entries       = @((script:NewEntry -Name 'Big' -SizeBytes 268435456000 -FileCount 1))
                 SelectedIndex = 0
-            } } | Should -Not -Throw
+            }
             $frame | Should -Match '0\.0%'
         }
     }
@@ -357,12 +355,11 @@ Describe -Name 'Format-DriveUsageFrame' -Fixture {
     Context -Name 'Empty entries' -Fixture {
 
         It -Name 'Should render a valid frame without throwing' -Test {
-            $frame = $null
-            { $frame = script:InvokeFrame @{
+            $frame = script:InvokeFrame @{
                 CurrentPath   = 'C:\'
                 Entries       = @()
                 SelectedIndex = 0
-            } } | Should -Not -Throw
+            }
             $frame | Should -Match '<empty>'
             $frame | Should -Match '\[Q\]'
             $frame | Should -Match ([regex]::Escape('C:\'))
@@ -410,24 +407,22 @@ Describe -Name 'Format-DriveUsageFrame' -Fixture {
         }
 
         It -Name 'Should clamp a negative index to the first row without throwing' -Test {
-            $frame = $null
-            { $frame = script:InvokeFrame @{
+            $frame = script:InvokeFrame @{
                 CurrentPath   = 'C:\'
                 Entries       = $script:clampEntries
                 SelectedIndex = -5
-            } } | Should -Not -Throw
+            }
             $lines = @($frame -split "`r?`n")
             $markerLine = $lines | Where-Object { $_ -match '^  > ' }
             $markerLine | Should -Match 'First'
         }
 
         It -Name 'Should clamp an over-large index to the last row without throwing' -Test {
-            $frame = $null
-            { $frame = script:InvokeFrame @{
+            $frame = script:InvokeFrame @{
                 CurrentPath   = 'C:\'
                 Entries       = $script:clampEntries
                 SelectedIndex = 999
-            } } | Should -Not -Throw
+            }
             $lines = @($frame -split "`r?`n")
             $markerLine = $lines | Where-Object { $_ -match '^  > ' }
             $markerLine | Should -Match 'Third'
