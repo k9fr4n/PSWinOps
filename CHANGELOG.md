@@ -12,6 +12,12 @@ All notable changes to PSWinOps are documented in this file. Versions follow
 
 ### Added
 
+- **Disk-analysis command set** (`Get-RecycleBinSize`, `Show-DriveUsage`,
+  `Show-FolderUsage`, `Show-FolderUsageAge`, `Watch-DriveUsage`): five
+  system-domain commands covering Recycle Bin reporting, per-volume usage,
+  folder-tree breakdowns by extension and age, and an interactive drill-down
+  explorer (#132, #133, #134, #135, #137).
+
 - `Watch-DriveUsage` (system domain, alias `wdu`): interactive disk-space explorer for
   the local machine. Renders a keyboard-driven console view: arrow keys move, `Enter`
   drills into the selected folder, `Backspace` goes back up, `R` recomputes the current

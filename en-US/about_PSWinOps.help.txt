@@ -196,6 +196,9 @@ FUNCTION DOMAINS
   system (26 functions)
     Functions for general system information, state,
     disk cleanup, profile management, and real-time monitoring.
+    Disk-space analysis is provided by Get-RecycleBinSize,
+    Show-DriveUsage, Show-FolderUsage, Show-FolderUsageAge,
+    and Watch-DriveUsage.
 
       Clear-DiskCleanup
       Get-ComputerUptime
@@ -494,4 +497,5 @@ SEE ALSO
 
 KEYWORDS
     PSWinOps, Windows, Administration, ActiveDirectory, DiskCleanup,
-    HealthCheck, Network, NTP, RDP, Security, System, VSS, WindowsUpdate
+    DiskSpace, FolderUsage, RecycleBin, HealthCheck, Network, NTP, RDP,
+    Security, System, VSS, WindowsUpdate
