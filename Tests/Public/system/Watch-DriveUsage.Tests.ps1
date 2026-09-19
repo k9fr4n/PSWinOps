@@ -23,7 +23,9 @@ BeforeAll {
     $script:body    = $script:command.ScriptBlock.ToString()
 
     $script:declaredParameters = @(
-        $script:command.ScriptBlock.Ast.ParamBlock.Parameters |
+        $script:command.ScriptBlock.Ast.
+            Find({ $args[0] -is [System.Management.Automation.Language.ParamBlockAst] }, $true).
+            Parameters |
             ForEach-Object { $_.Name.VariablePath.UserPath }
     )
 
@@ -181,6 +183,7 @@ Describe 'Watch-DriveUsage' {
         }
 
         It 'Should declare exactly Path, Top and NoColor' {
+            $script:declaredParameters | Should -Not -Contain $null
             $script:declaredParameters.Count | Should -Be 3
             ($script:declaredParameters | Sort-Object) | Should -Be @('NoColor', 'Path', 'Top')
         }
@@ -248,7 +251,7 @@ Describe 'Watch-DriveUsage' {
             $capturedErrors = @()
             $null = Watch-DriveUsage -Path $script:missingPath `
                 -ErrorAction SilentlyContinue -ErrorVariable capturedErrors
-            (@($capturedErrors) | Out-String) | Should -Match 'is not an existing directory'
+            (@($capturedErrors | ForEach-Object { $_.Exception.Message }) -join ' ') | Should -Match 'is not an existing directory'
             Should -Invoke -CommandName 'Get-CimInstance' -ModuleName $script:ModuleName -Times 1 -Exactly
         }
 
@@ -262,7 +265,7 @@ Describe 'Watch-DriveUsage' {
             $result = Watch-DriveUsage -Path $filePath `
                 -ErrorAction SilentlyContinue -ErrorVariable capturedErrors
             $result | Should -BeNullOrEmpty
-            (@($capturedErrors) | Out-String) | Should -Match 'is not an existing directory'
+            (@($capturedErrors | ForEach-Object { $_.Exception.Message }) -join ' ') | Should -Match 'is not an existing directory'
             Should -Invoke -CommandName 'Get-CimInstance' -ModuleName $script:ModuleName -Times 1 -Exactly
         }
     }
@@ -273,6 +276,7 @@ Describe 'Watch-DriveUsage' {
             $script:capturedClassName = $null
             $script:capturedFilter    = $null
             Mock -CommandName 'Get-CimInstance' -ModuleName $script:ModuleName -MockWith {
+                param($ClassName, $Filter)
                 $script:capturedClassName = $ClassName
                 $script:capturedFilter    = $Filter
                 return @()
@@ -318,7 +322,7 @@ Describe 'Watch-DriveUsage' {
             $result = Watch-DriveUsage -Path $script:missingPath `
                 -ErrorAction SilentlyContinue -ErrorVariable capturedErrors
             $result | Should -BeNullOrEmpty
-            (@($capturedErrors) | Out-String) | Should -Match 'is not an existing directory'
+            (@($capturedErrors | ForEach-Object { $_.Exception.Message }) -join ' ') | Should -Match 'is not an existing directory'
             Should -Invoke -CommandName 'Get-CimInstance' -ModuleName $script:ModuleName -Times 1 -Exactly
         }
 
