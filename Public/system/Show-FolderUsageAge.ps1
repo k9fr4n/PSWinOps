@@ -10,9 +10,10 @@ function Show-FolderUsageAge {
         oldest first, always returning all seven even when empty. Files are
         bucketed by their LastWriteTime by default, and the scan runs on the
         target machine through Invoke-RemoteOrLocal so only the seven summary
-        rows cross the wire. Bucket bounds are half-open: MinDays is inclusive
-        and MaxDays exclusive, with a null MaxDays on the unbounded oldest
-        bucket, and future-dated files are clamped into the newest bucket.
+        rows cross the wire. Age bucket bounds are half-open: MinAgeDays is
+        inclusive and MaxAgeDays exclusive, with [int]::MaxValue as MaxAgeDays
+        on the unbounded oldest bucket, and future-dated files are clamped
+        into the newest bucket.
         Unreadable subfolders are counted in InaccessibleCount, and one failing
         computer never stops the remaining ones.
 
@@ -55,12 +56,12 @@ function Show-FolderUsageAge {
     .OUTPUTS
         PSWinOps.FolderUsageAge
         Seven objects per tree, one per age bucket, ordered oldest first, each
-        carrying the bucket name, its inclusive MinDays and exclusive MaxDays
-        bounds, the file count, the exact byte and rounded MB size, the share
-        of the tree total, the tree totals (TotalSizeBytes and TotalFileCount,
-        repeated on every row), the AgeProperty the buckets were computed from,
-        and the number of unreadable subfolders. The default view renders a
-        fixed-width usage bar.
+        carrying the AgeBucket label, its inclusive MinAgeDays and exclusive
+        MaxAgeDays bounds, the file count, the exact byte and rounded MB size,
+        the share of the tree total, the tree totals (TotalSizeBytes and
+        TotalFileCount, repeated on every row), the AgeProperty the buckets were
+        computed from, and the number of unreadable subfolders. The default
+        view renders a fixed-width usage bar.
 
     .NOTES
         Author: Franck SALLET
@@ -72,6 +73,9 @@ function Show-FolderUsageAge {
         the whole tree, so non-elevated callers may under-report totals. This
         command walks every file in the tree, so runtime grows with the number
         of files and can be long on very large trees.
+        Note: LastAccessTime is unreliable on Windows — NTFS last-access
+        updates are disabled by default (NtfsDisableLastAccessUpdate), so
+        buckets computed from it may reflect the last write instead.
 
     .LINK
         https://github.com/k9fr4n/PSWinOps
@@ -125,16 +129,16 @@ function Show-FolderUsageAge {
             $now = Get-Date
 
             # The seven buckets, oldest first, always emitted in this order even
-            # when empty. MinDays is inclusive, MaxDays exclusive; a null
-            # MaxDays marks the unbounded oldest bucket.
+            # when empty. MinAgeDays is inclusive, MaxAgeDays exclusive;
+            # [int]::MaxValue marks the unbounded oldest bucket.
             $buckets = @(
-                [PSCustomObject]@{ Bucket = '>2y'; MinDays = [long]730; MaxDays = $null; FileCount = [long]0; SizeBytes = [long]0 }
-                [PSCustomObject]@{ Bucket = '1-2y'; MinDays = [long]365; MaxDays = [long]730; FileCount = [long]0; SizeBytes = [long]0 }
-                [PSCustomObject]@{ Bucket = '180-365d'; MinDays = [long]180; MaxDays = [long]365; FileCount = [long]0; SizeBytes = [long]0 }
-                [PSCustomObject]@{ Bucket = '90-180d'; MinDays = [long]90; MaxDays = [long]180; FileCount = [long]0; SizeBytes = [long]0 }
-                [PSCustomObject]@{ Bucket = '30-90d'; MinDays = [long]30; MaxDays = [long]90; FileCount = [long]0; SizeBytes = [long]0 }
-                [PSCustomObject]@{ Bucket = '7-30d'; MinDays = [long]7; MaxDays = [long]30; FileCount = [long]0; SizeBytes = [long]0 }
-                [PSCustomObject]@{ Bucket = '0-7d'; MinDays = [long]0; MaxDays = [long]7; FileCount = [long]0; SizeBytes = [long]0 }
+                [PSCustomObject]@{ AgeBucket = '>2y'; MinAgeDays = [int]730; MaxAgeDays = [int]::MaxValue; FileCount = [long]0; SizeBytes = [long]0 }
+                [PSCustomObject]@{ AgeBucket = '1-2y'; MinAgeDays = [int]365; MaxAgeDays = [int]730; FileCount = [long]0; SizeBytes = [long]0 }
+                [PSCustomObject]@{ AgeBucket = '180-365d'; MinAgeDays = [int]180; MaxAgeDays = [int]365; FileCount = [long]0; SizeBytes = [long]0 }
+                [PSCustomObject]@{ AgeBucket = '90-180d'; MinAgeDays = [int]90; MaxAgeDays = [int]180; FileCount = [long]0; SizeBytes = [long]0 }
+                [PSCustomObject]@{ AgeBucket = '30-90d'; MinAgeDays = [int]30; MaxAgeDays = [int]90; FileCount = [long]0; SizeBytes = [long]0 }
+                [PSCustomObject]@{ AgeBucket = '7-30d'; MinAgeDays = [int]7; MaxAgeDays = [int]30; FileCount = [long]0; SizeBytes = [long]0 }
+                [PSCustomObject]@{ AgeBucket = '0-7d'; MinAgeDays = [int]0; MaxAgeDays = [int]7; FileCount = [long]0; SizeBytes = [long]0 }
             )
 
             # Manual traversal instead of a single -Recurse -File pass so
@@ -186,8 +190,8 @@ function Show-FolderUsageAge {
                 }
 
                 foreach ($bucket in $buckets) {
-                    $upperBound = $bucket.MaxDays
-                    if ($ageDays -ge $bucket.MinDays -and ($null -eq $upperBound -or $ageDays -lt $upperBound)) {
+                    $upperBound = $bucket.MaxAgeDays
+                    if ($ageDays -ge $bucket.MinAgeDays -and $ageDays -lt $upperBound) {
                         $bucket.FileCount = [long]$bucket.FileCount + 1
                         $bucket.SizeBytes = [long]$bucket.SizeBytes + $length
                         break
@@ -211,9 +215,9 @@ function Show-FolderUsageAge {
 
                 [PSCustomObject]@{
                     Path              = $rootPath
-                    Bucket            = $bucket.Bucket
-                    MinDays           = [long]$bucket.MinDays
-                    MaxDays           = $bucket.MaxDays
+                    AgeBucket         = $bucket.AgeBucket
+                    MinAgeDays        = [int]$bucket.MinAgeDays
+                    MaxAgeDays        = [int]$bucket.MaxAgeDays
                     FileCount         = [long]$bucket.FileCount
                     SizeBytes         = $sizeBytes
                     SizeMB            = [math]::Round($sizeBytes / 1MB, 2)
@@ -242,9 +246,9 @@ function Show-FolderUsageAge {
                         PSTypeName        = 'PSWinOps.FolderUsageAge'
                         ComputerName      = $machine
                         Path              = $row.Path
-                        Bucket            = $row.Bucket
-                        MinDays           = [long]$row.MinDays
-                        MaxDays           = $row.MaxDays
+                        AgeBucket         = $row.AgeBucket
+                        MinAgeDays        = [int]$row.MinAgeDays
+                        MaxAgeDays        = [int]$row.MaxAgeDays
                         FileCount         = [long]$row.FileCount
                         SizeBytes         = [long]$row.SizeBytes
                         SizeMB            = [double]$row.SizeMB
@@ -253,7 +257,7 @@ function Show-FolderUsageAge {
                         TotalFileCount    = [long]$row.TotalFileCount
                         AgeProperty       = $row.AgeProperty
                         InaccessibleCount = [long]$row.InaccessibleCount
-                        Timestamp         = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
+                        Timestamp         = Get-Date -Format 'o'
                     }
                 }
             }

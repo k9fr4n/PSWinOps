@@ -9267,7 +9267,7 @@
         <AutoSize />
         <TableHeaders>
           <TableColumnHeader>
-            <Label>Bucket</Label>
+            <Label>AgeBucket</Label>
           </TableColumnHeader>
           <TableColumnHeader>
             <Label>FileCount</Label>
@@ -9289,7 +9289,7 @@
           <TableRowEntry>
             <TableColumnItems>
               <TableColumnItem>
-                <PropertyName>Bucket</PropertyName>
+                <PropertyName>AgeBucket</PropertyName>
               </TableColumnItem>
               <TableColumnItem>
                 <PropertyName>FileCount</PropertyName>

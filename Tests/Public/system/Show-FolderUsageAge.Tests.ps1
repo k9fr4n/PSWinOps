@@ -60,11 +60,12 @@ BeforeAll {
     NewAgedFile -FilePath (Join-Path -Path $script:treeRoot -ChildPath 'year.log') -Size 4194304 -AgeDays 500
     NewAgedFile -FilePath (Join-Path -Path $script:subRoot -ChildPath 'archive.log') -Size 8388608 -AgeDays 800
 
-    # A second real tree probes the half-open bounds (MinDays inclusive, MaxDays
-    # exclusive). Each file sits either exactly on a bound or one minute inside
-    # it: the scan reads its own clock a moment later, so an "exactly N days"
-    # file is guaranteed to have aged past N (pinning the inclusive lower bound)
-    # while the "one minute under" file must stay in the younger bucket.
+    # A second real tree probes the half-open bounds (MinAgeDays inclusive,
+    # MaxAgeDays exclusive). Each file sits either exactly on a bound or one
+    # minute inside it: the scan reads its own clock a moment later, so an
+    # "exactly N days" file is guaranteed to have aged past N (pinning the
+    # inclusive lower bound) while the "one minute under" file must stay in
+    # the younger bucket.
     NewAgedFile -FilePath (Join-Path -Path $script:boundaryRoot -ChildPath 'at7d.bin') -Size 1048576 -AgeDays 7
     NewAgedFile -FilePath (Join-Path -Path $script:boundaryRoot -ChildPath 'under7d.bin') -Size 2097152 -AgeDays (7 - (1 / 1440))
     NewAgedFile -FilePath (Join-Path -Path $script:boundaryRoot -ChildPath 'at30d.bin') -Size 3145728 -AgeDays 30
@@ -90,21 +91,21 @@ BeforeAll {
         )
 
         $spec = @(
-            @{ Bucket = '>2y'; MinDays = [long]730; MaxDays = $null; SizeBytes = [long]8388608; Percent = [double]44.44 }
-            @{ Bucket = '1-2y'; MinDays = [long]365; MaxDays = [long]730; SizeBytes = [long]4194304; Percent = [double]22.22 }
-            @{ Bucket = '180-365d'; MinDays = [long]180; MaxDays = [long]365; SizeBytes = [long]2097152; Percent = [double]11.11 }
-            @{ Bucket = '90-180d'; MinDays = [long]90; MaxDays = [long]180; SizeBytes = [long]1048576; Percent = [double]5.56 }
-            @{ Bucket = '30-90d'; MinDays = [long]30; MaxDays = [long]90; SizeBytes = [long]1048576; Percent = [double]5.56 }
-            @{ Bucket = '7-30d'; MinDays = [long]7; MaxDays = [long]30; SizeBytes = [long]1048576; Percent = [double]5.56 }
-            @{ Bucket = '0-7d'; MinDays = [long]0; MaxDays = [long]7; SizeBytes = [long]1048576; Percent = [double]5.56 }
+            @{ AgeBucket = '>2y'; MinAgeDays = [int]730; MaxAgeDays = [int]::MaxValue; SizeBytes = [long]8388608; Percent = [double]44.44 }
+            @{ AgeBucket = '1-2y'; MinAgeDays = [int]365; MaxAgeDays = [int]730; SizeBytes = [long]4194304; Percent = [double]22.22 }
+            @{ AgeBucket = '180-365d'; MinAgeDays = [int]180; MaxAgeDays = [int]365; SizeBytes = [long]2097152; Percent = [double]11.11 }
+            @{ AgeBucket = '90-180d'; MinAgeDays = [int]90; MaxAgeDays = [int]180; SizeBytes = [long]1048576; Percent = [double]5.56 }
+            @{ AgeBucket = '30-90d'; MinAgeDays = [int]30; MaxAgeDays = [int]90; SizeBytes = [long]1048576; Percent = [double]5.56 }
+            @{ AgeBucket = '7-30d'; MinAgeDays = [int]7; MaxAgeDays = [int]30; SizeBytes = [long]1048576; Percent = [double]5.56 }
+            @{ AgeBucket = '0-7d'; MinAgeDays = [int]0; MaxAgeDays = [int]7; SizeBytes = [long]1048576; Percent = [double]5.56 }
         )
 
         foreach ($bucket in $spec) {
             [PSCustomObject]@{
                 Path              = $TargetPath
-                Bucket            = $bucket.Bucket
-                MinDays           = $bucket.MinDays
-                MaxDays           = $bucket.MaxDays
+                AgeBucket         = $bucket.AgeBucket
+                MinAgeDays        = $bucket.MinAgeDays
+                MaxAgeDays        = $bucket.MaxAgeDays
                 FileCount         = [long]1
                 SizeBytes         = $bucket.SizeBytes
                 SizeMB            = [double][math]::Round($bucket.SizeBytes / 1MB, 2)
@@ -126,7 +127,7 @@ Describe 'Show-FolderUsageAge' {
             $script:result = @(Show-FolderUsageAge -Path $script:treeRoot)
             $script:byBucket = @{}
             foreach ($row in $script:result) {
-                $script:byBucket[$row.Bucket] = $row
+                $script:byBucket[$row.AgeBucket] = $row
             }
         }
 
@@ -140,12 +141,12 @@ Describe 'Show-FolderUsageAge' {
 
         It -Name 'Should always emit the seven buckets, oldest first' -Test {
             $script:result | Should -HaveCount 7
-            $script:result.Bucket | Should -Be @('>2y', '1-2y', '180-365d', '90-180d', '30-90d', '7-30d', '0-7d')
+            $script:result.AgeBucket | Should -Be @('>2y', '1-2y', '180-365d', '90-180d', '30-90d', '7-30d', '0-7d')
         }
 
         It -Name 'Should expose exactly the documented property set' -Test {
             $expected = @(
-                'ComputerName', 'Path', 'Bucket', 'MinDays', 'MaxDays', 'FileCount',
+                'ComputerName', 'Path', 'AgeBucket', 'MinAgeDays', 'MaxAgeDays', 'FileCount',
                 'SizeBytes', 'SizeMB', 'PercentOfTotal', 'TotalSizeBytes',
                 'TotalFileCount', 'AgeProperty', 'InaccessibleCount', 'Timestamp'
             )
@@ -158,25 +159,25 @@ Describe 'Show-FolderUsageAge' {
         }
 
         It -Name 'Should expose the documented bounds per bucket' -Test {
-            $script:result[0].MinDays | Should -Be 730
-            $script:result[0].MaxDays | Should -BeNullOrEmpty
-            $script:result[1].MinDays | Should -Be 365
-            $script:result[1].MaxDays | Should -Be 730
-            $script:result[2].MinDays | Should -Be 180
-            $script:result[2].MaxDays | Should -Be 365
-            $script:result[3].MinDays | Should -Be 90
-            $script:result[3].MaxDays | Should -Be 180
-            $script:result[4].MinDays | Should -Be 30
-            $script:result[4].MaxDays | Should -Be 90
-            $script:result[5].MinDays | Should -Be 7
-            $script:result[5].MaxDays | Should -Be 30
-            $script:result[6].MinDays | Should -Be 0
-            $script:result[6].MaxDays | Should -Be 7
+            $script:result[0].MinAgeDays | Should -Be 730
+            $script:result[0].MaxAgeDays | Should -Be ([int]::MaxValue)
+            $script:result[1].MinAgeDays | Should -Be 365
+            $script:result[1].MaxAgeDays | Should -Be 730
+            $script:result[2].MinAgeDays | Should -Be 180
+            $script:result[2].MaxAgeDays | Should -Be 365
+            $script:result[3].MinAgeDays | Should -Be 90
+            $script:result[3].MaxAgeDays | Should -Be 180
+            $script:result[4].MinAgeDays | Should -Be 30
+            $script:result[4].MaxAgeDays | Should -Be 90
+            $script:result[5].MinAgeDays | Should -Be 7
+            $script:result[5].MaxAgeDays | Should -Be 30
+            $script:result[6].MinAgeDays | Should -Be 0
+            $script:result[6].MaxAgeDays | Should -Be 7
         }
 
         It -Name 'Should type the numeric properties per the spec' -Test {
-            $script:result[0].MinDays.GetType().Name | Should -Be 'Int64'
-            $script:result[1].MaxDays.GetType().Name | Should -Be 'Int64'
+            $script:result[0].MinAgeDays.GetType().Name | Should -Be 'Int32'
+            $script:result[1].MaxAgeDays.GetType().Name | Should -Be 'Int32'
             $script:result[0].FileCount.GetType().Name | Should -Be 'Int64'
             $script:result[0].SizeBytes.GetType().Name | Should -Be 'Int64'
             $script:result[0].TotalSizeBytes.GetType().Name | Should -Be 'Int64'
@@ -237,10 +238,9 @@ Describe 'Show-FolderUsageAge' {
             ($script:result.InaccessibleCount | Sort-Object -Unique) | Should -Be @(0)
         }
 
-        It -Name 'Should carry a per-row Timestamp in yyyy-MM-dd HH:mm:ss form' -Test {
+        It -Name 'Should carry a per-row Timestamp in ISO-8601 (o) form' -Test {
             foreach ($row in $script:result) {
-                $row.Timestamp | Should -Match "^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}"
-                ([string]$row.Timestamp).Length | Should -Be 19
+                $row.Timestamp | Should -Match "^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+"
             }
         }
 
@@ -272,7 +272,7 @@ Describe 'Show-FolderUsageAge' {
 
         It -Name 'Should still emit all seven buckets for a tree without files' -Test {
             $script:emptyResult | Should -HaveCount 7
-            $script:emptyResult.Bucket | Should -Be @('>2y', '1-2y', '180-365d', '90-180d', '30-90d', '7-30d', '0-7d')
+            $script:emptyResult.AgeBucket | Should -Be @('>2y', '1-2y', '180-365d', '90-180d', '30-90d', '7-30d', '0-7d')
         }
 
         It -Name 'Should report zero counts, bytes and percent without dividing by zero' -Test {
@@ -297,22 +297,22 @@ Describe 'Show-FolderUsageAge' {
         }
     }
 
-    Context 'Bucket bounds are half-open (real fixture tree)' {
+    Context 'Age bucket bounds are half-open (real fixture tree)' {
 
         BeforeAll {
             $script:boundaryResult = @(Show-FolderUsageAge -Path $script:boundaryRoot)
             $script:boundaryByBucket = @{}
             foreach ($row in $script:boundaryResult) {
-                $script:boundaryByBucket[$row.Bucket] = $row
+                $script:boundaryByBucket[$row.AgeBucket] = $row
             }
         }
 
-        It -Name 'Should put a file exactly 7 days old in 7-30d (MinDays inclusive)' -Test {
+        It -Name 'Should put a file exactly 7 days old in 7-30d (MinAgeDays inclusive)' -Test {
             $script:boundaryByBucket['7-30d'].FileCount | Should -Be 2
             $script:boundaryByBucket['7-30d'].SizeBytes | Should -Be 5242880
         }
 
-        It -Name 'Should keep a file one minute under 7 days in 0-7d (MaxDays exclusive)' -Test {
+        It -Name 'Should keep a file one minute under 7 days in 0-7d (MaxAgeDays exclusive)' -Test {
             $script:boundaryByBucket['0-7d'].FileCount | Should -Be 1
             $script:boundaryByBucket['0-7d'].SizeBytes | Should -Be 2097152
         }
@@ -356,7 +356,7 @@ Describe 'Show-FolderUsageAge' {
         }
 
         It -Name 'Should clamp a future-dated file into the 0-7d bucket' -Test {
-            $newest = @($script:futureResult | Where-Object -FilterScript { $_.Bucket -eq '0-7d' })
+            $newest = @($script:futureResult | Where-Object -FilterScript { $_.AgeBucket -eq '0-7d' })
             $newest | Should -HaveCount 1
             $newest[0].FileCount | Should -Be 1
             $newest[0].SizeBytes | Should -Be 1048576
@@ -364,7 +364,7 @@ Describe 'Show-FolderUsageAge' {
         }
 
         It -Name 'Should not leak a negative age into any older bucket' -Test {
-            $older = @($script:futureResult | Where-Object -FilterScript { $_.Bucket -ne '0-7d' })
+            $older = @($script:futureResult | Where-Object -FilterScript { $_.AgeBucket -ne '0-7d' })
             $older | Should -HaveCount 6
             foreach ($row in $older) {
                 $row.FileCount | Should -Be 0
@@ -408,7 +408,7 @@ Describe 'Show-FolderUsageAge' {
 
         It -Name 'Should bucket by LastWriteTime by default' -Test {
             $result = @(Show-FolderUsageAge -Path $script:mockRoot)
-            $row = @($result | Where-Object -FilterScript { $_.Bucket -eq '90-180d' })
+            $row = @($result | Where-Object -FilterScript { $_.AgeBucket -eq '90-180d' })
             $row[0].FileCount | Should -Be 2
             $row[0].SizeBytes | Should -Be 4194304
             ($result.AgeProperty | Sort-Object -Unique) | Should -Be @('LastWriteTime')
@@ -416,7 +416,7 @@ Describe 'Show-FolderUsageAge' {
 
         It -Name 'Should bucket by CreationTime when Property is CreationTime' -Test {
             $result = @(Show-FolderUsageAge -Path $script:mockRoot -Property 'CreationTime')
-            $row = @($result | Where-Object -FilterScript { $_.Bucket -eq '0-7d' })
+            $row = @($result | Where-Object -FilterScript { $_.AgeBucket -eq '0-7d' })
             $row[0].FileCount | Should -Be 2
             $row[0].SizeBytes | Should -Be 4194304
             ($result.AgeProperty | Sort-Object -Unique) | Should -Be @('CreationTime')
@@ -424,7 +424,7 @@ Describe 'Show-FolderUsageAge' {
 
         It -Name 'Should bucket by LastAccessTime when Property is LastAccessTime' -Test {
             $result = @(Show-FolderUsageAge -Path $script:mockRoot -Property 'LastAccessTime')
-            $row = @($result | Where-Object -FilterScript { $_.Bucket -eq '1-2y' })
+            $row = @($result | Where-Object -FilterScript { $_.AgeBucket -eq '1-2y' })
             $row[0].FileCount | Should -Be 2
             $row[0].SizeBytes | Should -Be 4194304
             ($result.AgeProperty | Sort-Object -Unique) | Should -Be @('LastAccessTime')
@@ -453,7 +453,7 @@ Describe 'Show-FolderUsageAge' {
             $result = @(Show-FolderUsageAge -Path $script:mockRoot)
 
             $result | Should -HaveCount 7
-            $row = @($result | Where-Object -FilterScript { $_.Bucket -eq '90-180d' })
+            $row = @($result | Where-Object -FilterScript { $_.AgeBucket -eq '90-180d' })
             $row[0].FileCount | Should -Be 1
             $row[0].SizeBytes | Should -Be 2097152
             $row[0].PercentOfTotal | Should -Be 100
@@ -508,15 +508,15 @@ Describe 'Show-FolderUsageAge' {
         It -Name 'Should map the target summary rows onto the output contract' -Test {
             $result = @(Show-FolderUsageAge -Path 'C:\Logs' -ComputerName 'SRV01')
             $result[0].PSObject.TypeNames | Should -Contain 'PSWinOps.FolderUsageAge'
-            $result[0].Bucket | Should -Be '>2y'
-            $result[0].MinDays | Should -Be 730
-            $result[0].MaxDays | Should -BeNullOrEmpty
+            $result[0].AgeBucket | Should -Be '>2y'
+            $result[0].MinAgeDays | Should -Be 730
+            $result[0].MaxAgeDays | Should -Be ([int]::MaxValue)
             $result[0].FileCount | Should -Be 1
             $result[0].SizeBytes | Should -Be 8388608
             $result[0].SizeMB | Should -Be 8
             $result[0].PercentOfTotal | Should -Be 44.44
-            $result[6].Bucket | Should -Be '0-7d'
-            $result[6].MaxDays | Should -Be 7
+            $result[6].AgeBucket | Should -Be '0-7d'
+            $result[6].MaxAgeDays | Should -Be 7
         }
 
         It -Name 'Should pass the target totals and InaccessibleCount through unchanged' -Test {
@@ -613,7 +613,7 @@ Describe 'Show-FolderUsageAge' {
             $results = @(('SRV01', 'SRV02') | Show-FolderUsageAge -Path 'C:\Logs')
             $srv01 = @($results | Where-Object -FilterScript { $_.ComputerName -eq 'SRV01' })
             $srv01 | Should -HaveCount 7
-            $srv01.Bucket | Should -Be @('>2y', '1-2y', '180-365d', '90-180d', '30-90d', '7-30d', '0-7d')
+            $srv01.AgeBucket | Should -Be @('>2y', '1-2y', '180-365d', '90-180d', '30-90d', '7-30d', '0-7d')
         }
 
         It -Name 'Should accept Path from the pipeline by property name' -Test {
@@ -778,7 +778,7 @@ Describe 'Show-FolderUsageAge' {
         It -Name 'Should label the columns per the spec' -Test {
             $labels = @($script:view[0].TableControl.TableHeaders.TableColumnHeader |
                     ForEach-Object -Process { [string]$_.Label })
-            $labels | Should -Be @('Bucket', 'FileCount', 'Size(MB)', 'Percent', 'Usage')
+            $labels | Should -Be @('AgeBucket', 'FileCount', 'Size(MB)', 'Percent', 'Usage')
         }
 
         It -Name 'Should render the usage bar from PercentOfTotal in the view ScriptBlock' -Test {
@@ -815,6 +815,10 @@ Describe 'Show-FolderUsageAge' {
 
         It -Name 'Should have Author in NOTES' -Test {
             ($script:helpInfo.alertSet | Out-String) | Should -Match 'Franck SALLET'
+        }
+
+        It -Name 'Should document the LastAccessTime unreliability caveat in NOTES' -Test {
+            ($script:helpInfo.alertSet | Out-String) | Should -Match 'NtfsDisableLastAccessUpdate'
         }
 
         It -Name 'Should document every declared parameter' -Test {
