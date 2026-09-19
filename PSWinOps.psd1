@@ -12,7 +12,7 @@
     RootModule           = 'PSWinOps.psm1'
 
     # Version number of this module.
-    ModuleVersion        = '1.3.0'
+    ModuleVersion        = '1.3.1'
 
     # Supported PSEditions
     # Core is supported on Windows only; the module-level guard in PSWinOps.psm1 blocks
@@ -436,7 +436,12 @@
             # IconUri = ''
 
             # ReleaseNotes of this module
-            ReleaseNotes = '## 1.3.0 - 2026-09-19 UTC
+            ReleaseNotes = '## 1.3.1 - 2026-09-19 UTC
+
+### Added
+- Show-FolderUsageAge: Shows folder tree disk usage by file age with a usage bar
+
+## 1.3.0 - 2026-09-19 UTC
 
 ### Added
 - Show-FolderUsage: Shows folder tree disk usage by file extension with a usage bar
