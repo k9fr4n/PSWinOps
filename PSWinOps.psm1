@@ -175,6 +175,7 @@ $script:AliasMap = @{
     'seao' = 'Search-ADObject'
     'sev' = 'Set-EnvironmentVariable'
     'sfu' = 'Show-FolderUsage'
+    'sfua' = 'Show-FolderUsageAge'
     'shnsm' = 'Show-NetworkStatisticMonitor'
     'shpm' = 'Show-PingMonitor'
     'shsm' = 'Show-SystemMonitor'

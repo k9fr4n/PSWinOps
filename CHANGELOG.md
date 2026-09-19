@@ -12,6 +12,14 @@ All notable changes to PSWinOps are documented in this file. Versions follow
 
 ### Added
 
+- `Show-FolderUsageAge` (system domain, alias `sfua`): walks one folder tree and emits
+  one row per fixed file-age bucket (`0-7d` through `>2y`), oldest first, always
+  returning all seven even when empty, with the file count, byte/MB size and share of
+  the tree total, rendered with a fixed-width bar via its format view. Buckets are
+  half-open (`MinDays` inclusive, `MaxDays` exclusive, `$null` for the unbounded oldest
+  bucket) and are computed from a single clock reading inside the scan scriptblock, so
+  only the seven summary rows cross the wire; unreadable subfolders are counted in
+  `InaccessibleCount` instead of failing the tree.
 - `Show-FolderUsage` (system domain, alias `sfu`): aggregates one folder tree by file
   extension and emits one row per extension with its file count, byte/MB size and share
   of the tree total, sorted descending by size, rendered with a fixed-width bar via its

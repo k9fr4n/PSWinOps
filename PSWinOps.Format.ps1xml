@@ -9254,5 +9254,63 @@
         </TableRowEntries>
       </TableControl>
     </View>
+    <!-- ============================================================ -->
+    <!-- PSWinOps.FolderUsageAge                                      -->
+    <!-- Used by: Show-FolderUsageAge                                 -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.FolderUsageAge</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.FolderUsageAge</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <AutoSize />
+        <TableHeaders>
+          <TableColumnHeader>
+            <Label>Bucket</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>FileCount</Label>
+            <Alignment>Right</Alignment>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Size(MB)</Label>
+            <Alignment>Right</Alignment>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Percent</Label>
+            <Alignment>Right</Alignment>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Usage</Label>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem>
+                <PropertyName>Bucket</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>FileCount</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>SizeMB</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>PercentOfTotal</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>
+                  $__cells = 20
+                  $__filled = [math]::Max(0, [math]::Min($__cells, [int][math]::Round(($_.PercentOfTotal / 100) * $__cells)))
+                  '[{0}{1}] {2,5:N1}%' -f ('#' * $__filled), ('-' * ($__cells - $__filled)), $_.PercentOfTotal
+                </ScriptBlock>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
   </ViewDefinitions>
 </Configuration>
