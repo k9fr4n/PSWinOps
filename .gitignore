@@ -40,3 +40,6 @@ work/
 
 # /issue-loop local state (resumable workflow bookkeeping, never shared)
 .claude/state/
+
+# Claude Code local settings (per-developer, never shared)
+.claude/settings.local.json
