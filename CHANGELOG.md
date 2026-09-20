@@ -55,6 +55,18 @@ All notable changes to PSWinOps are documented in this file. Versions follow
   item count per fixed volume, with exact bytes, rounded MB/GB, and size as a
   percentage of the volume. Local calls need no WinRM; a missing or unreadable
   Recycle Bin reports zero rather than erroring (#132).
+- `Watch-DriveUsage`: added an `X` key that quits the explorer and changes the shell's
+  current location to the highlighted folder (or the folder being browsed when the
+  highlight is a file, the `(files)` row or an empty list), so cleanup commands run
+  directly in the selected folder. `Q`, `Escape` and `Ctrl+C` still quit without
+  changing location.
+
+### Fixed
+
+- `Watch-DriveUsage`: after drawing a frame the explorer now emits an erase-to-end-of-
+  screen escape (`ESC[0J`), so navigating from a folder with many rows into one with
+  fewer rows no longer leaves the previous level's rows lingering at the bottom of the
+  screen.
 
 ## [1.2.0] - 2026-09-09
 

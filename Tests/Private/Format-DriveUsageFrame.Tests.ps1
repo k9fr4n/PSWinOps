@@ -95,6 +95,7 @@ Describe -Name 'Format-DriveUsageFrame' -Fixture {
             $script:frame | Should -Match '\[F\]'
             $script:frame | Should -Match '\[R\]'
             $script:frame | Should -Match '\[Q\]'
+            $script:frame | Should -Match '\[X\]'
         }
 
         It -Name 'Should place the selection marker on the selected row only' -Test {
