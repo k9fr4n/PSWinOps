@@ -20,7 +20,9 @@ function Watch-DriveUsage {
         Exactly one level is measured at a time, on entering a folder, and the result
         is cached for the rest of the session so going back up does not rescan. This
         command is local-machine only by design: it accepts no -ComputerName and no
-        -Credential and never uses WinRM.
+        -Credential and never uses WinRM. While a level is being measured, the transient
+        status line shows a live folder/file counter so a slow scan stays visibly active
+        instead of looking frozen.
 
     .PARAMETER Path
         Folder to start in. When omitted, a picker lists every fixed volume on the
@@ -65,7 +67,7 @@ function Watch-DriveUsage {
     .NOTES
         Author: Franck SALLET
         Version: 1.0.0
-        Last Modified: 2026-09-19
+        Last Modified: 2026-09-20
         Requires: PowerShell 5.1+ / Windows only
         Requires: Interactive console (not ISE or redirected output)
         Requires: Local machine only - no remote support
@@ -309,7 +311,26 @@ function Watch-DriveUsage {
                 # ---- Phase 3: run the announced scan, then redraw with the result ----
                 if ($scanningPending) {
                     $scanErrors = @()
-                    $measured = @(Measure-FolderSize -Path $currentPath -ErrorAction SilentlyContinue -ErrorVariable scanErrors -IncludeFiles:$includeFiles)
+
+                    # Live progress: while the level is measured, Measure-FolderSize
+                    # invokes this callback, which redraws the frame in place with an
+                    # advancing folder/file counter so a slow scan visibly moves
+                    # instead of looking frozen. The counter goes on the transient
+                    # status line; the header keeps its steady 'Scanning...' indicator.
+                    $onProgress = {
+                        param($progress)
+                        $files  = '{0:N0} files' -f [long]$progress.FileCount
+                        $label  = if ($forceRefresh) { 'Rescanning' } else { 'Scanning' }
+                        $status = '{0} {1}/{2} folders - {3}' -f $label, $progress.FolderIndex, $progress.FolderCount, $files
+                        $p = @{} + $frameParams
+                        $p['StatusMessage'] = $status
+                        $scanFrame = Format-DriveUsageFrame @p -Scanning
+                        [Console]::SetCursorPosition(0, 0)
+                        [Console]::Write($scanFrame)
+                        [Console]::Write("$([char]27)[0J")
+                    }.GetNewClosure()
+
+                    $measured = @(Measure-FolderSize -Path $currentPath -ErrorAction SilentlyContinue -ErrorVariable scanErrors -IncludeFiles:$includeFiles -OnProgress $onProgress)
                     if ($includeFiles) {
                         # The aggregate row already summarises the same loose bytes as
                         # the per-file rows, so it must not also join the size-sorted

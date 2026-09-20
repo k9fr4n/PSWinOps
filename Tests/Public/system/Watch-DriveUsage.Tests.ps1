@@ -363,8 +363,8 @@ Describe 'Watch-DriveUsage' {
             $script:source | Should -Not -Match '(Start-Job|Start-ThreadJob|RunspaceFactory)'
         }
 
-        It 'Should pass the file-visibility switch through to Measure-FolderSize' {
-            $script:source | Should -Match 'Measure-FolderSize -Path \$currentPath -ErrorAction SilentlyContinue -ErrorVariable scanErrors -IncludeFiles:\$includeFiles'
+        It 'Should pass the file-visibility switch and progress callback through to Measure-FolderSize' {
+            $script:source | Should -Match 'Measure-FolderSize -Path \$currentPath -ErrorAction SilentlyContinue -ErrorVariable scanErrors -IncludeFiles:\$includeFiles -OnProgress \$onProgress'
         }
 
         It 'Should filter the (files) aggregate before the sort and Top merge in files mode' {
@@ -386,6 +386,15 @@ Describe 'Watch-DriveUsage' {
         It 'Should announce a scan before measuring so a slow level is not a hang' {
             $script:source | Should -Match '\$scanningPending\s*=\s*\$true'
             $script:source | Should -Match 'Format-DriveUsageFrame @frameParams -Scanning'
+        }
+
+        It 'Should redraw the frame with a live folder/file counter while the scan runs' {
+            $script:source | Should -Match 'GetNewClosure'
+            $script:source | Should -Match '\$progress\.FolderIndex'
+            $script:source | Should -Match '\$progress\.FolderCount'
+            $script:source | Should -Match '\$progress\.FileCount'
+            $script:source | Should -Match "'StatusMessage'"
+            $script:source | Should -Match 'Format-DriveUsageFrame @p -Scanning'
         }
 
         It 'Should bound the per-path cache and evict the oldest entry' {
