@@ -12,6 +12,7 @@ BeforeAll {
             param($p)
             $splat = @{ Path = $p.Path }
             if ($p.IncludeFiles) { $splat['IncludeFiles'] = $true }
+            if ($p.OnProgress) { $splat['OnProgress'] = $p.OnProgress }
             Measure-FolderSize @splat
         } $Params
     }
@@ -192,6 +193,35 @@ Describe 'Measure-FolderSize' {
 
             Should -Invoke -CommandName 'Get-ChildItem' -ModuleName 'PSWinOps' `
                 -ParameterFilter { $Recurse -and $LiteralPath -like '*ChildA*' } -Times 1
+        }
+    }
+
+    Context 'OnProgress callback' {
+
+        It 'reports one folder counter per child with cumulative file counts' {
+            $reports = [System.Collections.Generic.List[object]]::new()
+            $callback = { param($p) $reports.Add($p) }.GetNewClosure()
+
+            $null = script:InvokeMeasure @{ Path = $script:root; OnProgress = $callback }
+
+            $reports.Count | Should -BeGreaterOrEqual 3
+            foreach ($r in $reports) {
+                $r.FolderCount | Should -Be 3
+            }
+            [int]($reports | Measure-Object -Property FolderIndex -Maximum).Maximum | Should -Be 3
+            [int]($reports | Measure-Object -Property FileCount -Maximum).Maximum | Should -Be 3
+        }
+
+        It 'reports the documented progress shape' {
+            $reports = [System.Collections.Generic.List[object]]::new()
+            $callback = { param($p) $reports.Add($p) }.GetNewClosure()
+
+            $null = script:InvokeMeasure @{ Path = $script:root; OnProgress = $callback }
+
+            $last = $reports[$reports.Count - 1]
+            foreach ($name in @('FolderIndex', 'FolderCount', 'FileCount', 'Bytes', 'CurrentName')) {
+                $last.PSObject.Properties.Name | Should -Contain $name
+            }
         }
     }
 

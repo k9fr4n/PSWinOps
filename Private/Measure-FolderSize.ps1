@@ -19,6 +19,8 @@ function Measure-FolderSize {
             (junctions, symlinks) are skipped rather than traversed to avoid double
             counting and loops. It exists as a pure, unit-testable seam for the future
             Watch-DriveUsage console loop; it does not sort and it does not render.
+            An optional -OnProgress callback lets a caller observe the walk as it
+            proceeds without the helper itself performing any console I/O.
 
         .PARAMETER Path
             The single parent directory to enumerate one level of. Mandatory. Must be an
@@ -28,6 +30,11 @@ function Measure-FolderSize {
         .PARAMETER IncludeFiles
             When set, also emit one entry per file directly under Path (IsContainer =
             $false) in addition to the aggregated loose-files entry. Off by default.
+
+        .PARAMETER OnProgress
+            Optional callback scriptblock invoked as the level is measured. It receives
+            one [PSCustomObject] per report with FolderIndex, FolderCount, FileCount,
+            Bytes and CurrentName, so a caller can render a live progress indicator.
 
         .EXAMPLE
             Measure-FolderSize -Path 'C:\Temp'
@@ -55,7 +62,7 @@ function Measure-FolderSize {
         .NOTES
             Author: Franck SALLET
             Version: 1.0.0
-            Last Modified: 2026-09-17
+            Last Modified: 2026-09-20
             Requires: PowerShell 5.1+ / Windows only
             Scope: Private - not exported
     #>
@@ -67,7 +74,10 @@ function Measure-FolderSize {
         [string]$Path,
 
         [Parameter(Mandatory = $false)]
-        [switch]$IncludeFiles
+        [switch]$IncludeFiles,
+
+        [Parameter(Mandatory = $false)]
+        [scriptblock]$OnProgress
     )
 
     process {
@@ -90,9 +100,36 @@ function Measure-FolderSize {
             -ErrorAction SilentlyContinue -ErrorVariable childErrors
         $topInaccessible = @($childErrors).Count
 
+        # Progress reporting. The optional -OnProgress callback is invoked once at the
+        # start of each child (so a folder counter can advance) and, inside a large
+        # recursion, at most every 100 ms (so a file counter keeps ticking). Counts are
+        # cumulative across the whole level; the helper itself performs no console I/O.
+        $dirCount   = @($childDirs).Count
+        $dirIndex   = 0
+        $totalFiles = [long]0
+        $totalBytes = [long]0
+        $scanState  = [pscustomobject]@{
+            Stopwatch  = [System.Diagnostics.Stopwatch]::StartNew()
+            LastReport = [long]0
+        }
+
+        $report = {
+            param($FolderIndex, $FolderCount, $FileCount, $Bytes, $CurrentName)
+            $null = & $OnProgress ([PSCustomObject]@{
+                FolderIndex = $FolderIndex
+                FolderCount = $FolderCount
+                FileCount   = $FileCount
+                Bytes       = $Bytes
+                CurrentName = $CurrentName
+            })
+        }
+
         foreach ($dir in $childDirs) {
+            $dirIndex++
+
             # Reparse points are skipped, not traversed: emit a zero-size marker.
             if (($dir.Attributes -band $reparse) -eq $reparse) {
+                if ($null -ne $OnProgress) { & $report $dirIndex $dirCount $totalFiles $totalBytes $dir.Name }
                 [PSCustomObject]@{
                     Name         = $dir.Name
                     FullName     = $dir.FullName
@@ -104,25 +141,37 @@ function Measure-FolderSize {
                 continue
             }
 
-            $subErrors = $null
-            $files = Get-ChildItem -LiteralPath $dir.FullName -Force -Recurse -File `
-                -ErrorAction SilentlyContinue -ErrorVariable subErrors
+            if ($null -ne $OnProgress) { & $report $dirIndex $dirCount $totalFiles $totalBytes $dir.Name }
 
-            $size = [long]0
-            $count = [long]0
-            foreach ($file in $files) {
-                $size += [long]$file.Length
-                $count++
-            }
+            $subErrors = $null
+            $accum = [pscustomobject]@{ Size = [long]0; Count = [long]0 }
+            Get-ChildItem -LiteralPath $dir.FullName -Force -Recurse -File `
+                -ErrorAction SilentlyContinue -ErrorVariable subErrors |
+                ForEach-Object {
+                    $accum.Size += [long]$_.Length
+                    $accum.Count++
+                    if ($null -ne $OnProgress -and ($scanState.Stopwatch.ElapsedMilliseconds - $scanState.LastReport) -ge 100) {
+                        & $report $dirIndex $dirCount ($totalFiles + $accum.Count) ($totalBytes + $accum.Size) $dir.Name
+                        $scanState.LastReport = $scanState.Stopwatch.ElapsedMilliseconds
+                    }
+                }
+
+            $totalFiles += $accum.Count
+            $totalBytes += $accum.Size
 
             [PSCustomObject]@{
                 Name         = $dir.Name
                 FullName     = $dir.FullName
-                SizeBytes    = $size
-                FileCount    = $count
+                SizeBytes    = $accum.Size
+                FileCount    = $accum.Count
                 IsContainer  = $true
                 Inaccessible = [long]@($subErrors).Count
             }
+        }
+
+        # Final cumulative report so the caller can show the completed counts.
+        if ($null -ne $OnProgress -and $dirCount -gt 0) {
+            & $report $dirCount $dirCount $totalFiles $totalBytes ''
         }
 
         # ---- Loose files directly under Path ----

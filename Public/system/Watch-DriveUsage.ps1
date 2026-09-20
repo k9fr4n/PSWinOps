@@ -9,7 +9,9 @@ function Watch-DriveUsage {
         Renders a keyboard-driven console view of disk usage for the local machine.
         Move with the arrow keys, press Enter to drill into a folder and Backspace to
         go back up, R to recompute the current level, F to toggle loose-file
-        visibility and Q to quit. Folder sizes come from Measure-FolderSize and the
+        visibility, Q to quit, and X to quit into the highlighted folder (changing
+        the current location to it) so cleanup commands run there. Folder sizes come
+        from Measure-FolderSize and the
         frame is drawn by Format-DriveUsageFrame. In folders-only mode the explorer
         shows directories plus the '(files)' aggregate row; in files mode the loose
         files of the current level are shown as first-class rows sorted together with
@@ -18,7 +20,9 @@ function Watch-DriveUsage {
         Exactly one level is measured at a time, on entering a folder, and the result
         is cached for the rest of the session so going back up does not rescan. This
         command is local-machine only by design: it accepts no -ComputerName and no
-        -Credential and never uses WinRM.
+        -Credential and never uses WinRM. While a level is being measured, the transient
+        status line shows a live folder/file counter so a slow scan stays visibly active
+        instead of looking frozen.
 
     .PARAMETER Path
         Folder to start in. When omitted, a picker lists every fixed volume on the
@@ -63,7 +67,7 @@ function Watch-DriveUsage {
     .NOTES
         Author: Franck SALLET
         Version: 1.0.0
-        Last Modified: 2026-09-19
+        Last Modified: 2026-09-20
         Requires: PowerShell 5.1+ / Windows only
         Requires: Interactive console (not ISE or redirected output)
         Requires: Local machine only - no remote support
@@ -183,6 +187,7 @@ function Watch-DriveUsage {
         $forceRefresh = $false
         $includeFiles = $IncludeFiles.IsPresent
         $running = $true
+        $exitPath = $null
 
         $previousCtrlC = [Console]::TreatControlCAsInput
         $previousCursorVisible = [Console]::CursorVisible
@@ -297,11 +302,35 @@ function Watch-DriveUsage {
                 # is homed here: every frame redraws in place instead of scrolling.
                 [Console]::SetCursorPosition(0, 0)
                 [Console]::Write($frame)
+                # Erase whatever a taller previous frame left below this shorter one (a
+                # folder with fewer rows than the level just shown) so stale rows never
+                # linger at the bottom of the screen. ESC[0J clears from the cursor to
+                # the end of the screen and, like the cursor home, ignores -NoColor.
+                [Console]::Write("$([char]27)[0J")
 
                 # ---- Phase 3: run the announced scan, then redraw with the result ----
                 if ($scanningPending) {
                     $scanErrors = @()
-                    $measured = @(Measure-FolderSize -Path $currentPath -ErrorAction SilentlyContinue -ErrorVariable scanErrors -IncludeFiles:$includeFiles)
+
+                    # Live progress: while the level is measured, Measure-FolderSize
+                    # invokes this callback, which redraws the frame in place with an
+                    # advancing folder/file counter so a slow scan visibly moves
+                    # instead of looking frozen. The counter goes on the transient
+                    # status line; the header keeps its steady 'Scanning...' indicator.
+                    $onProgress = {
+                        param($progress)
+                        $files  = '{0:N0} files' -f [long]$progress.FileCount
+                        $label  = if ($forceRefresh) { 'Rescanning' } else { 'Scanning' }
+                        $status = '{0} {1}/{2} folders - {3}' -f $label, $progress.FolderIndex, $progress.FolderCount, $files
+                        $p = @{} + $frameParams
+                        $p['StatusMessage'] = $status
+                        $scanFrame = Format-DriveUsageFrame @p -Scanning
+                        [Console]::SetCursorPosition(0, 0)
+                        [Console]::Write($scanFrame)
+                        [Console]::Write("$([char]27)[0J")
+                    }.GetNewClosure()
+
+                    $measured = @(Measure-FolderSize -Path $currentPath -ErrorAction SilentlyContinue -ErrorVariable scanErrors -IncludeFiles:$includeFiles -OnProgress $onProgress)
                     if ($includeFiles) {
                         # The aggregate row already summarises the same loose bytes as
                         # the per-file rows, so it must not also join the size-sorted
@@ -426,6 +455,24 @@ function Watch-DriveUsage {
                     $includeFiles = -not $includeFiles
                     $needCompute = $true
                 }
+                elseif ($key.Key -eq [ConsoleKey]::X) {
+                    # Quit the explorer and change into the highlighted folder (or the
+                    # current one when the highlight is a file, the '(files)' row or an
+                    # empty list) so the caller lands there ready to clean up.
+                    if ($pickerMode) {
+                        $exitPath = "$($volumes[$selectedIndex].DeviceID)\"
+                    }
+                    else {
+                        $target = @($entries)[$selectedIndex]
+                        if ($null -ne $target -and $target.IsContainer -and $target.FullName -ne $currentPath) {
+                            $exitPath = $target.FullName
+                        }
+                        else {
+                            $exitPath = $currentPath
+                        }
+                    }
+                    $running = $false
+                }
                 elseif ($key.Key -eq [ConsoleKey]::Q -or $key.Key -eq [ConsoleKey]::Escape) {
                     $running = $false
                 }
@@ -437,6 +484,13 @@ function Watch-DriveUsage {
             [Console]::TreatControlCAsInput = $previousCtrlC
             [Console]::Clear()
             Write-Information -MessageData 'Drive usage monitor stopped.' -InformationAction Continue
+        }
+
+        # Land the caller in the folder chosen with X so cleanup commands run there.
+        # Set-Location emits nothing to the pipeline, preserving the interactive-monitor
+        # contract (Rule 6); Q, Escape and Ctrl+C leave the location untouched.
+        if ($exitPath) {
+            Set-Location -LiteralPath $exitPath
         }
     }
 }

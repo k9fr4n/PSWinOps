@@ -448,7 +448,7 @@ function Format-DriveUsageFrame {
         $lines.Add((ConvertTo-PaddedLine -Text $statusLine -TargetWidth $Width))
     }
 
-    $keyBar = '[Enter] Open   [Backspace] Parent   [F] Files   [R] Refresh   [Q] Quit'
+    $keyBar = '[Enter] Open  [Backspace] Parent  [F] Files  [R] Refresh  [Q] Quit  [X] cd here'
     $lines.Add((ConvertTo-PaddedLine -Text $keyBar -TargetWidth $Width))
 
     return ($lines -join ([Environment]::NewLine))
