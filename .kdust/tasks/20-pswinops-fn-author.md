@@ -27,22 +27,23 @@ produced by fn-test-engineer.
 5. **Patch `PSWinOps.Format.ps1xml`** — append a `<View>` block matching `spec.output.format_view`, inside `<ViewDefinitions>`, with `<AutoSize/>`. NO fixed `<Width>`.
 6. **Patch `PSWinOps.psd1`** — insert `FUNCTION_NAME` in `FunctionsToExport` keeping the array **alphabetically sorted**. Single quotes, trailing comma except for last element.
 7. **Patch `en-US/about_PSWinOps.help.txt`** — bump the domain counter (only if `new_domain`) and the PSTypeName counter (always +1).
-8. **Run local validation**:
+8. **Patch `CLAUDE.md`** — add a row to the "Type registry" table (`| <FUNCTION_NAME> | <spec.output.pstype_name> | <Table\|List> |`) in the domain's group, alphabetical by function name; if `spec.new_domain == true`, also add the domain to the "Public domains" list (alphabetical). CLAUDE.md Rule 7 makes this table the reference — never skip it.
+9. **Run local validation**:
    - `pwsh -NoProfile -Command 'Test-ModuleManifest ./PSWinOps.psd1'`
    - `pwsh -NoProfile -Command 'Invoke-ScriptAnalyzer -Path ./Public/<DOMAIN>/<FUNCTION_NAME>.ps1 -Settings ./PSScriptAnalyzerSettings.psd1'` — 0 warnings required.
    - `pwsh -NoProfile -Command 'Import-Module ./PSWinOps.psd1; Get-Command <FUNCTION_NAME>'`
-9. Commit on `$CHAIN_BRANCH`:
+10. Commit on `$CHAIN_BRANCH`:
    - subject `feat(<DOMAIN>): add <FUNCTION_NAME>`
    - body: 1-2 sentence summary + bullet of files touched.
-10. The push pipeline pushes the commit.
-11. `enqueue_followup` task=`pswinops-fn-test-engineer`, `base_branch: $CHAIN_BRANCH`, `input` forwards CHAIN_BRANCH/WORK_DIR/SPEC_PATH/FUNCTION_NAME/DOMAIN/`ATTEMPT=1`/MAX_ITER.
+11. The push pipeline pushes the commit.
+12. `enqueue_followup` task=`pswinops-fn-test-engineer`, `base_branch: $CHAIN_BRANCH`, `input` forwards CHAIN_BRANCH/WORK_DIR/SPEC_PATH/FUNCTION_NAME/DOMAIN/`ATTEMPT=1`/MAX_ITER.
 
 ## Mission — MODE=fix
 
 1. `git checkout $CHAIN_BRANCH && git pull --ff-only`.
 2. Read `$FEEDBACK_FILE`. It is a YAML with a `findings:` array (severity, file, line, message, fix_hint).
 3. Apply fixes one by one. NEVER repeat a fix you already made in a previous attempt (the YAML carries `previous_attempts:` to remind you).
-4. Re-run the local validation from step 8 above. If still failing, ESCALATE with a clear summary.
+4. Re-run the local validation from step 9 above. If still failing, ESCALATE with a clear summary.
 5. Commit `fix(<DOMAIN>): address fn-test-engineer feedback (attempt $ATTEMPT)` and `enqueue_followup` back to `pswinops-fn-test-engineer` with `ATTEMPT=$ATTEMPT+1`.
 6. If `$ATTEMPT >= $MAX_ITER`, ESCALATE instead of enqueueing — the chain has burned its fix budget.
 

@@ -97,6 +97,7 @@ jobs:
       matrix:
         suite:
           - "Private"
+          - "Public/Get-PSWinOpsFunction.Tests.ps1"
           - "Public/activedirectory"
           - "Public/certificate"
           - "Public/disk"

@@ -620,7 +620,9 @@ function Invoke-ModuleBuild {
             $publicFiles = Get-ChildItem -Path $publicPath -Filter '*.ps1' -Recurse
             foreach ($file in $publicFiles) {
                 Write-Verbose -Message "[$($MyInvocation.MyCommand)] Including Public: $($file.Name)"
-                $null = $psm1Content.AppendLine("# --- Public: $($file.Name) ---")
+                $domainName = Split-Path -Path $file.DirectoryName -Leaf
+                $markerName = if ($domainName -eq 'Public') { $file.Name } else { "$domainName/$($file.Name)" }
+                $null = $psm1Content.AppendLine("# --- Public: $markerName ---")
                 $fileContent = Get-Content -Path $file.FullName -Raw
                 # Strip UTF-8 BOM to avoid 'ï»¿#Requires' errors in assembled PSM1
                 $fileContent = $fileContent -replace '^ï»¿', '' -replace '^﻿', ''

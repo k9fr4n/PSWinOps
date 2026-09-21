@@ -12,6 +12,11 @@ All notable changes to PSWinOps are documented in this file. Versions follow
 
 ### Added
 
+- `Get-PSWinOpsFunction` (root-level meta-function, alias `gpwof`): lists the
+  module's public functions grouped by domain, returning one object per function
+  with its name, domain, short alias, and comment-based-help synopsis. Sorted by
+  domain then name, with an optional `-Domain` filter (pipeline-capable).
+
 - **Disk-analysis command set** (`Get-RecycleBinSize`, `Show-DriveUsage`,
   `Show-FolderUsage`, `Show-FolderUsageAge`, `Watch-DriveUsage`): five
   system-domain commands covering Recycle Bin reporting, per-volume usage,

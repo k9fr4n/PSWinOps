@@ -187,7 +187,7 @@ fi
 
 # ── 6. Test mirroring: a touched Public/ function has a mirrored test ────────
 while IFS= read -r f; do
-  [[ "$f" == Public/*/*.ps1 ]] || continue
+  [[ "$f" == Public/*.ps1 ]] || continue
   t="Tests/${f%.ps1}.Tests.ps1"
   [[ -f "$t" ]] && ok "test mirrored: $t" \
     || fail "test-mirror" "missing $t for $f (CLAUDE.md Rule 1)"
@@ -195,7 +195,7 @@ done <<<"$CHANGED"
 
 # ── 7. Comment-based help completeness on touched public functions ──────────
 while IFS= read -r f; do
-  [[ "$f" == Public/*/*.ps1 && -f "$f" ]] || continue
+  [[ "$f" == Public/*.ps1 && -f "$f" ]] || continue
   for tag in .SYNOPSIS .DESCRIPTION .OUTPUTS .NOTES .LINK; do
     grep -q -- "$tag" "$f" || fail "help-$tag" "$f has no $tag block"
   done

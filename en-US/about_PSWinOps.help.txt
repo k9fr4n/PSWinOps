@@ -31,7 +31,9 @@ LONG DESCRIPTION
     Requires    : PowerShell 5.1+ / Windows only
 
 FUNCTION DOMAINS
-    PSWinOps organizes its functions into fifteen domains.
+    PSWinOps organizes its functions into fifteen domains. A single
+    root-level meta-function, Get-PSWinOpsFunction, lists every public
+    function grouped by domain and belongs to no domain itself.
 
   activedirectory (22 functions)
     Functions for Active Directory inventory, user and
@@ -281,9 +283,9 @@ OUTPUT CONVENTIONS
       Timestamp      [string]  ISO 8601 date/time string.
 
     Exception: the four utility functions listed above
-    (ConvertFrom-MisencodedString, ConvertTo-Markdown,
-    New-RandomPassword, Remove-StringDiacritic) do not include
-    ComputerName or Timestamp fields.
+    (ConvertFrom-MisencodedString, ConvertTo-Markdown, New-RandomPassword,
+    Remove-StringDiacritic) and the root-level Get-PSWinOpsFunction do not
+    include ComputerName or Timestamp fields.
 
     Second exception: the interactive monitors
     (Show-NetworkStatisticMonitor, Show-PingMonitor,
@@ -361,7 +363,7 @@ REMOTE EXECUTION PATTERN
     in the pipeline continue to be processed.
 
 PSWINOPS TYPE REGISTRY
-    The following 125 PSTypeName values are defined by the
+    The following 126 PSTypeName values are defined by the
     module. Each corresponds to the output of one or more
     public functions.
 
@@ -430,6 +432,7 @@ PSWINOPS TYPE REGISTRY
       PSWinOps.ListeningPort
       PSWinOps.LogonFailure
       PSWinOps.MACVendor
+      PSWinOps.ModuleFunction
       PSWinOps.NetworkAdapterInfo
       PSWinOps.NetworkCIDR
       PSWinOps.NetworkConfig

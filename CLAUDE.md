@@ -35,7 +35,7 @@ en-US/about_PSWinOps.help.txt   Conceptual help topic — keep in sync (Rule 14)
 output/PSWinOps/        Build artifact (assembled module), git-ignored
 ```
 
-Public domains: `activedirectory`, `certificate`, `eventlog`, `healthcheck`, `iis`, `network`,
+Public domains: `activedirectory`, `certificate`, `disk`, `eventlog`, `healthcheck`, `iis`, `network`,
 `ntp`, `proxy`, `rdp`, `security`, `system`, `utils`, `vss`, `windowsupdate`. New domain → new
 folder under both `Public/` and `Tests/Public/`.
 
@@ -442,6 +442,7 @@ its `<View>` in `PSWinOps.Format.ps1xml`. This table is the reference list; keep
 | Show-FolderUsage | PSWinOps.FolderUsage | Table |
 | Show-FolderUsageAge | PSWinOps.FolderUsageAge | Table |
 | Stop-ProcessTree | PSWinOps.ProcessKillResult | Table |
+| Get-PSWinOpsFunction | PSWinOps.ModuleFunction | Table |
 | Get-ShadowCopy | PSWinOps.ShadowCopy | Table |
 | Get-ShadowCopyStorage | PSWinOps.ShadowCopyStorage | Table |
 | New-ShadowCopy | PSWinOps.ShadowCopyResult | List |
