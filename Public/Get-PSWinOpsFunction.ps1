@@ -90,13 +90,13 @@ function Get-PSWinOpsFunction {
             if ($null -ne $cmd.ScriptBlock) {
                 $file = $cmd.ScriptBlock.File
             }
-            $domain = $null
+            $resolvedDomain = $null
             if ($file -and $file -match '[\\/]Public[\\/]([^\\/]+)[\\/]') {
-                $domain = $Matches[1]
+                $resolvedDomain = $Matches[1]
             } elseif ($file -and $file -like '*.psm1') {
                 $flatModuleFile = $file
             }
-            $domainByFunction[$cmd.Name] = $domain
+            $domainByFunction[$cmd.Name] = $resolvedDomain
         }
 
         if ($flatModuleFile) {
