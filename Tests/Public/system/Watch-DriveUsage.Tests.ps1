@@ -389,12 +389,21 @@ Describe 'Watch-DriveUsage' {
         }
 
         It 'Should redraw the frame with a live folder/file counter while the scan runs' {
-            $script:source | Should -Match 'GetNewClosure'
             $script:source | Should -Match '\$progress\.FolderIndex'
             $script:source | Should -Match '\$progress\.FolderCount'
             $script:source | Should -Match '\$progress\.FileCount'
             $script:source | Should -Match "'StatusMessage'"
             $script:source | Should -Match 'Format-DriveUsageFrame @p -Scanning'
+        }
+
+        It 'Should keep the progress callback a plain scriptblock that shares state via module scope' {
+            # A GetNewClosure() closure would run in its own module and lose the private
+            # Format-DriveUsageFrame renderer (and, in picker mode, would also fail copying
+            # the empty [ValidateNotNullOrEmpty()]-constrained $Path). The callback must be
+            # a plain scriptblock reading the per-scan state from module scope.
+            $script:source | Should -Not -Match '\.GetNewClosure\(\)'
+            $script:source | Should -Match '\$script:DriveUsageFrameParams\s*=\s*\$frameParams'
+            $script:source | Should -Match '\$script:DriveUsageForceRefresh\s*=\s*\$forceRefresh'
         }
 
         It 'Should bound the per-path cache and evict the oldest entry' {

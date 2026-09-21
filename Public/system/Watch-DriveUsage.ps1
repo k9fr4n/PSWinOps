@@ -317,18 +317,28 @@ function Watch-DriveUsage {
                     # advancing folder/file counter so a slow scan visibly moves
                     # instead of looking frozen. The counter goes on the transient
                     # status line; the header keeps its steady 'Scanning...' indicator.
+                    # The progress callback runs inside Measure-FolderSize, so it cannot
+                    # close over this function's locals with GetNewClosure(): a closure gets
+                    # its own module and would lose the private Format-DriveUsageFrame
+                    # renderer (and, in picker mode, would also fail copying the empty
+                    # [ValidateNotNullOrEmpty()]-constrained $Path). Keep it a plain
+                    # scriptblock — which still resolves the module's functions — and share
+                    # the per-scan state through module scope.
+                    $script:DriveUsageFrameParams  = $frameParams
+                    $script:DriveUsageForceRefresh = $forceRefresh
+
                     $onProgress = {
                         param($progress)
                         $files  = '{0:N0} files' -f [long]$progress.FileCount
-                        $label  = if ($forceRefresh) { 'Rescanning' } else { 'Scanning' }
+                        $label  = if ($script:DriveUsageForceRefresh) { 'Rescanning' } else { 'Scanning' }
                         $status = '{0} {1}/{2} folders - {3}' -f $label, $progress.FolderIndex, $progress.FolderCount, $files
-                        $p = @{} + $frameParams
+                        $p = @{} + $script:DriveUsageFrameParams
                         $p['StatusMessage'] = $status
                         $scanFrame = Format-DriveUsageFrame @p -Scanning
                         [Console]::SetCursorPosition(0, 0)
                         [Console]::Write($scanFrame)
                         [Console]::Write("$([char]27)[0J")
-                    }.GetNewClosure()
+                    }
 
                     $measured = @(Measure-FolderSize -Path $currentPath -ErrorAction SilentlyContinue -ErrorVariable scanErrors -IncludeFiles:$includeFiles -OnProgress $onProgress)
                     if ($includeFiles) {
