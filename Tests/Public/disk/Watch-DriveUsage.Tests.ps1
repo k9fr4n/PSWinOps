@@ -16,7 +16,7 @@ BeforeAll {
     # therefore asserted against the source, while the data and rendering behaviour
     # lives in the mirrored suites of the two private seams it delegates to
     # (Measure-FolderSize, Format-DriveUsageFrame).
-    $script:sourcePath = Join-Path -Path $script:modulePath -ChildPath 'Public/system/Watch-DriveUsage.ps1'
+    $script:sourcePath = Join-Path -Path $script:modulePath -ChildPath 'Public/disk/Watch-DriveUsage.ps1'
     $script:source     = (Get-Content -LiteralPath $script:sourcePath -Raw).TrimStart([char]0xFEFF)
 
     $script:command = Get-Command -Name $script:FunctionName -Module $script:ModuleName
