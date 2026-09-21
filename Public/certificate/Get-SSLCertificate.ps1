@@ -53,11 +53,11 @@ function Get-SSLCertificate {
             PSWinOps.SSLCertificate
 
         .NOTES
-            Author:        Franck SALLET
-            Version:       1.0.0
+            Author: Franck SALLET
+            Version: 1.0.0
             Last Modified: 2026-03-21
-            Requires:      PowerShell 5.1+ / Windows only
-            Permissions:   No admin required
+            Requires: PowerShell 5.1+ / Windows only
+            Permissions: No admin required
 
         .LINK
             https://github.com/k9fr4n/PSWinOps

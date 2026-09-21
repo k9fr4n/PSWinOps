@@ -87,6 +87,7 @@ jobs:
           - "Private"
           - "Public/activedirectory"
           - "Public/certificate"
+          - "Public/disk"
           - "Public/healthcheck"
           - "Public/iis"
           - "Public/network"

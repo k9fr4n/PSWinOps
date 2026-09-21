@@ -61,6 +61,15 @@ All notable changes to PSWinOps are documented in this file. Versions follow
   directly in the selected folder. `Q`, `Escape` and `Ctrl+C` still quit without
   changing location.
 
+### Changed
+
+- Reorganized function domains: split the eight disk-space functions out of the
+  `system` domain into a new `disk` domain (`Clear-DiskCleanup`,
+  `Get-DiskCleanupInfo`, `Get-DiskSpace`, `Get-RecycleBinSize`, `Show-DriveUsage`,
+  `Show-FolderUsage`, `Show-FolderUsageAge`, `Watch-DriveUsage`), and moved
+  `Get-SSLCertificate` from `network` into `certificate`. Function names, aliases and
+  output types are unchanged.
+
 ### Fixed
 
 - `Watch-DriveUsage`: after drawing a frame the explorer now emits an erase-to-end-of-

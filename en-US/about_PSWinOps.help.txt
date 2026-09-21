@@ -31,7 +31,7 @@ LONG DESCRIPTION
     Requires    : PowerShell 5.1+ / Windows only
 
 FUNCTION DOMAINS
-    PSWinOps organizes its functions into fourteen domains.
+    PSWinOps organizes its functions into fifteen domains.
 
   activedirectory (22 functions)
     Functions for Active Directory inventory, user and
@@ -62,11 +62,29 @@ FUNCTION DOMAINS
       Search-ADObject
       Unlock-ADUserAccount
 
-  certificate (1 function)
+  certificate (2 functions)
     Functions for auditing local machine certificate stores
-    for certificates nearing or past expiration.
+    for certificates nearing or past expiration, and for
+    retrieving SSL/TLS certificate details from remote
+    endpoints.
 
       Get-ExpiringCertificate
+      Get-SSLCertificate
+
+  disk (8 functions)
+    Functions for disk-space reporting and cleanup: Recycle
+    Bin size, fixed-volume usage, folder-tree breakdowns by
+    extension and age, drive cleanup, and an interactive
+    disk-space explorer.
+
+      Clear-DiskCleanup
+      Get-DiskCleanupInfo
+      Get-DiskSpace
+      Get-RecycleBinSize
+      Show-DriveUsage
+      Show-FolderUsage
+      Show-FolderUsageAge
+      Watch-DriveUsage
 
   eventlog (9 functions)
     Functions for correlating Windows System and Security
@@ -125,9 +143,9 @@ FUNCTION DOMAINS
       Test-IISCertificateBinding
       Watch-IISLog
 
-  network (26 functions)
-    Functions for network diagnostics, discovery,
-    certificate inspection, and real-time monitoring.
+  network (25 functions)
+    Functions for network diagnostics, discovery, and
+    real-time monitoring.
 
       Clear-Arp
       Edit-HostsFile
@@ -141,7 +159,6 @@ FUNCTION DOMAINS
       Get-NetworkStatistic
       Get-ProcessByPort
       Get-PublicIPAddress
-      Get-SSLCertificate
       Get-SubnetInfo
       Measure-NetworkLatency
       New-NetworkRoute
@@ -193,25 +210,18 @@ FUNCTION DOMAINS
 
       Get-AuditPolicy
 
-  system (26 functions)
+  system (18 functions)
     Functions for general system information, state,
-    disk cleanup, profile management, and real-time monitoring.
-    Disk-space analysis is provided by Get-RecycleBinSize,
-    Show-DriveUsage, Show-FolderUsage, Show-FolderUsageAge,
-    and Watch-DriveUsage.
+    profile management, and real-time monitoring.
 
-      Clear-DiskCleanup
       Get-ComputerUptime
       Get-CrashDump
-      Get-DiskCleanupInfo
-      Get-DiskSpace
       Get-DriverInventory
       Get-EnvironmentVariable
       Get-InstalledSoftware
       Get-PageFileConfiguration
       Get-PendingReboot
       Get-RebootHistory
-      Get-RecycleBinSize
       Get-ScheduledTaskDetail
       Get-ServiceAccount
       Get-StartupProgram
@@ -220,12 +230,8 @@ FUNCTION DOMAINS
       Set-DisplayLanguage
       Set-EnvironmentVariable
       Set-PageFile
-      Show-DriveUsage
-      Show-FolderUsage
-      Show-FolderUsageAge
       Show-SystemMonitor
       Stop-ProcessTree
-      Watch-DriveUsage
 
   windowsupdate (10 functions)
     Functions for querying and managing Windows Update
