@@ -26,7 +26,7 @@ Describe -Name 'Get-PSWinOpsFunction' -Fixture {
 
         It -Name 'Should tag every object with the correct PSTypeName' -Test {
             $result = Get-PSWinOpsFunction
-            $result | Where-Object { $_.PSTypeName -ne 'PSWinOps.ModuleFunction' } | Should -BeNullOrEmpty
+            $result | Where-Object { $_.PSObject.TypeNames[0] -ne 'PSWinOps.ModuleFunction' } | Should -BeNullOrEmpty
         }
 
         It -Name 'Should expose Name, Domain, Alias and Synopsis on every object' -Test {

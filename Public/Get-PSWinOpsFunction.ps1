@@ -74,10 +74,14 @@ function Get-PSWinOpsFunction {
             $aliasByFunction[$entry.Value] = $entry.Key
         }
 
-        $moduleName = $MyInvocation.MyCommand.Module.Name
-
-        # Enumerate the module's exported functions once, sorted by name.
-        $commands = @(Get-Command -Module $moduleName -CommandType Function -ErrorAction Stop | Sort-Object -Property Name)
+        # Enumerate the module's exported functions once, sorted by name. Use the
+        # module's own ExportedFunctions collection rather than Get-Command -Module,
+        # which can resolve a derived module name and pull in Private\ helpers.
+        $module = $MyInvocation.MyCommand.Module
+        if ($null -eq $module) {
+            $module = Get-Module -Name 'PSWinOps' -ErrorAction Stop
+        }
+        $commands = @($module.ExportedFunctions.Values | Sort-Object -Property Name)
 
         # Resolve each function to its domain (thematic folder). In the source layout the
         # defining file lives under Public\<domain>\, so the domain is the folder name. The
