@@ -9312,5 +9312,50 @@
         </TableRowEntries>
       </TableControl>
     </View>
+    <!-- ============================================================ -->
+    <!-- PSWinOps.ModuleFunction                                      -->
+    <!-- Used by: Get-PSWinOpsFunction                                -->
+    <!-- ============================================================ -->
+    <View>
+      <Name>PSWinOps.ModuleFunction</Name>
+      <ViewSelectedBy>
+        <TypeName>PSWinOps.ModuleFunction</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <AutoSize />
+        <TableHeaders>
+          <TableColumnHeader>
+            <Label>Name</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Domain</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Alias</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Synopsis</Label>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem>
+                <PropertyName>Name</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Domain</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Alias</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Synopsis</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
   </ViewDefinitions>
 </Configuration>
