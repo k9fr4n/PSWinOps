@@ -400,7 +400,7 @@ function Invoke-UnitTest {
         $pesterConfig.CodeCoverage.CoveragePercentTarget = 70
 
         # Load custom configuration if present
-        $configFile = Join-Path -Path $script:RootPath -ChildPath 'Tests' -AdditionalChildPath 'pester.config.ps1'
+        $configFile = Join-Path -Path (Join-Path -Path $script:RootPath -ChildPath 'Tests') -ChildPath 'pester.config.ps1'
         if (Test-Path -Path $configFile) {
             Write-Verbose -Message "[$($MyInvocation.MyCommand)] Loading custom Pester config: $configFile"
             $pesterConfig = & $configFile
