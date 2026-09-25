@@ -12,7 +12,7 @@
     RootModule           = 'PSWinOps.psm1'
 
     # Version number of this module.
-    ModuleVersion        = '1.4.0'
+    ModuleVersion        = '1.3.0'
 
     # Supported PSEditions
     # Core is supported on Windows only; the module-level guard in PSWinOps.psm1 blocks
@@ -440,9 +440,10 @@
             # IconUri = ''
 
             # ReleaseNotes of this module
-            ReleaseNotes = '## 1.4.0 - 2026-09-25 UTC
+            ReleaseNotes = '## 1.3.0 - 2026-09-25 UTC
 
 ### Added
+- Watch-DriveUsage: the folder scan now also derives the size of each child''s own subfolders while it walks, and pre-seeds those levels into the cache, so drilling into a child renders instantly instead of rescanning. Derived levels show a ''Derived sizes (cached) - press R to measure exactly'' status line, and R replaces them with an exact measurement. Seeding is folders-only (files mode stays exact), capped at 5,000 derived rows per scan, and a child with more than 1,000 subfolders is left unseeded. The Measure-FolderSize private helper gains a -CollectGrandchildren switch and a -GrandchildMap [ref] output, both off by default so the primary output is unchanged.
 - Get-PSWinOpsFunction: Root-level meta-function (alias gpwof) that lists the module''s public functions grouped by domain, returning one object per function with its name, domain, short alias, and comment-based-help synopsis. Sorted by domain then name, with an optional -Domain filter (pipeline-capable).
 - Get-RecycleBinSize: Reports Recycle Bin size and item count per fixed volume, with exact bytes, rounded MB/GB, and size as a percentage of the volume. Local calls need no WinRM; a missing or unreadable Recycle Bin reports zero rather than erroring (alias grbs).
 - Show-DriveUsage: Renders per-volume disk usage as a fixed-width bar via its format view. A presentation wrapper over Get-DiskSpace that re-emits the same data under the PSWinOps.DriveUsage type (alias sdu).
@@ -451,15 +452,8 @@
 ### Changed
 - Reorganized function domains: split the eight disk-space functions out of the system domain into a new disk domain (Clear-DiskCleanup, Get-DiskCleanupInfo, Get-DiskSpace, Get-RecycleBinSize, Show-DriveUsage, Show-FolderUsage, Show-FolderUsageAge, Watch-DriveUsage), and moved Get-SSLCertificate from network into certificate. Function names, aliases and output types are unchanged.
 
-## 1.3.1 - 2026-09-19 UTC
-
-### Added
-- Show-FolderUsageAge: Shows folder tree disk usage by file age with a usage bar
-
-## 1.3.0 - 2026-09-19 UTC
-
-### Added
-- Show-FolderUsage: Shows folder tree disk usage by file extension with a usage bar
+### Fixed
+- build.ps1 -Task Test: replaced Join-Path -AdditionalChildPath, a PowerShell 6+ parameter, with a nested Join-Path call so the build script runs on Windows PowerShell 5.1 as the module itself targets.
 
 ## 1.2.1 - 2026-09-10 UTC
 
