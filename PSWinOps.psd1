@@ -440,12 +440,16 @@
             # IconUri = ''
 
             # ReleaseNotes of this module
-            ReleaseNotes = '## 1.4.0 - 2026-09-19 UTC
+            ReleaseNotes = '## 1.4.0 - 2026-09-25 UTC
 
 ### Added
+- Get-PSWinOpsFunction: Root-level meta-function (alias gpwof) that lists the module''s public functions grouped by domain, returning one object per function with its name, domain, short alias, and comment-based-help synopsis. Sorted by domain then name, with an optional -Domain filter (pipeline-capable).
 - Get-RecycleBinSize: Reports Recycle Bin size and item count per fixed volume, with exact bytes, rounded MB/GB, and size as a percentage of the volume. Local calls need no WinRM; a missing or unreadable Recycle Bin reports zero rather than erroring (alias grbs).
 - Show-DriveUsage: Renders per-volume disk usage as a fixed-width bar via its format view. A presentation wrapper over Get-DiskSpace that re-emits the same data under the PSWinOps.DriveUsage type (alias sdu).
 - Watch-DriveUsage: Interactive disk-space explorer for the local machine with drill-down navigation (alias wdu). Local-only: it takes no -ComputerName and no -Credential. Adds the 145th public function and short alias.
+
+### Changed
+- Reorganized function domains: split the eight disk-space functions out of the system domain into a new disk domain (Clear-DiskCleanup, Get-DiskCleanupInfo, Get-DiskSpace, Get-RecycleBinSize, Show-DriveUsage, Show-FolderUsage, Show-FolderUsageAge, Watch-DriveUsage), and moved Get-SSLCertificate from network into certificate. Function names, aliases and output types are unchanged.
 
 ## 1.3.1 - 2026-09-19 UTC
 
