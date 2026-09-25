@@ -24,6 +24,12 @@ All notable changes to PSWinOps are documented in this file. Versions follow
   `-GrandchildMap` `[ref]` output, both off by default so the primary output is unchanged
   (#140).
 
+### Fixed
+
+- `build.ps1 -Task Test`: replaced `Join-Path -AdditionalChildPath`, a PowerShell 6+
+  parameter, with a nested `Join-Path` call so the build script runs on Windows
+  PowerShell 5.1 as the module itself targets (#160).
+
 ## [1.4.0] - 2026-09-25
 
 ### Added
