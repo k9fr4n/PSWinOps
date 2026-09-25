@@ -416,6 +416,25 @@ Describe 'Watch-DriveUsage' {
             $script:source | Should -Match '\$cache\.ContainsKey\(\$cacheKey\)'
         }
 
+        It 'Should collect grandchild totals during the scan and seed derived child rows' {
+            $script:source | Should -Match '-CollectGrandchildren:\(-not \$includeFiles\)'
+            $script:source | Should -Match '-GrandchildMap \(\[ref\]\$map\)'
+            $script:source | Should -Match '\$seedLimit\s*=\s*5000'
+            $script:source | Should -Match '\$seedSkipChildThreshold\s*=\s*1000'
+            $script:source | Should -Match '\$derivedKeys\[\$childKey\]\s*=\s*\$true'
+        }
+
+        It 'Should mark derived levels and invite an exact remeasure on revisit' {
+            $script:source | Should -Match '\$derivedKeys\.ContainsKey\(\$cacheKey\)'
+            $script:source | Should -Match 'Derived sizes \(cached\) - press R to measure exactly'
+        }
+
+        It 'Should seed only in folders-only mode and honour the per-child and total budget' {
+            $script:source | Should -Match 'if \(-not \$includeFiles\)'
+            $script:source | Should -Match '\$grands\.Count -gt \$seedSkipChildThreshold'
+            $script:source | Should -Match '\$seeded \+ \$grands\.Count -gt \$seedLimit'
+        }
+
         It 'Should force a recompute on R' {
             ([regex]::Matches($script:source, '\[ConsoleKey\]::R')).Count | Should -BeGreaterOrEqual 1
             $script:source | Should -Match '\$forceRefresh\s*=\s*\$true'

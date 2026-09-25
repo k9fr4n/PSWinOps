@@ -24,6 +24,11 @@ function Watch-DriveUsage {
         status line shows a live folder/file counter so a slow scan stays visibly active
         instead of looking frozen.
 
+        Drilling down is likewise cheap: the same scan also derives the sizes of each
+        child's own subfolders, so the next level down is shown immediately from that
+        derived data instead of being rescanned. A level served this way is marked as
+        derived until R measures it exactly.
+
     .PARAMETER Path
         Folder to start in. When omitted, a picker lists every fixed volume on the
         local machine and the selected drive is opened instead.
@@ -67,10 +72,12 @@ function Watch-DriveUsage {
     .NOTES
         Author: Franck SALLET
         Version: 1.0.0
-        Last Modified: 2026-09-20
+        Last Modified: 2026-09-25
         Requires: PowerShell 5.1+ / Windows only
         Requires: Interactive console (not ISE or redirected output)
         Requires: Local machine only - no remote support
+        Note: child levels may be served from grandchild totals derived during the
+        parent scan (marked 'Derived sizes (cached)'); press R to measure exactly.
 
     .LINK
         https://github.com/k9fr4n/PSWinOps
@@ -175,6 +182,13 @@ function Watch-DriveUsage {
         $cache = @{}
         $cacheOrder = [System.Collections.Generic.List[string]]::new()
         $cacheLimit = 256
+        # Cache keys whose rows were derived from a parent scan rather than measured;
+        # a revisit on one of these shows derived sizes and invites R to measure exactly.
+        $derivedKeys = @{}
+        # Seed budget: at most this many derived rows are cached per scan, and a child
+        # with more grandchildren than the threshold is left unseeded (too wide to guess).
+        $seedLimit = 5000
+        $seedSkipChildThreshold = 1000
 
         $currentPath = if ($pickerMode) { 'Select a drive' } else { $startItem.FullName }
         $entries = @()
@@ -217,6 +231,9 @@ function Watch-DriveUsage {
                         # Revisit: served from the cache, no rescan, no scanning indicator.
                         $entries = @($cache[$cacheKey])
                         $statusMessage = ''
+                        if ($derivedKeys.ContainsKey($cacheKey)) {
+                            $statusMessage = 'Derived sizes (cached) - press R to measure exactly'
+                        }
                         $needCompute = $false
                     }
                     else {
@@ -340,7 +357,8 @@ function Watch-DriveUsage {
                         [Console]::Write("$([char]27)[0J")
                     }
 
-                    $measured = @(Measure-FolderSize -Path $currentPath -ErrorAction SilentlyContinue -ErrorVariable scanErrors -IncludeFiles:$includeFiles -OnProgress $onProgress)
+                    $map = @{}
+                    $measured = @(Measure-FolderSize -Path $currentPath -ErrorAction SilentlyContinue -ErrorVariable scanErrors -IncludeFiles:$includeFiles -OnProgress $onProgress -CollectGrandchildren:(-not $includeFiles) -GrandchildMap ([ref]$map))
                     if ($includeFiles) {
                         # The aggregate row already summarises the same loose bytes as
                         # the per-file rows, so it must not also join the size-sorted
@@ -359,6 +377,60 @@ function Watch-DriveUsage {
                         $oldest = $cacheOrder[0]
                         $cacheOrder.RemoveAt(0)
                         $cache.Remove($oldest)
+                        $null = $derivedKeys.Remove($oldest)
+                    }
+                    # This level was just measured, so it is no longer a derived guess.
+                    $null = $derivedKeys.Remove($cacheKey)
+
+                    # Seed derived rows for each child so drilling in skips its rescan.
+                    # Folders-only mode only: derived rows are directories, never a
+                    # child's loose files, so files mode would show an incomplete level.
+                    if (-not $includeFiles) {
+                        # Group grandchild totals by their immediate parent (a child of
+                        # this level) in one pass over the map.
+                        $byChild = @{}
+                        foreach ($kv in $map.GetEnumerator()) {
+                            $slash = $kv.Key.LastIndexOf('\')
+                            if ($slash -le 0) { continue }
+                            $parent = $kv.Key.Substring(0, $slash)
+                            if (-not $byChild.ContainsKey($parent)) {
+                                $byChild[$parent] = [System.Collections.Generic.List[object]]::new()
+                            }
+                            $byChild[$parent].Add([PSCustomObject]@{
+                                    Name         = $kv.Key.Substring($slash + 1)
+                                    FullName     = $kv.Key
+                                    SizeBytes    = [long]$kv.Value.SizeBytes
+                                    FileCount    = [long]$kv.Value.FileCount
+                                    IsContainer  = $true
+                                    Inaccessible = [long]0
+                                })
+                        }
+
+                        $seeded = 0
+                        foreach ($entry in $entries) {
+                            if (-not $entry.IsContainer -or $entry.Name -eq '(files)') {
+                                continue
+                            }
+                            if (-not $byChild.ContainsKey($entry.FullName)) {
+                                continue
+                            }
+                            $grands = $byChild[$entry.FullName]
+                            if ($grands.Count -gt $seedSkipChildThreshold) {
+                                continue
+                            }
+                            if ($seeded + $grands.Count -gt $seedLimit) {
+                                continue
+                            }
+                            $derived = @($grands | Sort-Object -Property 'SizeBytes' -Descending | Select-Object -First $Top)
+                            $childKey = '{0}|{1}' -f $entry.FullName, $false
+                            if ($cache.ContainsKey($childKey)) {
+                                $null = $cacheOrder.Remove($childKey)
+                            }
+                            $cache[$childKey] = $derived
+                            $cacheOrder.Add($childKey)
+                            $derivedKeys[$childKey] = $true
+                            $seeded += $grands.Count
+                        }
                     }
 
                     $inaccessible = 0

@@ -10,6 +10,20 @@ All notable changes to PSWinOps are documented in this file. Versions follow
 > `1.2.1` (2026-09-10): `1.3.0` and `1.3.1` were bumped in the manifest but never
 > tagged or published — that work is released here as `1.4.0`.
 
+## [Unreleased]
+
+### Added
+
+- `Watch-DriveUsage`: the folder scan now also derives the size of each child's own
+  subfolders while it walks, and pre-seeds those levels into the cache, so drilling into a
+  child renders instantly instead of rescanning. Derived levels show a
+  `Derived sizes (cached) - press R to measure exactly` status line, and `R` replaces them
+  with an exact measurement. Seeding is folders-only (files mode stays exact), capped at
+  5,000 derived rows per scan, and a child with more than 1,000 subfolders is left unseeded.
+  The `Measure-FolderSize` private helper gains a `-CollectGrandchildren` switch and a
+  `-GrandchildMap` `[ref]` output, both off by default so the primary output is unchanged
+  (#140).
+
 ## [1.4.0] - 2026-09-25
 
 ### Added

@@ -36,6 +36,16 @@ function Measure-FolderSize {
             one [PSCustomObject] per report with FolderIndex, FolderCount, FileCount,
             Bytes and CurrentName, so a caller can render a live progress indicator.
 
+        .PARAMETER CollectGrandchildren
+            When set, also accumulate per-grandchild-directory totals during the single
+            subtree walk it already performs, and return them through -GrandchildMap.
+            Off by default, so the primary output and the default walk are unchanged.
+
+        .PARAMETER GrandchildMap
+            A [ref] to a hashtable that receives the per-grandchild totals, keyed by
+            grandchild full path. Each value is an object with SizeBytes and FileCount.
+            Only populated when -CollectGrandchildren is set.
+
         .EXAMPLE
             Measure-FolderSize -Path 'C:\Temp'
             Returns one entry per immediate child directory of C:\Temp plus a '(files)'
@@ -62,7 +72,7 @@ function Measure-FolderSize {
         .NOTES
             Author: Franck SALLET
             Version: 1.0.0
-            Last Modified: 2026-09-20
+            Last Modified: 2026-09-25
             Requires: PowerShell 5.1+ / Windows only
             Scope: Private - not exported
     #>
@@ -77,7 +87,13 @@ function Measure-FolderSize {
         [switch]$IncludeFiles,
 
         [Parameter(Mandatory = $false)]
-        [scriptblock]$OnProgress
+        [scriptblock]$OnProgress,
+
+        [Parameter(Mandatory = $false)]
+        [switch]$CollectGrandchildren,
+
+        [Parameter(Mandatory = $false)]
+        [ref]$GrandchildMap
     )
 
     process {
@@ -93,6 +109,9 @@ function Measure-FolderSize {
         }
 
         $reparse = [System.IO.FileAttributes]::ReparsePoint
+
+        $collect = $CollectGrandchildren.IsPresent
+        $grandMap = @{}
 
         # ---- Immediate child directories ----
         $childErrors = $null
@@ -145,11 +164,32 @@ function Measure-FolderSize {
 
             $subErrors = $null
             $accum = [pscustomobject]@{ Size = [long]0; Count = [long]0 }
+            $dirFullLen = $dir.FullName.Length
             Get-ChildItem -LiteralPath $dir.FullName -Force -Recurse -File `
                 -ErrorAction SilentlyContinue -ErrorVariable subErrors |
                 ForEach-Object {
                     $accum.Size += [long]$_.Length
                     $accum.Count++
+                    if ($collect) {
+                        # A file one level below $dir belongs to a grandchild of $Path;
+                        # files directly under $dir (no further separator) have none.
+                        $rel = $_.FullName.Substring($dirFullLen).TrimStart('\')
+                        $sep = $rel.IndexOf('\')
+                        if ($sep -gt 0) {
+                            $grandPath = $dir.FullName + '\' + $rel.Substring(0, $sep)
+                            if ($grandMap.ContainsKey($grandPath)) {
+                                $totals = $grandMap[$grandPath]
+                                $totals.SizeBytes += [long]$_.Length
+                                $totals.FileCount++
+                            }
+                            else {
+                                $grandMap[$grandPath] = [PSCustomObject]@{
+                                    SizeBytes = [long]$_.Length
+                                    FileCount = [long]1
+                                }
+                            }
+                        }
+                    }
                     if ($null -ne $OnProgress -and ($scanState.Stopwatch.ElapsedMilliseconds - $scanState.LastReport) -ge 100) {
                         & $report $dirIndex $dirCount ($totalFiles + $accum.Count) ($totalBytes + $accum.Size) $dir.Name
                         $scanState.LastReport = $scanState.Stopwatch.ElapsedMilliseconds
@@ -207,6 +247,11 @@ function Measure-FolderSize {
                     Inaccessible = [long]0
                 }
             }
+        }
+
+        # ---- Per-grandchild totals (only when requested) ----
+        if ($collect -and $null -ne $GrandchildMap) {
+            $GrandchildMap.Value = $grandMap
         }
     }
 }
