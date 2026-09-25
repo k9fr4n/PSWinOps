@@ -121,6 +121,54 @@ Describe 'Measure-FolderSize' {
         }
     }
 
+    Context 'CollectGrandchildren switch' {
+
+        It 'populates the GrandchildMap with per-grandchild totals keyed by full path' {
+            $map = & (Get-Module -Name 'PSWinOps') {
+                param($p)
+                $local = @{}
+                $null = Measure-FolderSize -Path $p -CollectGrandchildren -GrandchildMap ([ref]$local)
+                return $local
+            } $script:root
+
+            $subA = Join-Path -Path (Join-Path -Path $script:root -ChildPath 'ChildA') -ChildPath 'SubA'
+
+            $map.Keys.Count         | Should -Be 1
+            $map.ContainsKey($subA) | Should -BeTrue
+            $map[$subA].SizeBytes   | Should -Be 50
+            $map[$subA].FileCount   | Should -Be 1
+        }
+
+        It 'keeps the primary output unchanged when CollectGrandchildren is on' {
+            $baseline = @(script:InvokeMeasure @{ Path = $script:root })
+            $collected = @(& (Get-Module -Name 'PSWinOps') {
+                    param($p)
+                    $local = @{}
+                    Measure-FolderSize -Path $p -CollectGrandchildren -GrandchildMap ([ref]$local)
+                } $script:root)
+
+            $baselineProj = @($baseline | Sort-Object -Property FullName | ForEach-Object {
+                    '{0}|{1}|{2}|{3}' -f $_.Name, $_.FullName, $_.SizeBytes, $_.FileCount
+                })
+            $collectedProj = @($collected | Sort-Object -Property FullName | ForEach-Object {
+                    '{0}|{1}|{2}|{3}' -f $_.Name, $_.FullName, $_.SizeBytes, $_.FileCount
+                })
+
+            $collectedProj | Should -Be $baselineProj
+        }
+
+        It 'leaves the GrandchildMap empty when CollectGrandchildren is off' {
+            $map = & (Get-Module -Name 'PSWinOps') {
+                param($p)
+                $local = @{}
+                $null = Measure-FolderSize -Path $p -GrandchildMap ([ref]$local)
+                return $local
+            } $script:root
+
+            $map.Keys.Count | Should -Be 0
+        }
+    }
+
     Context 'Bad path handling (non-terminating, returns nothing, no throw)' {
 
         It 'writes an error and returns nothing for a non-existent path' {
