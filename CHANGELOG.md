@@ -7,10 +7,11 @@ All notable changes to PSWinOps are documented in this file. Versions follow
 > PowerShell Gallery. Work merged to `main` after `0.0.23` (2026-05-21) was never
 > released as `0.0.24`/`0.1.x`/`0.12.x` — those version numbers never shipped. That
 > accumulated work is released here as `1.0.0`. The same happened again after
-> `1.2.1` (2026-09-10): `1.3.0` and `1.3.1` were bumped in the manifest but never
-> tagged or published — that work is released here as `1.4.0`.
+> `1.2.1` (2026-09-10): `1.3.0`, `1.3.1` and `1.4.0` were bumped in the manifest but
+> never tagged or published — all of that accumulated work is released here as
+> `1.3.0`.
 
-## [Unreleased]
+## [1.3.0] - 2026-09-25
 
 ### Added
 
@@ -23,16 +24,6 @@ All notable changes to PSWinOps are documented in this file. Versions follow
   The `Measure-FolderSize` private helper gains a `-CollectGrandchildren` switch and a
   `-GrandchildMap` `[ref]` output, both off by default so the primary output is unchanged
   (#140).
-
-### Fixed
-
-- `build.ps1 -Task Test`: replaced `Join-Path -AdditionalChildPath`, a PowerShell 6+
-  parameter, with a nested `Join-Path` call so the build script runs on Windows
-  PowerShell 5.1 as the module itself targets (#160).
-
-## [1.4.0] - 2026-09-25
-
-### Added
 
 - `Get-PSWinOpsFunction` (root-level meta-function, alias `gpwof`): lists the
   module's public functions grouped by domain, returning one object per function
@@ -103,6 +94,9 @@ All notable changes to PSWinOps are documented in this file. Versions follow
   screen escape (`ESC[0J`), so navigating from a folder with many rows into one with
   fewer rows no longer leaves the previous level's rows lingering at the bottom of the
   screen.
+- `build.ps1 -Task Test`: replaced `Join-Path -AdditionalChildPath`, a PowerShell 6+
+  parameter, with a nested `Join-Path` call so the build script runs on Windows
+  PowerShell 5.1 as the module itself targets (#160).
 
 ## [1.2.0] - 2026-09-09
 
