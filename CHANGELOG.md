@@ -6,9 +6,11 @@ All notable changes to PSWinOps are documented in this file. Versions follow
 > **Note on history**: only `0.0.1` through `0.0.23` were ever published to the
 > PowerShell Gallery. Work merged to `main` after `0.0.23` (2026-05-21) was never
 > released as `0.0.24`/`0.1.x`/`0.12.x` — those version numbers never shipped. That
-> accumulated work is released here as `1.0.0`.
+> accumulated work is released here as `1.0.0`. The same happened again after
+> `1.2.1` (2026-09-10): `1.3.0` and `1.3.1` were bumped in the manifest but never
+> tagged or published — that work is released here as `1.4.0`.
 
-## [Unreleased]
+## [1.4.0] - 2026-09-25
 
 ### Added
 
