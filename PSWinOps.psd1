@@ -12,7 +12,7 @@
     RootModule           = 'PSWinOps.psm1'
 
     # Version number of this module.
-    ModuleVersion        = '1.3.0'
+    ModuleVersion        = '1.3.1'
 
     # Supported PSEditions
     # Core is supported on Windows only; the module-level guard in PSWinOps.psm1 blocks
@@ -440,7 +440,15 @@
             # IconUri = ''
 
             # ReleaseNotes of this module
-            ReleaseNotes = '## 1.3.0 - 2026-09-25 UTC
+            ReleaseNotes = '## 1.3.1 - 2026-09-26 UTC
+
+### Fixed
+- Documentation: corrected the stale domain count ("fourteen" -> "fifteen") in about_PSWinOps.help.txt after the disk domain was split out of system in 1.3.0.
+
+### Changed
+- Repository hygiene: added coverage.xml (the CI code-coverage artifact) to .gitignore and stopped tracking the committed copy.
+
+## 1.3.0 - 2026-09-25 UTC
 
 ### Added
 - Watch-DriveUsage: the folder scan now also derives the size of each child''s own subfolders while it walks, and pre-seeds those levels into the cache, so drilling into a child renders instantly instead of rescanning. Derived levels show a ''Derived sizes (cached) - press R to measure exactly'' status line, and R replaces them with an exact measurement. Seeding is folders-only (files mode stays exact), capped at 5,000 derived rows per scan, and a child with more than 1,000 subfolders is left unseeded. The Measure-FolderSize private helper gains a -CollectGrandchildren switch and a -GrandchildMap [ref] output, both off by default so the primary output is unchanged.

@@ -9,7 +9,20 @@ All notable changes to PSWinOps are documented in this file. Versions follow
 > accumulated work is released here as `1.0.0`. The same happened again after
 > `1.2.1` (2026-09-10): `1.3.0`, `1.3.1` and `1.4.0` were bumped in the manifest but
 > never tagged or published — all of that accumulated work is released here as
-> `1.3.0`.
+> `1.3.0`. `1.3.1` is the first patch published on top of `1.3.0`.
+
+## [1.3.1] - 2026-09-26
+
+### Fixed
+
+- Documentation: corrected the stale domain count (`fourteen` → `fifteen`) in
+  `about_PSWinOps.help.txt` after the `disk` domain was split out of `system`
+  in 1.3.0.
+
+### Changed
+
+- Repository hygiene: added `coverage.xml` (the CI code-coverage artifact) to
+  `.gitignore` and stopped tracking the committed copy.
 
 ## [1.3.0] - 2026-09-25
 
